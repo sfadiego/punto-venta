@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Core\Data\IndexData;
 use App\Core\Paginator\DataTable;
 use App\Models\CategoryModel;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 
 class CategoryService extends DataTable
@@ -25,12 +24,12 @@ class CategoryService extends DataTable
         ];
     }
 
-    public function makeQuery(): Builder
+    public function makeQuery(): \Illuminate\Database\Eloquent\Builder
     {
         return $this->model->newQuery();
     }
 
-    public function runCustomQueryFilters(): Builder
+    public function runCustomQueryFilters(): \Illuminate\Database\Eloquent\Builder
     {
         parent::runCustomQueryFilters();
 

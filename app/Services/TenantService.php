@@ -6,7 +6,6 @@ use App\Core\Data\IndexData;
 use App\Core\Paginator\DataTable;
 use App\Enums\TenantStatusEnum;
 use App\Models\BusinessConfigModel;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 
 class TenantService extends DataTable
@@ -25,7 +24,7 @@ class TenantService extends DataTable
         ];
     }
 
-    public function makeQuery(): Builder
+    public function makeQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $status = TenantStatusEnum::tryFrom(request()->query('status', ''));
         $search = request()->query('search');

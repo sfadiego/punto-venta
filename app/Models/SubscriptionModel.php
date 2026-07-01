@@ -5,14 +5,11 @@ namespace App\Models;
 use App\Enums\SubscriptionPlanEnum;
 use App\Enums\SubscriptionStatusEnum;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SubscriptionModel extends Model
 {
-    use HasFactory;
-
     protected $table = 'subscriptions';
 
     const TENANT_ID = 'tenant_id';

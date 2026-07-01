@@ -3,12 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\CategoryModel;
-use App\Models\Model;
 use App\Models\ProductModel as Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Model>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
  */
 class ProductModelFactory extends Factory
 {

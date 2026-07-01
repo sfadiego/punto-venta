@@ -80,27 +80,6 @@ class OrderProductTest extends TestCase
         ]);
     }
 
-    // ── Store — extra ────────────────────────────────────────
-
-    public function test_agrega_extra_a_orden(): void
-    {
-        $orden = $this->crearOrden();
-
-        $this->postJson("/api/order/{$orden->id}/product", [
-            OrderProductModel::NOMBRE_EXTRA => 'Agua sin gas',
-            OrderProductModel::CANTIDAD => 1,
-            OrderProductModel::PRECIO => 20,
-        ], $this->authHeaders())
-            ->assertStatus(200)
-            ->assertJsonPath('status', 'OK')
-            ->assertJsonPath('data.nombre_extra', 'Agua sin gas');
-
-        $this->assertDatabaseHas('order_product', [
-            'pedido_id' => $orden->id,
-            'nombre_extra' => 'Agua sin gas',
-        ]);
-    }
-
     public function test_sin_producto_ni_extra_retorna_error(): void
     {
         $orden = $this->crearOrden();
@@ -206,23 +185,24 @@ class OrderProductTest extends TestCase
 
     // ── DeleteExtra ──────────────────────────────────────────
 
-    public function test_elimina_extra_de_orden(): void
+    public function test_elimina_item_de_orden_por_id(): void
     {
         $orden = $this->crearOrden();
+        $product = $this->crearProducto();
 
-        $extra = OrderProductModel::create([
+        $item = OrderProductModel::create([
             OrderProductModel::PEDIDO_ID => $orden->id,
-            OrderProductModel::NOMBRE_EXTRA => 'Agua sparkling',
+            OrderProductModel::PRODUCTO_ID => $product->id,
             OrderProductModel::CANTIDAD => 1,
             OrderProductModel::PRECIO => 20,
             OrderProductModel::DESCUENTO => 0,
         ]);
 
-        $this->deleteJson("/api/order/{$orden->id}/extra/{$extra->id}", [], $this->authHeaders())
+        $this->deleteJson("/api/order/{$orden->id}/extra/{$item->id}", [], $this->authHeaders())
             ->assertStatus(200)
             ->assertJsonPath('status', 'OK');
 
-        $this->assertDatabaseMissing('order_product', ['id' => $extra->id]);
+        $this->assertDatabaseMissing('order_product', ['id' => $item->id]);
     }
 
     // ── Auth ─────────────────────────────────────────────────
