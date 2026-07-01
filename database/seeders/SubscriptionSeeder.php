@@ -20,11 +20,11 @@ class SubscriptionSeeder extends Seeder
         SubscriptionModel::firstOrCreate(
             [SubscriptionModel::TENANT_ID => $tenant->id],
             [
-                SubscriptionModel::PLAN       => SubscriptionPlanEnum::Lifetime->value,
-                SubscriptionModel::STARTS_AT  => now(),
+                SubscriptionModel::PLAN => SubscriptionPlanEnum::Lifetime->value,
+                SubscriptionModel::STARTS_AT => now(),
                 SubscriptionModel::EXPIRES_AT => '2099-12-31',
-                SubscriptionModel::PAID_AT    => now(),
-                SubscriptionModel::AMOUNT     => 0,
+                SubscriptionModel::PAID_AT => now(),
+                SubscriptionModel::AMOUNT => 0,
             ]
         );
     }

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SubscriptionModel extends Model
 {
     use HasFactory;
+
     protected $table = 'subscriptions';
 
     const TENANT_ID = 'tenant_id';

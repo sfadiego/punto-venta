@@ -13,15 +13,15 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            User::NOMBRE           => fake()->firstName(),
-            User::EMAIL            => fake()->unique()->safeEmail(),
-            'email_verified_at'    => now(),
-            User::USUARIO          => fake()->unique()->userName(),
-            User::PASSWORD         => bcrypt('password'),
+            User::NOMBRE => fake()->firstName(),
+            User::EMAIL => fake()->unique()->safeEmail(),
+            'email_verified_at' => now(),
+            User::USUARIO => fake()->unique()->userName(),
+            User::PASSWORD => bcrypt('password'),
             User::APELLIDO_PATERNO => fake()->lastName(),
             User::APELLIDO_MATERNO => fake()->lastName(),
-            User::ROL_ID           => RoleEnum::EMPLOYE->value,
-            User::ACTIVO           => 1,
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
+            User::ACTIVO => 1,
         ];
     }
 

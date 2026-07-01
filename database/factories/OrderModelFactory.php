@@ -8,7 +8,7 @@ use App\Models\OrderModel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\OrderModel>
+ * @extends Factory<OrderModel>
  */
 class OrderModelFactory extends Factory
 {
@@ -28,8 +28,8 @@ class OrderModelFactory extends Factory
             OrderModel::SUBTOTAL => $total,
             OrderModel::DESCUENTO => $this->faker->numberBetween(1, 99),
             OrderModel::NOMBRE_PEDIDO => $this->faker->name(),
-            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS,
-            OrderModel::SISTEMA_ID => MainOrderReportModel::all()->random()->id,
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS->value,
+            OrderModel::SISTEMA_ID => MainOrderReportModel::factory(),
         ];
     }
 }

@@ -14,12 +14,12 @@ class SubscriptionModelFactory extends Factory
     public function definition(): array
     {
         return [
-            SubscriptionModel::TENANT_ID  => BusinessConfigModel::factory(),
-            SubscriptionModel::PLAN       => SubscriptionPlanEnum::Lifetime->value,
-            SubscriptionModel::STARTS_AT  => now(),
+            SubscriptionModel::TENANT_ID => BusinessConfigModel::factory(),
+            SubscriptionModel::PLAN => SubscriptionPlanEnum::Lifetime->value,
+            SubscriptionModel::STARTS_AT => now(),
             SubscriptionModel::EXPIRES_AT => '2099-12-31',
-            SubscriptionModel::PAID_AT    => now(),
-            SubscriptionModel::AMOUNT     => 0,
+            SubscriptionModel::PAID_AT => now(),
+            SubscriptionModel::AMOUNT => 0,
         ];
     }
 }

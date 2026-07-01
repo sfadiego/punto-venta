@@ -8,7 +8,7 @@ use App\Models\ProductModel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\orderProductModel>
+ * @extends Factory<OrderProductModel>
  */
 class OrderProductModelFactory extends Factory
 {
@@ -22,8 +22,8 @@ class OrderProductModelFactory extends Factory
     public function definition(): array
     {
         return [
-            OrderProductModel::PRODUCTO_ID => ProductModel::all()->random()->id,
-            OrderProductModel::PEDIDO_ID => OrderModel::all()->random()->id,
+            OrderProductModel::PRODUCTO_ID => ProductModel::factory(),
+            OrderProductModel::PEDIDO_ID => OrderModel::factory(),
             OrderProductModel::DESCUENTO => $this->faker->numberBetween(1, 9),
             OrderProductModel::CANTIDAD => $this->faker->numberBetween(1, 10),
             OrderProductModel::PRECIO => $this->faker->numberBetween(60, 100),
