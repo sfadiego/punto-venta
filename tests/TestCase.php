@@ -12,7 +12,6 @@ abstract class TestCase extends BaseTestCase
 
     protected bool $seed = true;
 
-    /** Returns headers with a valid Sanctum token for the given user (admin by default). */
     protected function authHeaders(?User $user = null): array
     {
         $user ??= User::where('rol_id', 1)->first();
