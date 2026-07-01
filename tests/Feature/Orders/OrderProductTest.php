@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Orders;
 
 use App\Enums\MainOrderStatusEnum;
 use App\Models\BusinessConfigModel;
