@@ -5,17 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProductImageStoreRequest;
 use App\Models\ProductImageModel;
 use App\Models\ProductModel;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
 class ProductImageController extends Controller
 {
-    public function store(ProductModel $product, ProductImageStoreRequest $param, Request $request): ProductModel
+    public function store(ProductModel $product, ProductImageStoreRequest $param): ProductModel
     {
-        $slug = $request->user()->tenant->slug;
-        $upload = ProductImageModel::processImage($param->file, $slug);
+        $slug = $param->user()->tenant->slug;
+        $upload = ProductImageModel::processImage($param->file('file'), $slug);
         if (! $upload) {
-            Response::error('No se puede subir la imagen');
+            return Response::error('No se puede subir la imagen');
         }
 
         $picture = ProductImageModel::create([
@@ -32,12 +31,11 @@ class ProductImageController extends Controller
         ProductModel $product,
         ProductImageModel $image,
         ProductImageStoreRequest $param,
-        Request $request,
     ): ProductModel {
-        $slug = $request->user()->tenant->slug;
-        $upload = ProductImageModel::processImage($param->file, $slug);
+        $slug = $param->user()->tenant->slug;
+        $upload = ProductImageModel::processImage($param->file('file'), $slug);
         if (! $upload) {
-            Response::error('No se puede subir la imagen');
+            return Response::error('No se puede subir la imagen');
         }
 
         ProductImageModel::deleteFile($image->nombre_archivo);
