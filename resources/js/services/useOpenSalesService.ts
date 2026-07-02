@@ -21,5 +21,3 @@ export interface ITotalCurrentSale {
 export const useCurrentTotalSale = (systemId: number | null) =>
     useGET<ITotalCurrentSale>({ url: `${url}/${systemId}/total-current-sales`, enable: !!systemId && systemId > 0 });
 
-export const useDetailOfCloseSales = (systemId: number) =>
-    useGET({ url: `${url}/${systemId}/detail-close-sales` });
