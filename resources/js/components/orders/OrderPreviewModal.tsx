@@ -22,6 +22,7 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
     const { isOpen, open, close, products, isLoading, isReadyToServe, isUpdatingStatus, markReadyToServe } = useOrderPreviewModal(order.id);
     const { features } = useAxios();
     const showReadyToServe = features?.ready_to_serve !== false;
+    const sellByWeight = features?.sell_by_weight === true;
 
     return (
         <>
@@ -82,8 +83,8 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                             </div>
                         )}
 
-                        {/* Domicilio */}
-                        {Number(order.costo_domicilio) > 0 && (
+                        {/* Domicilio — solo negocios de venta por peso */}
+                        {sellByWeight && Number(order.costo_domicilio) > 0 && (
                             <div className="px-5 py-2.5 border-b border-stone-100 shrink-0">
                                 <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-100 rounded-xl">
                                     <Bike size={13} className="text-red-400 shrink-0" />

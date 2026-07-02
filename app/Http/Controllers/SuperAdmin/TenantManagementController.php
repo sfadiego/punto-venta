@@ -5,12 +5,15 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Core\Data\IndexData;
 use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
+use App\Enums\SubscriptionPlanEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TenantStoreRequest;
 use App\Http\Requests\TenantUpdateRequest;
 use App\Models\BusinessConfigModel;
+use App\Models\SubscriptionModel;
 use App\Models\User;
 use App\Services\TenantService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
@@ -46,6 +49,14 @@ class TenantManagementController extends Controller
             User::ACTIVO => true,
             User::TENANT_ID => $tenant->id,
         ]);
+
+        SubscriptionModel::createFromPlan(
+            tenantId: $tenant->id,
+            plan: SubscriptionPlanEnum::Monthly,
+            startsAt: Carbon::today(),
+            amount: 0,
+            notes: 'Suscripción inicial de 1 mes',
+        );
 
         return Response::success($tenant);
     }

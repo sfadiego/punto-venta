@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\BusinessTypeEnum;
+use App\Enums\RoleEnum;
 use App\Enums\SubscriptionStatusEnum;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
@@ -42,6 +43,12 @@ class AuthController extends Controller
 
         if (! $result) {
             return Response::error(__('Credenciales no válidas.'));
+        }
+
+        if ($result['user']->rol_id === RoleEnum::SUPERADMIN->value) {
+            $result['user']->tokens()->latest()->first()?->delete();
+
+            return Response::error(__('Accede desde el panel de super administrador.'));
         }
 
         if ($params->filled('slug')) {

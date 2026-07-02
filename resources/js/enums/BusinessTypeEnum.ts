@@ -1,13 +1,11 @@
 export enum BusinessTypeEnum {
-    Restaurante = "restaurante",
-    Carniceria  = "carniceria",
-    Polleria    = "polleria",
+    Restaurante  = "restaurante",
+    VentaPorPeso = "venta_por_peso",
 }
 
 export const BUSINESS_TYPE_LABELS: Record<BusinessTypeEnum, string> = {
-    [BusinessTypeEnum.Restaurante]: "Restaurante / Cafetería",
-    [BusinessTypeEnum.Carniceria]:  "Carnicería",
-    [BusinessTypeEnum.Polleria]:    "Pollería",
+    [BusinessTypeEnum.Restaurante]:  "Servicio en mesa / mostrador",
+    [BusinessTypeEnum.VentaPorPeso]: "Venta por peso",
 };
 
 export interface IBusinessFeatures {

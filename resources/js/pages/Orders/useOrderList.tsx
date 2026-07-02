@@ -30,7 +30,7 @@ const actionsColumn: DataTableColumn<IOrder> = {
     render: (order: IOrder) => <OrderActionButtons order={order} />,
 };
 
-const carniceriaActionsColumn: DataTableColumn<IOrder> = {
+const ventaPorPesoActionsColumn: DataTableColumn<IOrder> = {
     accessor: "_acciones" as keyof IOrder,
     title: "",
     width: 80,
@@ -74,7 +74,7 @@ export const useOrderList = () => {
                                   ? (col.accessor as string) !== "estatus_pedido_id"
                                   : true,
                           ),
-                          sellByWeight ? carniceriaActionsColumn : actionsColumn,
+                          sellByWeight ? ventaPorPesoActionsColumn : actionsColumn,
                       ] as DataTableColumn<IOrder>[])
                     : [],
         }),

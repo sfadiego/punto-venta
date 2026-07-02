@@ -21,6 +21,7 @@ export const useNewSaleModal = (onClose: () => void) => {
     const [nombrePedido, setNombrePedido] = useState("");
     const [domicilioActivo, setDomicilioActivo] = useState(false);
     const [costoDomicilio, setCostoDomicilio] = useState<string>("");
+    const [orderDeliveryPaidBy, setOrderDeliveryPaidBy] = useState<'customer' | 'business'>('customer');
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
     const [cart, setCart] = useState<ICartItem[]>([]);
 
@@ -29,6 +30,7 @@ export const useNewSaleModal = (onClose: () => void) => {
         if (checked) {
             const defaultCost = businessConfig?.costo_domicilio_default ?? 0;
             setCostoDomicilio(defaultCost > 0 ? String(defaultCost) : "");
+            setOrderDeliveryPaidBy(businessConfig?.delivery_paid_by ?? 'customer');
         } else {
             setCostoDomicilio("");
         }
@@ -142,6 +144,8 @@ export const useNewSaleModal = (onClose: () => void) => {
         toggleDomicilio,
         costoDomicilio,
         setCostoDomicilio,
+        orderDeliveryPaidBy,
+        setOrderDeliveryPaidBy,
         categories: categories ?? [],
         selectedCategory,
         setSelectedCategory,

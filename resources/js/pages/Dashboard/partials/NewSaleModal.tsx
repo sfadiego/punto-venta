@@ -16,6 +16,7 @@ export const NewSaleModal = ({ onClose }: NewSaleModalProps) => {
         nombrePedido, setNombrePedido,
         domicilioActivo, toggleDomicilio,
         costoDomicilio, setCostoDomicilio,
+        orderDeliveryPaidBy, setOrderDeliveryPaidBy,
         categories, selectedCategory, setSelectedCategory,
         products, productsLoading,
         cart, total,
@@ -25,7 +26,10 @@ export const NewSaleModal = ({ onClose }: NewSaleModalProps) => {
     } = useNewSaleModal(onClose);
 
     const domicilio = parseFloat(costoDomicilio) || 0;
-    const neto = total - domicilio;
+    const customerPays = orderDeliveryPaidBy === 'customer';
+    const totalFinal = domicilioActivo && domicilio > 0
+        ? (customerPays ? total + domicilio : total - domicilio)
+        : total;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
@@ -205,7 +209,7 @@ export const NewSaleModal = ({ onClose }: NewSaleModalProps) => {
 
                         {/* Total + Cobrar */}
                         <div className="px-4 py-4 border-t border-stone-100 shrink-0 space-y-2">
-                            {/* Checkbox envío a domicilio */}
+                            {/* Checkbox envío a domicilio — solo negocios de venta por peso */}
                             {sellByWeight && (
                                 <label className="flex items-center gap-2 cursor-pointer select-none">
                                     <input
@@ -220,21 +224,48 @@ export const NewSaleModal = ({ onClose }: NewSaleModalProps) => {
                                     </span>
                                 </label>
                             )}
-                            {/* Input de costo de domicilio */}
+                            {/* Costo + quién paga — por orden */}
                             {sellByWeight && domicilioActivo && (
-                                <div className="flex items-center gap-2">
-                                    <label className="text-xs text-stone-500 shrink-0">Costo $</label>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        step={0.5}
-                                        value={costoDomicilio}
-                                        onChange={(e) => setCostoDomicilio(e.target.value)}
-                                        placeholder="0.00"
-                                        className="flex-1 px-2 py-1 border border-amber-300 rounded-lg text-xs
-                                            text-right focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                    />
-                                </div>
+                                <>
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-xs text-stone-500 shrink-0">Costo $</label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            step={0.5}
+                                            value={costoDomicilio}
+                                            onChange={(e) => setCostoDomicilio(e.target.value)}
+                                            placeholder="0.00"
+                                            className="flex-1 px-2 py-1 border border-amber-300 rounded-lg text-xs
+                                                text-right focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                        />
+                                    </div>
+                                    {/* Toggle quién paga este envío */}
+                                    <div className="flex rounded-lg border border-stone-200 overflow-hidden text-xs">
+                                        <button
+                                            type="button"
+                                            onClick={() => setOrderDeliveryPaidBy('customer')}
+                                            className={`flex-1 py-1.5 font-medium transition-colors ${
+                                                customerPays
+                                                    ? 'bg-amber-500 text-white'
+                                                    : 'bg-white text-stone-500 hover:bg-stone-50'
+                                            }`}
+                                        >
+                                            Cliente paga
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setOrderDeliveryPaidBy('business')}
+                                            className={`flex-1 py-1.5 font-medium transition-colors border-l border-stone-200 ${
+                                                !customerPays
+                                                    ? 'bg-amber-500 text-white'
+                                                    : 'bg-white text-stone-500 hover:bg-stone-50'
+                                            }`}
+                                        >
+                                            Negocio paga
+                                        </button>
+                                    </div>
+                                </>
                             )}
                             <div className="flex items-center justify-between">
                                 <span className="text-xs text-stone-400">Subtotal</span>
@@ -242,16 +273,22 @@ export const NewSaleModal = ({ onClose }: NewSaleModalProps) => {
                             </div>
                             {sellByWeight && domicilioActivo && domicilio > 0 && (
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs text-stone-400">- Domicilio</span>
-                                    <span className="text-sm text-red-500">-${domicilio.toFixed(2)}</span>
+                                    <span className="text-xs text-stone-400">
+                                        {customerPays ? '+ Domicilio' : '- Domicilio'}
+                                    </span>
+                                    <span className={`text-sm ${customerPays ? 'text-amber-600' : 'text-red-500'}`}>
+                                        {customerPays ? '+' : '-'}${domicilio.toFixed(2)}
+                                    </span>
                                 </div>
                             )}
                             <div className="flex items-center justify-between pt-1 border-t border-stone-100">
                                 <span className="text-sm font-medium text-stone-600">
-                                    {sellByWeight && domicilioActivo && domicilio > 0 ? "Ingreso neto" : "Total"}
+                                    {sellByWeight && domicilioActivo && domicilio > 0 && !customerPays
+                                        ? 'Ingreso neto'
+                                        : 'Total'}
                                 </span>
                                 <span className="text-lg font-bold text-stone-900">
-                                    ${(sellByWeight && domicilioActivo && domicilio > 0 ? neto : total).toFixed(2)}
+                                    ${totalFinal.toFixed(2)}
                                 </span>
                             </div>
                             <button

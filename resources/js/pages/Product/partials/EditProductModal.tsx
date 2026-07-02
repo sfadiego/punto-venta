@@ -4,6 +4,7 @@ import { ICategory } from "@/models/ICategory";
 import { IProduct } from "@/models/IProduct";
 import { ProductForm } from "./useAddProductModal";
 import { UnidadMedidaEnum, UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
+import { Textarea } from "@/components/ui/form/textarea";
 
 interface EditProductModalProps {
     isOpen: boolean;
@@ -61,7 +62,11 @@ export const EditProductModal = ({
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
                             autoFocus
-                            className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                            className={`w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent ${
+                                formik.touched.nombre && formik.errors.nombre
+                                    ? "border-red-300"
+                                    : "border-stone-200"
+                            }`}
                         />
                         {formik.touched.nombre && formik.errors.nombre && (
                             <p className="text-xs text-red-500 mt-1">{formik.errors.nombre}</p>
@@ -69,19 +74,13 @@ export const EditProductModal = ({
                     </div>
 
                     {/* Descripción */}
-                    <div>
-                        <label className="block text-xs font-medium text-stone-600 mb-1.5">
-                            Descripción
-                        </label>
-                        <textarea
-                            name="descripcion"
-                            value={formik.values.descripcion}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            rows={2}
-                            className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none"
-                        />
-                    </div>
+                    <Textarea<ProductForm>
+                        name="descripcion"
+                        label="Descripción"
+                        placeholder="Descripción del producto"
+                        formik={formik}
+                        rows={2}
+                    />
 
                     <div className="grid grid-cols-2 gap-3">
                         {/* Precio */}
@@ -102,7 +101,11 @@ export const EditProductModal = ({
                                     value={formik.values.precio}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    className="w-full pl-7 pr-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent tabular-nums"
+                                    className={`w-full pl-7 pr-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent tabular-nums ${
+                                        formik.touched.precio && formik.errors.precio
+                                            ? "border-red-300"
+                                            : "border-stone-200"
+                                    }`}
                                 />
                             </div>
                             {formik.touched.precio && formik.errors.precio && (
@@ -120,7 +123,11 @@ export const EditProductModal = ({
                                 value={formik.values.categoria_id}
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
-                                className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white"
+                                className={`w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white ${
+                                    formik.touched.categoria_id && formik.errors.categoria_id
+                                        ? "border-red-300"
+                                        : "border-stone-200"
+                                }`}
                             >
                                 <option value="">Seleccionar...</option>
                                 {categories.map((cat) => (

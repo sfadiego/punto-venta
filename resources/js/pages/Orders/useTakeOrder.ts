@@ -41,7 +41,7 @@ export const useTakeOrder = () => {
         id: op.producto_id ?? null,
         name: op.nombre_extra ?? op.product?.nombre ?? "",
         price: op.precio,
-        quantity: op.cantidad,
+        quantity: parseFloat(String(op.cantidad)),
         isExtra: !op.producto_id,
         observacion: op.observacion ?? null,
     }));

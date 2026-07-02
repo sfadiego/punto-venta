@@ -70,13 +70,17 @@ class TenantUserController extends Controller
     public function seedUsers(BusinessConfigModel $tenant): JsonResponse
     {
         $slug = $tenant->slug;
+        $features = $tenant->tipo_negocio->features();
 
         $seeds = [
             ['role' => RoleEnum::ADMIN,   'nombre' => 'Administrador'],
             ['role' => RoleEnum::EMPLOYE, 'nombre' => 'Empleado'],
-            ['role' => RoleEnum::COCINA,  'nombre' => 'Cocina'],
             ['role' => RoleEnum::CAJA,    'nombre' => 'Caja'],
         ];
+
+        if ($features['kitchen_view']) {
+            $seeds[] = ['role' => RoleEnum::COCINA, 'nombre' => 'Cocina'];
+        }
 
         $created = [];
         $skipped = [];

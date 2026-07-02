@@ -4,16 +4,14 @@ namespace App\Enums;
 
 enum BusinessTypeEnum: string
 {
-    case Restaurante = 'restaurante';
-    case Carniceria = 'carniceria';
-    case Polleria = 'polleria';
+    case Restaurante  = 'restaurante';
+    case VentaPorPeso = 'venta_por_peso';
 
     public function label(): string
     {
         return match ($this) {
-            self::Restaurante => 'Restaurante / Cafetería',
-            self::Carniceria => 'Carnicería',
-            self::Polleria => 'Pollería',
+            self::Restaurante  => 'Servicio en mesa / mostrador',
+            self::VentaPorPeso => 'Venta por peso',
         };
     }
 
@@ -26,12 +24,12 @@ enum BusinessTypeEnum: string
                 'ready_to_serve'  => true,
                 'sell_by_weight'  => false,
             ],
-            self::Carniceria, self::Polleria => [
+            self::VentaPorPeso => [
                 'kitchen_view'    => false,
                 'ready_to_serve'  => false,
                 'sell_by_weight'  => true,
             ],
-            default =>  [
+            default => [
                 'kitchen_view'    => true,
                 'ready_to_serve'  => true,
                 'sell_by_weight'  => false,

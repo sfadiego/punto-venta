@@ -3,16 +3,26 @@
 namespace Database\Seeders;
 
 use App\Enums\UnidadMedidaEnum;
+use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use App\Models\ProductModel;
 use Illuminate\Database\Seeder;
 
-class CarniceriaSeeder extends Seeder
+class VentaPorPesoSeeder extends Seeder
 {
-    private const TENANT_ID = 8;
-
     public function run(): void
     {
+        $slug = $this->command->option('slug') ?? env('APP_TENANT_SLUG', 'pos-app');
+
+        [$tenant, $created] = $this->resolveOrCreateTenant($slug);
+        $tenantId = $tenant->id;
+
+        if ($created) {
+            $this->command->info("Tenant [{$slug}] creado con tipo 'venta_por_peso'.");
+        } else {
+            $this->command->info("Tenant [{$tenant->business_name}] encontrado (id={$tenantId}).");
+        }
+
         $catalog = [
             'Res' => [
                 ['nombre' => 'Bistec de res',        'precio' => 120.00, 'unidad' => UnidadMedidaEnum::Kg],
@@ -48,7 +58,7 @@ class CarniceriaSeeder extends Seeder
             $category = CategoryModel::updateOrCreate(
                 [
                     CategoryModel::NOMBRE    => $categoryName,
-                    CategoryModel::TENANT_ID => self::TENANT_ID,
+                    CategoryModel::TENANT_ID => $tenantId,
                 ],
             );
 
@@ -56,7 +66,7 @@ class CarniceriaSeeder extends Seeder
                 ProductModel::updateOrCreate(
                     [
                         ProductModel::NOMBRE    => $p['nombre'],
-                        ProductModel::TENANT_ID => self::TENANT_ID,
+                        ProductModel::TENANT_ID => $tenantId,
                     ],
                     [
                         ProductModel::PRECIO        => $p['precio'],
@@ -69,6 +79,27 @@ class CarniceriaSeeder extends Seeder
             }
         }
 
-        $this->command->info('Carnicería Zepeda: 4 categorías y 20 productos creados.');
+        $this->command->info("Venta por peso [{$tenant->business_name}]: 4 categorías y 20 productos creados.");
+    }
+
+    private function resolveOrCreateTenant(string $slug): array
+    {
+        $tenant = BusinessConfigModel::where(BusinessConfigModel::SLUG, $slug)->first();
+
+        if ($tenant) {
+            return [$tenant, false];
+        }
+
+        $tenant = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG          => $slug,
+            BusinessConfigModel::BUSINESS_NAME => $slug,
+            BusinessConfigModel::TIPO_NEGOCIO  => 'venta_por_peso',
+            BusinessConfigModel::PRIMARY_COLOR => '#f59e0b',
+            BusinessConfigModel::SIDEBAR_COLOR => '#1c1917',
+            BusinessConfigModel::FONT_COLOR    => '#ffffff',
+            BusinessConfigModel::LABEL_COLOR   => '#1c1917',
+        ]);
+
+        return [$tenant, true];
     }
 }
