@@ -41,6 +41,7 @@ export const NewOrderModal = ({ isOpen, isPending, formik, onClose }: NewOrderMo
                         name="nombre_pedido"
                         label="Nombre de la mesa"
                         placeholder="Ej: Mesa 4, Terraza, Barra..."
+                        maxLength={255}
                         formik={formik}
                     />
 

@@ -69,8 +69,8 @@ export default function TenantFormPage() {
                         <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
                             Datos del negocio
                         </h2>
-                        <Input name="business_name" label="Nombre del negocio" placeholder="Ej: Café Luna" formik={formik} />
-                        <Input name="slug" label="Slug (URL de acceso)" placeholder="ej: cafe-luna" formik={formik} />
+                        <Input name="business_name" label="Nombre del negocio" placeholder="Ej: Café Luna" maxLength={100} formik={formik} />
+                        <Input name="slug" label="Slug (URL de acceso)" placeholder="ej: cafe-luna" maxLength={255} formik={formik} />
                         <p className="text-xs text-slate-400">
                             El cliente accederá desde: <span className="font-mono">/{formik.values.slug || "slug"}/login</span>
                         </p>
@@ -109,10 +109,10 @@ export default function TenantFormPage() {
                                 Usuario administrador
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <Input name="admin_nombre" label="Nombre" formik={formik} />
-                                <Input name="admin_apellido" label="Apellido" formik={formik} />
+                                <Input name="admin_nombre" label="Nombre" maxLength={100} formik={formik} />
+                                <Input name="admin_apellido" label="Apellido" maxLength={100} formik={formik} />
                                 <Input name="admin_email" label="Correo electrónico" inputType="email" formik={formik} />
-                                <Input name="admin_usuario" label="Nombre de usuario" formik={formik} />
+                                <Input name="admin_usuario" label="Nombre de usuario" maxLength={255} formik={formik} />
                             </div>
                             <Input
                                 name="admin_password"

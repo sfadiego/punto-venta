@@ -25,7 +25,7 @@ class ProductUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            ProductModel::NOMBRE => 'required',
+            ProductModel::NOMBRE => 'required|string|max:255',
             ProductModel::PRECIO => 'required|decimal:0,2',
             ProductModel::DESCRIPCION => 'nullable',
             ProductModel::CATEGORIA_ID => 'required|exists:categories,id',

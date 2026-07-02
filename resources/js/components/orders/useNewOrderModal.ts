@@ -11,7 +11,7 @@ type NewOrderForm = {
 };
 
 const schema = Yup.object({
-    nombre_pedido: Yup.string().trim().required("El nombre de la mesa es requerido"),
+    nombre_pedido: Yup.string().trim().required("El nombre de la mesa es requerido").max(255, "Máximo 255 caracteres"),
 });
 
 export const useNewOrderModal = () => {

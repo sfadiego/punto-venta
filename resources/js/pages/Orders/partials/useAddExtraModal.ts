@@ -9,7 +9,7 @@ type ExtraForm = {
 };
 
 const schema = Yup.object({
-    nombre: Yup.string().trim().required("El nombre es requerido"),
+    nombre: Yup.string().trim().required("El nombre es requerido").max(255, "Máximo 255 caracteres"),
     precio: Yup.number()
         .typeError("Ingresa un precio válido")
         .positive("El precio debe ser mayor a 0")

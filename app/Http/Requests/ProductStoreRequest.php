@@ -25,7 +25,7 @@ class ProductStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            ProductModel::NOMBRE => 'required|unique:product,nombre',
+            ProductModel::NOMBRE => 'required|string|max:255|unique:product,nombre',
             ProductModel::PRECIO => 'required|decimal:0,2',
             ProductModel::DESCRIPCION => 'nullable',
             ProductModel::CATEGORIA_ID => 'required|exists:categories,id',

@@ -48,6 +48,7 @@ export const AddExtraModal = ({ isOpen, formik, onClose }: AddExtraModalProps) =
                             value={formik.values.nombre}
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
+                            maxLength={255}
                             autoFocus
                             className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent"
                         />

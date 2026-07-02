@@ -24,7 +24,7 @@ class OrderUpdateRequest extends FormRequest
     {
         return [
             OrderModel::DESCUENTO => 'numeric|min:0|max:99',
-            OrderModel::NOMBRE_PEDIDO => 'nullable',
+            OrderModel::NOMBRE_PEDIDO => 'nullable|string|max:255',
             OrderModel::ESTATUS_PEDIDO_ID => 'exists:order_status,id',
         ];
     }

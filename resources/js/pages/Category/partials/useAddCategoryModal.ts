@@ -11,9 +11,9 @@ export type CategoryForm = {
 };
 
 const schema = Yup.object({
-    nombre: Yup.string().trim().required("El nombre es requerido"),
-    orden: Yup.number().typeError("Debe ser un número").min(0).nullable(),
-    icon_name: Yup.string(),
+    nombre: Yup.string().trim().required("El nombre es requerido").max(255, "Máximo 255 caracteres"),
+    orden: Yup.number().typeError("Debe ser un número entero").integer("Debe ser un número entero").min(0, "Debe ser mayor a 0").max(2147483647, "Valor fuera de rango").nullable(),
+    icon_name: Yup.string().max(100, "Máximo 100 caracteres"),
 });
 
 export const useAddCategoryModal = (onSuccess: () => void) => {

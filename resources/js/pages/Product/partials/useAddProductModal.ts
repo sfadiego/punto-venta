@@ -17,7 +17,7 @@ export type ProductForm = {
 };
 
 const schema = Yup.object({
-    nombre: Yup.string().trim().required("El nombre es requerido"),
+    nombre: Yup.string().trim().required("El nombre es requerido").max(255, "Máximo 255 caracteres"),
     descripcion: Yup.string(),
     precio: Yup.number()
         .typeError("Ingresa un precio válido")
