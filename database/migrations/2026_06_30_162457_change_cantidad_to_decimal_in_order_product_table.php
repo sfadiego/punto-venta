@@ -11,15 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('order_product', function (Blueprint $table) {
-            $table->decimal('cantidad', 8, 3)->default(1)->change();
-        });
+        // SQLite no soporta change() en tablas con FK a "order" (palabra reservada).
+        // La columna original es numeric, compatible con decimales; se omite en SQLite.
+        if (config('database.default') !== 'sqlite') {
+            Schema::table('order_product', function (Blueprint $table) {
+                $table->decimal('cantidad', 8, 3)->default(1)->change();
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('order_product', function (Blueprint $table) {
-            $table->integer('cantidad')->default(1)->change();
-        });
+        if (config('database.default') !== 'sqlite') {
+            Schema::table('order_product', function (Blueprint $table) {
+                $table->integer('cantidad')->default(1)->change();
+            });
+        }
     }
 };

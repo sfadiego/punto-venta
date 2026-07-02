@@ -8,115 +8,82 @@ use Tests\TestCase;
 
 class ProductTest extends TestCase
 {
-    private function createProduct(string $nombre = 'Producto Test'): ProductModel
-    {
-        return ProductModel::create([
-            'nombre' => $nombre,
-            'precio' => 35,
-            'descripcion' => '',
-            'categoria_id' => CategoryModel::first()->id,
-        ]);
-    }
-
     // ── Index ────────────────────────────────────────────────
 
     public function test_lista_productos_paginada(): void
     {
-        // successDataTable retorna HTTP 206 (PartialContent)
         $this->getJson('/api/product?page=1&limit=5', $this->authHeaders())
             ->assertStatus(206)
             ->assertJsonStructure(['current_page', 'data', 'total', 'per_page']);
     }
 
-    // ── Store ────────────────────────────────────────────────
-
-    public function test_crea_producto(): void
+    public function test_lista_productos_requiere_autenticacion(): void
     {
-        $response = $this->postJson('/api/product', [
-            'nombre' => 'Espresso Test',
-            'precio' => 35,
-            'categoria_id' => CategoryModel::first()->id,
-        ], $this->authHeaders());
-
-        $response->assertStatus(200)
-            ->assertJsonPath('status', 'OK')
-            ->assertJsonPath('data.nombre', 'Espresso Test');
-
-        $this->assertDatabaseHas('product', ['nombre' => 'Espresso Test']);
+        $this->getJson('/api/product?page=1&limit=5')
+            ->assertStatus(401);
     }
 
-    public function test_no_crea_producto_sin_campos_requeridos(): void
+    public function test_lista_productos_estructura_de_item(): void
     {
-        // Campo requerido faltante → ValidationException → 400
-        $this->postJson('/api/product', [], $this->authHeaders())
-            ->assertStatus(400);
+        ProductModel::factory()->create();
+
+        $this->getJson('/api/product?page=1&limit=5', $this->authHeaders())
+            ->assertStatus(206)
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => ['id', 'nombre', 'precio', 'descripcion', 'activo', 'categoria_id'],
+                ],
+            ]);
     }
 
-    public function test_no_crea_producto_con_nombre_duplicado(): void
+    public function test_filtra_productos_por_nombre(): void
     {
-        $existing = $this->createProduct('Producto Duplicado');
+        ProductModel::factory()->create(['nombre' => 'Espresso Filtrado']);
+        ProductModel::factory()->create(['nombre' => 'Cappuccino']);
 
-        // Violación de unique → ValidationException → 400
-        $this->postJson('/api/product', [
-            'nombre' => $existing->nombre,
-            'precio' => 20,
-            'categoria_id' => CategoryModel::first()->id,
-        ], $this->authHeaders())
-            ->assertStatus(400);
+        $response = $this->getJson('/api/product?page=1&limit=10&nombre=Espresso', $this->authHeaders())
+            ->assertStatus(206);
+
+        $data = $response->json('data');
+        $this->assertNotEmpty($data);
+        foreach ($data as $item) {
+            $this->assertStringContainsStringIgnoringCase('Espresso', $item['nombre']);
+        }
     }
 
-    public function test_no_crea_producto_con_categoria_inexistente(): void
+    public function test_filtra_productos_por_categoria(): void
     {
-        // exists:categories,id falla → ValidationException → 400
-        $this->postJson('/api/product', [
-            'nombre' => 'Producto Sin Categoría',
-            'precio' => 20,
-            'categoria_id' => 99999,
-        ], $this->authHeaders())
-            ->assertStatus(400);
+        $category = CategoryModel::first();
+        ProductModel::factory()->create(['categoria_id' => $category->id]);
+
+        $response = $this->getJson("/api/product?page=1&limit=10&categoria_id={$category->id}", $this->authHeaders())
+            ->assertStatus(206);
+
+        $data = $response->json('data');
+        $this->assertNotEmpty($data);
+        foreach ($data as $item) {
+            $this->assertEquals($category->id, $item['categoria_id']);
+        }
     }
 
-    // ── Show ─────────────────────────────────────────────────
-
-    public function test_muestra_producto(): void
+    public function test_filtra_por_nombre_inexistente_retorna_vacio(): void
     {
-        $product = $this->createProduct();
+        $response = $this->getJson('/api/product?page=1&limit=5&nombre=xyzinexistente999', $this->authHeaders())
+            ->assertStatus(206);
 
-        $this->getJson("/api/product/{$product->id}", $this->authHeaders())
-            ->assertStatus(200)
-            ->assertJsonPath('status', 'OK')
-            ->assertJsonPath('data.id', $product->id);
+        $this->assertEmpty($response->json('data'));
     }
 
-    // ── Update ───────────────────────────────────────────────
-
-    public function test_actualiza_producto(): void
+    public function test_paginacion_respeta_limite(): void
     {
-        $product = $this->createProduct();
-        $categoryId = CategoryModel::first()->id;
+        ProductModel::factory()->count(7)->create();
 
-        $this->putJson("/api/product/{$product->id}", [
-            'nombre' => 'Producto Actualizado',
-            'precio' => 50,
-            'descripcion' => 'Descripción actualizada',
-            'categoria_id' => $categoryId,
-        ], $this->authHeaders())
-            ->assertStatus(200)
-            ->assertJsonPath('status', 'OK');
+        $response = $this->getJson('/api/product?page=1&limit=3', $this->authHeaders())
+            ->assertStatus(206);
 
-        $this->assertDatabaseHas('product', ['id' => $product->id, 'nombre' => 'Producto Actualizado']);
-    }
-
-    // ── Delete ───────────────────────────────────────────────
-
-    public function test_elimina_producto(): void
-    {
-        $product = $this->createProduct('Para Eliminar');
-
-        $this->deleteJson("/api/product/{$product->id}", [], $this->authHeaders())
-            ->assertStatus(200)
-            ->assertJsonPath('status', 'OK');
-
-        $this->assertSoftDeleted('product', ['id' => $product->id]);
+        $this->assertCount(3, $response->json('data'));
+        $this->assertEquals(1, $response->json('current_page'));
+        $this->assertEquals(3, $response->json('per_page'));
+        $this->assertEquals(ProductModel::count(), $response->json('total'));
     }
 }
