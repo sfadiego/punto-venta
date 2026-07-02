@@ -3,12 +3,15 @@ import { FormikProps } from "formik";
 import { ICategory } from "@/models/ICategory";
 import { IProduct } from "@/models/IProduct";
 import { ProductForm } from "./useAddProductModal";
+import { UnidadMedidaEnum, UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
+import { Textarea } from "@/components/ui/form/textarea";
 
 interface EditProductModalProps {
     isOpen: boolean;
     product: IProduct | null;
     formik: FormikProps<ProductForm>;
     categories: ICategory[];
+    sellByWeight: boolean;
     onClose: () => void;
 }
 
@@ -17,6 +20,7 @@ export const EditProductModal = ({
     product,
     formik,
     categories,
+    sellByWeight,
     onClose,
 }: EditProductModalProps) => {
     if (!isOpen || !product) return null;
@@ -58,7 +62,11 @@ export const EditProductModal = ({
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
                             autoFocus
-                            className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                            className={`w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent ${
+                                formik.touched.nombre && formik.errors.nombre
+                                    ? "border-red-300"
+                                    : "border-stone-200"
+                            }`}
                         />
                         {formik.touched.nombre && formik.errors.nombre && (
                             <p className="text-xs text-red-500 mt-1">{formik.errors.nombre}</p>
@@ -66,19 +74,13 @@ export const EditProductModal = ({
                     </div>
 
                     {/* Descripción */}
-                    <div>
-                        <label className="block text-xs font-medium text-stone-600 mb-1.5">
-                            Descripción
-                        </label>
-                        <textarea
-                            name="descripcion"
-                            value={formik.values.descripcion}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            rows={2}
-                            className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none"
-                        />
-                    </div>
+                    <Textarea<ProductForm>
+                        name="descripcion"
+                        label="Descripción"
+                        placeholder="Descripción del producto"
+                        formik={formik}
+                        rows={2}
+                    />
 
                     <div className="grid grid-cols-2 gap-3">
                         {/* Precio */}
@@ -99,7 +101,11 @@ export const EditProductModal = ({
                                     value={formik.values.precio}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    className="w-full pl-7 pr-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent tabular-nums"
+                                    className={`w-full pl-7 pr-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent tabular-nums ${
+                                        formik.touched.precio && formik.errors.precio
+                                            ? "border-red-300"
+                                            : "border-stone-200"
+                                    }`}
                                 />
                             </div>
                             {formik.touched.precio && formik.errors.precio && (
@@ -117,7 +123,11 @@ export const EditProductModal = ({
                                 value={formik.values.categoria_id}
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
-                                className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white"
+                                className={`w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white ${
+                                    formik.touched.categoria_id && formik.errors.categoria_id
+                                        ? "border-red-300"
+                                        : "border-stone-200"
+                                }`}
                             >
                                 <option value="">Seleccionar...</option>
                                 {categories.map((cat) => (
@@ -131,6 +141,31 @@ export const EditProductModal = ({
                             )}
                         </div>
                     </div>
+
+                    {/* Unidad de medida */}
+                    {sellByWeight && (
+                        <div>
+                            <label className="block text-xs font-medium text-stone-600 mb-1.5">
+                                Unidad de medida <span className="text-red-400">*</span>
+                            </label>
+                            <div className="flex gap-2">
+                                {Object.values(UnidadMedidaEnum).map((u) => (
+                                    <button
+                                        key={u}
+                                        type="button"
+                                        onClick={() => formik.setFieldValue("unidad_medida", u)}
+                                        className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                                            formik.values.unidad_medida === u
+                                                ? "border-amber-400 bg-amber-50 text-amber-700"
+                                                : "border-stone-200 bg-stone-50 text-stone-500 hover:border-stone-300"
+                                        }`}
+                                    >
+                                        {UNIDAD_LABELS[u]}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Activo */}
                     <div className="flex items-center justify-between p-3 bg-stone-50 rounded-xl">

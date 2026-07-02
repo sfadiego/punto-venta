@@ -6,6 +6,7 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { useOrderList } from "./useOrderList";
 import { OrderFilters } from "./partials/OrderFilters";
 import { NewOrderButton } from "@/components/orders/NewOrderButton";
+import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { usePermissions } from "@/hooks/usePermissions";
 
 const getRowClassName = ({ estatus_pedido_id }: IOrder): string => {
@@ -21,9 +22,9 @@ export default function OrderListPage() {
         isLoading,
         refetch,
         sistemaId,
-        fecha,
         estatusId,
-        handleFechaChange,
+        showReadyToServe,
+        sellByWeight,
         handleEstatusChange,
         handleClearFilters,
     } = useOrderList();
@@ -51,7 +52,7 @@ export default function OrderListPage() {
                         Actualizar
                     </button>
 
-                    {sistemaId && <NewOrderButton />}
+                    {sistemaId && (sellByWeight ? <NewSaleButton /> : <NewOrderButton />)}
                 </div>
             </div>
 
@@ -65,20 +66,23 @@ export default function OrderListPage() {
                 </div>
             ) : (
                 <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-                    <OrderFilters
-                        fecha={fecha}
-                        estatusId={estatusId}
-                        onFechaChange={handleFechaChange}
-                        onEstatusChange={handleEstatusChange}
-                        onClear={handleClearFilters}
-                    />
+                    {!sellByWeight && (
+                        <OrderFilters
+                            estatusId={estatusId}
+                            showReadyToServe={showReadyToServe}
+                            onEstatusChange={handleEstatusChange}
+                            onClear={handleClearFilters}
+                        />
+                    )}
                     <DataTable
                         fetching={isLoading}
                         {...dataTableProps}
-                        onRowClick={({ record }: { record: IOrder }) => {
-                            if (can("takeOrder")) navigate(`/take-order/${record.id}`);
-                        }}
-                        rowStyle={() => ({ cursor: can("takeOrder") ? "pointer" : "default" })}
+                        {...(!sellByWeight && {
+                            onRowClick: ({ record }: { record: IOrder }) => {
+                                if (can("takeOrder")) navigate(`/take-order/${record.id}`);
+                            },
+                            rowStyle: () => ({ cursor: can("takeOrder") ? "pointer" : "default" }),
+                        })}
                         rowClassName={(record: IOrder) => getRowClassName(record)}
                     />
                 </div>

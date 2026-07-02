@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Core\Data\IndexData;
+use App\Enums\UnidadMedidaEnum;
 use App\Http\Requests\ProductStoreRequest;
 use App\Http\Requests\ProductUpdateRequest;
 use App\Models\ProductImageModel;
@@ -32,6 +33,7 @@ class ProductController extends Controller
                 ProductModel::DESCRIPCION => $param->descripcion ?? '',
                 ProductModel::CATEGORIA_ID => $param->categoria_id,
                 ProductModel::FOTO_ID => $param?->picture_id ?? null,
+                ProductModel::UNIDAD_MEDIDA => $param->unidad_medida ?? UnidadMedidaEnum::Unidad->value,
             ])
         );
     }
@@ -45,7 +47,8 @@ class ProductController extends Controller
                 descripcion: $param->has('descripcion') ? $param->descripcion : null,
                 categoriaId: $param->has('categoria_id') ? $param->categoria_id : null,
                 pictureId: $param->has('picture_id') ? $param->picture_id : null,
-                active: $param->has('active') ? $param->active : true
+                active: $param->has('activo') ? (bool) $param->activo : null,
+                unidadMedida: $param->has('unidad_medida') ? $param->unidad_medida : null,
             )
         );
     }

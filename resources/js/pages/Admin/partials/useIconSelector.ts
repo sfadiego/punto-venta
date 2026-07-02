@@ -24,9 +24,11 @@ export const useIconSelector = (config: IBusinessConfig | undefined) => {
                 whatsapp: config.whatsapp,
                 website: config.website,
                 ticket_footer: config.ticket_footer,
-                printer_name: config.printer_name,
-                printer_host: config.printer_host,
-                logo_icon: isDeselect ? null : iconName,
+                printer_name:              config.printer_name,
+                printer_host:              config.printer_host,
+                logo_icon:                 isDeselect ? null : iconName,
+                costo_domicilio_default:   config.costo_domicilio_default,
+                delivery_paid_by:          config.delivery_paid_by,
             },
             {
                 onSuccess: () =>

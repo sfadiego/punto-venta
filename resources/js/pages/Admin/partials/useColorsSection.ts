@@ -52,9 +52,11 @@ export const useColorsSection = (config: IBusinessConfig | undefined) => {
                 whatsapp:      config?.whatsapp      ?? null,
                 website:       config?.website       ?? null,
                 ticket_footer: config?.ticket_footer ?? null,
-                printer_name:  config?.printer_name  ?? null,
-                printer_host:  config?.printer_host  ?? null,
-                logo_icon:     config?.logo_icon     ?? null,
+                printer_name:              config?.printer_name  ?? null,
+                printer_host:              config?.printer_host  ?? null,
+                logo_icon:                 config?.logo_icon     ?? null,
+                costo_domicilio_default:   config?.costo_domicilio_default ?? 0,
+                delivery_paid_by:          config?.delivery_paid_by ?? 'customer',
             },
             {
                 onSuccess: () => toast.success("Configuración guardada"),
@@ -68,6 +70,32 @@ export const useColorsSection = (config: IBusinessConfig | undefined) => {
         setSidebarColor(DEFAULTS.sidebar_color);
         setFontColor(DEFAULTS.font_color);
         setLabelColor(DEFAULTS.label_color);
+
+        update(
+            {
+                business_name: businessName,
+                primary_color: DEFAULTS.primary_color,
+                sidebar_color: DEFAULTS.sidebar_color,
+                font_color:    DEFAULTS.font_color,
+                label_color:   DEFAULTS.label_color,
+                phone:         config?.phone         ?? null,
+                address:       config?.address       ?? null,
+                facebook:      config?.facebook      ?? null,
+                instagram:     config?.instagram     ?? null,
+                whatsapp:      config?.whatsapp      ?? null,
+                website:       config?.website       ?? null,
+                ticket_footer: config?.ticket_footer ?? null,
+                printer_name:              config?.printer_name  ?? null,
+                printer_host:              config?.printer_host  ?? null,
+                logo_icon:                 config?.logo_icon     ?? null,
+                costo_domicilio_default:   config?.costo_domicilio_default ?? 0,
+                delivery_paid_by:          config?.delivery_paid_by ?? 'customer',
+            },
+            {
+                onSuccess: () => toast.success("Colores restablecidos"),
+                onError:   () => toast.error("Error al restablecer"),
+            },
+        );
     };
 
     return {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BusinessTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -49,8 +50,15 @@ class BusinessConfigModel extends Model
 
     const LOGO_ICON = 'logo_icon';
 
+    const TIPO_NEGOCIO = 'tipo_negocio';
+
+    const COSTO_DOMICILIO_DEFAULT = 'costo_domicilio_default';
+
+    const DELIVERY_PAID_BY = 'delivery_paid_by';
+
     protected $casts = [
         self::ACTIVO => 'boolean',
+        self::TIPO_NEGOCIO => BusinessTypeEnum::class,
     ];
 
     protected $fillable = [
@@ -72,6 +80,9 @@ class BusinessConfigModel extends Model
         self::PRINTER_NAME,
         self::PRINTER_HOST,
         self::LOGO_ICON,
+        self::TIPO_NEGOCIO,
+        self::COSTO_DOMICILIO_DEFAULT,
+        self::DELIVERY_PAID_BY,
     ];
 
     public function users(): HasMany

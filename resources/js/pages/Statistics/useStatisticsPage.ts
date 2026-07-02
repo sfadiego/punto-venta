@@ -26,7 +26,7 @@ export const useStatisticsPage = () => {
     const { data: bestSellers = [], isLoading } = useBestSeller(month);
     const { data: totalVentasRaw } = useCurrentTotalSale(sistemaId);
 
-    const totalVentas = formatCurrency((totalVentasRaw as number) ?? 0);
+    const totalVentas = formatCurrency(totalVentasRaw?.neto ?? 0);
 
     return {
         month,
@@ -34,6 +34,7 @@ export const useStatisticsPage = () => {
         bestSellers,
         isLoading,
         totalVentas,
+        cajaAbierta: !!sistemaId,
         handleMonthChange: (value: string) => setMonth(value),
     };
 };

@@ -1,4 +1,5 @@
 import { IUser } from "@/models/IUser";
+import { IBusinessFeatures } from "@/enums/BusinessTypeEnum";
 
 export interface ISignInForm {
     email: string;
@@ -9,4 +10,5 @@ export interface ISignInForm {
 export interface IAuthResponse {
     user: IUser;
     access_token: string;
+    features: IBusinessFeatures;
 }

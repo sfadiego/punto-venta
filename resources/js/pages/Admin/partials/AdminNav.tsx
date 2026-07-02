@@ -1,13 +1,21 @@
-import { Image, Palette, Phone, Printer } from "lucide-react";
+import { Bike, Image, Palette, Phone, Printer } from "lucide-react";
 
-const SECTIONS = [
+const BASE_SECTIONS = [
     { id: "logo",       label: "Logo",             icon: <Image size={14} /> },
     { id: "colores",    label: "Colores",          icon: <Palette size={14} /> },
     { id: "negocio",    label: "Info del negocio", icon: <Phone size={14} /> },
     { id: "impresora",  label: "Impresora",        icon: <Printer size={14} /> },
 ];
 
-export const AdminNav = () => {
+const DELIVERY_SECTION = { id: "domicilio", label: "Domicilio", icon: <Bike size={14} /> };
+
+interface AdminNavProps {
+    sellByWeight?: boolean;
+}
+
+export const AdminNav = ({ sellByWeight }: AdminNavProps) => {
+    const sections = sellByWeight ? [...BASE_SECTIONS, DELIVERY_SECTION] : BASE_SECTIONS;
+
     const scrollTo = (id: string) => {
         document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
@@ -17,7 +25,7 @@ export const AdminNav = () => {
             <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider px-2 mb-1">
                 Secciones
             </p>
-            {SECTIONS.map((s) => (
+            {sections.map((s) => (
                 <button
                     key={s.id}
                     onClick={() => scrollTo(s.id)}

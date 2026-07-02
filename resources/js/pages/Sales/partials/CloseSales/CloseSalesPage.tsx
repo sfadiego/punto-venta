@@ -1,6 +1,8 @@
-import { DollarSign, TrendingUp, Wallet, CalendarClock, User, MessageSquare, AlertCircle, Lock } from "lucide-react";
+import { DollarSign, TrendingUp, Wallet, CalendarClock, User, MessageSquare, AlertCircle, Lock, Bike } from "lucide-react";
 import { useCloseSalesPage } from "./useCloseSalesPage";
 import BestSellerWidget from "./BestSellerWidget";
+import { SalesByCategoryButton, SalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal";
+import { useSalesByCategoryModal } from "@/pages/Sales/partials/useSalesByCategoryModal";
 
 const formatCurrency = (value: number) =>
     new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(value);
@@ -22,14 +24,19 @@ export default function CloseSalesPage() {
         activeSale,
         sistemaId,
         efectivoInicio,
-        totalDia,
+        totalBruto,
+        totalDomicilios,
+        totalNeto,
         efectivoCierre,
+        sellByWeight,
         hasActiveOrders,
         activeOrdersCount,
         isLoading,
         isClosing,
         handleClose,
     } = useCloseSalesPage();
+
+    const categoryModal = useSalesByCategoryModal();
 
     if (isLoading) {
         return (
@@ -67,7 +74,7 @@ export default function CloseSalesPage() {
             </div>
 
             {/* Summary cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className={`grid grid-cols-1 gap-4 mb-6 ${sellByWeight ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
                 <div className="bg-white rounded-2xl border border-stone-100 p-5 flex items-start gap-4 shadow-sm">
                     <div className="p-2.5 rounded-xl bg-blue-100">
                         <DollarSign size={20} className="text-blue-600" />
@@ -85,12 +92,40 @@ export default function CloseSalesPage() {
                         <TrendingUp size={20} className="text-amber-600" />
                     </div>
                     <div>
-                        <p className="text-xs text-stone-500 font-medium">Ventas del día</p>
+                        <p className="text-xs text-stone-500 font-medium">Ventas brutas</p>
                         <p className="text-xl font-bold text-stone-900 mt-0.5">
-                            {formatCurrency(totalDia)}
+                            {formatCurrency(totalBruto)}
                         </p>
                     </div>
                 </div>
+
+                {sellByWeight && (
+                    <div className="bg-white rounded-2xl border border-stone-100 p-5 flex items-start gap-4 shadow-sm">
+                        <div className="p-2.5 rounded-xl bg-red-100">
+                            <Bike size={20} className="text-red-500" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-stone-500 font-medium">Domicilios</p>
+                            <p className="text-xl font-bold text-red-500 mt-0.5">
+                                -{formatCurrency(totalDomicilios)}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {sellByWeight && (
+                    <div className="bg-white rounded-2xl border border-stone-100 p-5 flex items-start gap-4 shadow-sm">
+                        <div className="p-2.5 rounded-xl bg-violet-100">
+                            <TrendingUp size={20} className="text-violet-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-stone-500 font-medium">Ingreso neto</p>
+                            <p className="text-xl font-bold text-violet-700 mt-0.5">
+                                {formatCurrency(totalNeto)}
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 <div className="bg-white rounded-2xl border border-stone-100 p-5 flex items-start gap-4 shadow-sm">
                     <div className="p-2.5 rounded-xl bg-emerald-100">
@@ -149,7 +184,16 @@ export default function CloseSalesPage() {
             </div>
 
             {/* Más vendido del día */}
-            <BestSellerWidget sistemaId={sistemaId} />
+            <div className="flex items-start justify-between gap-4 mb-0">
+                <div className="flex-1">
+                    <BestSellerWidget sistemaId={sistemaId} />
+                </div>
+                {sellByWeight && (
+                    <div className="shrink-0 pt-1">
+                        <SalesByCategoryButton onClick={categoryModal.open} />
+                    </div>
+                )}
+            </div>
 
             {/* Aviso de órdenes activas */}
             {hasActiveOrders && (
@@ -173,6 +217,17 @@ export default function CloseSalesPage() {
                 <Lock size={16} />
                 {isClosing ? "Cerrando caja..." : "Cerrar caja"}
             </button>
+
+            <SalesByCategoryModal
+                isOpen={categoryModal.isOpen}
+                onClose={categoryModal.close}
+                data={categoryModal.data}
+                isLoading={categoryModal.isLoading}
+                totalBruto={categoryModal.totalBruto}
+                totalDomicilios={categoryModal.totalDomicilios}
+                totalNeto={categoryModal.totalNeto}
+                sistemaId={categoryModal.sistemaId}
+            />
         </div>
     );
 }

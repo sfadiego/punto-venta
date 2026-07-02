@@ -3,15 +3,21 @@ import { IUser } from "@/models/IUser";
 import { useUserModal } from "./useUserModal";
 import RoleSelect from "@/components/Role/RoleSelect";
 import { Input } from "@/components/ui/form/Input";
+import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
+import { RoleEnum } from "@/enums/RoleEnum";
 
 interface UserModalProps {
     tenantId: number;
     tenantSlug: string;
+    tipoNegocio: BusinessTypeEnum;
     user: IUser | null;
     onClose: () => void;
 }
 
-export const UserModal = ({ tenantId, tenantSlug, user, onClose }: UserModalProps) => {
+const ROLES_SIN_COCINA = [RoleEnum.Cocina];
+
+export const UserModal = ({ tenantId, tenantSlug, tipoNegocio, user, onClose }: UserModalProps) => {
+    const excludeRoles = tipoNegocio !== BusinessTypeEnum.Restaurante ? ROLES_SIN_COCINA : [];
     const { formik, isEdit } = useUserModal({ tenantId, tenantSlug, user, onClose });
 
     return (
@@ -62,6 +68,7 @@ export const UserModal = ({ tenantId, tenantSlug, user, onClose }: UserModalProp
                             <RoleSelect
                                 value={formik.values.rol_id}
                                 onChange={formik.handleChange}
+                                excludeRoles={excludeRoles}
                             />
                         </div>
 

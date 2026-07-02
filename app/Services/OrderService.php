@@ -63,6 +63,11 @@ class OrderService extends DataTable
             $query->whereBetween('created_at', [$start, $end]);
         }
 
+        $categoriaId = request()->query('categoria_id');
+        if ($categoriaId) {
+            $query->whereHas('orderProducts.product', fn ($q) => $q->where('categoria_id', (int) $categoriaId));
+        }
+
         return $query;
     }
 

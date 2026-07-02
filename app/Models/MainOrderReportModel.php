@@ -63,31 +63,42 @@ class MainOrderReportModel extends Model
     {
         return $this->where('id', $this->id)
             ->whereHas('orders.orderProducts')
-            ->with(['orders.orderProducts'])
+            ->with(['orders' => function ($q) {
+                $q->where('estatus_pedido_id', \App\Enums\OrderStatusEnum::CLOSED->value);
+            }, 'orders.orderProducts'])
             ->get()
             ->pluck('orders')
             ->flatten()
             ->pluck('orderProducts')
             ->flatten()
             ->map(function ($item) {
-                $precio = $item->precio;
-                $cantidad = $item->cantidad;
-                $descuentoPerItem = $item->descuento;
-
-                $total = $precio * $cantidad;
-                $totalWDescuento = $total - (($total * $descuentoPerItem) / 100);
+                $total = $item->precio * $item->cantidad;
+                $totalWDescuento = $total - (($total * $item->descuento) / 100);
 
                 return round($totalWDescuento, 2);
             })
             ->sum();
     }
 
+    public function totalDomiciliosByDay(): float
+    {
+        return round(
+            OrderModel::where('sistema_id', $this->id)
+                ->where('estatus_pedido_id', \App\Enums\OrderStatusEnum::CLOSED->value)
+                ->sum('costo_domicilio'),
+            2
+        );
+    }
+
     public function closeSales(): MainOrderReportModel
     {
         $initialCash = $this->efectivo_caja_inicio;
+        $totalBruto = $this->totalSalesByDay();
+        $totalDomicilio = $this->totalDomiciliosByDay();
+
         $this->update([
-            self::VENTA_DIA => $this->totalSalesByDay(),
-            self::EFECTIVO_CAJA_CIERRE => $initialCash + $this->totalSalesByDay(),
+            self::VENTA_DIA => $totalBruto,
+            self::EFECTIVO_CAJA_CIERRE => $initialCash + $totalBruto - $totalDomicilio,
             self::ESTATUS_CAJA => MainOrderStatusEnum::CLOSED,
         ]);
 

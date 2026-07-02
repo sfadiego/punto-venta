@@ -18,14 +18,21 @@ interface BestSellerChartProps {
     data: IBestSellerItem[];
 }
 
+export const formatTotal = (total: number, unidad: string): string => {
+    if (unidad === "kg" || unidad === "gr") return `${total.toFixed(3)} ${unidad}`;
+    return `${total} und`;
+};
+
 const CustomTooltip = ({ active, payload }: any) => {
     if (!active || !payload?.length) return null;
     const item = payload[0];
+    const unidad: string = item.payload.unidad_medida ?? "unidad";
     return (
         <div className="bg-white border border-stone-200 rounded-xl shadow-lg px-4 py-3">
             <p className="text-sm font-semibold text-stone-800">{item.payload.product}</p>
             <p className="text-xs text-stone-500 mt-0.5">
-                <span className="font-bold text-amber-600 text-base">{item.value}</span> unidades vendidas
+                <span className="font-bold text-amber-600 text-base">{item.value}</span>{" "}
+                {unidad === "kg" || unidad === "gr" ? `${unidad} vendidos` : "unidades vendidas"}
             </p>
         </div>
     );
@@ -83,7 +90,7 @@ export const BestSellerRanking = ({ data }: BestSellerRankingProps) => (
                         <div className="flex items-center justify-between mb-1">
                             <p className="text-sm font-semibold text-stone-800 truncate">{item.product}</p>
                             <span className="text-sm font-bold text-amber-600 shrink-0 ml-2">
-                                {item.total} uds.
+                                {formatTotal(item.total, item.unidad_medida)}
                             </span>
                         </div>
                         <div className="h-2 bg-stone-100 rounded-full overflow-hidden">

@@ -27,8 +27,8 @@ export const useLogin = () => {
         onSubmit: async (values) => {
             try {
                 const slug = localStorage.getItem("tenantSlug") ?? undefined;
-                const { access_token, user } = await loginMutation.mutateAsync({ ...values, slug });
-                saveAuth(access_token, user);
+                const { access_token, user, features } = await loginMutation.mutateAsync({ ...values, slug });
+                saveAuth(access_token, user, features);
                 window.location.replace("/");
             } catch (error) {
                 if (axios.isAxiosError(error)) {

@@ -3,10 +3,13 @@ import { useAxios } from "@/hooks/useAxios";
 import { useDataTable, DataTableRenderersMap } from "@/hooks/useDatatable";
 import { useIndexOrder } from "@/services/useOrderService";
 import { IOrder } from "@/models/IOrder";
-import { getStatusStyle, getStatusLabel, formatOrderTime } from "@/pages/Dashboard/useDashboard";
+import { getStatusStyle, formatOrderTime } from "@/pages/Dashboard/useDashboard";
 import { DataTableColumn } from "mantine-datatable";
 import { OrderActionButtons } from "@/components/orders/OrderActionButtons";
-import { ACTIVE_STATUSES } from "./partials/OrderFilters";
+import { OrderPreviewModal } from "@/components/orders/OrderPreviewModal";
+import { PrintTicketButton } from "@/components/orders/PrintTicketButton";
+import { getActiveStatuses } from "./partials/OrderFilters";
+import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 
 const renderersMap: DataTableRenderersMap = {
     total: (o: IOrder) => `$${o.total.toFixed(2)}`,
@@ -15,7 +18,7 @@ const renderersMap: DataTableRenderersMap = {
     created_at: (o: IOrder) => formatOrderTime(o.created_at),
     estatus_pedido_id: (o: IOrder) => (
         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(o.estatus_pedido_id)}`}>
-            {getStatusLabel(o.estatus_pedido_id)}
+            {o.status?.nombre ?? o.estatus_pedido_id}
         </span>
     ),
 };
@@ -27,20 +30,37 @@ const actionsColumn: DataTableColumn<IOrder> = {
     render: (order: IOrder) => <OrderActionButtons order={order} />,
 };
 
+const ventaPorPesoActionsColumn: DataTableColumn<IOrder> = {
+    accessor: "_acciones" as keyof IOrder,
+    title: "",
+    width: 80,
+    textAlign: "center",
+    render: (order: IOrder) => (
+        <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+            <OrderPreviewModal order={order} />
+            <PrintTicketButton orderId={order.id} />
+        </div>
+    ),
+};
+
 export const useOrderList = () => {
-    const { sistemaId } = useAxios();
-    const [fecha, setFecha] = useState<string | null>(null);
-    const [estatusId, setEstatusId] = useState<string>(ACTIVE_STATUSES);
+    const { sistemaId, features } = useAxios();
+    const showReadyToServe = features?.ready_to_serve !== false;
+    const sellByWeight = features?.sell_by_weight === true;
+    const defaultStatuses = sellByWeight
+        ? String(OrderStatusEnum.Closed)
+        : getActiveStatuses(showReadyToServe);
+
+    const [estatusId, setEstatusId] = useState<string>(defaultStatuses);
 
     const { dataTableProps, isLoading, refetch, setPage } = useDataTable({
         service: useIndexOrder,
         payload: {
             sistema_id: sistemaId,
             estatus_pedido_id: estatusId,
-            ...(fecha ? { fecha } : {}),
         },
         renderersMap,
-        refetchInterval: 10_000,
+        refetchInterval: sellByWeight ? undefined : 10_000,
     });
 
     const enhancedDataTableProps = useMemo(
@@ -48,16 +68,18 @@ export const useOrderList = () => {
             ...dataTableProps,
             columns:
                 dataTableProps.columns.length > 0
-                    ? ([...dataTableProps.columns, actionsColumn] as DataTableColumn<IOrder>[])
+                    ? ([
+                          ...dataTableProps.columns.filter((col) =>
+                              sellByWeight
+                                  ? (col.accessor as string) !== "estatus_pedido_id"
+                                  : true,
+                          ),
+                          sellByWeight ? ventaPorPesoActionsColumn : actionsColumn,
+                      ] as DataTableColumn<IOrder>[])
                     : [],
         }),
-        [dataTableProps],
+        [dataTableProps, sellByWeight],
     );
-
-    const handleFechaChange = (value: string | null) => {
-        setFecha(value);
-        setPage(1);
-    };
 
     const handleEstatusChange = (value: string) => {
         setEstatusId(value);
@@ -65,8 +87,7 @@ export const useOrderList = () => {
     };
 
     const handleClearFilters = () => {
-        setFecha(null);
-        setEstatusId(ACTIVE_STATUSES);
+        setEstatusId(defaultStatuses);
         setPage(1);
     };
 
@@ -75,9 +96,9 @@ export const useOrderList = () => {
         isLoading,
         refetch,
         sistemaId,
-        fecha,
         estatusId,
-        handleFechaChange,
+        showReadyToServe,
+        sellByWeight,
         handleEstatusChange,
         handleClearFilters,
     };

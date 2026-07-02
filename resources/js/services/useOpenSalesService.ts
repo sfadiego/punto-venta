@@ -12,8 +12,12 @@ export const useStoreOpenSales = () => usePOST({ url: `${url}/open` });
 export const useCloseSales = (systemId: number) =>
     usePOST({ url: `${url}/${systemId}/close` });
 
-export const useCurrentTotalSale = (systemId: number | null) =>
-    useGET({ url: `${url}/${systemId}/total-current-sales`, enable: !!systemId && systemId > 0 });
+export interface ITotalCurrentSale {
+    bruto: number;
+    domicilios: number;
+    neto: number;
+}
 
-export const useDetailOfCloseSales = (systemId: number) =>
-    useGET({ url: `${url}/${systemId}/detail-close-sales` });
+export const useCurrentTotalSale = (systemId: number | null) =>
+    useGET<ITotalCurrentSale>({ url: `${url}/${systemId}/total-current-sales`, enable: !!systemId && systemId > 0 });
+

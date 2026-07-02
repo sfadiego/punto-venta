@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UnidadMedidaEnum;
 use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,6 +30,12 @@ class ProductModel extends Model
 
     const TENANT_ID = 'tenant_id';
 
+    const UNIDAD_MEDIDA = 'unidad_medida';
+
+    protected $casts = [
+        self::UNIDAD_MEDIDA => UnidadMedidaEnum::class,
+    ];
+
     protected $fillable = [
         self::NOMBRE,
         self::PRECIO,
@@ -37,6 +44,7 @@ class ProductModel extends Model
         self::ACTIVO,
         self::FOTO_ID,
         self::TENANT_ID,
+        self::UNIDAD_MEDIDA,
     ];
 
     public static function store(
@@ -77,15 +85,31 @@ class ProductModel extends Model
         ?int $categoriaId,
         ?int $pictureId,
         ?bool $active,
+        ?string $unidadMedida = null,
     ): ProductModel {
 
         $data = [];
-        $nombre ? $data[ProductModel::NOMBRE] = $nombre : null;
-        $precio ? $data[ProductModel::PRECIO] = $precio : null;
-        $descripcion ? $data[ProductModel::DESCRIPCION] = $descripcion : null;
-        $categoriaId ? $data[ProductModel::CATEGORIA_ID] = $categoriaId : null;
-        $active ? $data[ProductModel::ACTIVO] = $active : null;
-        $pictureId ? $data[ProductModel::FOTO_ID] = $pictureId : null;
+        if ($nombre !== null) {
+            $data[ProductModel::NOMBRE] = $nombre;
+        }
+        if ($precio !== null) {
+            $data[ProductModel::PRECIO] = $precio;
+        }
+        if ($descripcion !== null) {
+            $data[ProductModel::DESCRIPCION] = $descripcion;
+        }
+        if ($categoriaId !== null) {
+            $data[ProductModel::CATEGORIA_ID] = $categoriaId;
+        }
+        if ($active !== null) {
+            $data[ProductModel::ACTIVO] = $active;
+        }
+        if ($pictureId !== null) {
+            $data[ProductModel::FOTO_ID] = $pictureId;
+        }
+        if ($unidadMedida !== null) {
+            $data[ProductModel::UNIDAD_MEDIDA] = $unidadMedida;
+        }
 
         $this->update($data);
 

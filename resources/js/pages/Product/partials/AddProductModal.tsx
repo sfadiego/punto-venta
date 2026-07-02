@@ -2,11 +2,13 @@ import { X, Package, Loader } from "lucide-react";
 import { FormikProps } from "formik";
 import { ICategory } from "@/models/ICategory";
 import { ProductForm } from "./useAddProductModal";
+import { UnidadMedidaEnum, UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 
 interface AddProductModalProps {
     isOpen: boolean;
     formik: FormikProps<ProductForm>;
     categories: ICategory[];
+    sellByWeight: boolean;
     onClose: () => void;
 }
 
@@ -14,6 +16,7 @@ export const AddProductModal = ({
     isOpen,
     formik,
     categories,
+    sellByWeight,
     onClose,
 }: AddProductModalProps) => {
     if (!isOpen) return null;
@@ -126,6 +129,31 @@ export const AddProductModal = ({
                             )}
                         </div>
                     </div>
+
+                    {/* Unidad de medida */}
+                    {sellByWeight && (
+                        <div>
+                            <label className="block text-xs font-medium text-stone-600 mb-1.5">
+                                Unidad de medida <span className="text-red-400">*</span>
+                            </label>
+                            <div className="flex gap-2">
+                                {Object.values(UnidadMedidaEnum).map((u) => (
+                                    <button
+                                        key={u}
+                                        type="button"
+                                        onClick={() => formik.setFieldValue("unidad_medida", u)}
+                                        className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                                            formik.values.unidad_medida === u
+                                                ? "border-amber-400 bg-amber-50 text-amber-700"
+                                                : "border-stone-200 bg-stone-50 text-stone-500 hover:border-stone-300"
+                                        }`}
+                                    >
+                                        {UNIDAD_LABELS[u]}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Activo */}
                     <div className="flex items-center justify-between p-3 bg-stone-50 rounded-xl">

@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\BusinessTypeEnum;
 use App\Models\BusinessConfigModel;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TenantStoreRequest extends FormRequest
 {
@@ -26,6 +28,7 @@ class TenantStoreRequest extends FormRequest
             'admin_email' => 'required|email|unique:users,email',
             'admin_usuario' => 'required|string|unique:users,usuario',
             'admin_password' => 'required|string|min:6',
+            BusinessConfigModel::TIPO_NEGOCIO => ['nullable', Rule::enum(BusinessTypeEnum::class)],
         ];
     }
 }

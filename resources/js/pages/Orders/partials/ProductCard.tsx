@@ -22,7 +22,7 @@ export const ProductCard = ({ product, cartItem, isReadOnly = false, onAdd }: Pr
         }`}
     >
         {cartItem && (
-            <span className="absolute top-2 right-2 w-5 h-5 bg-amber-500 text-white rounded-full text-xs flex items-center justify-center font-bold leading-none">
+            <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 bg-amber-500 text-white rounded-full text-xs flex items-center justify-center font-bold leading-none shadow-sm">
                 {cartItem.quantity}
             </span>
         )}

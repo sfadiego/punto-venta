@@ -3,10 +3,14 @@ import { ShoppingBag, RefreshCw } from "lucide-react";
 import { useSalesPage } from "./useSalesPage";
 import { SalesFilters } from "./partials/SalesFilters";
 import { OrderDetailModal } from "./partials/OrderDetailModal";
+import { SalesByCategoryModal } from "./partials/SalesByCategoryModal";
+import { useSalesByCategoryModal } from "./partials/useSalesByCategoryModal";
 
 export default function SalesPage() {
-    const { dataTableProps, isLoading, refetch, fecha, handleFechaChange, handleClear, modal } =
+    const { dataTableProps, isLoading, refetch, fecha, categoriaId, categories, sellByWeight, handleFechaChange, handleCategoriaChange, handleClear, modal } =
         useSalesPage();
+
+    const categoryModal = useSalesByCategoryModal();
 
     return (
         <div className="px-5 py-6 max-w-7xl mx-auto">
@@ -31,7 +35,13 @@ export default function SalesPage() {
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
                 <SalesFilters
                     fecha={fecha}
+                    categoriaId={categoriaId}
+                    categories={categories}
+                    sellByWeight={sellByWeight}
+                    showCategoryReport={sellByWeight && !!categoryModal.sistemaId}
                     onFechaChange={handleFechaChange}
+                    onCategoriaChange={handleCategoriaChange}
+                    onCategoryReport={categoryModal.open}
                     onClear={handleClear}
                 />
 
@@ -51,6 +61,17 @@ export default function SalesPage() {
                 isOpen={modal.isOpen}
                 order={modal.order}
                 onClose={modal.close}
+            />
+
+            <SalesByCategoryModal
+                isOpen={categoryModal.isOpen}
+                onClose={categoryModal.close}
+                data={categoryModal.data}
+                isLoading={categoryModal.isLoading}
+                totalBruto={categoryModal.totalBruto}
+                totalDomicilios={categoryModal.totalDomicilios}
+                totalNeto={categoryModal.totalNeto}
+                sistemaId={categoryModal.sistemaId}
             />
         </div>
     );

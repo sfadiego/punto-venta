@@ -7,7 +7,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useDashboard } from "./useDashboard";
 import { RecentOrders } from "./partials/RecentOrders";
+import { RecentSales } from "./partials/RecentSales";
 import { NewOrderButton } from "@/components/orders/NewOrderButton";
+import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { OpenSalesModal } from "./partials/OpenSalesModal";
 import { useOpenSalesModal } from "./partials/useOpenSalesModal";
 import { AdminRoutes } from "@/enums/RoutesEnum";
@@ -24,7 +26,7 @@ export default function DashboardPage() {
     const navigate = useNavigate();
     const { can } = usePermissions();
     const {
-        orders, ordersLoading, isFetchingNextPage, hasNextPage, fetchNextPage, sistemaId, stats,
+        orders, ordersLoading, isFetchingNextPage, hasNextPage, fetchNextPage, sistemaId, sellByWeight, stats,
     } = useDashboard();
 
     const {
@@ -61,7 +63,10 @@ export default function DashboardPage() {
                                     Cerrar caja
                                 </button>
                             )}
-                            <NewOrderButton className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-medium px-4 py-2.5 rounded-xl transition-colors text-sm" />
+                            {sellByWeight
+                                ? <NewSaleButton />
+                                : <NewOrderButton className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-medium px-4 py-2.5 rounded-xl transition-colors text-sm" />
+                            }
                         </>
                     ) : (
                         <button
@@ -92,15 +97,19 @@ export default function DashboardPage() {
                 ))}
             </div>
 
-            <RecentOrders
-                orders={orders}
-                isLoading={ordersLoading}
-                isFetchingNextPage={isFetchingNextPage}
-                hasNextPage={hasNextPage}
-                sistemaId={sistemaId}
-                onViewAll={() => navigate("/orders")}
-                onLoadMore={fetchNextPage}
-            />
+            {sellByWeight ? (
+                <RecentSales />
+            ) : (
+                <RecentOrders
+                    orders={orders}
+                    isLoading={ordersLoading}
+                    isFetchingNextPage={isFetchingNextPage}
+                    hasNextPage={hasNextPage}
+                    sistemaId={sistemaId}
+                    onViewAll={() => navigate("/orders")}
+                    onLoadMore={fetchNextPage}
+                />
+            )}
 
             <OpenSalesModal
                 isOpen={openSalesOpen}

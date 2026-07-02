@@ -1,3 +1,5 @@
+import { BusinessTypeEnum, IBusinessFeatures } from "@/enums/BusinessTypeEnum";
+
 export interface ITenant {
     id: number;
     slug: string;
@@ -9,6 +11,8 @@ export interface ITenant {
     label_color: string;
     logo_path: string | null;
     logo_icon: string | null;
+    tipo_negocio: BusinessTypeEnum;
+    features?: IBusinessFeatures;
     users_count?: number;
     created_at: string;
     updated_at: string;
@@ -22,6 +26,7 @@ export interface ICreateTenantPayload {
     sidebar_color: string;
     font_color: string;
     label_color: string;
+    tipo_negocio: BusinessTypeEnum;
     admin_nombre: string;
     admin_apellido: string;
     admin_email: string;
@@ -38,4 +43,5 @@ export interface IUpdateTenantPayload {
     font_color: string;
     label_color: string;
     logo_icon: string | null;
+    tipo_negocio: BusinessTypeEnum;
 }

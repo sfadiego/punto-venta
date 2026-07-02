@@ -24,6 +24,8 @@ class OrderModel extends Model
 
     const DESCUENTO = 'descuento';
 
+    const COSTO_DOMICILIO = 'costo_domicilio';
+
     const ESTATUS_PEDIDO_ID = 'estatus_pedido_id';
 
     const SISTEMA_ID = 'sistema_id';
@@ -44,6 +46,7 @@ class OrderModel extends Model
         self::TOTAL,
         self::SUBTOTAL,
         self::DESCUENTO,
+        self::COSTO_DOMICILIO,
         self::NOMBRE_PEDIDO,
         self::ESTATUS_PEDIDO_ID,
         self::SISTEMA_ID,
@@ -111,7 +114,10 @@ class OrderModel extends Model
             ->whereHas('orders')
             ->with(['orders' => function ($q) {
                 $q->whereDate('created_at', now());
-                $q->where('estatus_pedido_id', OrderStatusEnum::IN_PROCESS);
+                $q->whereIn('estatus_pedido_id', [
+                    OrderStatusEnum::IN_PROCESS->value,
+                    OrderStatusEnum::READY_TO_SERVE->value,
+                ]);
             }])
             ->first();
 

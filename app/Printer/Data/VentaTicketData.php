@@ -35,17 +35,20 @@ class VentaTicketData implements TicketDataInterface
         $config = BusinessConfigModel::find($order->tenant_id);
 
         $products = $order->orderProducts->map(function ($item): array {
-            $lineTotal = (float) $item->precio * (float) $item->cantidad;
+            $cantidad = (float) $item->cantidad;
+            $lineTotal = (float) $item->precio * $cantidad;
             $discount = $lineTotal * ((float) $item->descuento / 100);
+            $unidad = $item->product?->unidad_medida?->value ?? 'unidad';
 
             return [
                 'nombre' => $item->nombre_extra ?? $item->product?->nombre ?? '—',
-                'cantidad' => (int) $item->cantidad,
+                'cantidad' => $cantidad,
+                'unidad_medida' => $unidad,
                 'precio' => (float) $item->precio,
                 'descuento' => (float) $item->descuento,
                 'total' => round($lineTotal - $discount, 2),
                 'es_extra' => ! is_null($item->nombre_extra),
-                'observacion' => $item->observacion, // solo para cocina, no se imprime
+                'observacion' => $item->observacion,
             ];
         })->toArray();
 
@@ -55,6 +58,7 @@ class VentaTicketData implements TicketDataInterface
             'subtotal' => (float) $order->subtotal,
             'descuento' => (float) $order->descuento,
             'total' => (float) $order->total,
+            'costo_domicilio' => (float) ($order->costo_domicilio ?? 0),
             'created_at' => $order->created_at,
             'fecha_string' => self::fechaString($order->created_at),
             'hora' => Carbon::parse($order->created_at)->setTimezone(config('app.timezone'))->format('H:i'),

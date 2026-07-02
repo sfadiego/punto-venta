@@ -13,4 +13,5 @@ export interface IPaginateServiceProps {
     sistema_id?: number | null;
     estatus_pedido_id?: number | null;
     fecha?: string | null;
+    categoria_id?: number | null;
 }

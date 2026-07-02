@@ -16,6 +16,7 @@ export default function TenantUsersPage() {
         users,
         isLoading,
         tenantSlug,
+        tipoNegocio,
         modalUser,
         isModalOpen,
         openCreate,
@@ -64,6 +65,7 @@ export default function TenantUsersPage() {
                 <UserModal
                     tenantId={tenantId}
                     tenantSlug={tenantSlug}
+                    tipoNegocio={tipoNegocio}
                     user={modalUser ?? null}
                     onClose={closeModal}
                 />

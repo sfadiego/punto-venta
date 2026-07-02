@@ -1,5 +1,4 @@
 import {
-    Store,
     Coffee,
     Utensils,
     UtensilsCrossed,
@@ -10,6 +9,7 @@ import {
     Sandwich,
     Package,
     type LucideIcon,
+    Beef,
 } from "lucide-react";
 
 export interface IconOption {
@@ -19,7 +19,7 @@ export interface IconOption {
 }
 
 export const BUSINESS_ICONS: IconOption[] = [
-    { name: "Store",           label: "Tienda",      component: Store },
+    { name: "Beef",           label: "Carnes",          component: Beef },
     { name: "Coffee",          label: "Café",        component: Coffee },
     { name: "Utensils",        label: "Restaurante", component: Utensils },
     { name: "UtensilsCrossed", label: "Comedor",     component: UtensilsCrossed },

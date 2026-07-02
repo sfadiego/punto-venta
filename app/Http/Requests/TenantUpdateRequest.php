@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\BusinessTypeEnum;
 use App\Models\BusinessConfigModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,6 +27,7 @@ class TenantUpdateRequest extends FormRequest
             BusinessConfigModel::FONT_COLOR => 'required|string|max:20',
             BusinessConfigModel::LABEL_COLOR => 'required|string|max:20',
             BusinessConfigModel::LOGO_ICON => 'nullable|string|max:50',
+            BusinessConfigModel::TIPO_NEGOCIO => ['nullable', Rule::enum(BusinessTypeEnum::class)],
         ];
     }
 }

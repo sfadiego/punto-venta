@@ -5,6 +5,7 @@ export interface IBestSellerItem {
     id: number;
     product: string;
     total: number;
+    unidad_medida: "unidad" | "kg" | "gr";
 }
 
 const url = ApiRoutes.Statistics;

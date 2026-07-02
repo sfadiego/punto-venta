@@ -5,7 +5,7 @@ import { useShowOrder, useUpdateOrder } from "@/services/useOrderService";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 
-export const useKitchenViewModal = (orderId: number) => {
+export const useOrderPreviewModal = (orderId: number) => {
     const [isOpen, setIsOpen] = useState(false);
     const queryClient = useQueryClient();
 

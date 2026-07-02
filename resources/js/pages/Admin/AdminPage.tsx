@@ -3,11 +3,12 @@ import { LogoSection } from "./partials/LogoSection";
 import { ColorsSection } from "./partials/ColorsSection";
 import { BusinessInfoSection } from "./partials/BusinessInfoSection";
 import { PrinterSection } from "./partials/PrinterSection";
+import { DeliverySection } from "./partials/DeliverySection";
 import { AdminNav } from "./partials/AdminNav";
 import { useAdminPage } from "./useAdminPage";
 
 function AdminPage() {
-    const { config, isLoading } = useAdminPage();
+    const { config, isLoading, sellByWeight } = useAdminPage();
 
     return (
         <div className="p-4 md:p-6 max-w-4xl mx-auto">
@@ -27,12 +28,15 @@ function AdminPage() {
                 </div>
             ) : (
                 <div className="flex gap-8 items-start">
-                    <AdminNav />
+                    <AdminNav sellByWeight={sellByWeight} />
                     <div className="flex-1 flex flex-col gap-5 min-w-0">
                         <div id="logo"><LogoSection config={config} /></div>
                         <div id="colores"><ColorsSection config={config} /></div>
                         <div id="negocio"><BusinessInfoSection config={config} /></div>
                         <div id="impresora"><PrinterSection config={config} /></div>
+                        {sellByWeight && (
+                            <div id="domicilio"><DeliverySection config={config} /></div>
+                        )}
                     </div>
                 </div>
             )}

@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\UnidadMedidaEnum;
 use App\Models\ProductModel;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ProductStoreRequest extends FormRequest
 {
@@ -29,6 +31,7 @@ class ProductStoreRequest extends FormRequest
             ProductModel::CATEGORIA_ID => 'required|exists:categories,id',
             ProductModel::ACTIVO => 'bool',
             ProductModel::FOTO_ID => 'nullable|exists:product_image',
+            ProductModel::UNIDAD_MEDIDA => ['nullable', Rule::enum(UnidadMedidaEnum::class)],
         ];
     }
 }

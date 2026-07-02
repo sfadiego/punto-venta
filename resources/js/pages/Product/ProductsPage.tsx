@@ -3,6 +3,7 @@ import { DataTable, DataTableColumn } from "mantine-datatable";
 import { Package, Plus, RefreshCw } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { useProductsPage } from "./useProductsPage";
 import { CategoryFilter } from "./partials/CategoryFilter";
 import { AddProductModal } from "./partials/AddProductModal";
@@ -30,10 +31,10 @@ export default function ProductsPage() {
         invalidateProducts,
     } = useProductsPage();
 
-    const { isOpen: addOpen, openModal: openAdd, handleClose: closeAdd, formik: addFormik, categories: addCategories } =
+    const { isOpen: addOpen, openModal: openAdd, handleClose: closeAdd, formik: addFormik, categories: addCategories, sellByWeight } =
         useAddProductModal(invalidateProducts);
 
-    const { formik: editFormik, categories: editCategories } = useEditProductModal(
+    const { formik: editFormik, categories: editCategories, sellByWeight: editSellByWeight } = useEditProductModal(
         editingProduct,
         invalidateProducts,
         () => setEditingProduct(null),
@@ -77,7 +78,10 @@ export default function ProductsPage() {
                 title: "Precio",
                 render: (p: IProduct) => (
                     <span className="font-semibold text-stone-900 tabular-nums text-sm">
-                        ${Number(p.precio).toFixed(2)}
+                        ${Number(p.precio).toFixed(2)}{" "}
+                        <span className="text-xs font-normal text-stone-400">
+                            / {UNIDAD_LABELS[p.unidad_medida]}
+                        </span>
                     </span>
                 ),
             },
@@ -182,6 +186,7 @@ export default function ProductsPage() {
                 isOpen={addOpen}
                 formik={addFormik}
                 categories={addCategories}
+                sellByWeight={sellByWeight}
                 onClose={closeAdd}
             />
 
@@ -190,6 +195,7 @@ export default function ProductsPage() {
                 product={editingProduct}
                 formik={editFormik}
                 categories={editCategories}
+                sellByWeight={editSellByWeight}
                 onClose={() => setEditingProduct(null)}
             />
         </div>

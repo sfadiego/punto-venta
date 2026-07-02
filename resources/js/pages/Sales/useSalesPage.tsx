@@ -3,10 +3,14 @@ import { DataTableColumn } from "mantine-datatable";
 import { Eye } from "lucide-react";
 import { useDataTable, DataTableRenderersMap } from "@/hooks/useDatatable";
 import { useIndexOrder } from "@/services/useOrderService";
+import { useIndexCategories } from "@/services/useCategoriesService";
+import { useAxios } from "@/hooks/useAxios";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { getStatusStyle, getStatusLabel } from "@/pages/Dashboard/useDashboard";
 import { useOrderDetailModal } from "./partials/useOrderDetailModal";
+
+const today = () => new Date().toISOString().split("T")[0];
 
 const renderersMap: DataTableRenderersMap = {
     total: (o: IOrder) => `$${o.total.toFixed(2)}`,
@@ -20,16 +24,17 @@ const renderersMap: DataTableRenderersMap = {
             hour: "2-digit",
             minute: "2-digit",
         }),
-    status: (o: IOrder) => (
-        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(o.estatus_pedido_id)}`}>
-            {getStatusLabel(o.estatus_pedido_id)}
-        </span>
-    ),
 };
 
 export const useSalesPage = () => {
-    const [fecha, setFecha] = useState<string | null>(null);
+    const { features } = useAxios();
+    const sellByWeight = features?.sell_by_weight === true;
+
+    const [fecha, setFecha] = useState<string | null>(today());
+    const [categoriaId, setCategoriaId] = useState<number | null>(null);
     const modal = useOrderDetailModal();
+
+    const { data: categories } = useIndexCategories();
 
     const actionsColumn: DataTableColumn<IOrder> = useMemo(
         () => ({
@@ -59,6 +64,7 @@ export const useSalesPage = () => {
         payload: {
             estatus_pedido_id: OrderStatusEnum.Closed,
             ...(fecha ? { fecha } : {}),
+            ...(categoriaId !== null ? { categoria_id: categoriaId } : {}),
         },
         renderersMap,
     });
@@ -68,7 +74,23 @@ export const useSalesPage = () => {
             ...dataTableProps,
             columns:
                 dataTableProps.columns.length > 0
-                    ? ([...dataTableProps.columns, actionsColumn] as DataTableColumn<IOrder>[])
+                    ? ([
+                          ...dataTableProps.columns.map((col) =>
+                              (col.accessor as string) === "estatus_pedido_id"
+                                  ? {
+                                        ...col,
+                                        render: (o: IOrder) => (
+                                            <span
+                                                className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(o.estatus_pedido_id)}`}
+                                            >
+                                                {getStatusLabel(o.estatus_pedido_id)}
+                                            </span>
+                                        ),
+                                    }
+                                  : col,
+                          ),
+                          actionsColumn,
+                      ] as DataTableColumn<IOrder>[])
                     : [],
         }),
         [dataTableProps, actionsColumn],
@@ -79,8 +101,14 @@ export const useSalesPage = () => {
         setPage(1);
     };
 
+    const handleCategoriaChange = (id: number | null) => {
+        setCategoriaId(id);
+        setPage(1);
+    };
+
     const handleClear = () => {
-        setFecha(null);
+        setFecha(today());
+        setCategoriaId(null);
         setPage(1);
     };
 
@@ -89,7 +117,11 @@ export const useSalesPage = () => {
         isLoading,
         refetch,
         fecha,
+        categoriaId,
+        categories,
+        sellByWeight,
         handleFechaChange,
+        handleCategoriaChange,
         handleClear,
         modal,
     };

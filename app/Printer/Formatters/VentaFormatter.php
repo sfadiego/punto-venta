@@ -70,6 +70,14 @@ class VentaFormatter implements TicketFormatterInterface
         $printer->text($this->totalRow('TOTAL:', '$'.number_format($d['total'], 2))."\n");
         $printer->setEmphasis(false);
 
+        if (! empty($d['costo_domicilio']) && $d['costo_domicilio'] > 0) {
+            $printer->text($this->totalRow('Domicilio:', '-$'.number_format($d['costo_domicilio'], 2))."\n");
+            $neto = $d['total'] - $d['costo_domicilio'];
+            $printer->setEmphasis(true);
+            $printer->text($this->totalRow('INGRESO NETO:', '$'.number_format($neto, 2))."\n");
+            $printer->setEmphasis(false);
+        }
+
         $propina = round($d['total'] * 0.10, 2);
         $printer->feed(1);
         $printer->text($this->totalRow('Propina 10%:', '$'.number_format($propina, 2))."\n");
@@ -123,8 +131,8 @@ class VentaFormatter implements TicketFormatterInterface
 
     /**
      * Línea de producto en dos líneas:
-     * "Café Americano           $70.00"  ← nombre + total (32 chars)
-     * "  2 x $35.00"                     ← cantidad x precio unitario
+     * "Pecho de res             $70.00"  ← nombre + total (32 chars)
+     * "  0.350 kg x $200.00"             ← cantidad (con decimales si es peso) x precio
      */
     private function productLine(array $item): string
     {
@@ -134,7 +142,13 @@ class VentaFormatter implements TicketFormatterInterface
         $line1 = str_pad($name, self::COL_NAME)
             .str_pad($total, self::COL_TOTAL, ' ', STR_PAD_LEFT);
 
-        $line2 = '  '.$item['cantidad'].' x $'.number_format($item['precio'], 2);
+        $unidad = $item['unidad_medida'] ?? 'unidad';
+        $esPeso = in_array($unidad, ['kg', 'gr']);
+        $cantidadStr = $esPeso
+            ? number_format($item['cantidad'], 3).' '.$unidad
+            : (int) $item['cantidad'];
+
+        $line2 = '  '.$cantidadStr.' x $'.number_format($item['precio'], 2);
 
         $lines = $line1."\n".$line2;
 

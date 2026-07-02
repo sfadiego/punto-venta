@@ -4,11 +4,14 @@ import Swal from "sweetalert2";
 import { IUser } from "@/models/IUser";
 import { useListTenantUsers, useDeleteTenantUser } from "@/services/useTenantUserService";
 import { useListTenants } from "@/services/useSuperAdminService";
+import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 
 export const useTenantUsers = (tenantId: number) => {
     const { data: users = [], isLoading } = useListTenantUsers(tenantId);
     const { data: tenants = [] } = useListTenants();
-    const tenantSlug = tenants.find((t) => t.id === tenantId)?.slug ?? "";
+    const tenant = tenants.find((t) => t.id === tenantId);
+    const tenantSlug = tenant?.slug ?? "";
+    const tipoNegocio = tenant?.tipo_negocio ?? BusinessTypeEnum.Restaurante;
     const deleteMutation = useDeleteTenantUser(tenantId);
 
     const [modalUser, setModalUser] = useState<IUser | null | undefined>(undefined);
@@ -40,6 +43,7 @@ export const useTenantUsers = (tenantId: number) => {
         users,
         isLoading,
         tenantSlug,
+        tipoNegocio,
         modalUser,
         isModalOpen: modalUser !== undefined,
         openCreate,

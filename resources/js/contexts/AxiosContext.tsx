@@ -4,6 +4,7 @@ import { createContext, useCallback, useEffect, useState } from "react";
 import { IAuthContextType } from "./interfaces/IAuthContextType";
 import { IAuthProviderProps } from "./interfaces/IAuthProviderProps";
 import { IUser } from "@/models/IUser";
+import { IBusinessFeatures } from "@/enums/BusinessTypeEnum";
 
 export const AxiosContext = createContext<IAuthContextType | undefined>(
     undefined,
@@ -16,6 +17,11 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
     const [user, setUser] = useState<IUser | null>(
         localStorage.getItem("user")
             ? JSON.parse(localStorage.getItem("user")!)
+            : null,
+    );
+    const [features, setFeatures] = useState<IBusinessFeatures | null>(
+        localStorage.getItem("features")
+            ? JSON.parse(localStorage.getItem("features")!)
             : null,
     );
     const [sistemaId, setSistemaId] = useState<number | null>(() => {
@@ -43,6 +49,15 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         setUser(user);
     };
 
+    const configFeatures = (features: IBusinessFeatures | null) => {
+        if (features) {
+            localStorage.setItem("features", JSON.stringify(features));
+        } else {
+            localStorage.removeItem("features");
+        }
+        setFeatures(features);
+    };
+
     const setSistema = (sistema: number | null) => {
         const value = sistema && sistema > 0 ? sistema : null;
         localStorage.setItem("sistemaId", value?.toString() ?? "");
@@ -52,14 +67,16 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
     const logout = useCallback(() => {
         configureAxiosHeaders(null);
         configUser(null);
+        configFeatures(null);
         setSistema(null);
         const slug = localStorage.getItem("tenantSlug");
         window.location.replace(slug ? `/${slug}/login` : "/login");
     }, []);
 
-    const saveAuth = useCallback((accessToken: string, user: IUser) => {
+    const saveAuth = useCallback((accessToken: string, user: IUser, features: IBusinessFeatures) => {
         configureAxiosHeaders(accessToken);
         configUser(user);
+        configFeatures(features);
     }, []);
 
     // Sincroniza el header de axios cuando el token cambia
@@ -108,6 +125,7 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         authToken,
         isAuth,
         user,
+        features,
         axiosApi,
         saveAuth,
         sistemaId,

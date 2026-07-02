@@ -9,6 +9,7 @@ export interface IOrder {
     nombre_pedido: string;
     estatus_pedido_id: number;
     sistema_id: number;
+    costo_domicilio: number | string;
     created_at: string;
     updated_at: string;
     status: IOrderStatus;

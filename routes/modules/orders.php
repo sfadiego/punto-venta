@@ -8,6 +8,8 @@ Route::prefix('order')->group(function () {
     Route::controller(OrderController::class)->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
+        Route::post('/sale', 'storeSale');
+        Route::get('/sales-by-category', 'salesByCategory');
         Route::prefix('{order}')->group(function () {
             Route::get('', 'show');
             Route::get('total', 'total');

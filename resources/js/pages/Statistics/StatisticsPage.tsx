@@ -1,13 +1,15 @@
-import { BarChart2, TrendingUp, ShoppingBag, Award, DollarSign } from "lucide-react";
+import { BarChart2, TrendingUp, ShoppingBag, Award, DollarSign, LockKeyhole } from "lucide-react";
 import { useStatisticsPage } from "./useStatisticsPage";
-import { BestSellerChart, BestSellerRanking } from "./partials/BestSellerChart";
+import { BestSellerChart, BestSellerRanking, formatTotal } from "./partials/BestSellerChart";
 import { MonthPicker } from "./partials/MonthPicker";
 
 export default function StatisticsPage() {
-    const { month, formattedMonth, bestSellers, isLoading, totalVentas, handleMonthChange } = useStatisticsPage();
+    const { month, formattedMonth, bestSellers, isLoading, totalVentas, cajaAbierta, handleMonthChange } = useStatisticsPage();
 
     const topProduct = bestSellers[0];
+    const allSameUnit = bestSellers.length > 0 && bestSellers.every((i) => i.unidad_medida === bestSellers[0].unidad_medida);
     const totalUnits = bestSellers.reduce((sum, item) => sum + item.total, 0);
+    const totalLabel = allSameUnit ? formatTotal(totalUnits, bestSellers[0].unidad_medida) : `${totalUnits}`;
 
     return (
         <div className="px-5 py-6 max-w-5xl mx-auto">
@@ -40,15 +42,27 @@ export default function StatisticsPage() {
                     {/* Summary cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 flex items-start gap-4">
-                            <div className="p-2.5 rounded-xl bg-green-100 shrink-0">
-                                <DollarSign size={20} className="text-green-600" />
+                            <div className={`p-2.5 rounded-xl shrink-0 ${cajaAbierta ? "bg-green-100" : "bg-stone-100"}`}>
+                                {cajaAbierta
+                                    ? <DollarSign size={20} className="text-green-600" />
+                                    : <LockKeyhole size={20} className="text-stone-400" />
+                                }
                             </div>
                             <div className="min-w-0">
                                 <p className="text-xs text-stone-500 font-medium">Ventas del día</p>
-                                <p className="text-base font-bold text-stone-900 mt-0.5 truncate">
-                                    {totalVentas}
-                                </p>
-                                <p className="text-xs text-stone-400 mt-0.5">sesión actual</p>
+                                {cajaAbierta ? (
+                                    <>
+                                        <p className="text-base font-bold text-stone-900 mt-0.5 truncate">
+                                            {totalVentas}
+                                        </p>
+                                        <p className="text-xs text-stone-400 mt-0.5">sesión actual</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-sm font-semibold text-stone-400 mt-0.5">Caja cerrada</p>
+                                        <p className="text-xs text-stone-300 mt-0.5">sin sesión activa</p>
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -62,7 +76,7 @@ export default function StatisticsPage() {
                                     {topProduct?.product ?? "—"}
                                 </p>
                                 <p className="text-xs text-amber-600 font-semibold mt-0.5">
-                                    {topProduct?.total} unidades
+                                    {topProduct ? formatTotal(topProduct.total, topProduct.unidad_medida) : "—"}
                                 </p>
                             </div>
                         </div>
@@ -72,8 +86,8 @@ export default function StatisticsPage() {
                                 <ShoppingBag size={20} className="text-emerald-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-stone-500 font-medium">Total unidades</p>
-                                <p className="text-2xl font-bold text-stone-900 mt-0.5">{totalUnits}</p>
+                                <p className="text-xs text-stone-500 font-medium">Total vendido</p>
+                                <p className="text-2xl font-bold text-stone-900 mt-0.5">{totalLabel}</p>
                                 <p className="text-xs text-stone-400 mt-0.5">top {bestSellers.length} productos</p>
                             </div>
                         </div>

@@ -1,31 +1,39 @@
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
-import { Calendar, SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal, X } from "lucide-react";
 
-export const ACTIVE_STATUSES = `${OrderStatusEnum.InProcess},${OrderStatusEnum.ReadyToServe}`;
+export const getActiveStatuses = (showReadyToServe: boolean): string =>
+    showReadyToServe
+        ? `${OrderStatusEnum.InProcess},${OrderStatusEnum.ReadyToServe}`
+        : String(OrderStatusEnum.InProcess);
 
-const STATUS_OPTIONS = [
-    { value: ACTIVE_STATUSES,                              label: "Activos",          dot: "bg-stone-400" },
-    { value: String(OrderStatusEnum.InProcess),            label: "En proceso",       dot: "bg-amber-400" },
-    { value: String(OrderStatusEnum.ReadyToServe),         label: "Lista para servir", dot: "bg-blue-400" },
-    { value: String(OrderStatusEnum.Closed),               label: "Cerrado",          dot: "bg-emerald-400" },
+const BASE_STATUS_OPTIONS = [
+    { value: String(OrderStatusEnum.InProcess),    label: "En proceso",        dot: "bg-amber-400",   readyToServeOnly: false, hideWhenNoRts: true },
+    { value: String(OrderStatusEnum.ReadyToServe), label: "Lista para servir", dot: "bg-blue-400",    readyToServeOnly: true,  hideWhenNoRts: false },
+    { value: String(OrderStatusEnum.Closed),       label: "Cerrado",           dot: "bg-emerald-400", readyToServeOnly: false, hideWhenNoRts: false },
 ];
 
 interface OrderFiltersProps {
-    fecha: string | null;
     estatusId: string;
-    onFechaChange: (value: string | null) => void;
+    showReadyToServe?: boolean;
     onEstatusChange: (value: string) => void;
     onClear: () => void;
 }
 
 export const OrderFilters = ({
-    fecha,
     estatusId,
-    onFechaChange,
+    showReadyToServe = true,
     onEstatusChange,
     onClear,
 }: OrderFiltersProps) => {
-    const hasActiveFilters = !!fecha || estatusId !== ACTIVE_STATUSES;
+    const activeStatuses = getActiveStatuses(showReadyToServe);
+    const statusOptions = [
+        { value: activeStatuses, label: "Activos", dot: "bg-stone-400" },
+        ...BASE_STATUS_OPTIONS.filter((o) =>
+            (!o.readyToServeOnly || showReadyToServe) &&
+            (!o.hideWhenNoRts || showReadyToServe)
+        ),
+    ];
+    const hasActiveFilters = estatusId !== activeStatuses;
 
     return (
         <div className="flex flex-col gap-3 mb-5">
@@ -42,31 +50,10 @@ export const OrderFilters = ({
             </div>
 
             <div className="flex flex-wrap gap-3">
-                {/* Fecha */}
-                <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-stone-500">Fecha</label>
-                    <div className="relative">
-                        <Calendar
-                            size={14}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
-                        />
-                        <input
-                            type="date"
-                            value={fecha ?? ""}
-                            onChange={(e) => onFechaChange(e.target.value || null)}
-                            className="h-9 pl-8 pr-3 rounded-xl border border-stone-200 bg-stone-50
-                                text-sm text-stone-700 focus:outline-none focus:ring-2
-                                focus:ring-amber-400 focus:border-transparent focus:bg-white
-                                transition-all w-44"
-                        />
-                    </div>
-                </div>
-
-                {/* Estatus — chips */}
                 <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-medium text-stone-500">Estatus</label>
                     <div className="flex gap-2">
-                        {STATUS_OPTIONS.map((opt) => {
+                        {statusOptions.map((opt) => {
                             const active = estatusId === opt.value;
                             return (
                                 <button
@@ -84,25 +71,19 @@ export const OrderFilters = ({
                                 </button>
                             );
                         })}
-                        {/* Limpiar */}
                         {hasActiveFilters && (
-                            <div className="flex flex-col gap-1.5">
-                                <button
-                                    onClick={onClear}
-                                    className="h-9 flex items-center gap-1.5 px-3 rounded-xl border
-                                border-stone-200 bg-stone-50 text-xs font-medium text-stone-400
-                                hover:border-red-200 hover:bg-red-50 hover:text-red-500
-                                transition-all"
-                                >
-                                    <X size={13} />
-                                    Limpiar filtros
-                                </button>
-                            </div>
+                            <button
+                                onClick={onClear}
+                                className="h-9 flex items-center gap-1.5 px-3 rounded-xl border
+                                    border-stone-200 bg-stone-50 text-xs font-medium text-stone-400
+                                    hover:border-red-200 hover:bg-red-50 hover:text-red-500 transition-all"
+                            >
+                                <X size={13} />
+                                Limpiar
+                            </button>
                         )}
                     </div>
                 </div>
-
-
             </div>
         </div>
     );

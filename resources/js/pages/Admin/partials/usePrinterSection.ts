@@ -35,9 +35,11 @@ export const usePrinterSection = (config: IBusinessConfig | undefined) => {
                     whatsapp:       config.whatsapp,
                     website:        config.website,
                     ticket_footer:  config.ticket_footer,
-                    logo_icon:      config.logo_icon,
-                    printer_name:   values.printer_name || null,
-                    printer_host:   values.printer_host || null,
+                    logo_icon:                config.logo_icon,
+                    printer_name:             values.printer_name || null,
+                    printer_host:             values.printer_host || null,
+                    costo_domicilio_default:  config.costo_domicilio_default,
+                    delivery_paid_by:         config.delivery_paid_by,
                 });
                 toast.success("Configuración de impresora guardada.");
             } catch {

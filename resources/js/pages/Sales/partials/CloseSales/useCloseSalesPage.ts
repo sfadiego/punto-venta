@@ -4,17 +4,20 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useGetActiveSale, useCloseSales, useCurrentTotalSale } from "@/services/useOpenSalesService";
 import { useIndexOrder } from "@/services/useOrderService";
+import { useAxios } from "@/hooks/useAxios";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 
 export const useCloseSalesPage = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { features } = useAxios();
+    const sellByWeight = features?.sell_by_weight === true;
 
     const { data: activeSale, isLoading: loadingSale } = useGetActiveSale();
     const sistemaId = activeSale?.id ?? null;
 
-    const { data: totalVentas, isLoading: loadingTotal } = useCurrentTotalSale(sistemaId ?? 0);
+    const { data: totales, isLoading: loadingTotal } = useCurrentTotalSale(sistemaId ?? 0);
     const { mutateAsync: closeSales, isPending: isClosing } = useCloseSales(sistemaId ?? 0);
 
     const { data: activeOrdersPage } = useIndexOrder({
@@ -24,11 +27,13 @@ export const useCloseSalesPage = () => {
     });
 
     const activeOrdersCount = activeOrdersPage?.total ?? 0;
-    const hasActiveOrders = activeOrdersCount > 0;
+    const hasActiveOrders   = activeOrdersCount > 0;
 
-    const efectivoInicio = activeSale?.efectivo_caja_inicio ?? 0;
-    const totalDia = (totalVentas as number) ?? 0;
-    const efectivoCierre = efectivoInicio + totalDia;
+    const efectivoInicio  = activeSale?.efectivo_caja_inicio ?? 0;
+    const totalBruto      = totales?.bruto      ?? 0;
+    const totalDomicilios = totales?.domicilios ?? 0;
+    const totalNeto       = totales?.neto       ?? 0;
+    const efectivoCierre  = efectivoInicio + totalNeto;
 
     const handleClose = async () => {
         if (hasActiveOrders) return;
@@ -61,8 +66,11 @@ export const useCloseSalesPage = () => {
         activeSale,
         sistemaId,
         efectivoInicio,
-        totalDia,
+        totalBruto,
+        totalDomicilios,
+        totalNeto,
         efectivoCierre,
+        sellByWeight,
         hasActiveOrders,
         activeOrdersCount,
         isLoading: loadingSale || loadingTotal,

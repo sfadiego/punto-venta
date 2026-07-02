@@ -4,7 +4,7 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { usePermissions } from "@/hooks/usePermissions";
 import { PayOrderButton } from "./PayOrderButton";
 import { PrintTicketButton } from "./PrintTicketButton";
-import { KitchenViewModal } from "./KitchenViewModal";
+import { OrderPreviewModal } from "./OrderPreviewModal";
 
 interface OrderEditControlsProps {
     isUpdating: boolean;
@@ -65,7 +65,7 @@ export const OrderActionGroup = ({
 
     return (
         <>
-            {can("kitchenView") && isKitchenVisible && <KitchenViewModal order={order} />}
+            {can("kitchenView") && isKitchenVisible && <OrderPreviewModal order={order} />}
 
             {can("printTicket") && <PrintTicketButton orderId={order.id} showLabel={showPrintLabel} />}
 
