@@ -61,6 +61,7 @@ export const EditProductModal = ({
                             value={formik.values.nombre}
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
+                            maxLength={255}
                             autoFocus
                             className={`w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent ${
                                 formik.touched.nombre && formik.errors.nombre

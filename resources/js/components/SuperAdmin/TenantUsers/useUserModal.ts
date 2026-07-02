@@ -14,11 +14,11 @@ interface UseUserModalParams {
 
 const schema = (isEdit: boolean) =>
     Yup.object({
-        nombre:           Yup.string().required("Requerido"),
-        apellido_paterno: Yup.string().required("Requerido"),
-        apellido_materno: Yup.string(),
+        nombre:           Yup.string().required("Requerido").max(100, "Máximo 100 caracteres"),
+        apellido_paterno: Yup.string().required("Requerido").max(100, "Máximo 100 caracteres"),
+        apellido_materno: Yup.string().max(100, "Máximo 100 caracteres"),
         email:            Yup.string().email("Correo inválido").required("Requerido"),
-        usuario:          Yup.string().required("Requerido"),
+        usuario:          Yup.string().required("Requerido").max(80, "Máximo 80 caracteres"),
         password:         isEdit
             ? Yup.string().min(8, "Mínimo 8 caracteres")
             : Yup.string().min(8, "Mínimo 8 caracteres").required("Requerido"),

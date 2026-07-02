@@ -15,10 +15,10 @@ class CategoryStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            CategoryModel::NOMBRE => 'required|unique:categories,nombre',
-            CategoryModel::ORDEN => 'nullable|numeric',
+            CategoryModel::NOMBRE => 'required|string|max:255|unique:categories,nombre',
+            CategoryModel::ORDEN => 'nullable|integer|min:0|max:2147483647',
             CategoryModel::FOTO_ID => 'nullable',
-            CategoryModel::ICON_NAME => 'nullable|string',
+            CategoryModel::ICON_NAME => 'nullable|string|max:100',
         ];
     }
 }

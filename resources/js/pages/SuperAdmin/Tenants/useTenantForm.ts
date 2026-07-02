@@ -14,8 +14,8 @@ const COLOR_DEFAULTS = {
 };
 
 const baseSchema = {
-    slug:          Yup.string().required("Requerido").matches(/^[a-z0-9-]+$/, "Solo letras, números y guiones"),
-    business_name: Yup.string().required("Requerido"),
+    slug:          Yup.string().required("Requerido").matches(/^[a-z0-9-]+$/, "Solo letras, números y guiones").max(255, "Máximo 255 caracteres"),
+    business_name: Yup.string().required("Requerido").max(100, "Máximo 100 caracteres"),
     primary_color: Yup.string().required("Requerido"),
     sidebar_color: Yup.string().required("Requerido"),
     font_color:    Yup.string().required("Requerido"),
@@ -25,10 +25,10 @@ const baseSchema = {
 
 const createSchema = Yup.object({
     ...baseSchema,
-    admin_nombre:   Yup.string().required("Requerido"),
-    admin_apellido: Yup.string().required("Requerido"),
+    admin_nombre:   Yup.string().required("Requerido").max(100, "Máximo 100 caracteres"),
+    admin_apellido: Yup.string().required("Requerido").max(100, "Máximo 100 caracteres"),
     admin_email:    Yup.string().email("Email inválido").required("Requerido"),
-    admin_usuario:  Yup.string().required("Requerido"),
+    admin_usuario:  Yup.string().required("Requerido").max(255, "Máximo 255 caracteres"),
     admin_password: Yup.string().min(6, "Mínimo 6 caracteres").required("Requerido"),
 });
 

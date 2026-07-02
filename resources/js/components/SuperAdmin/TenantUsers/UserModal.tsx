@@ -37,9 +37,9 @@ export const UserModal = ({ tenantId, tenantSlug, tipoNegocio, user, onClose }: 
 
                 <form onSubmit={formik.handleSubmit} className="px-6 py-5 space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Input formik={formik} name="nombre" label="Nombre" />
-                        <Input formik={formik} name="apellido_paterno" label="Apellido paterno" />
-                        <Input formik={formik} name="apellido_materno" label="Apellido materno" />
+                        <Input formik={formik} name="nombre" label="Nombre" maxLength={100} />
+                        <Input formik={formik} name="apellido_paterno" label="Apellido paterno" maxLength={100} />
+                        <Input formik={formik} name="apellido_materno" label="Apellido materno" maxLength={100} />
                         <Input
                             formik={formik}
                             name="email"
@@ -52,7 +52,7 @@ export const UserModal = ({ tenantId, tenantSlug, tipoNegocio, user, onClose }: 
                                 }
                             }}
                         />
-                        <Input formik={formik} name="usuario" label="Usuario" autoComplete="off" />
+                        <Input formik={formik} name="usuario" label="Usuario" maxLength={80} autoComplete="off" />
                         <Input
                             formik={formik}
                             name="password"

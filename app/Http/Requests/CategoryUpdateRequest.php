@@ -18,10 +18,10 @@ class CategoryUpdateRequest extends FormRequest
         $categoryId = $this->route('category')?->id;
 
         return [
-            CategoryModel::NOMBRE => ['required', Rule::unique('categories', 'nombre')->ignore($categoryId)],
-            CategoryModel::ORDEN => 'nullable|numeric',
+            CategoryModel::NOMBRE => ['required', 'string', 'max:255', Rule::unique('categories', 'nombre')->ignore($categoryId)],
+            CategoryModel::ORDEN => 'nullable|integer|min:0|max:2147483647',
             CategoryModel::FOTO_ID => 'nullable',
-            CategoryModel::ICON_NAME => 'nullable|string',
+            CategoryModel::ICON_NAME => 'nullable|string|max:100',
         ];
     }
 }

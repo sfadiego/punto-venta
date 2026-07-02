@@ -54,6 +54,7 @@ export const AddProductModal = ({
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
                             placeholder="Ej: Café americano"
+                            maxLength={255}
                             autoFocus
                             className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
                         />

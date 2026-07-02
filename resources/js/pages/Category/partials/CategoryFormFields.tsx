@@ -19,6 +19,7 @@ export const CategoryFormFields = ({ formik }: CategoryFormFieldsProps) => (
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 placeholder="Ej: Bebidas calientes"
+                maxLength={255}
                 autoFocus
                 className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
             />
@@ -37,6 +38,8 @@ export const CategoryFormFields = ({ formik }: CategoryFormFieldsProps) => (
                     name="orden"
                     type="number"
                     min="0"
+                    max={2147483647}
+                    step={1}
                     placeholder="0"
                     value={formik.values.orden}
                     onChange={formik.handleChange}
@@ -60,6 +63,7 @@ export const CategoryFormFields = ({ formik }: CategoryFormFieldsProps) => (
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         placeholder="Coffee"
+                        maxLength={100}
                         className="flex-1 min-w-0 px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
                     />
                     <div className="w-10 h-10 shrink-0 rounded-xl border border-stone-200 bg-stone-50 flex items-center justify-center">

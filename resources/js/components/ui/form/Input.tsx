@@ -25,6 +25,7 @@ interface InputProps<T> {
     min?: number;
     max?: number;
     step?: number;
+    maxLength?: number;
 }
 
 export const Input = <T,>({
@@ -41,6 +42,7 @@ export const Input = <T,>({
     min,
     max,
     step,
+    maxLength,
 }: InputProps<T>) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = inputType === "password";
@@ -74,6 +76,7 @@ export const Input = <T,>({
                     min={min}
                     max={max}
                     step={step}
+                    maxLength={maxLength}
                     {...fieldProps}
                     className={`w-full px-4 py-3 border rounded-xl text-sm text-stone-900
                         placeholder-stone-400 focus:outline-none focus:ring-2
