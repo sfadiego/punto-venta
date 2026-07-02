@@ -26,11 +26,11 @@ class BusinessConfigUpdateRequest extends FormRequest
             'whatsapp' => 'nullable|string|max:30',
             'website' => 'nullable|url|max:200',
             'ticket_footer' => 'nullable|string|max:100',
-            'printer_name'             => 'nullable|string|max:100',
-            'printer_host'             => 'nullable|string|max:100',
-            'logo_icon'                => 'nullable|string|max:50',
-            'costo_domicilio_default'  => 'nullable|numeric|min:0',
-            'delivery_paid_by'         => 'nullable|in:customer,business',
+            'printer_name' => 'nullable|string|max:100',
+            'printer_host' => 'nullable|string|max:100',
+            'logo_icon' => 'nullable|string|max:50',
+            'costo_domicilio_default' => 'nullable|numeric|min:0',
+            'delivery_paid_by' => 'nullable|in:customer,business',
         ];
     }
 }

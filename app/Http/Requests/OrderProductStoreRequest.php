@@ -24,12 +24,12 @@ class OrderProductStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            OrderProductModel::DESCUENTO    => 'nullable|numeric|min:0|max:99',
-            OrderProductModel::CANTIDAD     => 'required|numeric|min:0.001',
-            OrderProductModel::PRODUCTO_ID  => 'nullable|exists:product,id',
-            OrderProductModel::PRECIO       => 'required|numeric|min:0',
+            OrderProductModel::DESCUENTO => 'nullable|numeric|min:0|max:99',
+            OrderProductModel::CANTIDAD => 'required|numeric|min:0.001',
+            OrderProductModel::PRODUCTO_ID => 'nullable|exists:product,id',
+            OrderProductModel::PRECIO => 'required|numeric|min:0',
             OrderProductModel::NOMBRE_EXTRA => 'nullable|string|max:255',
-            OrderProductModel::OBSERVACION  => 'nullable|string|max:200',
+            OrderProductModel::OBSERVACION => 'nullable|string|max:200',
         ];
     }
 

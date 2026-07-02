@@ -50,13 +50,13 @@ class MainOrderReportController extends Controller
 
     public function totalCurrentSales(MainOrderReportModel $system): JsonResponse
     {
-        $bruto      = $system->totalSalesByDay();
+        $bruto = $system->totalSalesByDay();
         $domicilios = $system->totalDomiciliosByDay();
 
         return Response::success([
-            'bruto'      => $bruto,
+            'bruto' => $bruto,
             'domicilios' => $domicilios,
-            'neto'       => round($bruto - $domicilios, 2),
+            'neto' => round($bruto - $domicilios, 2),
         ]);
     }
 

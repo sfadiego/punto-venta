@@ -28,11 +28,11 @@ class ProductController extends Controller
     {
         return Response::success(
             ProductModel::create([
-                ProductModel::NOMBRE       => $param->nombre,
-                ProductModel::PRECIO       => $param->precio,
-                ProductModel::DESCRIPCION  => $param->descripcion ?? '',
+                ProductModel::NOMBRE => $param->nombre,
+                ProductModel::PRECIO => $param->precio,
+                ProductModel::DESCRIPCION => $param->descripcion ?? '',
                 ProductModel::CATEGORIA_ID => $param->categoria_id,
-                ProductModel::FOTO_ID      => $param?->picture_id ?? null,
+                ProductModel::FOTO_ID => $param?->picture_id ?? null,
                 ProductModel::UNIDAD_MEDIDA => $param->unidad_medida ?? UnidadMedidaEnum::Unidad->value,
             ])
         );

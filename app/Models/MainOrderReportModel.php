@@ -92,14 +92,14 @@ class MainOrderReportModel extends Model
 
     public function closeSales(): MainOrderReportModel
     {
-        $initialCash    = $this->efectivo_caja_inicio;
-        $totalBruto     = $this->totalSalesByDay();
+        $initialCash = $this->efectivo_caja_inicio;
+        $totalBruto = $this->totalSalesByDay();
         $totalDomicilio = $this->totalDomiciliosByDay();
 
         $this->update([
-            self::VENTA_DIA            => $totalBruto,
+            self::VENTA_DIA => $totalBruto,
             self::EFECTIVO_CAJA_CIERRE => $initialCash + $totalBruto - $totalDomicilio,
-            self::ESTATUS_CAJA         => MainOrderStatusEnum::CLOSED,
+            self::ESTATUS_CAJA => MainOrderStatusEnum::CLOSED,
         ]);
 
         return $this->refresh();

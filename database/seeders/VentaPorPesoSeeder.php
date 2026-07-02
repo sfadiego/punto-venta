@@ -57,7 +57,7 @@ class VentaPorPesoSeeder extends Seeder
         foreach ($catalog as $categoryName => $products) {
             $category = CategoryModel::updateOrCreate(
                 [
-                    CategoryModel::NOMBRE    => $categoryName,
+                    CategoryModel::NOMBRE => $categoryName,
                     CategoryModel::TENANT_ID => $tenantId,
                 ],
             );
@@ -65,14 +65,14 @@ class VentaPorPesoSeeder extends Seeder
             foreach ($products as $p) {
                 ProductModel::updateOrCreate(
                     [
-                        ProductModel::NOMBRE    => $p['nombre'],
+                        ProductModel::NOMBRE => $p['nombre'],
                         ProductModel::TENANT_ID => $tenantId,
                     ],
                     [
-                        ProductModel::PRECIO        => $p['precio'],
-                        ProductModel::DESCRIPCION   => '',
-                        ProductModel::CATEGORIA_ID  => $category->id,
-                        ProductModel::ACTIVO        => true,
+                        ProductModel::PRECIO => $p['precio'],
+                        ProductModel::DESCRIPCION => '',
+                        ProductModel::CATEGORIA_ID => $category->id,
+                        ProductModel::ACTIVO => true,
                         ProductModel::UNIDAD_MEDIDA => $p['unidad']->value,
                     ],
                 );
@@ -91,13 +91,13 @@ class VentaPorPesoSeeder extends Seeder
         }
 
         $tenant = BusinessConfigModel::create([
-            BusinessConfigModel::SLUG          => $slug,
+            BusinessConfigModel::SLUG => $slug,
             BusinessConfigModel::BUSINESS_NAME => $slug,
-            BusinessConfigModel::TIPO_NEGOCIO  => 'venta_por_peso',
+            BusinessConfigModel::TIPO_NEGOCIO => 'venta_por_peso',
             BusinessConfigModel::PRIMARY_COLOR => '#f59e0b',
             BusinessConfigModel::SIDEBAR_COLOR => '#1c1917',
-            BusinessConfigModel::FONT_COLOR    => '#ffffff',
-            BusinessConfigModel::LABEL_COLOR   => '#1c1917',
+            BusinessConfigModel::FONT_COLOR => '#ffffff',
+            BusinessConfigModel::LABEL_COLOR => '#1c1917',
         ]);
 
         return [$tenant, true];

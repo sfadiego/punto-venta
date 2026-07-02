@@ -89,13 +89,27 @@ class ProductModel extends Model
     ): ProductModel {
 
         $data = [];
-        if ($nombre       !== null) $data[ProductModel::NOMBRE]        = $nombre;
-        if ($precio       !== null) $data[ProductModel::PRECIO]        = $precio;
-        if ($descripcion  !== null) $data[ProductModel::DESCRIPCION]   = $descripcion;
-        if ($categoriaId  !== null) $data[ProductModel::CATEGORIA_ID]  = $categoriaId;
-        if ($active       !== null) $data[ProductModel::ACTIVO]        = $active;
-        if ($pictureId    !== null) $data[ProductModel::FOTO_ID]       = $pictureId;
-        if ($unidadMedida !== null) $data[ProductModel::UNIDAD_MEDIDA] = $unidadMedida;
+        if ($nombre !== null) {
+            $data[ProductModel::NOMBRE] = $nombre;
+        }
+        if ($precio !== null) {
+            $data[ProductModel::PRECIO] = $precio;
+        }
+        if ($descripcion !== null) {
+            $data[ProductModel::DESCRIPCION] = $descripcion;
+        }
+        if ($categoriaId !== null) {
+            $data[ProductModel::CATEGORIA_ID] = $categoriaId;
+        }
+        if ($active !== null) {
+            $data[ProductModel::ACTIVO] = $active;
+        }
+        if ($pictureId !== null) {
+            $data[ProductModel::FOTO_ID] = $pictureId;
+        }
+        if ($unidadMedida !== null) {
+            $data[ProductModel::UNIDAD_MEDIDA] = $unidadMedida;
+        }
 
         $this->update($data);
 

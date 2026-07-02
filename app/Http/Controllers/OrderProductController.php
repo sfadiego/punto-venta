@@ -85,11 +85,11 @@ class OrderProductController extends Controller
 
         if ($params->nombre_extra) {
             $data = OrderProductModel::create([
-                OrderProductModel::PEDIDO_ID    => $orderId,
+                OrderProductModel::PEDIDO_ID => $orderId,
                 OrderProductModel::NOMBRE_EXTRA => $params->nombre_extra,
-                OrderProductModel::CANTIDAD     => $params->cantidad,
-                OrderProductModel::PRECIO       => $params->precio,
-                OrderProductModel::DESCUENTO    => $params->descuento ?? 0,
+                OrderProductModel::CANTIDAD => $params->cantidad,
+                OrderProductModel::PRECIO => $params->precio,
+                OrderProductModel::DESCUENTO => $params->descuento ?? 0,
             ]);
         } else {
             $product = OrderProductModel::where(OrderProductModel::PEDIDO_ID, $orderId)
@@ -100,14 +100,14 @@ class OrderProductController extends Controller
             $data = OrderProductModel::updateOrCreate(
                 [
                     OrderProductModel::PRODUCTO_ID => $params->producto_id,
-                    OrderProductModel::PEDIDO_ID   => $orderId,
+                    OrderProductModel::PEDIDO_ID => $orderId,
                 ],
                 [
                     OrderProductModel::PRODUCTO_ID => $params->producto_id,
-                    OrderProductModel::PEDIDO_ID   => $orderId,
-                    OrderProductModel::CANTIDAD    => $currentItems + $params->cantidad,
-                    OrderProductModel::PRECIO      => $params->precio,
-                    OrderProductModel::DESCUENTO   => $params->descuento ?? 0,
+                    OrderProductModel::PEDIDO_ID => $orderId,
+                    OrderProductModel::CANTIDAD => $currentItems + $params->cantidad,
+                    OrderProductModel::PRECIO => $params->precio,
+                    OrderProductModel::DESCUENTO => $params->descuento ?? 0,
                 ]
             );
         }

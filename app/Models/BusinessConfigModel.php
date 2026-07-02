@@ -57,7 +57,7 @@ class BusinessConfigModel extends Model
     const DELIVERY_PAID_BY = 'delivery_paid_by';
 
     protected $casts = [
-        self::ACTIVO       => 'boolean',
+        self::ACTIVO => 'boolean',
         self::TIPO_NEGOCIO => BusinessTypeEnum::class,
     ];
 

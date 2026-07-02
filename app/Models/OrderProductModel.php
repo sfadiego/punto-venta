@@ -63,9 +63,9 @@ class OrderProductModel extends Model
             $esPeso = in_array($unidad, ['kg', 'gr']);
 
             return [
-                'id'            => $item->producto_id,
-                'product'       => $item->product->nombre,
-                'total'         => $esPeso ? round((float) $item->sumatoria, 3) : (int) $item->sumatoria,
+                'id' => $item->producto_id,
+                'product' => $item->product->nombre,
+                'total' => $esPeso ? round((float) $item->sumatoria, 3) : (int) $item->sumatoria,
                 'unidad_medida' => $unidad,
             ];
         });

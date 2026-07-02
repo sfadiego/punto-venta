@@ -5,23 +5,23 @@ namespace App\Enums;
 enum UnidadMedidaEnum: string
 {
     case Unidad = 'unidad';
-    case Kg     = 'kg';
-    case Gr     = 'gr';
+    case Kg = 'kg';
+    case Gr = 'gr';
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::Unidad => 'Unidad',
-            self::Kg     => 'Kilogramo (kg)',
-            self::Gr     => 'Gramo (gr)',
+            self::Kg => 'Kilogramo (kg)',
+            self::Gr => 'Gramo (gr)',
         };
     }
 
     public function esPeso(): bool
     {
-        return match($this) {
+        return match ($this) {
             self::Kg, self::Gr => true,
-            self::Unidad       => false,
+            self::Unidad => false,
         };
     }
 }
