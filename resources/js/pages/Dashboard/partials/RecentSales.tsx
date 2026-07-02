@@ -1,4 +1,4 @@
-import { Loader, ReceiptText } from "lucide-react";
+import { ReceiptText } from "lucide-react";
 import { useRecentSales } from "./useRecentSales";
 import { formatOrderTime } from "../useDashboard";
 import { EmptyState } from "@/components/ui/interactions/EmptyState";

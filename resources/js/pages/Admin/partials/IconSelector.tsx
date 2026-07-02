@@ -1,5 +1,4 @@
 import {
-    Store,
     Coffee,
     Utensils,
     UtensilsCrossed,
