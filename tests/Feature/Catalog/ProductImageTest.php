@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Catalog;
 
-use App\Models\CategoryModel;
+use App\Models\BusinessConfigModel;
 use App\Models\ProductImageModel;
 use App\Models\ProductModel;
 use Illuminate\Http\UploadedFile;
@@ -13,13 +13,9 @@ class ProductImageTest extends TestCase
 {
     private function crearProducto(): ProductModel
     {
-        $response = $this->postJson('/api/product', [
-            'nombre' => 'Café Test',
-            'precio' => 35,
-            'categoria_id' => CategoryModel::first()->id,
-        ], $this->authHeaders());
-
-        return ProductModel::find($response->json('data.id'));
+        return ProductModel::factory()->create([
+            'tenant_id' => BusinessConfigModel::first()->id,
+        ]);
     }
 
     private function crearImagen(): ProductImageModel
@@ -56,7 +52,9 @@ class ProductImageTest extends TestCase
 
     public function test_no_sube_imagen_sin_autenticacion(): void
     {
-        $this->postJson('/api/product/1/image', [])
+        $product = $this->crearProducto();
+
+        $this->postJson("/api/product/{$product->id}/image", [])
             ->assertStatus(401);
     }
 
@@ -96,8 +94,13 @@ class ProductImageTest extends TestCase
 
     public function test_no_actualiza_imagen_sin_autenticacion(): void
     {
-        $this->postJson('/api/product/1/image/1', [])
-            ->assertStatus(401);
+        $product = $this->crearProducto();
+        $image = $this->crearImagen();
+
+        $this->postJson(
+            "/api/product/{$product->id}/image/{$image->id}",
+            []
+        )->assertStatus(401);
     }
 
     public function test_no_actualiza_imagen_sin_archivo(): void
