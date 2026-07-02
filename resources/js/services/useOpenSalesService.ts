@@ -3,7 +3,6 @@ import { useGET, usePOST } from "../hooks/useApi";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 
 const url = ApiRoutes.System;
-export const useGetMainSalesIndex = () => useGET({ url: `${url}` });
 export const useGetActiveSale = () =>
     useGET<IMainOrderReport>({
         url: `${url}/active-sale`,

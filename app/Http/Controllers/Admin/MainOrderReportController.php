@@ -12,15 +12,6 @@ use Illuminate\Support\Facades\Response;
 
 class MainOrderReportController extends Controller
 {
-    public function index(): JsonResponse
-    {
-        return Response::success(
-            MainOrderReportModel::with('user')
-                ->orderByDesc('id')
-                ->get()
-        );
-    }
-
     public function show(MainOrderReportModel $system): JsonResponse
     {
         return Response::success($system->load('user'));
