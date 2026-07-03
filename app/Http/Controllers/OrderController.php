@@ -59,7 +59,9 @@ class OrderController extends Controller
                 'subtotal' => $orderDetail['subtotal'],
             ])
         );
-        $this->broadcast();
+
+        $isServed = (int) ($params->toArray()['estatus_pedido_id'] ?? 0) === OrderStatusEnum::SERVED->value;
+        $this->broadcast($isServed ? 'served' : 'updated');
 
         return Response::success($order);
     }

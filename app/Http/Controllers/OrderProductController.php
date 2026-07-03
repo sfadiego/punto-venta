@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatusEnum;
+use App\Events\OrdersUpdated;
 use App\Http\Requests\OrderProductStoreRequest;
 use App\Http\Requests\OrderProductUpdateRequest;
 use App\Models\OrderModel;
@@ -139,6 +140,10 @@ class OrderProductController extends Controller
         $orderProduct->update([
             OrderProductModel::IS_READY => ! $orderProduct->is_ready,
         ]);
+
+        try {
+            OrdersUpdated::dispatch('product_updated');
+        } catch (\Throwable) {}
 
         return Response::success($orderProduct->refresh());
     }

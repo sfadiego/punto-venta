@@ -48,8 +48,18 @@ export const useOrdersSocket = ({ showToast = false }: UseOrdersSocketOptions = 
                 },
             });
 
-            if (showToast && data?.type === "created") {
+            if (!showToast) return;
+
+            if (data?.type === "created") {
                 toast.info("Nuevo pedido recibido", {
+                    position: "top-right",
+                    autoClose: 4000,
+                    pauseOnHover: true,
+                });
+            }
+
+            if (data?.type === "served") {
+                toast.success("Orden servida", {
                     position: "top-right",
                     autoClose: 4000,
                     pauseOnHover: true,
