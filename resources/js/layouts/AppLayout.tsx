@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
 import { useMatch } from "react-router-dom";
 import { useAxios } from "@/hooks/useAxios";
 import { Sidebar } from "./Sidebar/Sidebar";
@@ -11,7 +12,7 @@ import { AdminRoutes } from "@/enums/RoutesEnum";
 import { getRoleLabel } from "@/components/Role/RoleBadge";
 
 interface AppLayoutProps {
-    children: React.ReactNode;
+    children?: React.ReactNode;
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
@@ -69,7 +70,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                     {/* Navbar solo en móvil (en desktop el toggle está en el header de la página) */}
                     <Navbar onMenuClick={handleMenuClick} />
-                    <main className="flex-1 overflow-y-auto">{children}</main>
+                    <main className="flex-1 overflow-y-auto">{children ?? <Outlet />}</main>
                 </div>
             </div>
         </LayoutProvider>
