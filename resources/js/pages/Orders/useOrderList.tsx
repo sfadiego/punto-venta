@@ -60,7 +60,6 @@ export const useOrderList = () => {
             estatus_pedido_id: estatusId,
         },
         renderersMap,
-        refetchInterval: sellByWeight ? undefined : 10_000,
     });
 
     const enhancedDataTableProps = useMemo(

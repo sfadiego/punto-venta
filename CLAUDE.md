@@ -8,7 +8,7 @@ Sistema POS para negocio.
 
 | Capa | Tecnología |
 |---|---|
-| Backend | Laravel 12, PHP, Sanctum |
+| Backend | Laravel 12, PHP, Sanctum, Reverb (WebSocket) |
 | UI | React 19 + TypeScript + Tailwind CSS |
 | Estado servidor | TanStack Query v5 |
 | Formularios | Formik + Yup |
@@ -16,6 +16,7 @@ Sistema POS para negocio.
 | Iconos | Lucide React |
 | Router | React Router v6 (lazy loading) |
 | HTTP | Axios (via `useAxios` context) |
+| WebSocket | Laravel Echo + pusher-js (broadcaster: reverb) |
 | Notificaciones | React Toastify |
 | Alertas | SweetAlert2 |
 | Package manager | pnpm |

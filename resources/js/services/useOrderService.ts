@@ -48,7 +48,7 @@ export const useInfiniteIndexOrder = (sistemaId: number | null) => {
                 ? lastPage.current_page + 1
                 : undefined,
         enabled: sistemaId !== null,
-        refetchInterval: 10_000,
+        refetchInterval: 60_000,
     });
 };
 
