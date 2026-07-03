@@ -59,6 +59,16 @@ export const axiosPOST = <Data, Paras>(
     });
 };
 
+export const axiosPATCH = <Data, Paras>(
+    axios: AxiosInstance,
+    { url, data, params, headers = {} }: IAxiosPostProps<Data, Paras>,
+) => {
+    return axios.patch(`${host}${url}`, data, {
+        params,
+        headers,
+    });
+};
+
 export const axiosPUT = <Data, Paras>(
     axios: AxiosInstance,
     { url, data, params, headers = {} }: IAxiosPostProps<Data, Paras>,

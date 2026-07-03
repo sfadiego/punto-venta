@@ -178,3 +178,9 @@ no hacer peticiones directamete a axios, utiliza la capa de servicios como esta 
 - Hooks/servicios: `camelCase` con prefijo `use` (`useOrderService.ts`).
 - Enums: `PascalCase` con sufijo `Enum` (`RoutesEnum.ts`).
 - Interfaces: prefijo `I` (`IOrder.ts`).
+
+### variables
+- utiliza variables en ingles
+
+### migraciones
+- utiliza nombres en ingles a nuevas columnas en las migraciones

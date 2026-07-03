@@ -124,6 +124,26 @@ class OrderProductController extends Controller
     }
 
     /**
+     * toggleReady — marks/unmarks an order_product as ready to serve by order_product.id
+     */
+    public function toggleReady(int $orderId, int $item): JsonResponse
+    {
+        $orderProduct = OrderProductModel::where('pedido_id', $orderId)
+            ->where('id', $item)
+            ->first();
+
+        if (! $orderProduct) {
+            return Response::error('elemento no encontrado');
+        }
+
+        $orderProduct->update([
+            OrderProductModel::IS_READY => ! $orderProduct->is_ready,
+        ]);
+
+        return Response::success($orderProduct->refresh());
+    }
+
+    /**
      * updateNote — updates observacion by order_product.id (works for products and extras)
      */
     public function updateNote(int $orderId, int $item, Request $request): JsonResponse
@@ -173,7 +193,7 @@ class OrderProductController extends Controller
 
     private function resetStatusIfReady(OrderModel $order): void
     {
-        if ($order->estatus_pedido_id === OrderStatusEnum::READY_TO_SERVE->value) {
+        if ($order->estatus_pedido_id === OrderStatusEnum::SERVED->value) {
             $order->update(['estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value]);
         }
     }

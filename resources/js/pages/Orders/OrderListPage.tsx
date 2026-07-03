@@ -10,7 +10,7 @@ import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { usePermissions } from "@/hooks/usePermissions";
 
 const getRowClassName = ({ estatus_pedido_id }: IOrder): string => {
-    if (estatus_pedido_id === OrderStatusEnum.ReadyToServe) return "!bg-blue-50";
+    if (estatus_pedido_id === OrderStatusEnum.Served) return "!bg-blue-50";
     if (estatus_pedido_id === OrderStatusEnum.InProcess)    return "!bg-amber-50";
     return "";
 };
@@ -23,7 +23,7 @@ export default function OrderListPage() {
         refetch,
         sistemaId,
         estatusId,
-        showReadyToServe,
+        showOrderServed,
         sellByWeight,
         handleEstatusChange,
         handleClearFilters,
@@ -69,7 +69,7 @@ export default function OrderListPage() {
                     {!sellByWeight && (
                         <OrderFilters
                             estatusId={estatusId}
-                            showReadyToServe={showReadyToServe}
+                            showOrderServed={showOrderServed}
                             onEstatusChange={handleEstatusChange}
                             onClear={handleClearFilters}
                         />

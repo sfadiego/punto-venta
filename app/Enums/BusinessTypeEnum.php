@@ -21,17 +21,17 @@ enum BusinessTypeEnum: string
         return match ($this) {
             self::Restaurante => [
                 'kitchen_view' => true,
-                'ready_to_serve' => true,
+                'order_served' => true,
                 'sell_by_weight' => false,
             ],
             self::VentaPorPeso => [
                 'kitchen_view' => false,
-                'ready_to_serve' => false,
+                'order_served' => false,
                 'sell_by_weight' => true,
             ],
             default => [
                 'kitchen_view' => true,
-                'ready_to_serve' => true,
+                'order_served' => true,
                 'sell_by_weight' => false,
             ],
         };

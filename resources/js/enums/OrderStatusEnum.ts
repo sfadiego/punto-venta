@@ -3,5 +3,5 @@ export enum OrderStatusEnum {
     Canceled = 2,
     Closed = 3,
     Deleted = 4,
-    ReadyToServe = 5,
+    Served = 5,
 }

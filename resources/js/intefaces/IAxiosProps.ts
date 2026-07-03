@@ -6,7 +6,7 @@ export interface IAxiosProps<Params> {
     params?: Params;
     headers?: AxiosRequestConfig["headers"];
     responseType?: AxiosRequestConfig["responseType"];
-    customHost?: ApisEnum;
+    customHost?: typeof ApisEnum[keyof typeof ApisEnum];
 }
 
 export interface IAxiosPostProps<Data, Params> {
@@ -15,7 +15,7 @@ export interface IAxiosPostProps<Data, Params> {
     params?: Params;
     headers?: AxiosRequestConfig["headers"];
     responseType?: AxiosRequestConfig["responseType"];
-    customHost?: ApisEnum;
+    customHost?: typeof ApisEnum[keyof typeof ApisEnum];
 }
 
 export interface IUseGETProps {
@@ -26,7 +26,7 @@ export interface IUseGETProps {
     params?: object;
     headers?: AxiosRequestConfig["headers"];
     responseType?: AxiosRequestConfig["responseType"];
-    customHost?: ApisEnum;
+    customHost?: typeof ApisEnum[keyof typeof ApisEnum];
 }
 
 export interface IUseGETMutation {
@@ -41,7 +41,7 @@ export interface IUsePOSTProps {
     onSuccess?: () => void;
     onError?: () => void;
     isFile?: boolean;
-    customHost?: ApisEnum;
+    customHost?: typeof ApisEnum[keyof typeof ApisEnum];
 }
 
 export interface IUsePUTProps {

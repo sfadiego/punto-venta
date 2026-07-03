@@ -1,5 +1,5 @@
 import { IPaginate } from "@/intefaces/IPaginate";
-import { axiosGET, axiosPUT, axiosDELETE, useDELETE, useGET, usePOST, usePUT } from "../hooks/useApi";
+import { axiosGET, axiosPATCH, axiosPUT, axiosDELETE, useDELETE, useGET, usePOST, usePUT } from "../hooks/useApi";
 import { IOrder } from "@/models/IOrder";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { IPaginateServiceProps } from "@/intefaces/IPaginateServiceProps";
@@ -106,5 +106,14 @@ export const useUpdateOrderProductNote = (orderId: number) => {
     return useMutation({
         mutationFn: ({ orderProductId, observacion }: { orderProductId: number; observacion: string }) =>
             axiosPUT(axiosApi, { url: `${url}/${orderId}/product/${orderProductId}/note`, data: { observacion } }),
+    });
+};
+
+// Toggles is_ready on any order_product by order_product.id
+export const useToggleOrderProductReady = (orderId: number) => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: (orderProductId: number) =>
+            axiosPATCH(axiosApi, { url: `${url}/${orderId}/product/${orderProductId}/ready`, data: {} }),
     });
 };

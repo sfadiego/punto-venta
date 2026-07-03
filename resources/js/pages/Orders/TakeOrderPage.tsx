@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ShoppingCart, ChevronLeft, Package, Lock, PackagePlus, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLayout } from "@/contexts/LayoutContext";
 import { useIndexProducts } from "@/services/useProductService";
 import { useTakeOrder } from "./useTakeOrder";
@@ -11,8 +12,14 @@ import { useAddExtraModal } from "./partials/useAddExtraModal";
 
 export default function TakeOrderPage() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { toggleSidebar } = useLayout();
     const [mobileTab, setMobileTab] = useState<"products" | "cart">("products");
+
+    const handleBack = () => {
+        queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
+        navigate(-1);
+    };
 
     const {
         order,
@@ -42,7 +49,7 @@ export default function TakeOrderPage() {
                 <Header
                     title={order?.nombre_pedido ?? "Tomar pedido"}
                     isReadOnly={isReadOnly}
-                    onBack={() => navigate(-1)}
+                    onBack={handleBack}
                     onAddExtra={openExtra}
                     onMenuClick={toggleSidebar}
                 />
@@ -77,7 +84,7 @@ export default function TakeOrderPage() {
                 <Header
                     title={order?.nombre_pedido ?? "Tomar pedido"}
                     isReadOnly={isReadOnly}
-                    onBack={() => navigate(-1)}
+                    onBack={handleBack}
                     onAddExtra={openExtra}
                     compact
                 />
