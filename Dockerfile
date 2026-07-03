@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y \
     nginx \
     supervisor \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip gd \
+    && docker-php-ext-install pdo pdo_mysql mbstring zip gd pcntl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
