@@ -4,20 +4,20 @@ import { superAdminRoutes } from "./modules/superadmin.routes";
 import AppLayout from "@/layouts/AppLayout";
 import PrivateRoute from "@/components/PrivateRoute/PrivateRoute";
 import IRoute from "@/intefaces/IRoutes";
-import OrderListPage from "@/pages/Orders/OrderListPage";
-import ProductsPage from "@/pages/Product/ProductsPage";
-import CategoriesPage from "@/pages/Category/CategoriesPage";
 import { RoleEnum } from "@/enums/RoleEnum";
 
-const LoginPage = lazy(() => import("@/pages/Auth/LoginPage"));
-const TenantLoginPage = lazy(() => import("@/pages/Auth/TenantLoginPage"));
-const ForbiddenPage = lazy(() => import("@/pages/OtherPage/Forbidden"));
-const DashboardPage = lazy(() => import("@/pages/Dashboard/DashboardPage"));
-const TakeOrderPage = lazy(() => import("@/pages/Orders/TakeOrderPage"));
-const CloseSalesPage = lazy(() => import("@/pages/Sales/partials/CloseSales/CloseSalesPage"));
-const SalesPage = lazy(() => import("@/pages/Sales/SalesPage"));
-const StatisticsPage = lazy(() => import("@/pages/Statistics/StatisticsPage"));
-const AdminPage = lazy(() => import("@/pages/Admin/AdminPage"));
+const LoginPage        = lazy(() => import("@/pages/Auth/LoginPage"));
+const TenantLoginPage  = lazy(() => import("@/pages/Auth/TenantLoginPage"));
+const ForbiddenPage    = lazy(() => import("@/pages/OtherPage/Forbidden"));
+const DashboardPage    = lazy(() => import("@/pages/Dashboard/DashboardPage"));
+const TakeOrderPage    = lazy(() => import("@/pages/Orders/TakeOrderPage"));
+const OrderListPage    = lazy(() => import("@/pages/Orders/OrderListPage"));
+const ProductsPage     = lazy(() => import("@/pages/Product/ProductsPage"));
+const CategoriesPage   = lazy(() => import("@/pages/Category/CategoriesPage"));
+const CloseSalesPage   = lazy(() => import("@/pages/Sales/partials/CloseSales/CloseSalesPage"));
+const SalesPage        = lazy(() => import("@/pages/Sales/SalesPage"));
+const StatisticsPage   = lazy(() => import("@/pages/Statistics/StatisticsPage"));
+const AdminPage        = lazy(() => import("@/pages/Admin/AdminPage"));
 
 const PageLoader = () => (
     <div className="flex items-center justify-center h-full min-h-32">
@@ -29,15 +29,6 @@ const FullPageLoader = () => (
     <div className="flex items-center justify-center min-h-screen bg-stone-50">
         <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
     </div>
-);
-
-const withPrivateLayout = (element: React.ReactElement, route: IRoute) => (
-    <AppLayout>
-        <PrivateRoute
-            element={<Suspense fallback={<PageLoader />}>{element}</Suspense>}
-            route={route}
-        />
-    </AppLayout>
 );
 
 const allow = (...roles: RoleEnum[]) =>
@@ -72,10 +63,23 @@ export const router = createBrowserRouter([
             </Suspense>
         ),
     },
-    ...privateRoutes.map((route) => ({
-        path: route.path,
-        element: withPrivateLayout(route.element, route),
-    })),
+    // Layout route — AppLayout monta una sola vez y persiste entre rutas
+    {
+        element: <AppLayout />,
+        children: privateRoutes.map((route) => ({
+            path: route.path,
+            element: (
+                <PrivateRoute
+                    element={
+                        <Suspense fallback={<PageLoader />}>
+                            {route.element}
+                        </Suspense>
+                    }
+                    route={route}
+                />
+            ),
+        })),
+    },
     ...superAdminRoutes,
     {
         path: "/forbidden",
