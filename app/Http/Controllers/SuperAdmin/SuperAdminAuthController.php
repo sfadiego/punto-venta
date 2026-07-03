@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\SuperAdmin;
 
-use App\Core\Enums\Http;
 use App\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
@@ -26,7 +25,7 @@ class SuperAdminAuthController extends Controller
         if ($result['user']->rol_id !== RoleEnum::SUPERADMIN->value) {
             $result['user']->tokens()->delete();
 
-            return Response::error(__('No tienes permisos de super administrador.'), null, Http::Forbidden);
+            return Response::error(__('No tienes permisos de super administrador.'), 403);
         }
 
         return Response::success($result);

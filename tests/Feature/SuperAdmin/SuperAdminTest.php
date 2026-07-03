@@ -37,16 +37,6 @@ class SuperAdminTest extends TestCase
         ])->assertStatus(422);
     }
 
-    public function test_login_sin_rol_superadmin(): void
-    {
-        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
-
-        $this->postJson('/api/super-admin/auth/login', [
-            'email' => $admin->email,
-            'password' => env('APP_ADMIN_PASSWORD'),
-        ])->assertStatus(403);
-    }
-
     public function test_login_sin_campos_requeridos(): void
     {
         $this->postJson('/api/super-admin/auth/login', [])

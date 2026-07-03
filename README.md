@@ -152,11 +152,11 @@ main
       └── feat/nueva-funcionalidad
 ```
 
-| Rama      | Propósito                                   |
-| --------- | ------------------------------------------- |
-| `main`    | Código estable listo para producción        |
-| `develop` | Integración de features en desarrollo       |
-| `feat/*`  | Nueva funcionalidad, creada desde `develop` |
+| Rama | Propósito |
+|---|---|
+| `main` | Código estable listo para producción |
+| `develop` | Integración de features en desarrollo |
+| `feat/*` | Nueva funcionalidad, creada desde `develop` |
 
 **Pasos para una nueva funcionalidad:**
 
@@ -181,17 +181,3 @@ se agregaron iconos, correr manualmente
 php artisan db:seed --class=CategoriesIconsSeeder
 php artisan db:seed --class={SeederName}
 ```
-
-
-### Testing
-Comando para correr test con su archivo .env.testing
-`php artisan test --env=testing`
-
-# Un archivo específico
-`php artisan test tests/Feature/Catalog/ProductTest.php --env=testing`
-
-# Un test específico por nombre
-`php artisan test --filter=test_lista_productos_paginada --env=testing`
-
-# Con output detallado
-`php artisan test --env=testing --verbose`
