@@ -18,6 +18,8 @@ class ErrorReporting extends Model
         'response_body',
         'user_agent',
         'url',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [

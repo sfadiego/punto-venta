@@ -29,6 +29,8 @@ class OrderProductModel extends Model
 
     const OBSERVACION = 'observacion';
 
+    const IS_READY = 'is_ready';
+
     protected $fillable = [
         self::PRODUCTO_ID,
         self::PEDIDO_ID,
@@ -37,6 +39,11 @@ class OrderProductModel extends Model
         self::PRECIO,
         self::NOMBRE_EXTRA,
         self::OBSERVACION,
+        self::IS_READY,
+    ];
+
+    protected $casts = [
+        self::IS_READY => 'boolean',
     ];
 
     public function product(): HasOne

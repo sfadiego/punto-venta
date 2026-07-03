@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { useShowOrder, useUpdateOrder } from "@/services/useOrderService";
+import { useShowOrder, useUpdateOrder, useToggleOrderProductReady } from "@/services/useOrderService";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 
@@ -11,16 +11,28 @@ export const useOrderPreviewModal = (orderId: number) => {
 
     const { data: order, isLoading } = useShowOrder(isOpen ? orderId : 0);
     const { mutate: updateOrder, isPending: isUpdatingStatus } = useUpdateOrder(orderId);
+    const { mutateAsync: toggleReady } = useToggleOrderProductReady(orderId);
 
-    const markReadyToServe = () => {
+    const products = order?.order_products ?? [];
+    const isServed = order?.estatus_pedido_id === OrderStatusEnum.Served;
+
+    const readyCount = products.filter((p) => p.is_ready).length;
+    const totalCount = products.length;
+    const allReady   = totalCount > 0 && readyCount === totalCount;
+
+    const invalidateOrder = () => {
+        queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${orderId}`] });
+        queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
+        queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
+    };
+
+    const markServed = () => {
         updateOrder(
-            { estatus_pedido_id: OrderStatusEnum.ReadyToServe },
+            { estatus_pedido_id: OrderStatusEnum.Served },
             {
                 onSuccess: () => {
-                    queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${orderId}`] });
-                    queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
-                    queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
-                    toast.success("Orden lista para servir");
+                    invalidateOrder();
+                    toast.success("Orden servida");
                     setIsOpen(false);
                 },
                 onError: () => {
@@ -30,16 +42,37 @@ export const useOrderPreviewModal = (orderId: number) => {
         );
     };
 
-    const isReadyToServe = order?.estatus_pedido_id === OrderStatusEnum.ReadyToServe;
+    const toggleProductReady = async (orderProductId: number) => {
+        const item        = products.find((p) => p.id === orderProductId);
+        const willBeReady = !item?.is_ready;
+
+        try {
+            await toggleReady(orderProductId, { onSuccess: invalidateOrder });
+
+            // Auto-trigger Served when the last pending item gets marked ready
+            if (willBeReady && !isServed) {
+                const allWillBeReady = products.every((p) =>
+                    p.id === orderProductId ? true : p.is_ready,
+                );
+                if (allWillBeReady) markServed();
+            }
+        } catch {
+            toast.error("Error al actualizar el platillo");
+        }
+    };
 
     return {
         isOpen,
-        open: () => setIsOpen(true),
+        open:  () => setIsOpen(true),
         close: () => setIsOpen(false),
-        products: order?.order_products ?? [],
+        products,
         isLoading,
-        isReadyToServe,
+        isServed,
         isUpdatingStatus,
-        markReadyToServe,
+        readyCount,
+        totalCount,
+        allReady,
+        markServed,
+        toggleProductReady,
     };
 };

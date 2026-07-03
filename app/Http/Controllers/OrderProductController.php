@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatusEnum;
+use App\Events\OrdersUpdated;
 use App\Http\Requests\OrderProductStoreRequest;
 use App\Http\Requests\OrderProductUpdateRequest;
 use App\Models\OrderModel;
@@ -124,6 +125,31 @@ class OrderProductController extends Controller
     }
 
     /**
+     * toggleReady — marks/unmarks an order_product as ready to serve by order_product.id
+     */
+    public function toggleReady(int $orderId, int $item): JsonResponse
+    {
+        $orderProduct = OrderProductModel::where('pedido_id', $orderId)
+            ->where('id', $item)
+            ->first();
+
+        if (! $orderProduct) {
+            return Response::error('elemento no encontrado');
+        }
+
+        $orderProduct->update([
+            OrderProductModel::IS_READY => ! $orderProduct->is_ready,
+        ]);
+
+        try {
+            OrdersUpdated::dispatch('product_updated');
+        } catch (\Throwable) {
+        }
+
+        return Response::success($orderProduct->refresh());
+    }
+
+    /**
      * updateNote — updates observacion by order_product.id (works for products and extras)
      */
     public function updateNote(int $orderId, int $item, Request $request): JsonResponse
@@ -173,7 +199,7 @@ class OrderProductController extends Controller
 
     private function resetStatusIfReady(OrderModel $order): void
     {
-        if ($order->estatus_pedido_id === OrderStatusEnum::READY_TO_SERVE->value) {
+        if ($order->estatus_pedido_id === OrderStatusEnum::SERVED->value) {
             $order->update(['estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value]);
         }
     }

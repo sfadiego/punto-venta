@@ -20,6 +20,7 @@ export type CartItem = {
     quantity: number;
     isExtra: boolean;
     observacion: string | null;
+    isReady: boolean;
 };
 
 export const useTakeOrder = () => {
@@ -33,7 +34,7 @@ export const useTakeOrder = () => {
 
     const { data: order, isLoading: loadingOrder } = useShowOrder(orderId);
 
-    const editableStatuses = [OrderStatusEnum.InProcess, OrderStatusEnum.ReadyToServe];
+    const editableStatuses = [OrderStatusEnum.InProcess, OrderStatusEnum.Served];
     const isReadOnly = !!order && !editableStatuses.includes(order.estatus_pedido_id);
 
     const cart: CartItem[] = (order?.order_products ?? []).map((op) => ({
@@ -44,13 +45,13 @@ export const useTakeOrder = () => {
         quantity: parseFloat(String(op.cantidad)),
         isExtra: !op.producto_id,
         observacion: op.observacion ?? null,
+        isReady: op.is_ready ?? false,
     }));
 
     const { mutateAsync: addProduct } = useAddProductToOrder(orderId);
     const { mutateAsync: updateProduct } = useUpdateProductInOrder(orderId);
     const { mutateAsync: updateNote } = useUpdateOrderProductNote(orderId);
     const { mutateAsync: deleteItem } = useDeleteItemFromOrder(orderId);
-
     // Add regular product (click on ProductCard)
     const addToCart = async (productId: number, _name: string, price: number) => {
         if (isReadOnly) return;

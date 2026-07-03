@@ -45,11 +45,11 @@ const ventaPorPesoActionsColumn: DataTableColumn<IOrder> = {
 
 export const useOrderList = () => {
     const { sistemaId, features } = useAxios();
-    const showReadyToServe = features?.ready_to_serve !== false;
+    const showOrderServed = features?.order_served !== false;
     const sellByWeight = features?.sell_by_weight === true;
     const defaultStatuses = sellByWeight
         ? String(OrderStatusEnum.Closed)
-        : getActiveStatuses(showReadyToServe);
+        : getActiveStatuses(showOrderServed);
 
     const [estatusId, setEstatusId] = useState<string>(defaultStatuses);
 
@@ -60,7 +60,6 @@ export const useOrderList = () => {
             estatus_pedido_id: estatusId,
         },
         renderersMap,
-        refetchInterval: sellByWeight ? undefined : 10_000,
     });
 
     const enhancedDataTableProps = useMemo(
@@ -97,7 +96,7 @@ export const useOrderList = () => {
         refetch,
         sistemaId,
         estatusId,
-        showReadyToServe,
+        showOrderServed,
         sellByWeight,
         handleEstatusChange,
         handleClearFilters,

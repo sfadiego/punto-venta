@@ -56,10 +56,10 @@ export const OrderActionGroup = ({
 }: OrderActionGroupProps) => {
     const { can } = usePermissions();
 
-    const isPayable = [OrderStatusEnum.InProcess, OrderStatusEnum.ReadyToServe].includes(
+    const isPayable = [OrderStatusEnum.InProcess, OrderStatusEnum.Served].includes(
         order.estatus_pedido_id,
     );
-    const isKitchenVisible = [OrderStatusEnum.InProcess, OrderStatusEnum.ReadyToServe].includes(
+    const isKitchenVisible = [OrderStatusEnum.InProcess, OrderStatusEnum.Served].includes(
         order.estatus_pedido_id,
     );
 

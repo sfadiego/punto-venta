@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Core\Data\IndexData;
 use App\Enums\OrderStatusEnum;
+use App\Events\OrdersUpdated;
 use App\Http\Requests\OrderStoreRequest;
 use App\Http\Requests\OrderUpdateRequest;
 use App\Models\OrderModel;
@@ -23,7 +24,10 @@ class OrderController extends Controller
 
     public function store(OrderStoreRequest $params): JsonResponse
     {
-        return Response::success(OrderModel::create($params->toArray()));
+        $order = OrderModel::create($params->toArray());
+        $this->broadcast('created');
+
+        return Response::success($order);
     }
 
     public function show(OrderModel $order): JsonResponse
@@ -55,6 +59,9 @@ class OrderController extends Controller
                 'subtotal' => $orderDetail['subtotal'],
             ])
         );
+
+        $isServed = (int) ($params->toArray()['estatus_pedido_id'] ?? 0) === OrderStatusEnum::SERVED->value;
+        $this->broadcast($isServed ? 'served' : 'updated');
 
         return Response::success($order);
     }
@@ -123,5 +130,14 @@ class OrderController extends Controller
             ->get();
 
         return Response::success($results);
+    }
+
+    private function broadcast(string $type = 'updated'): void
+    {
+        try {
+            OrdersUpdated::dispatch($type);
+        } catch (\Throwable) {
+            // Reverb unavailable — order operation must not fail
+        }
     }
 }

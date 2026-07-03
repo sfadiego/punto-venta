@@ -13,11 +13,22 @@ export const PrintAgentContext = createContext<PrintAgentContextType>({
     print: () => Promise.reject(new Error("PrintAgentProvider no montado")),
 });
 
-export const PrintAgentProvider = ({ children }: { children: React.ReactNode }) => {
+interface PrintAgentProviderProps {
+    children: React.ReactNode;
+    enabled?: boolean;
+}
+
+export const PrintAgentProvider = ({ children, enabled = false }: PrintAgentProviderProps) => {
     const ws              = useRef<WebSocket | null>(null);
     const reconnectTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
     const pendingResolvers= useRef<Array<{ resolve: () => void; reject: (e: Error) => void }>>([]);
     const [isConnected, setIsConnected] = useState(false);
+
+    const disconnect = useCallback(() => {
+        if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+        ws.current?.close();
+        ws.current = null;
+    }, []);
 
     const connect = useCallback(() => {
         if (ws.current?.readyState === WebSocket.OPEN) return;
@@ -47,12 +58,10 @@ export const PrintAgentProvider = ({ children }: { children: React.ReactNode }) 
 
         socket.onclose = () => {
             setIsConnected(false);
-            // Rechazar cualquier promesa pendiente
             pendingResolvers.current.forEach(({ reject }) =>
                 reject(new Error("Agente desconectado"))
             );
             pendingResolvers.current = [];
-            console.log("[PrintAgent] Desconectado — reintentando en 5s");
             reconnectTimer.current = setTimeout(connect, RECONNECT_DELAY);
         };
 
@@ -62,12 +71,13 @@ export const PrintAgentProvider = ({ children }: { children: React.ReactNode }) 
     }, []);
 
     useEffect(() => {
+        if (!enabled) {
+            disconnect();
+            return;
+        }
         connect();
-        return () => {
-            if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
-            ws.current?.close();
-        };
-    }, [connect]);
+        return () => disconnect();
+    }, [enabled, connect, disconnect]);
 
     const print = useCallback((bytes: Uint8Array): Promise<void> => {
         return new Promise((resolve, reject) => {
@@ -75,7 +85,7 @@ export const PrintAgentProvider = ({ children }: { children: React.ReactNode }) 
                 return reject(new Error("Agente de impresión no conectado"));
             }
             pendingResolvers.current.push({ resolve, reject });
-            ws.current.send(bytes);
+            ws.current.send(bytes as Uint8Array<ArrayBuffer>);
         });
     }, []);
 

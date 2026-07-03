@@ -10,6 +10,6 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessTypeEnum, string> = {
 
 export interface IBusinessFeatures {
     kitchen_view:   boolean;
-    ready_to_serve: boolean;
+    order_served:   boolean;
     sell_by_weight: boolean;
 }

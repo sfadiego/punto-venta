@@ -19,4 +19,5 @@ export enum SuperAdminRoutes {
     TenantUsers   = "/admin/tenants/:id/users",
     Subscriptions = "/admin/subscriptions",
     Settings      = "/admin/settings",
+    ErrorLogs     = "/admin/error-logs",
 }

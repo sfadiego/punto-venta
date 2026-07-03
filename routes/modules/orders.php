@@ -24,6 +24,7 @@ Route::prefix('order')->group(function () {
                     Route::post('', 'store');
                     Route::put('{product}', 'update');
                     Route::put('{item}/note', 'updateNote');
+                    Route::patch('{item}/ready', 'toggleReady');
                     Route::delete('{product}', 'delete');
                 });
             });

@@ -2,13 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Core\Data\IndexData;
 use App\Models\ErrorReporting;
+use App\Services\ErrorReportingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
 class ClientErrorController extends Controller
 {
+    public function index(Request $request, IndexData $data, ErrorReportingService $service): JsonResponse
+    {
+        $source = $request->query('source');
+
+        return $service->run($data, $source ?: null);
+    }
+
     public function store(Request $request): JsonResponse
     {
         $request->validate([

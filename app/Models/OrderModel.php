@@ -116,7 +116,7 @@ class OrderModel extends Model
                 $q->whereDate('created_at', now());
                 $q->whereIn('estatus_pedido_id', [
                     OrderStatusEnum::IN_PROCESS->value,
-                    OrderStatusEnum::READY_TO_SERVE->value,
+                    OrderStatusEnum::SERVED->value,
                 ]);
             }])
             ->first();

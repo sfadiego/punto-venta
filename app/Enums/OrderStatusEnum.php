@@ -8,7 +8,7 @@ enum OrderStatusEnum: int
     case CANCELED = 2;
     case CLOSED = 3;
     case DELETED = 4;
-    case READY_TO_SERVE = 5;
+    case SERVED = 5;
 
     public static function orderStatusName(OrderStatusEnum $status): string
     {
@@ -17,7 +17,7 @@ enum OrderStatusEnum: int
             OrderStatusEnum::CANCELED->value => 'canceled',
             OrderStatusEnum::CLOSED->value => 'closed',
             OrderStatusEnum::DELETED->value => 'deleted',
-            OrderStatusEnum::READY_TO_SERVE->value => 'ready to serve',
+            OrderStatusEnum::SERVED->value => 'order served',
             default => 'in process',
         };
     }

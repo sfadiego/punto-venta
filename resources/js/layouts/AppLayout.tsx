@@ -10,6 +10,7 @@ import { useGetActiveSale } from "@/services/useOpenSalesService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { getRoleLabel } from "@/components/Role/RoleBadge";
+import { useOrdersSocket } from "@/hooks/useOrdersSocket";
 
 interface AppLayoutProps {
     children?: React.ReactNode;
@@ -18,6 +19,7 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const { user, logout, setSistema } = useAxios();
+    useOrdersSocket({ showToast: true });
     const { data: activeSale } = useGetActiveSale();
     const { data: config } = useGetBusinessConfig();
 
@@ -48,7 +50,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     const handleMenuClick = () => setSidebarOpen((prev) => !prev);
 
     return (
-        <PrintAgentProvider>
+        <PrintAgentProvider enabled={!!config?.printer_host}>
         <LayoutProvider onToggleSidebar={handleMenuClick}>
             <div className="flex h-screen bg-stone-50 overflow-hidden">
                 {sidebarOpen && (

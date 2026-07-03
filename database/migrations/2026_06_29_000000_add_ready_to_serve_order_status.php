@@ -10,14 +10,14 @@ return new class extends Migration
     {
         DB::table('order_status')->insertOrIgnore([
             [
-                'id' => OrderStatusEnum::READY_TO_SERVE->value,
-                'nombre' => OrderStatusEnum::orderStatusName(OrderStatusEnum::READY_TO_SERVE),
+                'id' => OrderStatusEnum::SERVED->value,
+                'nombre' => OrderStatusEnum::orderStatusName(OrderStatusEnum::SERVED),
             ],
         ]);
     }
 
     public function down(): void
     {
-        DB::table('order_status')->where('id', OrderStatusEnum::READY_TO_SERVE->value)->delete();
+        DB::table('order_status')->where('id', OrderStatusEnum::SERVED->value)->delete();
     }
 };

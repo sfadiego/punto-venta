@@ -1,4 +1,4 @@
-import { X, MessageSquare, Loader, Eye, CheckCircle2, Bike } from "lucide-react";
+import { X, MessageSquare, Loader, Eye, CheckCircle2, Circle, Bike } from "lucide-react";
 import { IOrder } from "@/models/IOrder";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { useOrderPreviewModal } from "./useOrderPreviewModal";
@@ -8,7 +8,7 @@ import { UnidadMedidaEnum, UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 const formatCantidad = (item: IOrderProduct): string => {
     const unidad = item.product?.unidad_medida;
     const esPeso = unidad === UnidadMedidaEnum.Kg || unidad === UnidadMedidaEnum.Gr;
-    if (!esPeso) return String(item.cantidad);
+    if (!esPeso) return String(parseFloat(item.cantidad.toString()));
     const n = parseFloat(item.cantidad.toString());
     const formatted = n % 1 === 0 ? String(n) : String(parseFloat(n.toFixed(3)));
     return `${formatted} ${UNIDAD_LABELS[unidad]}`;
@@ -19,9 +19,9 @@ interface OrderPreviewModalProps {
 }
 
 export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
-    const { isOpen, open, close, products, isLoading, isReadyToServe, isUpdatingStatus, markReadyToServe } = useOrderPreviewModal(order.id);
+    const { isOpen, open, close, products, isLoading, isServed, isUpdatingStatus, readyCount, totalCount, allReady, markServed, toggleProductReady } = useOrderPreviewModal(order.id);
     const { features } = useAxios();
-    const showReadyToServe = features?.ready_to_serve !== false;
+    const showOrderServed = features?.order_served !== false;
     const sellByWeight = features?.sell_by_weight === true;
 
     return (
@@ -63,22 +63,29 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                         </div>
 
                         {/* Acción */}
-                        {showReadyToServe && (
+                        {showOrderServed && (
                             <div className="px-5 py-3 border-b border-stone-100 shrink-0">
                                 <button
-                                    onClick={markReadyToServe}
-                                    disabled={isReadyToServe || isUpdatingStatus}
+                                    onClick={markServed}
+                                    disabled={isServed || !allReady || isUpdatingStatus}
                                     className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                                        isReadyToServe
+                                        isServed
                                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default"
-                                            : "bg-emerald-500 hover:bg-emerald-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                                            : allReady
+                                              ? "bg-emerald-500 hover:bg-emerald-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                                              : "bg-stone-100 text-stone-400 cursor-not-allowed"
                                     }`}
                                 >
                                     {isUpdatingStatus
                                         ? <Loader size={15} className="animate-spin" />
                                         : <CheckCircle2 size={15} />
                                     }
-                                    {isReadyToServe ? "Lista para servir" : "Marcar lista para servir"}
+                                    {isServed
+                                        ? "Orden servida ✓"
+                                        : allReady
+                                          ? "Marcar orden como servida"
+                                          : `${readyCount}/${totalCount} listos`
+                                    }
                                 </button>
                             </div>
                         )}
@@ -108,12 +115,21 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                                 </p>
                             ) : (
                                 products.map((item, idx) => (
-                                    <div key={item.id ?? idx} className="flex gap-3 p-3 rounded-xl bg-stone-50 border border-stone-100">
-                                        <div className="min-w-[2.5rem] h-7 px-2 rounded-lg bg-orange-100 flex items-center justify-center shrink-0 text-xs font-bold text-orange-700 whitespace-nowrap">
+                                    <div
+                                        key={item.id ?? idx}
+                                        className={`flex gap-3 p-3 rounded-xl border transition-colors ${
+                                            item.is_ready
+                                                ? "bg-emerald-50 border-emerald-200"
+                                                : "bg-stone-50 border-stone-100"
+                                        }`}
+                                    >
+                                        <div className={`min-w-[2.5rem] h-7 px-2 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold whitespace-nowrap ${
+                                            item.is_ready ? "bg-emerald-100 text-emerald-700" : "bg-orange-100 text-orange-700"
+                                        }`}>
                                             {formatCantidad(item)}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-semibold text-stone-900">
+                                            <p className={`text-sm font-semibold ${item.is_ready ? "text-emerald-700 line-through decoration-emerald-400/60" : "text-stone-900"}`}>
                                                 {item.nombre_extra ?? item.product?.nombre ?? "—"}
                                             </p>
                                             {item.observacion && (
@@ -125,6 +141,16 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                                                 </div>
                                             )}
                                         </div>
+                                        <button
+                                            onClick={() => item.id !== undefined && toggleProductReady(item.id!)}
+                                            title={item.is_ready ? "Marcar como pendiente" : "Marcar como listo"}
+                                            className="shrink-0 self-center transition-colors"
+                                        >
+                                            {item.is_ready
+                                                ? <CheckCircle2 size={20} className="text-emerald-500" />
+                                                : <Circle size={20} className="text-stone-300 hover:text-emerald-400" />
+                                            }
+                                        </button>
                                     </div>
                                 ))
                             )}

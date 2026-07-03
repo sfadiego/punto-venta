@@ -1,36 +1,36 @@
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { SlidersHorizontal, X } from "lucide-react";
 
-export const getActiveStatuses = (showReadyToServe: boolean): string =>
-    showReadyToServe
-        ? `${OrderStatusEnum.InProcess},${OrderStatusEnum.ReadyToServe}`
+export const getActiveStatuses = (showOrderServed: boolean): string =>
+    showOrderServed
+        ? `${OrderStatusEnum.InProcess},${OrderStatusEnum.Served}`
         : String(OrderStatusEnum.InProcess);
 
 const BASE_STATUS_OPTIONS = [
-    { value: String(OrderStatusEnum.InProcess),    label: "En proceso",        dot: "bg-amber-400",   readyToServeOnly: false, hideWhenNoRts: true },
-    { value: String(OrderStatusEnum.ReadyToServe), label: "Lista para servir", dot: "bg-blue-400",    readyToServeOnly: true,  hideWhenNoRts: false },
-    { value: String(OrderStatusEnum.Closed),       label: "Cerrado",           dot: "bg-emerald-400", readyToServeOnly: false, hideWhenNoRts: false },
+    { value: String(OrderStatusEnum.InProcess),    label: "En proceso",        dot: "bg-amber-400",   orderServedOnly: false, hideWhenNoServed: true },
+    { value: String(OrderStatusEnum.Served), label: "Orden servida", dot: "bg-blue-400",    orderServedOnly: true,  hideWhenNoServed: false },
+    { value: String(OrderStatusEnum.Closed),       label: "Cerrado",           dot: "bg-emerald-400", orderServedOnly: false, hideWhenNoServed: false },
 ];
 
 interface OrderFiltersProps {
     estatusId: string;
-    showReadyToServe?: boolean;
+    showOrderServed?: boolean;
     onEstatusChange: (value: string) => void;
     onClear: () => void;
 }
 
 export const OrderFilters = ({
     estatusId,
-    showReadyToServe = true,
+    showOrderServed = true,
     onEstatusChange,
     onClear,
 }: OrderFiltersProps) => {
-    const activeStatuses = getActiveStatuses(showReadyToServe);
+    const activeStatuses = getActiveStatuses(showOrderServed);
     const statusOptions = [
         { value: activeStatuses, label: "Activos", dot: "bg-stone-400" },
         ...BASE_STATUS_OPTIONS.filter((o) =>
-            (!o.readyToServeOnly || showReadyToServe) &&
-            (!o.hideWhenNoRts || showReadyToServe)
+            (!o.orderServedOnly || showOrderServed) &&
+            (!o.hideWhenNoServed || showOrderServed)
         ),
     ];
     const hasActiveFilters = estatusId !== activeStatuses;
