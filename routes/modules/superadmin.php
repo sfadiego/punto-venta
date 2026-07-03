@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\SuperAdmin\AppSettingController;
 use App\Http\Controllers\SuperAdmin\SubscriptionController;
 use App\Http\Controllers\SuperAdmin\SuperAdminAuthController;
@@ -12,6 +13,8 @@ Route::prefix('super-admin')->group(function () {
     Route::post('auth/login', [SuperAdminAuthController::class, 'login']);
 
     Route::middleware(['auth:sanctum', SuperAdminMiddleware::class])->group(function () {
+        Route::get('error-logs', [ClientErrorController::class, 'index']);
+
         Route::prefix('settings')->controller(AppSettingController::class)->group(function () {
             Route::get('', 'show');
             Route::put('', 'update');

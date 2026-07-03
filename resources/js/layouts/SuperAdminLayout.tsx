@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, LogOut, LayoutDashboard, CreditCard, Settings2, Menu, X } from "lucide-react";
+import { Building2, LogOut, LayoutDashboard, CreditCard, Settings2, Menu, X, AlertTriangle } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { superAdminAuth } from "@/contexts/SuperAdminContext";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
@@ -7,6 +7,7 @@ import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 const NAV_ITEMS = [
     { to: SuperAdminRoutes.Tenants,       label: "Clientes",       icon: <LayoutDashboard size={16} /> },
     { to: SuperAdminRoutes.Subscriptions, label: "Suscripciones",  icon: <CreditCard size={16} /> },
+    { to: SuperAdminRoutes.ErrorLogs,     label: "Logs de errores", icon: <AlertTriangle size={16} /> },
     { to: SuperAdminRoutes.Settings,      label: "Configuración",  icon: <Settings2 size={16} /> },
 ];
 
