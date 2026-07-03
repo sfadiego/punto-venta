@@ -20,17 +20,17 @@ class ErrorReportingService extends DataTable
     public function tableHeaders(): array
     {
         return [
-            'id'              => '#',
-            'source'          => '',
-            'endpoint'        => '',
-            'method'          => '',
-            'status_code'     => '',
-            'error_message'   => '',
+            'id' => '#',
+            'source' => '',
+            'endpoint' => '',
+            'method' => '',
+            'status_code' => '',
+            'error_message' => '',
             'request_payload' => '',
-            'response_body'   => '',
-            'user_agent'      => '',
-            'url'             => '',
-            'created_at'      => '#',
+            'response_body' => '',
+            'user_agent' => '',
+            'url' => '',
+            'created_at' => '#',
         ];
     }
 
@@ -53,6 +53,7 @@ class ErrorReportingService extends DataTable
     public function run(IndexData $data, ?string $source = null): JsonResponse
     {
         $this->source = $source;
+
         return parent::build($data);
     }
 }

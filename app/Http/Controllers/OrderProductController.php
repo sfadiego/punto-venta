@@ -143,7 +143,8 @@ class OrderProductController extends Controller
 
         try {
             OrdersUpdated::dispatch('product_updated');
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         return Response::success($orderProduct->refresh());
     }

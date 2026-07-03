@@ -14,6 +14,7 @@ class ClientErrorController extends Controller
     public function index(Request $request, IndexData $data, ErrorReportingService $service): JsonResponse
     {
         $source = $request->query('source');
+
         return $service->run($data, $source ?: null);
     }
 
@@ -21,20 +22,20 @@ class ClientErrorController extends Controller
     {
         $request->validate([
             'message' => 'required|string|max:1000',
-            'stack'   => 'nullable|string|max:5000',
-            'url'     => 'nullable|string|max:500',
+            'stack' => 'nullable|string|max:5000',
+            'url' => 'nullable|string|max:500',
         ]);
 
         ErrorReporting::create([
-            'source'          => 'frontend',
-            'endpoint'        => $request->input('url', 'unknown'),
-            'method'          => 'CLIENT',
-            'status_code'     => 0,
-            'error_message'   => $request->input('message'),
+            'source' => 'frontend',
+            'endpoint' => $request->input('url', 'unknown'),
+            'method' => 'CLIENT',
+            'status_code' => 0,
+            'error_message' => $request->input('message'),
             'request_payload' => ['stack' => $request->input('stack')],
-            'response_body'   => null,
-            'user_agent'      => $request->userAgent(),
-            'url'             => $request->input('url'),
+            'response_body' => null,
+            'user_agent' => $request->userAgent(),
+            'url' => $request->input('url'),
         ]);
 
         return Response::success(null, 201);
