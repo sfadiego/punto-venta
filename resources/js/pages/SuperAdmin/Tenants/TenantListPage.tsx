@@ -1,4 +1,4 @@
-import { Building2, Plus, Search, Pencil, Trash2, Users, Loader, PowerOff, Power, RotateCcw } from "lucide-react";
+import { Building2, Plus, Search, Pencil, Trash2, Users, Loader, PowerOff, Power, RotateCcw, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { useTenantList } from "./useTenantList";
@@ -137,7 +137,16 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
                         </span>
                     )}
                 </div>
-                <p className="text-xs text-slate-400 font-mono mt-0.5">/{tenant.slug}/login</p>
+                <a
+                    href={`${import.meta.env.VITE_APP_URL}/${tenant.slug}/login`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-xs text-indigo-400 font-mono mt-0.5 hover:text-indigo-600 transition-colors w-fit"
+                    title="Abrir panel del cliente"
+                >
+                    /{tenant.slug}/login
+                    <ExternalLink size={11} />
+                </a>
             </div>
         </div>
 
