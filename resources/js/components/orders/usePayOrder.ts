@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import { useModal } from "@/hooks/useModal";
 import { useUpdateOrder } from "@/services/useOrderService";
+import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
+import { usePrintTicket } from "./usePrintTicket";
 import { IOrder } from "@/models/IOrder";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 
@@ -12,6 +15,8 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
     const [cash, setCash] = useState("");
 
     const { mutateAsync: updateOrder, isPending } = useUpdateOrder(order.id);
+    const { data: businessConfig } = useGetBusinessConfig();
+    const { print } = usePrintTicket(order.id);
 
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - order.total;
@@ -30,6 +35,20 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
             toast.success("Orden cerrada exitosamente");
             closeModal();
             onSuccess?.();
+
+            if (businessConfig?.printer_host) {
+                const result = await Swal.fire({
+                    title: "¿Imprimir ticket?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonColor: "#f59e0b",
+                    cancelButtonColor: "#78716c",
+                    confirmButtonText: "Sí, imprimir",
+                    cancelButtonText: "No",
+                    reverseButtons: true,
+                });
+                if (result.isConfirmed) print();
+            }
         } catch {
             toast.error("Error al cerrar la orden");
         }

@@ -30,7 +30,7 @@ export const PrintTicketButton = ({
     };
 
     const resolvedClass = className ?? (showLabel ? defaultLabelClass : defaultIconClass);
-    const iconSize = showLabel ? 14 : 13;
+    const iconSize = 20;
 
     return (
         <button

@@ -49,7 +49,7 @@ export const PayOrderButton = ({
                 title="Pagar"
                 className={className ?? defaultClass}
             >
-                <Banknote size={14} />
+                <Banknote size={20} />
                 {showLabel && <span className="hidden sm:inline">Pagar</span>}
             </button>
 

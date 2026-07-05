@@ -93,24 +93,16 @@ class OrderProductController extends Controller
                 OrderProductModel::DESCUENTO => $params->descuento ?? 0,
             ]);
         } else {
-            $product = OrderProductModel::where(OrderProductModel::PEDIDO_ID, $orderId)
-                ->where(OrderProductModel::PRODUCTO_ID, $params->producto_id)
-                ->first();
+            $data = OrderProductModel::firstOrNew([
+                OrderProductModel::PRODUCTO_ID => $params->producto_id,
+                OrderProductModel::PEDIDO_ID => $orderId,
+            ]);
 
-            $currentItems = $product?->cantidad ?? 0;
-            $data = OrderProductModel::updateOrCreate(
-                [
-                    OrderProductModel::PRODUCTO_ID => $params->producto_id,
-                    OrderProductModel::PEDIDO_ID => $orderId,
-                ],
-                [
-                    OrderProductModel::PRODUCTO_ID => $params->producto_id,
-                    OrderProductModel::PEDIDO_ID => $orderId,
-                    OrderProductModel::CANTIDAD => $currentItems + $params->cantidad,
-                    OrderProductModel::PRECIO => $params->precio,
-                    OrderProductModel::DESCUENTO => $params->descuento ?? 0,
-                ]
-            );
+            $data->fill([
+                OrderProductModel::CANTIDAD => ($data->cantidad ?? 0) + $params->cantidad,
+                OrderProductModel::PRECIO => $params->precio,
+                OrderProductModel::DESCUENTO => $params->descuento ?? 0,
+            ])->save();
         }
 
         $orderDetail = $order->totalAndSubTotalOrder();

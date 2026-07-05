@@ -85,42 +85,21 @@ class OrderModel extends Model
         ];
     }
 
-    public function totalOrderProducts()
+    public function totalOrderProducts(): float
     {
-        if (! $this->load('orderProducts')
-            ->orderProducts
-            ->count()) {
-            return 0;
-        }
-
-        return $this->load('orderProducts')
-            ->orderProducts
-            ->map(function ($item) {
-                $precio = $item->precio;
-                $cantidad = $item->cantidad;
-                $descuentoPerItem = $item->descuento;
-
-                $total = $precio * $cantidad;
-                $totalWDescuento = $total - (($total * $descuentoPerItem) / 100);
-
-                return round($totalWDescuento, 2);
-            })
-            ->sum();
+        return (float) $this->orderProducts()
+            ->selectRaw('ROUND(SUM(precio * cantidad * (1 - descuento / 100)), 2) as total')
+            ->value('total') ?? 0.0;
     }
 
     public static function hasActiveOrders(MainOrderReportModel $system): int
     {
-        $result = $system
-            ->whereHas('orders')
-            ->with(['orders' => function ($q) {
-                $q->whereDate('created_at', now());
-                $q->whereIn('estatus_pedido_id', [
-                    OrderStatusEnum::IN_PROCESS->value,
-                    OrderStatusEnum::SERVED->value,
-                ]);
-            }])
-            ->first();
-
-        return $result?->orders?->count() ?? 0;
+        return static::where('sistema_id', $system->id)
+            ->whereIn('estatus_pedido_id', [
+                OrderStatusEnum::IN_PROCESS->value,
+                OrderStatusEnum::SERVED->value,
+            ])
+            ->whereNull('deleted_at')
+            ->count();
     }
 }

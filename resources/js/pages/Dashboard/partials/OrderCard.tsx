@@ -37,8 +37,8 @@ export const OrderCard = ({ order }: OrderCardProps) => {
         >
             {/* Fila superior: icono + nombre + tiempo/estado */}
             <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center shrink-0 shadow-sm">
-                    <Receipt size={15} className="text-stone-400" />
+                <div className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center shrink-0 shadow-sm">
+                    <Receipt size={20} className="text-stone-400" />
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -58,7 +58,7 @@ export const OrderCard = ({ order }: OrderCardProps) => {
                     )}
                     <div className="flex items-center gap-2 mt-0.5">
                         <span className="flex items-center gap-1 text-xs text-stone-400">
-                            <Clock size={10} />
+                            <Clock size={13} />
                             {formatOrderTime(order.created_at)}
                         </span>
                         <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${getStatusStyle(order.estatus_pedido_id)}`}>

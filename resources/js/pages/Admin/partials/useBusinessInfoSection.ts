@@ -4,13 +4,36 @@ import { toast } from "react-toastify";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 
+const phoneRegex = /^[+\d][\d\s\-().]{3,29}$/;
+const handleOrUrlRegex = /^(@[\w.\-]+|https?:\/\/.+)$/;
+
 const schema = Yup.object({
-    phone:         Yup.string().nullable().max(30),
+    phone: Yup.string().nullable().max(30).test(
+        "phone",
+        "Teléfono inválido (ej: +52 312 000 0000)",
+        (val) => !val || phoneRegex.test(val),
+    ),
+    whatsapp: Yup.string().nullable().max(30).test(
+        "whatsapp",
+        "Número inválido (ej: +52 312 000 0000)",
+        (val) => !val || phoneRegex.test(val),
+    ),
+    facebook: Yup.string().nullable().max(100).test(
+        "facebook",
+        "Ingresa un usuario (@nombre) o URL válida (https://...)",
+        (val) => !val || handleOrUrlRegex.test(val),
+    ),
+    instagram: Yup.string().nullable().max(100).test(
+        "instagram",
+        "Ingresa un usuario (@nombre) o URL válida (https://...)",
+        (val) => !val || handleOrUrlRegex.test(val),
+    ),
+    website: Yup.string().nullable().max(200).test(
+        "website",
+        "Debe ser una URL válida (ej: https://mi-negocio.com)",
+        (val) => !val || /^https?:\/\/.+\..+/.test(val),
+    ),
     address:       Yup.string().nullable().max(200),
-    facebook:      Yup.string().nullable().max(100),
-    instagram:     Yup.string().nullable().max(100),
-    whatsapp:      Yup.string().nullable().max(30),
-    website:       Yup.string().nullable().url("URL inválida").max(200),
     ticket_footer: Yup.string().nullable().max(100),
 });
 

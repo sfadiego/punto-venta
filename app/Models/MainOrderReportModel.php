@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Enums\MainOrderStatusEnum;
+use App\Enums\OrderStatusEnum;
 use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\OrderProductModel;
 
 class MainOrderReportModel extends Model
 {
@@ -61,30 +63,20 @@ class MainOrderReportModel extends Model
 
     public function totalSalesByDay(): float
     {
-        return $this->where('id', $this->id)
-            ->whereHas('orders.orderProducts')
-            ->with(['orders' => function ($q) {
-                $q->where('estatus_pedido_id', \App\Enums\OrderStatusEnum::CLOSED->value);
-            }, 'orders.orderProducts'])
-            ->get()
-            ->pluck('orders')
-            ->flatten()
-            ->pluck('orderProducts')
-            ->flatten()
-            ->map(function ($item) {
-                $total = $item->precio * $item->cantidad;
-                $totalWDescuento = $total - (($total * $item->descuento) / 100);
-
-                return round($totalWDescuento, 2);
-            })
-            ->sum();
+        return (float) OrderProductModel::query()
+            ->join('order', 'order.id', '=', 'order_product.pedido_id')
+            ->where('order.sistema_id', $this->id)
+            ->where('order.estatus_pedido_id', OrderStatusEnum::CLOSED->value)
+            ->whereNull('order.deleted_at')
+            ->selectRaw('ROUND(SUM(order_product.precio * order_product.cantidad * (1 - order_product.descuento / 100)), 2) as total')
+            ->value('total') ?? 0.0;
     }
 
     public function totalDomiciliosByDay(): float
     {
         return round(
             OrderModel::where('sistema_id', $this->id)
-                ->where('estatus_pedido_id', \App\Enums\OrderStatusEnum::CLOSED->value)
+                ->where('estatus_pedido_id', OrderStatusEnum::CLOSED->value)
                 ->sum('costo_domicilio'),
             2
         );
@@ -113,10 +105,9 @@ class MainOrderReportModel extends Model
 
     public function getActiveSale(): ?MainOrderReportModel
     {
-        $order = MainOrderReportModel::with('user')
-            ->where(self::ESTATUS_CAJA, MainOrderStatusEnum::OPEN);
-
-        return $order->exists() ? $order->first() : null;
+        return MainOrderReportModel::with('user')
+            ->where(self::ESTATUS_CAJA, MainOrderStatusEnum::OPEN)
+            ->first();
     }
 
     public static function openSales(
