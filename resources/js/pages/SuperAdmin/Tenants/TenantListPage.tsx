@@ -151,7 +151,7 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-slate-500">
-            <Users size={13} />
+            <Users size={20} />
             <span>{tenant.users_count ?? 0} usuario{tenant.users_count !== 1 ? "s" : ""}</span>
         </div>
 
@@ -173,7 +173,7 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
                     title="Restaurar"
                     className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 transition-colors"
                 >
-                    <RotateCcw size={15} />
+                    <RotateCcw size={20} />
                 </button>
             ) : (
                 <>
@@ -192,13 +192,13 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
                         onClick={onEdit}
                         className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-indigo-600 transition-colors"
                     >
-                        <Pencil size={15} />
+                        <Pencil size={20} />
                     </button>
                     <button
                         onClick={onDelete}
                         className="p-1.5 rounded-lg hover:bg-red-50 text-slate-500 hover:text-red-500 transition-colors"
                     >
-                        <Trash2 size={15} />
+                        <Trash2 size={20} />
                     </button>
                 </>
             )}

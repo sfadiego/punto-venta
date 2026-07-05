@@ -5,6 +5,7 @@ import { usePayModal } from "./usePayModal";
 import { PayModal } from "@/components/orders/PayModal";
 import { PrintTicketButton } from "@/components/orders/PrintTicketButton";
 import { CartItemNote } from "./CartItemNote";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface CartPanelProps {
     order: IOrder | undefined;
@@ -20,6 +21,7 @@ interface CartPanelProps {
 
 export const CartPanel = ({ order, cart, subtotal, isLoading, isReadOnly = false, onUpdate, onRemove, onNote, onClear }: CartPanelProps) => {
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const { can } = usePermissions();
     const {
         isOpen: payOpen,
         cash,
@@ -81,7 +83,7 @@ export const CartPanel = ({ order, cart, subtotal, isLoading, isReadOnly = false
                     )}
                 </div>
 
-                <CartFooter subtotal={subtotal} hasItems={cart.length > 0} isReadOnly={isReadOnly} orderId={order?.id ?? 0} onPay={openPay} />
+                <CartFooter subtotal={subtotal} hasItems={cart.length > 0} isReadOnly={isReadOnly} orderId={order?.id ?? 0} canPay={can("payOrder")} onPay={openPay} />
             </div>
 
             <PayModal
@@ -176,10 +178,11 @@ interface CartFooterProps {
     hasItems: boolean;
     isReadOnly?: boolean;
     orderId: number;
+    canPay: boolean;
     onPay: () => void;
 }
 
-const CartFooter = ({ subtotal, hasItems, isReadOnly = false, orderId, onPay }: CartFooterProps) => (
+const CartFooter = ({ subtotal, hasItems, isReadOnly = false, orderId, canPay, onPay }: CartFooterProps) => (
     <div className="px-5 py-4 border-t border-stone-100 bg-stone-50 flex-shrink-0">
         <div className="space-y-2 mb-4">
             <div className="flex items-center justify-between text-sm">
@@ -210,7 +213,7 @@ const CartFooter = ({ subtotal, hasItems, isReadOnly = false, orderId, onPay }: 
             ) : (
                 <button
                     onClick={onPay}
-                    disabled={!hasItems}
+                    disabled={!hasItems || !canPay}
                     className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors text-sm shadow-sm shadow-emerald-200"
                 >
                     <Banknote size={16} />

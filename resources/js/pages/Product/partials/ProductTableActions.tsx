@@ -40,7 +40,7 @@ export const ProductTableActions = ({ product, onEdit }: ProductTableActionsProp
                 title="Editar producto"
                 className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-all"
             >
-                <Pencil size={13} />
+                <Pencil size={20} />
             </button>
             <button
                 onClick={handleDelete}
@@ -49,8 +49,8 @@ export const ProductTableActions = ({ product, onEdit }: ProductTableActionsProp
                 className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all disabled:opacity-50"
             >
                 {isDeleting
-                    ? <Loader size={13} className="animate-spin text-red-500" />
-                    : <Trash2 size={13} />
+                    ? <Loader size={20} className="animate-spin text-red-500" />
+                    : <Trash2 size={20} />
                 }
             </button>
         </div>

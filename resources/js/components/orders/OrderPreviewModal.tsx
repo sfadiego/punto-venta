@@ -31,7 +31,7 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                 title="Ver detalle"
                 className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-orange-600 hover:bg-orange-50 border border-transparent hover:border-orange-200 transition-all"
             >
-                <Eye size={13} />
+                <Eye size={20} />
             </button>
 
             {isOpen && (
@@ -47,7 +47,7 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                         <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100 shrink-0">
                             <div className="flex items-center gap-2">
                                 <div className="p-1.5 rounded-lg bg-orange-100">
-                                    <Eye size={16} className="text-orange-600" />
+                                    <Eye size={20} className="text-orange-600" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold text-stone-900">{order.nombre_pedido}</p>
@@ -58,7 +58,7 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                                 onClick={close}
                                 className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 transition-colors"
                             >
-                                <X size={16} />
+                                <X size={20} />
                             </button>
                         </div>
 

@@ -109,7 +109,7 @@ export default function StatisticsPage() {
                         {/* Bar chart */}
                         <div className="lg:col-span-3 bg-white rounded-2xl border border-stone-100 shadow-sm p-6">
                             <div className="flex items-center gap-2 mb-5">
-                                <BarChart2 size={17} className="text-amber-500" />
+                                <BarChart2 size={20} className="text-amber-500" />
                                 <h2 className="text-sm font-semibold text-stone-800">
                                     Productos más vendidos
                                 </h2>
@@ -120,7 +120,7 @@ export default function StatisticsPage() {
                         {/* Ranking */}
                         <div className="lg:col-span-2 bg-white rounded-2xl border border-stone-100 shadow-sm p-6">
                             <div className="flex items-center gap-2 mb-5">
-                                <Award size={17} className="text-amber-500" />
+                                <Award size={20} className="text-amber-500" />
                                 <h2 className="text-sm font-semibold text-stone-800">Ranking</h2>
                             </div>
                             <BestSellerRanking data={bestSellers} />

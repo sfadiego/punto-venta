@@ -20,14 +20,14 @@ export const OrderEditControls = ({ isUpdating, onConfirm, onCancel }: OrderEdit
             title="Confirmar"
             className="flex items-center justify-center w-7 h-7 rounded-lg text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 transition-all disabled:opacity-50"
         >
-            {isUpdating ? <Loader size={13} className="animate-spin" /> : <Check size={13} />}
+            {isUpdating ? <Loader size={20} className="animate-spin" /> : <Check size={20} />}
         </button>
         <button
             onClick={onCancel}
             title="Cancelar edición"
             className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 border border-transparent hover:border-stone-200 transition-all"
         >
-            <X size={13} />
+            <X size={20} />
         </button>
     </>
 );
@@ -84,7 +84,7 @@ export const OrderActionGroup = ({
                     title="Editar nombre"
                     className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-all"
                 >
-                    <Pencil size={13} />
+                    <Pencil size={20} />
                 </button>
             )}
 
@@ -96,8 +96,8 @@ export const OrderActionGroup = ({
                     className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all disabled:opacity-50"
                 >
                     {isDeleting
-                        ? <Loader size={13} className="animate-spin text-red-500" />
-                        : <Trash2 size={13} />
+                        ? <Loader size={20} className="animate-spin text-red-500" />
+                        : <Trash2 size={20} />
                     }
                 </button>
             )}

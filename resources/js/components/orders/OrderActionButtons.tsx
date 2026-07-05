@@ -60,7 +60,7 @@ export const OrderActionButtons = ({ order, onSuccess }: OrderActionButtonsProps
                     title="Ver orden"
                     className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-all"
                 >
-                    <ExternalLink size={13} />
+                    <ExternalLink size={20} />
                 </button>
             )}
 

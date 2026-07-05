@@ -69,13 +69,13 @@ export const UserTable = ({ users, isLoading, onEdit, onDelete }: UserTableProps
                             onClick={() => onEdit(user)}
                             className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors"
                         >
-                            <Pencil size={15} />
+                            <Pencil size={20} />
                         </button>
                         <button
                             onClick={() => onDelete(user)}
                             className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
                         >
-                            <Trash2 size={15} />
+                            <Trash2 size={20} />
                         </button>
                     </div>
                 ),
