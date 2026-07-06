@@ -26,7 +26,7 @@ const getEcho = (): Echo<"reverb"> => {
             wsPort: Number(import.meta.env.VITE_REVERB_PORT ?? 6001),
             wssPort: Number(import.meta.env.VITE_REVERB_PORT ?? 6001),
             forceTLS: tls,
-            enabledTransports: tls ? ["wss"] : ["ws"],
+            enabledTransports: ["ws", "wss"],
         });
     }
     return echoInstance;
