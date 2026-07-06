@@ -54,15 +54,17 @@ export const CategoryTabs = ({ categories, activeCategory, onSelect }: CategoryT
                             />
                         </span>
                         {cat.name}
-                        <span
-                            className={`text-xs tabular-nums font-bold px-1.5 py-0.5 rounded-full ${
-                                isActive
-                                    ? "bg-white/25 text-white"
-                                    : "bg-stone-200 text-stone-500"
-                            }`}
-                        >
-                            {cat.count}
-                        </span>
+                        {cat.count !== undefined && (
+                            <span
+                                className={`text-xs tabular-nums font-bold px-1.5 py-0.5 rounded-full ${
+                                    isActive
+                                        ? "bg-white/25 text-white"
+                                        : "bg-stone-200 text-stone-500"
+                                }`}
+                            >
+                                {cat.count}
+                            </span>
+                        )}
                     </button>
                 );
             })}
