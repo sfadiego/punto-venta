@@ -50,6 +50,15 @@ class CategoriesController extends Controller
         return Response::success($category->delete());
     }
 
+    public function list(): JsonResponse
+    {
+        return Response::success(
+            CategoryModel::select('id', CategoryModel::NOMBRE, CategoryModel::ICON_NAME)
+                ->orderBy(CategoryModel::ORDEN)
+                ->get()
+        );
+    }
+
     public function categoryProduct(CategoryModel $category): JsonResponse
     {
         return Response::success(

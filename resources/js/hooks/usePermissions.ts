@@ -41,6 +41,7 @@ const ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "takeOrder",
         "editOrderName",
         "printTicket",
+        "kitchenView",
     ]),
     [RoleEnum.Cocina]: new Set<Action>([
         "viewDashboard",
