@@ -88,7 +88,40 @@ envs:
   value: "null"
 - key: BROADCAST_CONNECTION
   scope: RUN_AND_BUILD_TIME
-  value: log
+  value: reverb
+- key: REVERB_APP_ID
+  scope: RUN_AND_BUILD_TIME
+  value: "210086"
+- key: REVERB_APP_KEY
+  scope: RUN_AND_BUILD_TIME
+  value: 4mymudn0cfhsfyrx2h2d
+- key: REVERB_APP_SECRET
+  scope: RUN_AND_BUILD_TIME
+  value: 8dxxpiulrmffeptslzgy
+- key: REVERB_HOST
+  scope: RUN_AND_BUILD_TIME
+  value: pos-app-rpts9.ondigitalocean.app
+- key: REVERB_SERVER_PORT
+  scope: RUN_AND_BUILD_TIME
+  value: "6001"
+- key: REVERB_PORT
+  scope: RUN_AND_BUILD_TIME
+  value: "443"
+- key: REVERB_SCHEME
+  scope: RUN_AND_BUILD_TIME
+  value: https
+- key: VITE_REVERB_APP_KEY
+  scope: RUN_AND_BUILD_TIME
+  value: 4mymudn0cfhsfyrx2h2d
+- key: VITE_REVERB_HOST
+  scope: RUN_AND_BUILD_TIME
+  value: pos-app-rpts9.ondigitalocean.app
+- key: VITE_REVERB_PORT
+  scope: RUN_AND_BUILD_TIME
+  value: "443"
+- key: VITE_REVERB_SCHEME
+  scope: RUN_AND_BUILD_TIME
+  value: https
 - key: FILESYSTEM_DISK
   scope: RUN_AND_BUILD_TIME
   value: local
