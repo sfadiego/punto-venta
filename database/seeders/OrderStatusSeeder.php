@@ -18,7 +18,7 @@ class OrderStatusSeeder extends Seeder
             ['id' => OrderStatusEnum::CANCELED->value,      OrderStatusModel::NOMBRE => OrderStatusEnum::orderStatusName(OrderStatusEnum::CANCELED)],
             ['id' => OrderStatusEnum::CLOSED->value,        OrderStatusModel::NOMBRE => OrderStatusEnum::orderStatusName(OrderStatusEnum::CLOSED)],
             ['id' => OrderStatusEnum::DELETED->value,       OrderStatusModel::NOMBRE => OrderStatusEnum::orderStatusName(OrderStatusEnum::DELETED)],
-            ['id' => OrderStatusEnum::READY_TO_SERVE->value, OrderStatusModel::NOMBRE => OrderStatusEnum::orderStatusName(OrderStatusEnum::READY_TO_SERVE)],
+            ['id' => OrderStatusEnum::SERVED->value,        OrderStatusModel::NOMBRE => OrderStatusEnum::orderStatusName(OrderStatusEnum::SERVED)],
         ];
 
         OrderStatusModel::insertOrIgnore($data);
