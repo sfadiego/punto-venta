@@ -7,7 +7,6 @@ use App\Enums\OrderStatusEnum;
 use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\OrderProductModel;
 
 class MainOrderReportModel extends Model
 {
