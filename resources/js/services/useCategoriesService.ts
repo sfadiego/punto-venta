@@ -1,8 +1,10 @@
 import { IProduct } from "@/models/IProduct";
-import { useDELETE, useGET, usePOST, usePUT } from "../hooks/useApi";
+import { axiosGET, useDELETE, useGET, usePOST, usePUT } from "../hooks/useApi";
 import { ICategory } from "../models/ICategory";
 import { IPaginate } from "@/intefaces/IPaginate";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { useQuery } from "@tanstack/react-query";
+import { useAxios } from "@/hooks/useAxios";
 
 const url = ApiRoutes.Category;
 
@@ -37,6 +39,18 @@ export const useProductByCategory = (categoryId: number, enable: boolean) =>
         url: `${url}/${categoryId}/product`,
         enable,
     });
+
+// Lightweight list for TakeOrder category pills — minimal payload, cached for the session.
+// Uses /api/category/list which returns [{id, nombre, icon_name}] without pagination overhead.
+export const useCategoryList = () => {
+    const { axiosApi } = useAxios();
+    return useQuery<ICategory[]>({
+        queryKey: [`${url}/list`],
+        queryFn: () => axiosGET(axiosApi, { url: `${url}/list` }),
+        staleTime: Infinity,
+        gcTime: 30 * 60 * 1000,
+    });
+};
 
 // Admin routes
 const adminUrl = ApiRoutes.Category; // POST/PUT/DELETE go to /api/category and /api/category/{id}

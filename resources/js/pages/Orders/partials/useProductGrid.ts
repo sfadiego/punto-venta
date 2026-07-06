@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useInfiniteIndexProducts } from "@/services/useProductService";
-import { useIndexCategories } from "@/services/useCategoriesService";
+import { useCategoryList } from "@/services/useCategoriesService";
 import { IProduct } from "@/models/IProduct";
 
 export type CategoryOption = {
@@ -23,7 +23,7 @@ export const useProductGrid = () => {
         return () => clearTimeout(timer);
     }, [search]);
 
-    const { data: categoriesData } = useIndexCategories();
+    const { data: categoriesData } = useCategoryList();
 
     const categories = useMemo((): CategoryOption[] => [
         { name: "Todos" },
