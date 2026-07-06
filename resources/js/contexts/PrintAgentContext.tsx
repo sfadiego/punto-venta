@@ -1,7 +1,8 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 
 const AGENT_URL        = "ws://localhost:8765";
-const RECONNECT_DELAY  = 5000;
+const RECONNECT_DELAY  = 10000;
+const MAX_RETRIES      = 5;
 
 interface PrintAgentContextType {
     isConnected: boolean;
@@ -22,23 +23,26 @@ export const PrintAgentProvider = ({ children, enabled = false }: PrintAgentProv
     const ws              = useRef<WebSocket | null>(null);
     const reconnectTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
     const pendingResolvers= useRef<Array<{ resolve: () => void; reject: (e: Error) => void }>>([]);
+    const retryCount      = useRef(0);
     const [isConnected, setIsConnected] = useState(false);
 
     const disconnect = useCallback(() => {
         if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
         ws.current?.close();
         ws.current = null;
+        retryCount.current = 0;
     }, []);
 
     const connect = useCallback(() => {
         if (ws.current?.readyState === WebSocket.OPEN) return;
+        if (retryCount.current >= MAX_RETRIES) return;
 
         const socket = new WebSocket(AGENT_URL);
         ws.current = socket;
 
         socket.onopen = () => {
             setIsConnected(true);
-            console.log("[PrintAgent] Conectado");
+            retryCount.current = 0;
         };
 
         socket.onmessage = (event) => {
@@ -62,11 +66,14 @@ export const PrintAgentProvider = ({ children, enabled = false }: PrintAgentProv
                 reject(new Error("Agente desconectado"))
             );
             pendingResolvers.current = [];
-            reconnectTimer.current = setTimeout(connect, RECONNECT_DELAY);
+            retryCount.current += 1;
+            if (retryCount.current < MAX_RETRIES) {
+                reconnectTimer.current = setTimeout(connect, RECONNECT_DELAY);
+            }
         };
 
         socket.onerror = () => {
-            // onclose se dispara inmediatamente después; no es necesario manejar aquí
+            // onclose se dispara inmediatamente después
         };
     }, []);
 
