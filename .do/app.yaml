@@ -70,7 +70,7 @@ envs:
   value: pos-user
 - key: DB_PASSWORD
   scope: RUN_AND_BUILD_TIME
-  value: ""
+  value: ${DB_PASSWORD}
 - key: SESSION_DRIVER
   scope: RUN_AND_BUILD_TIME
   value: database
@@ -88,40 +88,7 @@ envs:
   value: "null"
 - key: BROADCAST_CONNECTION
   scope: RUN_AND_BUILD_TIME
-  value: reverb
-- key: REVERB_APP_ID
-  scope: RUN_AND_BUILD_TIME
-  value: "210086"
-- key: REVERB_APP_KEY
-  scope: RUN_AND_BUILD_TIME
-  value: 4mymudn0cfhsfyrx2h2d
-- key: REVERB_APP_SECRET
-  scope: RUN_AND_BUILD_TIME
-  value: 8dxxpiulrmffeptslzgy
-- key: REVERB_HOST
-  scope: RUN_AND_BUILD_TIME
-  value: pos-app-rpts9.ondigitalocean.app
-- key: REVERB_SERVER_PORT
-  scope: RUN_AND_BUILD_TIME
-  value: "6001"
-- key: REVERB_PORT
-  scope: RUN_AND_BUILD_TIME
-  value: "443"
-- key: REVERB_SCHEME
-  scope: RUN_AND_BUILD_TIME
-  value: https
-- key: VITE_REVERB_APP_KEY
-  scope: RUN_AND_BUILD_TIME
-  value: 4mymudn0cfhsfyrx2h2d
-- key: VITE_REVERB_HOST
-  scope: RUN_AND_BUILD_TIME
-  value: pos-app-rpts9.ondigitalocean.app
-- key: VITE_REVERB_PORT
-  scope: RUN_AND_BUILD_TIME
-  value: "443"
-- key: VITE_REVERB_SCHEME
-  scope: RUN_AND_BUILD_TIME
-  value: https
+  value: log
 - key: FILESYSTEM_DISK
   scope: RUN_AND_BUILD_TIME
   value: local
@@ -204,22 +171,58 @@ envs:
   value: admin
 - key: APP_ADMIN_PASSWORD
   scope: RUN_AND_BUILD_TIME
-  value: admin
+  value: admin1234
 - key: APP_ADMIN_EMAIL
   scope: RUN_AND_BUILD_TIME
-  value: admin@${APP_NAME}.com
+  value: admin@pos-app.com
 - key: APP_USER_USER
   scope: RUN_AND_BUILD_TIME
   value: employe
 - key: APP_USER_PASSWORD
   scope: RUN_AND_BUILD_TIME
-  value: employe
+  value: employe1234
 - key: APP_USER_EMAIL
   scope: RUN_AND_BUILD_TIME
-  value: employe@${APP_NAME}.com
+  value: employe@pos-app.com
 - key: MYSQL_ATTR_SSL_VERIFY_SERVER_CERT
   scope: RUN_AND_BUILD_TIME
   value: "false"
+- key: VITE_REVERB_APP_KEY
+  scope: RUN_AND_BUILD_TIME
+  value: 4mymudn0cfhsfyrx2h2d
+- key: VITE_REVERB_HOST
+  scope: RUN_AND_BUILD_TIME
+  value: pos-app-rpts9.ondigitalocean.app
+- key: VITE_REVERB_PORT
+  scope: RUN_AND_BUILD_TIME
+  value: "443"
+- key: VITE_REVERB_SCHEME
+  scope: RUN_AND_BUILD_TIME
+  value: https
+- key: REVERB_APP_ID
+  scope: RUN_TIME
+  value: "210086"
+- key: REVERB_APP_KEY
+  scope: RUN_TIME
+  value: 4mymudn0cfhsfyrx2h2d
+- key: REVERB_APP_SECRET
+  scope: RUN_TIME
+  value: 8dxxpiulrmffeptslzgy
+- key: REVERB_HOST
+  scope: RUN_TIME
+  value: pos-app-rpts9.ondigitalocean.app
+- key: REVERB_PORT
+  scope: RUN_TIME
+  value: "443"
+- key: REVERB_SCHEME
+  scope: RUN_TIME
+  value: https
+- key: REVERB_SERVER_PORT
+  scope: RUN_TIME
+  value: "6001"
+- key: BROADCAST_CONNECTION
+  scope: RUN_TIME
+  value: reverb
 features:
 - buildpack-stack=ubuntu-22
 ingress:
@@ -252,7 +255,6 @@ services:
   instance_size_slug: apps-s-1vcpu-1gb
   name: punto-venta
   source_dir: /
-
 - dockerfile_path: /Dockerfile
   github:
     branch: main
@@ -260,7 +262,7 @@ services:
     repo: sfadiego/punto-venta
   http_port: 8080
   instance_count: 1
-  instance_size_slug: apps-s-1vcpu-512mb-3
+  instance_size_slug: apps-s-1vcpu-1gb
   name: reverb-ws
   run_command: php /var/www/html/artisan reverb:start --host=0.0.0.0 --port=8080
   source_dir: /
