@@ -23,6 +23,11 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+
+# Escribir .env explícitamente para que Vite tome los valores correctos en build time
+RUN printf "VITE_APP_URL=%s\nVITE_APP_NAME=%s\nVITE_REVERB_APP_KEY=%s\nVITE_REVERB_HOST=%s\nVITE_REVERB_PORT=%s\nVITE_REVERB_SCHEME=%s\n" \
+    "$VITE_APP_URL" "$VITE_APP_NAME" "$VITE_REVERB_APP_KEY" "$VITE_REVERB_HOST" "$VITE_REVERB_PORT" "$VITE_REVERB_SCHEME" > .env
+
 RUN pnpm run build
 
 # ── Stage 2: PHP / Laravel ────────────────────────────────────────────────────
