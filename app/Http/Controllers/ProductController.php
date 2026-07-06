@@ -21,7 +21,7 @@ class ProductController extends Controller
 
     public function show(ProductModel $product): JsonResponse
     {
-        return Response::success($product->load('picture'));
+        return Response::success($product);
     }
 
     public function store(ProductStoreRequest $param): JsonResponse
