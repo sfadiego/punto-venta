@@ -225,23 +225,6 @@ envs:
   value: reverb
 features:
 - buildpack-stack=ubuntu-22
-ingress:
-  rules:
-  - component:
-      name: reverb-ws
-    match:
-      path:
-        prefix: /app/
-  - component:
-      name: reverb-ws
-    match:
-      path:
-        prefix: /apps/
-  - component:
-      name: punto-venta
-    match:
-      path:
-        prefix: /
 name: pos-app
 region: sfo
 services:
@@ -255,18 +238,3 @@ services:
   instance_size_slug: apps-s-1vcpu-1gb
   name: punto-venta
   source_dir: /
-- dockerfile_path: /Dockerfile
-  github:
-    branch: main
-    deploy_on_push: true
-    repo: sfadiego/punto-venta
-  http_port: 8080
-  instance_count: 1
-  instance_size_slug: apps-s-1vcpu-1gb
-  name: reverb-ws
-  run_command: php /var/www/html/artisan reverb:start --host=0.0.0.0 --port=8080
-  source_dir: /
-  envs:
-  - key: REVERB_SERVER_PORT
-    scope: RUN_TIME
-    value: "8080"
