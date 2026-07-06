@@ -29,7 +29,7 @@ class ProductsService extends DataTable
 
     public function makeQuery(): Builder
     {
-        $query = $this->model->newQuery()->with(['category', 'picture']);
+        $query = $this->model->newQuery()->with(['category']);
 
         $nombre = request()->query('nombre');
         $categoriaId = request()->query('categoria_id');
