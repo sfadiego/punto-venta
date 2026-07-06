@@ -3,7 +3,6 @@ import { ShoppingCart, ChevronLeft, Package, Lock, PackagePlus, Menu, Loader } f
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLayout } from "@/contexts/LayoutContext";
-import { useIndexProducts } from "@/services/useProductService";
 import { useTakeOrder } from "./useTakeOrder";
 import { ProductGrid } from "./partials/ProductGrid";
 import { CartPanel } from "./partials/CartPanel";
@@ -40,10 +39,7 @@ export default function TakeOrderPage() {
     const { isOpen: extraOpen, openModal: openExtra, handleClose: closeExtra, formik: extraFormik } =
         useAddExtraModal(addExtra);
 
-    const { data: productsPage, isLoading: loadingProducts } = useIndexProducts({ limit: 200 });
-    const products = productsPage?.data ?? [];
-
-    if (loadingOrder || (loadingProducts && products.length === 0)) {
+    if (loadingOrder) {
         return <TakeOrderLoading />;
     }
 
@@ -61,8 +57,6 @@ export default function TakeOrderPage() {
                 <div className="flex flex-1 overflow-hidden">
                     <div className="flex-1 overflow-hidden bg-stone-50 border-r border-stone-200">
                         <ProductGrid
-                            products={products}
-                            isLoading={loadingProducts}
                             cart={cart}
                             isReadOnly={isReadOnly}
                             onAdd={addToCart}
@@ -96,8 +90,6 @@ export default function TakeOrderPage() {
                 <div className="flex-1 overflow-y-auto">
                     {mobileTab === "products" ? (
                         <ProductGrid
-                            products={products}
-                            isLoading={loadingProducts}
                             cart={cart}
                             isReadOnly={isReadOnly}
                             onAdd={addToCart}
