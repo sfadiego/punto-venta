@@ -25,6 +25,8 @@ export default function TakeOrderPage() {
         cart,
         cartCount,
         subtotal,
+        orderDiscount,
+        total,
         loadingCart,
         loadingOrder,
         isReadOnly,
@@ -34,6 +36,8 @@ export default function TakeOrderPage() {
         saveObservacion,
         removeFromCart,
         clearCart,
+        updateOrderDiscount,
+        updateProductDiscount,
     } = useTakeOrder();
 
     const { isOpen: extraOpen, openModal: openExtra, handleClose: closeExtra, formik: extraFormik } =
@@ -67,12 +71,16 @@ export default function TakeOrderPage() {
                             order={order}
                             cart={cart}
                             subtotal={subtotal}
+                            orderDiscount={orderDiscount}
+                            total={total}
                             isLoading={loadingCart}
                             isReadOnly={isReadOnly}
                             onUpdate={updateQuantity}
                             onRemove={removeFromCart}
                             onNote={saveObservacion}
                             onClear={clearCart}
+                            onUpdateDiscount={updateOrderDiscount}
+                            onUpdateProductDiscount={updateProductDiscount}
                         />
                     </div>
                 </div>
@@ -99,12 +107,16 @@ export default function TakeOrderPage() {
                             order={order}
                             cart={cart}
                             subtotal={subtotal}
+                            orderDiscount={orderDiscount}
+                            total={total}
                             isLoading={loadingCart}
                             isReadOnly={isReadOnly}
                             onUpdate={updateQuantity}
                             onRemove={removeFromCart}
                             onNote={saveObservacion}
                             onClear={clearCart}
+                            onUpdateDiscount={updateOrderDiscount}
+                            onUpdateProductDiscount={updateProductDiscount}
                         />
                     )}
                 </div>
