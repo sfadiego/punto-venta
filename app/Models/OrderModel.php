@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class OrderModel extends Model
 {
@@ -87,8 +88,12 @@ class OrderModel extends Model
 
     public function totalOrderProducts(): float
     {
-        return (float) $this->orderProducts()
-            ->selectRaw('ROUND(SUM(precio * cantidad * (1 - descuento / 100)), 2) as total')
+        return (float) DB::table('order_product')
+            ->where('pedido_id', $this->id)
+            ->where(function ($q) {
+                $q->whereNotNull('producto_id')->orWhereNotNull('nombre_extra');
+            })
+            ->selectRaw('ROUND(SUM(precio * cantidad * (1 - COALESCE(descuento, 0) / 100)), 2) as total')
             ->value('total') ?? 0.0;
     }
 

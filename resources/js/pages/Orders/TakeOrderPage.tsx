@@ -30,6 +30,7 @@ export default function TakeOrderPage() {
         loadingCart,
         loadingOrder,
         isReadOnly,
+        pendingProductIds,
         addToCart,
         addExtra,
         updateQuantity,
@@ -63,6 +64,7 @@ export default function TakeOrderPage() {
                         <ProductGrid
                             cart={cart}
                             isReadOnly={isReadOnly}
+                            pendingProductIds={pendingProductIds}
                             onAdd={addToCart}
                         />
                     </div>
@@ -100,6 +102,7 @@ export default function TakeOrderPage() {
                         <ProductGrid
                             cart={cart}
                             isReadOnly={isReadOnly}
+                            pendingProductIds={pendingProductIds}
                             onAdd={addToCart}
                         />
                     ) : (

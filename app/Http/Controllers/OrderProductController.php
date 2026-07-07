@@ -10,6 +10,7 @@ use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 
@@ -39,43 +40,8 @@ class OrderProductController extends Controller
     }
 
     /**
-     * update
-     */
-    public function update(string $orderId, string $productId, OrderProductUpdateRequest $params): JsonResponse
-    {
-        $orderProduct = OrderProductModel::where('pedido_id', $orderId)
-            ->where('producto_id', $productId);
-
-        if (! $orderProduct->exists()) {
-            return Response::error('La orden no contiene este producto');
-        }
-
-        $orderProduct = $orderProduct->first();
-        $data = [];
-        if (isset($params?->cantidad)) {
-            $data[OrderProductModel::CANTIDAD] = $params->cantidad;
-        }
-
-        if (isset($params?->descuento)) {
-            $data[OrderProductModel::DESCUENTO] = $params->descuento;
-        }
-
-        $orderProduct->update($data);
-
-        $order = OrderModel::find($orderId);
-        $orderDetail = $order->totalAndSubTotalOrder();
-        $order->update([
-            'total' => $orderDetail['total'],
-            'subtotal' => $orderDetail['subtotal'],
-        ]);
-
-        $this->resetStatusIfReady($order);
-
-        return Response::success($orderProduct->refresh());
-    }
-
-    /**
-     * store
+     * store — adds a product (or extra) to the order using incremental total update.
+     * Avoids a full SUM recalculation by computing only the delta for the added item.
      */
     public function store(string $orderId, OrderProductStoreRequest $params): JsonResponse
     {
@@ -84,36 +50,104 @@ class OrderProductController extends Controller
             return Response::error('no existe la orden');
         }
 
+        $orderDiscount = $order->descuento ?? 0;
+        $itemDescuento = $params->descuento ?? 0;
+
         if ($params->nombre_extra) {
             $data = OrderProductModel::create([
                 OrderProductModel::PEDIDO_ID => $orderId,
                 OrderProductModel::NOMBRE_EXTRA => $params->nombre_extra,
                 OrderProductModel::CANTIDAD => $params->cantidad,
                 OrderProductModel::PRECIO => $params->precio,
-                OrderProductModel::DESCUENTO => $params->descuento ?? 0,
+                OrderProductModel::DESCUENTO => $itemDescuento,
             ]);
+            $deltaSubtotal = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
         } else {
-            $data = OrderProductModel::firstOrNew([
-                OrderProductModel::PRODUCTO_ID => $params->producto_id,
-                OrderProductModel::PEDIDO_ID => $orderId,
-            ]);
+            [$data, $deltaSubtotal] = DB::transaction(function () use ($orderId, $params, $itemDescuento) {
+                $existing = OrderProductModel::where('pedido_id', $orderId)
+                    ->where('producto_id', $params->producto_id)
+                    ->lockForUpdate()
+                    ->first();
 
-            $data->fill([
-                OrderProductModel::CANTIDAD => ($data->cantidad ?? 0) + $params->cantidad,
-                OrderProductModel::PRECIO => $params->precio,
-                OrderProductModel::DESCUENTO => $params->descuento ?? 0,
-            ])->save();
+                if ($existing) {
+                    $oldLineSubtotal = round($existing->precio * $existing->cantidad * (1 - $existing->descuento / 100), 2);
+                    $newQty = $existing->cantidad + $params->cantidad;
+                    $existing->update([
+                        OrderProductModel::CANTIDAD => $newQty,
+                        OrderProductModel::PRECIO => $params->precio,
+                        OrderProductModel::DESCUENTO => $itemDescuento,
+                    ]);
+                    $newLineSubtotal = round($params->precio * $newQty * (1 - $itemDescuento / 100), 2);
+
+                    return [$existing->refresh(), $newLineSubtotal - $oldLineSubtotal];
+                }
+
+                $created = OrderProductModel::create([
+                    OrderProductModel::PRODUCTO_ID => $params->producto_id,
+                    OrderProductModel::PEDIDO_ID => $orderId,
+                    OrderProductModel::CANTIDAD => $params->cantidad,
+                    OrderProductModel::PRECIO => $params->precio,
+                    OrderProductModel::DESCUENTO => $itemDescuento,
+                ]);
+
+                return [$created, round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2)];
+            });
         }
 
-        $orderDetail = $order->totalAndSubTotalOrder();
-        $order->update([
-            'total' => $orderDetail['total'],
-            'subtotal' => $orderDetail['subtotal'],
+        $deltaTotal = round($deltaSubtotal * (1 - $orderDiscount / 100), 2);
+
+        DB::table('order')->where('id', $orderId)->update([
+            'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$deltaSubtotal}"),
+            'total'    => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
         ]);
 
-        $this->resetStatusIfReady($order);
+        $this->resetStatusIfReady($order->fresh());
 
         return Response::success($data);
+    }
+
+    /**
+     * update — changes quantity or discount for a product in the order.
+     * Uses the delta between old and new line subtotal to avoid a full SUM recalculation.
+     */
+    public function update(string $orderId, string $productId, OrderProductUpdateRequest $params): JsonResponse
+    {
+        $orderProduct = OrderProductModel::where('pedido_id', $orderId)
+            ->where('producto_id', $productId)
+            ->first();
+
+        if (! $orderProduct) {
+            return Response::error('La orden no contiene este producto');
+        }
+
+        $order = OrderModel::find($orderId);
+        $orderDiscount = $order->descuento ?? 0;
+
+        $oldLineSubtotal = round($orderProduct->precio * $orderProduct->cantidad * (1 - $orderProduct->descuento / 100), 2);
+
+        $data = [];
+        if (isset($params->cantidad)) {
+            $data[OrderProductModel::CANTIDAD] = $params->cantidad;
+        }
+        if (isset($params->descuento)) {
+            $data[OrderProductModel::DESCUENTO] = $params->descuento;
+        }
+
+        $orderProduct->update($data);
+        $orderProduct->refresh();
+
+        $newLineSubtotal = round($orderProduct->precio * $orderProduct->cantidad * (1 - $orderProduct->descuento / 100), 2);
+        $deltaSubtotal = $newLineSubtotal - $oldLineSubtotal;
+        $deltaTotal = round($deltaSubtotal * (1 - $orderDiscount / 100), 2);
+
+        DB::table('order')->where('id', $orderId)->update([
+            'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$deltaSubtotal}"),
+            'total'    => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
+        ]);
+
+        $this->resetStatusIfReady($order->fresh());
+
+        return Response::success($orderProduct);
     }
 
     /**
@@ -177,13 +211,46 @@ class OrderProductController extends Controller
             return Response::error('elemento no encontrado');
         }
 
+        $order = OrderModel::find($orderId);
+        $orderDiscount = $order->descuento ?? 0;
+        $lineSubtotal = round($item->precio * $item->cantidad * (1 - $item->descuento / 100), 2);
+        $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
+
         $item->delete();
 
+        DB::table('order')->where('id', $orderId)->update([
+            'subtotal' => DB::raw("GREATEST(0, COALESCE(subtotal, 0) - {$lineSubtotal})"),
+            'total'    => DB::raw("GREATEST(0, COALESCE(total, 0) - {$lineTotal})"),
+        ]);
+
+        return Response::success('elemento borrado de la orden');
+    }
+
+    /**
+     * delete — removes a regular product from the order by producto_id
+     */
+    public function delete(int $orderId, int $product): JsonResponse
+    {
+        $delete = OrderProductModel::where('pedido_id', $orderId)
+            ->where('producto_id', $product)
+            ->first();
+
+        if (! $delete) {
+            Log::error('producto no encontrado', [$product]);
+
+            return Response::error('producto no encontrado');
+        }
+
         $order = OrderModel::find($orderId);
-        $orderDetails = $order->totalAndSubTotalOrder();
-        $order->update([
-            'total' => $orderDetails['total'],
-            'subtotal' => $orderDetails['subtotal'],
+        $orderDiscount = $order->descuento ?? 0;
+        $lineSubtotal = round($delete->precio * $delete->cantidad * (1 - $delete->descuento / 100), 2);
+        $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
+
+        $delete->delete();
+
+        DB::table('order')->where('id', $orderId)->update([
+            'subtotal' => DB::raw("GREATEST(0, COALESCE(subtotal, 0) - {$lineSubtotal})"),
+            'total'    => DB::raw("GREATEST(0, COALESCE(total, 0) - {$lineTotal})"),
         ]);
 
         return Response::success('elemento borrado de la orden');
@@ -194,32 +261,5 @@ class OrderProductController extends Controller
         if ($order->estatus_pedido_id === OrderStatusEnum::SERVED->value) {
             $order->update(['estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value]);
         }
-    }
-
-    /**
-     * delete
-     */
-    public function delete(int $orderId, int $product): JsonResponse
-    {
-        $delete = OrderProductModel::where('pedido_id', $orderId)
-            ->where('producto_id', $product)
-            ->first();
-
-        if (! $delete) {
-            Log::error('producto no encoontrado', [$product]);
-
-            return Response::error('producto no encontrado');
-        }
-
-        $delete->delete();
-        $order = OrderModel::find($orderId);
-        $orderDetails = $order->totalAndSubTotalOrder();
-
-        $order->update([
-            'total' => $orderDetails['total'],
-            'subtotal' => $orderDetails['subtotal'],
-        ]);
-
-        return Response::success('elemento borrado de la orden');
     }
 }

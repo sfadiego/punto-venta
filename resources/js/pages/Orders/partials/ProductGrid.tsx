@@ -8,10 +8,11 @@ import { ProductCard } from "./ProductCard";
 interface ProductGridProps {
     cart: CartItem[];
     isReadOnly?: boolean;
+    pendingProductIds?: Set<number>;
     onAdd: (productId: number, name: string, price: number) => void;
 }
 
-export const ProductGrid = ({ cart, isReadOnly = false, onAdd }: ProductGridProps) => {
+export const ProductGrid = ({ cart, isReadOnly = false, pendingProductIds, onAdd }: ProductGridProps) => {
     const {
         search,
         setSearch,
@@ -92,6 +93,7 @@ export const ProductGrid = ({ cart, isReadOnly = false, onAdd }: ProductGridProp
                                     product={product}
                                     cartItem={cart.find((i) => i.id === product.id)}
                                     isReadOnly={isReadOnly}
+                                    isPending={pendingProductIds?.has(product.id)}
                                     onAdd={onAdd}
                                 />
                             ))}

@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -29,6 +30,8 @@ export const useTakeOrder = () => {
     const { id } = useParams<{ id: string }>();
     const orderId = Number(id);
     const queryClient = useQueryClient();
+    const pendingRef = useRef(new Set<number>());
+    const [pendingProductIds, setPendingProductIds] = useState<Set<number>>(new Set());
 
     const orderQueryKey = `${ApiRoutes.Orders}/${orderId}`;
     const invalidateOrder = () =>
@@ -58,7 +61,9 @@ export const useTakeOrder = () => {
     const { mutateAsync: updateOrder } = useUpdateOrder(orderId);
     // Add regular product (click on ProductCard)
     const addToCart = async (productId: number, _name: string, price: number) => {
-        if (isReadOnly) return;
+        if (isReadOnly || pendingRef.current.has(productId)) return;
+        pendingRef.current.add(productId);
+        setPendingProductIds(new Set(pendingRef.current));
         try {
             await addProduct(
                 { producto_id: productId, cantidad: 1, precio: price, descuento: 0 },
@@ -66,6 +71,9 @@ export const useTakeOrder = () => {
             );
         } catch {
             toast.error("Error al agregar producto");
+        } finally {
+            pendingRef.current.delete(productId);
+            setPendingProductIds(new Set(pendingRef.current));
         }
     };
 
@@ -186,6 +194,7 @@ export const useTakeOrder = () => {
         subtotal,
         orderDiscount,
         total,
+        pendingProductIds,
         addToCart,
         addExtra,
         updateQuantity,
