@@ -34,7 +34,7 @@ const ventaPorPesoActionsColumn: DataTableColumn<IOrder> = {
     title: "",
     width: 60,
     textAlign: "center",
-    render: (order: IOrder) => <SaleActions orderId={order.id} />,
+    render: (order: IOrder) => <SaleActions order={order} />,
 };
 
 export const useOrderList = () => {

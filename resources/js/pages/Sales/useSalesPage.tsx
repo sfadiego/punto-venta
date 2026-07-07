@@ -51,7 +51,7 @@ export const useSalesPage = () => {
                         hover:bg-amber-50 transition-colors"
                     title="Ver detalle"
                 >
-                    <Eye size={16} />
+                    <Eye size={20} />
                 </button>
             ),
         }),

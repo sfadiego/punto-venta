@@ -117,13 +117,20 @@ class OrderController extends Controller
     public function salesByCategory(Request $request): JsonResponse
     {
         $sistemaId = (int) $request->query('sistema_id', 0);
+        $date      = $request->query('fecha');
 
-        $results = OrderProductModel::query()
+        $query = OrderProductModel::query()
             ->join('order', 'order.id', '=', 'order_product.pedido_id')
             ->join('product', 'product.id', '=', 'order_product.producto_id')
             ->join('categories', 'categories.id', '=', 'product.categoria_id')
             ->where('order.sistema_id', $sistemaId)
-            ->where('order.estatus_pedido_id', OrderStatusEnum::CLOSED->value)
+            ->where('order.estatus_pedido_id', OrderStatusEnum::CLOSED->value);
+
+        if ($date) {
+            $query->whereDate('order.created_at', $date);
+        }
+
+        $results = $query
             ->groupBy('categories.id', 'categories.nombre')
             ->selectRaw('categories.id, categories.nombre, SUM(order_product.cantidad) as total_cantidad, SUM(order_product.precio * order_product.cantidad) as total_revenue')
             ->orderByDesc('total_revenue')

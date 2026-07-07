@@ -77,7 +77,7 @@ export const RecentSales = ({ onSelect }: RecentSalesProps) => {
                                             ${sale.total.toFixed(2)}
                                         </span>
                                         {sellByWeight
-                                            ? <SaleActions orderId={sale.id} />
+                                            ? <SaleActions order={sale} />
                                             : <OrderPreviewModal order={sale} />
                                         }
                                     </div>
