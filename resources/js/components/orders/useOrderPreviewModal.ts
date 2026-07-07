@@ -21,6 +21,7 @@ export const useOrderPreviewModal = (orderId: number) => {
     const readyCount = products.filter((p) => p.is_ready).length;
     const totalCount = products.length;
     const allReady   = totalCount > 0 && readyCount === totalCount;
+    const isEmpty    = products.length === 0 || (order?.total ?? 0) === 0;
 
     const invalidateOrder = () => {
         queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${orderId}`] });
@@ -80,6 +81,7 @@ export const useOrderPreviewModal = (orderId: number) => {
         isServed,
         isUpdatingStatus,
         pendingProductIds,
+        isEmpty,
         readyCount,
         totalCount,
         allReady,

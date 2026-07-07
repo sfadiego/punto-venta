@@ -90,6 +90,30 @@ resources/js/
 
 ---
 
+## Tipos de negocio (`BusinessTypeEnum`)
+
+El sistema soporta múltiples tipos de negocio. El tipo activo se determina por `features` en `IBusinessFeatures` (disponible via `useAxios()`).
+
+| Tipo | Valor | Features activos |
+|---|---|---|
+| Restaurante / cafetería | `restaurante` | `kitchen_view`, `order_served` |
+| Venta por peso (carnicería) | `venta_por_peso` | `sell_by_weight: true`, sin kitchen_view ni order_served |
+
+```ts
+const { features } = useAxios();
+const sellByWeight = features?.sell_by_weight === true;
+```
+
+### Comportamiento diferenciado `sell_by_weight`
+
+- **Dashboard**: `RecentSales` muestra órdenes InProcess + Closed. Las InProcess son clickeables y abren `NewSaleModal` para continuar la venta.
+- **Órdenes**: listado con status InProcess por defecto. Click en fila InProcess abre `NewSaleModal` (modo resume). Fila Closed muestra `SaleActions`.
+- **Sidebar**: la página de Órdenes es visible para todos los tipos de negocio.
+- **NewSaleModal**: flujo de venta directa con creación lazy de orden, cobro inline, y confirmación de impresión con Swal.
+- **`SaleActions`** (`components/orders/SaleActions.tsx`): componente reutilizable para acciones de sell_by_weight — botón Eye (solo órdenes Closed) + `PrintTicketButton`. Usado en DataTable de Órdenes y en `RecentSales`.
+
+---
+
 ## API Backend (prefijo `/api`)
 
 | Recurso | Endpoints principales |
@@ -102,6 +126,7 @@ resources/js/
 | Estado de orden | `GET/POST /order-status`, `GET/PUT /order-status/{id}` |
 | Sistema (caja) | `GET /admin/system/active-sale`, `POST /admin/system/open`, `POST /admin/system/{id}/close` |
 | Estadísticas | `GET /admin/system/statistics/best-seller` |
+| Reporte por categoría | `GET /order/sales-by-category?sistema_id=&fecha=` — `fecha` es opcional; sin ella devuelve toda la sesión |
 | Archivos | `GET /files/{file}` |
 
 ---
@@ -156,6 +181,44 @@ no hacer peticiones directamete a axios, utiliza la capa de servicios como esta 
 | `useDeleteProductInOrder(orderId)` | DELETE | `/order/{id}/product/{pid}` — recibe `productId` |
 | `useIndexPrintOrder(orderId)` | POST | `/order/{id}/print` |
 
+#### `useSalesByCategoryService.ts`
+
+```ts
+useSalesByCategory(sistemaId: number | null, fecha?: string | null)
+```
+- Sin `fecha`: devuelve toda la sesión (uso en CloseSales).
+- Con `fecha`: filtra por día (uso en SalesPage → "Reporte por categoría").
+
+#### `useSalesByCategoryModal.ts`
+
+```ts
+useSalesByCategoryModal(fecha?: string | null)
+```
+Acepta `fecha` opcional. En `SalesPage` se pasa la fecha del filtro activo; en `CloseSales` se llama sin argumento.
+
+#### Patrón para operaciones con doble-click / requests lentos
+
+Cuando un botón dispara una mutación que puede tardar, usar el patrón `useRef` + `useState` para evitar requests duplicados y deshabilitar el botón mientras está en vuelo:
+
+```ts
+const pendingRef = useRef(new Set<number>());
+const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
+
+const toggle = async (id: number) => {
+    if (pendingRef.current.has(id)) return;
+    pendingRef.current.add(id);
+    setPendingIds(new Set(pendingRef.current));
+    try {
+        await mutate(id);
+    } finally {
+        pendingRef.current.delete(id);
+        setPendingIds(new Set(pendingRef.current));
+    }
+};
+```
+
+`useRef` actúa como guard síncrono (sin esperar re-render); `useState` actualiza la UI. Implementado en `useOrderPreviewModal` y `useTakeOrder`.
+
 ### Estilos
 - Tailwind CSS + CSS variables del proyecto (`resources/css/`). No inventar colores fuera del design system.
 - No usar `style={{}}` inline; usar clases Tailwind.
@@ -185,3 +248,16 @@ no hacer peticiones directamete a axios, utiliza la capa de servicios como esta 
 
 ### migraciones
 - utiliza nombres en ingles a nuevas columnas en las migraciones
+
+---
+
+## Decisiones de arquitectura relevantes
+
+### `delivery_paid_by` eliminado
+El campo `delivery_paid_by` fue removido de `business_config` (migración `2026_07_07_151043_drop_delivery_paid_by_from_business_config_table`). El modo de pago del domicilio ahora lo selecciona el usuario en cada venta dentro de `NewSaleModal` — no es una configuración global del negocio. El backend defaultea internamente a `"customer"`.
+
+### Página de Ventas — solo órdenes Closed (status 3)
+`SalesPage` filtra exclusivamente `estatus_pedido_id: Closed`. Las órdenes InProcess viven en `OrderListPage`. No se envía `sistema_id` porque es una vista histórica que puede consultar fechas de sesiones anteriores.
+
+### `OrderPreviewModal` — botón disparador deshabilitado
+El botón Eye que abre el modal se deshabilita cuando `order.total === 0`. Aplica en Dashboard (`RecentSales`), Órdenes (`OrderActionGroup`) y Ventas (`actionsColumn` de `useSalesPage`).

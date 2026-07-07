@@ -1,6 +1,6 @@
-# Chantico
+# POS-app
 
-Chantico es un proyecto de Laravel que permite gestionar las ventas de un cafeteria.
+POS-app es un sistema POS multi-negocio construido con Laravel 12 + React 19. Soporta restaurantes/cafeterías y negocios de venta por peso (carnicería), con flujos diferenciados por tipo de negocio.
 
 ## Entorno de Desarrollo
 
@@ -52,11 +52,15 @@ docker compose down
 Nginx dentro del contenedor actúa como proxy WebSocket: redirige `/app/*` a Reverb en el puerto interno 6001.
 
 ### Migrations
-se agrego columna correr migraciones
 
-```
+Siempre correr migraciones tras un pull:
+
+```bash
 php artisan migrate
 ```
+
+Migraciones relevantes recientes:
+- `2026_07_07_151043_drop_delivery_paid_by_from_business_config_table` — elimina `delivery_paid_by` de `business_config`.
 
 ## Flujo de ramas (Git)
 

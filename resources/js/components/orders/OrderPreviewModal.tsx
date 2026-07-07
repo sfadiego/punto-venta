@@ -19,7 +19,7 @@ interface OrderPreviewModalProps {
 }
 
 export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
-    const { isOpen, open, close, products, isLoading, isServed, isUpdatingStatus, pendingProductIds, readyCount, totalCount, allReady, markServed, toggleProductReady } = useOrderPreviewModal(order.id);
+    const { isOpen, open, close, products, isLoading, isServed, isUpdatingStatus, pendingProductIds, isEmpty, readyCount, totalCount, allReady, markServed, toggleProductReady } = useOrderPreviewModal(order.id);
     const { features } = useAxios();
     const showOrderServed = features?.order_served !== false;
     const sellByWeight = features?.sell_by_weight === true;
@@ -28,8 +28,9 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
         <>
             <button
                 onClick={(e) => { e.stopPropagation(); open(); }}
+                disabled={order.total === 0}
                 title="Ver detalle"
-                className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-orange-600 hover:bg-orange-50 border border-transparent hover:border-orange-200 transition-all"
+                className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-orange-600 hover:bg-orange-50 border border-transparent hover:border-orange-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-stone-400 disabled:hover:border-transparent"
             >
                 <Eye size={20} />
             </button>
@@ -67,7 +68,7 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                             <div className="px-5 py-3 border-b border-stone-100 shrink-0">
                                 <button
                                     onClick={markServed}
-                                    disabled={isServed || !allReady || isUpdatingStatus}
+                                    disabled={isServed || !allReady || isUpdatingStatus || isEmpty}
                                     className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                                         isServed
                                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default"

@@ -47,8 +47,11 @@ export const useSalesPage = () => {
                         e.stopPropagation();
                         modal.open(order);
                     }}
+                    disabled={order.total === 0}
                     className="p-1.5 rounded-lg text-stone-400 hover:text-amber-600
-                        hover:bg-amber-50 transition-colors"
+                        hover:bg-amber-50 transition-colors disabled:opacity-40
+                        disabled:cursor-not-allowed disabled:hover:bg-transparent
+                        disabled:hover:text-stone-400"
                     title="Ver detalle"
                 >
                     <Eye size={20} />
