@@ -291,7 +291,10 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
         try {
             await axiosPUT(axiosApi, {
                 url: `${ApiRoutes.Orders}/${oid}`,
-                data: { estatus_pedido_id: OrderStatusEnum.Closed },
+                data: {
+                    estatus_pedido_id: OrderStatusEnum.Closed,
+                    costo_domicilio: domicilioActivo && domicilio > 0 && !customerPays ? domicilio : 0,
+                },
             });
             queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
             toast.success("Venta registrada correctamente.");

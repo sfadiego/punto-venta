@@ -26,7 +26,9 @@ export default function BestSellerWidget({ sistemaId }: Props) {
                 <div className="flex items-center justify-between">
                     <p className="text-base font-semibold text-stone-900">{top.product}</p>
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-sm font-semibold">
-                        {top.total} {top.total === 1 ? "vendido" : "vendidos"}
+                        {top.total} {top.unidad_medida === "unidad"
+                            ? (top.total === 1 ? "vendido" : "vendidos")
+                            : top.unidad_medida}
                     </span>
                 </div>
             ) : (
