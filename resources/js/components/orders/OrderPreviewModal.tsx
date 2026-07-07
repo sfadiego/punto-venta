@@ -19,7 +19,7 @@ interface OrderPreviewModalProps {
 }
 
 export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
-    const { isOpen, open, close, products, isLoading, isServed, isUpdatingStatus, readyCount, totalCount, allReady, markServed, toggleProductReady } = useOrderPreviewModal(order.id);
+    const { isOpen, open, close, products, isLoading, isServed, isUpdatingStatus, pendingProductIds, readyCount, totalCount, allReady, markServed, toggleProductReady } = useOrderPreviewModal(order.id);
     const { features } = useAxios();
     const showOrderServed = features?.order_served !== false;
     const sellByWeight = features?.sell_by_weight === true;
@@ -143,12 +143,15 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                                         </div>
                                         <button
                                             onClick={() => item.id !== undefined && toggleProductReady(item.id!)}
+                                            disabled={item.id !== undefined && pendingProductIds.has(item.id!)}
                                             title={item.is_ready ? "Marcar como pendiente" : "Marcar como listo"}
-                                            className="shrink-0 self-center transition-colors"
+                                            className="shrink-0 self-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            {item.is_ready
-                                                ? <CheckCircle2 size={20} className="text-emerald-500" />
-                                                : <Circle size={20} className="text-stone-300 hover:text-emerald-400" />
+                                            {item.id !== undefined && pendingProductIds.has(item.id!)
+                                                ? <Loader size={20} className="animate-spin text-stone-400" />
+                                                : item.is_ready
+                                                    ? <CheckCircle2 size={20} className="text-emerald-500" />
+                                                    : <Circle size={20} className="text-stone-300 hover:text-emerald-400" />
                                             }
                                         </button>
                                     </div>
