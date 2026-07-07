@@ -43,6 +43,7 @@ export const useDashboard = () => {
     const { data: ordersData, isLoading: ordersLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
         useInfiniteIndexOrder(sellByWeight ? null : sistemaId);
 
+
     // Solo para carnicería: conteo de ventas cerradas hoy
     const today = new Date().toISOString().split("T")[0];
     const { data: todaySalesData } = useIndexOrder({

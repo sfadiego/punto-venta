@@ -10,7 +10,6 @@ import {
     Settings,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
-import { useAxios } from "@/hooks/useAxios";
 
 type Action = Parameters<ReturnType<typeof usePermissions>["can"]>[0];
 
@@ -19,12 +18,11 @@ interface NavItem {
     icon: LucideIcon;
     path: string;
     permission: Action;
-    hideWhenSellByWeight?: boolean;
 }
 
 const navItems: NavItem[] = [
     { label: "Dashboard",    icon: LayoutDashboard, path: "/",           permission: "viewDashboard" },
-    { label: "Órdenes",      icon: Package,         path: "/orders",     permission: "viewOrders",    hideWhenSellByWeight: true },
+    { label: "Órdenes",      icon: Package,         path: "/orders",     permission: "viewOrders" },
     { label: "Productos",    icon: Coffee,          path: "/products",   permission: "viewProducts" },
     { label: "Categorías",   icon: Tag,             path: "/categories", permission: "viewCategories" },
     { label: "Ventas",       icon: ShoppingBag,     path: "/sales",      permission: "viewSales" },
@@ -37,15 +35,12 @@ interface SidebarNavProps {
 
 export function SidebarNav({ onItemClick }: SidebarNavProps) {
     const { can } = usePermissions();
-    const { features } = useAxios();
-    const sellByWeight = features?.sell_by_weight === true;
 
     return (
         <nav className="flex-1 px-3 py-5 overflow-y-auto flex flex-col">
             <div className="space-y-0.5 flex-1">
                 {navItems
                     .filter((item) => can(item.permission))
-                    .filter((item) => !(sellByWeight && item.hideWhenSellByWeight))
                     .map((item) => (
                         <SidebarNavItem key={item.path} item={item} onClick={onItemClick} />
                     ))}

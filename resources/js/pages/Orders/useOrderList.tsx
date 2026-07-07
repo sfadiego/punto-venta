@@ -6,8 +6,7 @@ import { IOrder } from "@/models/IOrder";
 import { getStatusStyle, formatOrderTime } from "@/pages/Dashboard/useDashboard";
 import { DataTableColumn } from "mantine-datatable";
 import { OrderActionButtons } from "@/components/orders/OrderActionButtons";
-import { OrderPreviewModal } from "@/components/orders/OrderPreviewModal";
-import { PrintTicketButton } from "@/components/orders/PrintTicketButton";
+import { SaleActions } from "@/components/orders/SaleActions";
 import { getActiveStatuses } from "./partials/OrderFilters";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 
@@ -33,14 +32,9 @@ const actionsColumn: DataTableColumn<IOrder> = {
 const ventaPorPesoActionsColumn: DataTableColumn<IOrder> = {
     accessor: "_acciones" as keyof IOrder,
     title: "",
-    width: 80,
+    width: 60,
     textAlign: "center",
-    render: (order: IOrder) => (
-        <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
-            <OrderPreviewModal order={order} />
-            <PrintTicketButton orderId={order.id} />
-        </div>
-    ),
+    render: (order: IOrder) => <SaleActions orderId={order.id} />,
 };
 
 export const useOrderList = () => {
@@ -48,7 +42,7 @@ export const useOrderList = () => {
     const showOrderServed = features?.order_served !== false;
     const sellByWeight = features?.sell_by_weight === true;
     const defaultStatuses = sellByWeight
-        ? String(OrderStatusEnum.Closed)
+        ? String(OrderStatusEnum.InProcess)
         : getActiveStatuses(showOrderServed);
 
     const [estatusId, setEstatusId] = useState<string>(defaultStatuses);

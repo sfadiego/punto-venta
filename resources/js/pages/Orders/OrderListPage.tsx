@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DataTable } from "mantine-datatable";
 import { ClipboardList, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -7,11 +8,12 @@ import { useOrderList } from "./useOrderList";
 import { OrderFilters } from "./partials/OrderFilters";
 import { NewOrderButton } from "@/components/orders/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
+import { NewSaleModal } from "@/pages/Dashboard/partials/NewSaleModal";
 import { usePermissions } from "@/hooks/usePermissions";
 
 const getRowClassName = ({ estatus_pedido_id }: IOrder): string => {
     if (estatus_pedido_id === OrderStatusEnum.Served) return "!bg-blue-50";
-    if (estatus_pedido_id === OrderStatusEnum.InProcess)    return "!bg-amber-50";
+    if (estatus_pedido_id === OrderStatusEnum.InProcess) return "!bg-amber-50";
     return "";
 };
 
@@ -30,6 +32,17 @@ export default function OrderListPage() {
     } = useOrderList();
 
     const { can } = usePermissions();
+    const [resumeOrder, setResumeOrder] = useState<IOrder | null>(null);
+
+    const handleRowClick = (order: IOrder) => {
+        if (sellByWeight) {
+            if (order.estatus_pedido_id === OrderStatusEnum.InProcess) {
+                setResumeOrder(order);
+            }
+        } else if (can("takeOrder")) {
+            navigate(`/take-order/${order.id}`);
+        }
+    };
 
     return (
         <div className="px-5 py-6 max-w-7xl mx-auto">
@@ -66,26 +79,36 @@ export default function OrderListPage() {
                 </div>
             ) : (
                 <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-                    {!sellByWeight && (
-                        <OrderFilters
-                            estatusId={estatusId}
-                            showOrderServed={showOrderServed}
-                            onEstatusChange={handleEstatusChange}
-                            onClear={handleClearFilters}
-                        />
-                    )}
+                    <OrderFilters
+                        estatusId={estatusId}
+                        showOrderServed={showOrderServed}
+                        onEstatusChange={handleEstatusChange}
+                        onClear={handleClearFilters}
+                    />
                     <DataTable
                         fetching={isLoading}
                         {...dataTableProps}
-                        {...(!sellByWeight && {
-                            onRowClick: ({ record }: { record: IOrder }) => {
-                                if (can("takeOrder")) navigate(`/take-order/${record.id}`);
-                            },
-                            rowStyle: () => ({ cursor: can("takeOrder") ? "pointer" : "default" }),
+                        onRowClick={({ record }: { record: IOrder }) => handleRowClick(record)}
+                        rowStyle={(record: IOrder) => ({
+                            cursor:
+                                sellByWeight
+                                    ? record.estatus_pedido_id === OrderStatusEnum.InProcess
+                                        ? "pointer"
+                                        : "default"
+                                    : can("takeOrder")
+                                      ? "pointer"
+                                      : "default",
                         })}
                         rowClassName={(record: IOrder) => getRowClassName(record)}
                     />
                 </div>
+            )}
+
+            {resumeOrder && (
+                <NewSaleModal
+                    initialOrder={resumeOrder}
+                    onClose={() => setResumeOrder(null)}
+                />
             )}
         </div>
     );

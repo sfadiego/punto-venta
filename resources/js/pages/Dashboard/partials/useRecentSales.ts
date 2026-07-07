@@ -5,13 +5,14 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 const today = () => new Date().toISOString().split("T")[0];
 
 export const useRecentSales = () => {
-    const { sistemaId } = useAxios();
+    const { sistemaId, features } = useAxios();
+    const sellByWeight = features?.sell_by_weight === true;
 
     const { data, isLoading } = useIndexOrder({
         sistema_id: sistemaId,
-        estatus_pedido_id: OrderStatusEnum.Closed,
+        estatus_pedido_id: sellByWeight ? undefined : OrderStatusEnum.Closed,
         fecha: today(),
-        limit: 10,
+        limit: 20,
         order: "desc",
     });
 
@@ -20,5 +21,6 @@ export const useRecentSales = () => {
         total: data?.total ?? 0,
         isLoading,
         sistemaId,
+        sellByWeight,
     };
 };

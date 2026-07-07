@@ -6,7 +6,6 @@ import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 
 const schema = Yup.object({
     costo_domicilio_default: Yup.number().min(0).required(),
-    delivery_paid_by: Yup.string().oneOf(['customer', 'business']).required(),
 });
 
 export const useDeliverySection = (config: IBusinessConfig | undefined) => {
@@ -16,30 +15,28 @@ export const useDeliverySection = (config: IBusinessConfig | undefined) => {
         enableReinitialize: true,
         initialValues: {
             costo_domicilio_default: config?.costo_domicilio_default ?? 0,
-            delivery_paid_by: config?.delivery_paid_by ?? 'customer',
         },
         validationSchema: schema,
         onSubmit: async (values, { setSubmitting }) => {
             if (!config) return;
             try {
                 await updateMutation.mutateAsync({
-                    business_name:            config.business_name,
-                    primary_color:            config.primary_color,
-                    sidebar_color:            config.sidebar_color,
-                    font_color:               config.font_color,
-                    label_color:              config.label_color,
-                    phone:                    config.phone,
-                    address:                  config.address,
-                    facebook:                 config.facebook,
-                    instagram:                config.instagram,
-                    whatsapp:                 config.whatsapp,
-                    website:                  config.website,
-                    ticket_footer:            config.ticket_footer,
-                    logo_icon:                config.logo_icon,
-                    printer_name:             config.printer_name,
-                    printer_host:             config.printer_host,
-                    costo_domicilio_default:  values.costo_domicilio_default,
-                    delivery_paid_by:         values.delivery_paid_by as 'customer' | 'business',
+                    business_name:           config.business_name,
+                    primary_color:           config.primary_color,
+                    sidebar_color:           config.sidebar_color,
+                    font_color:              config.font_color,
+                    label_color:             config.label_color,
+                    phone:                   config.phone,
+                    address:                 config.address,
+                    facebook:                config.facebook,
+                    instagram:               config.instagram,
+                    whatsapp:                config.whatsapp,
+                    website:                 config.website,
+                    ticket_footer:           config.ticket_footer,
+                    logo_icon:               config.logo_icon,
+                    printer_name:            config.printer_name,
+                    printer_host:            config.printer_host,
+                    costo_domicilio_default: values.costo_domicilio_default,
                 });
                 toast.success("Configuración de domicilio guardada.");
             } catch {

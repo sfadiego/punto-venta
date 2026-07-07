@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Widget } from "@/components/dashboard/widgets/Widget";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 import {
@@ -10,10 +11,12 @@ import { RecentOrders } from "./partials/RecentOrders";
 import { RecentSales } from "./partials/RecentSales";
 import { NewOrderButton } from "@/components/orders/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
+import { NewSaleModal } from "./partials/NewSaleModal";
 import { OpenSalesModal } from "./partials/OpenSalesModal";
 import { useOpenSalesModal } from "./partials/useOpenSalesModal";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { usePermissions } from "@/hooks/usePermissions";
+import { IOrder } from "@/models/IOrder";
 
 const ICON_MAP: Record<string, LucideIcon> = {
     Award,
@@ -33,6 +36,8 @@ export default function DashboardPage() {
         isOpen: openSalesOpen, openModal: openSales,
         handleClose: closeSales, formik: openSalesFormik, isPending: openSalesPending,
     } = useOpenSalesModal();
+
+    const [resumeOrder, setResumeOrder] = useState<IOrder | null>(null);
 
     const cajaAbierta = !!sistemaId;
 
@@ -98,7 +103,7 @@ export default function DashboardPage() {
             </div>
 
             {sellByWeight ? (
-                <RecentSales />
+                <RecentSales onSelect={setResumeOrder} />
             ) : (
                 <RecentOrders
                     orders={orders}
@@ -117,6 +122,13 @@ export default function DashboardPage() {
                 formik={openSalesFormik}
                 onClose={closeSales}
             />
+
+            {resumeOrder && (
+                <NewSaleModal
+                    initialOrder={resumeOrder}
+                    onClose={() => setResumeOrder(null)}
+                />
+            )}
         </div>
     );
 }
