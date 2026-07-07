@@ -10,7 +10,7 @@ export default function SalesPage() {
     const { dataTableProps, isLoading, refetch, fecha, categoriaId, categories, sellByWeight, handleFechaChange, handleCategoriaChange, handleClear, modal } =
         useSalesPage();
 
-    const categoryModal = useSalesByCategoryModal();
+    const categoryModal = useSalesByCategoryModal(fecha);
 
     return (
         <div className="px-5 py-6 max-w-7xl mx-auto">
