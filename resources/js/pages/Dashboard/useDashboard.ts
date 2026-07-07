@@ -56,7 +56,7 @@ export const useDashboard = () => {
     const { data: productsData } = useIndexProducts({ page: 1, limit: 1 });
     const { data: bestSellers = [] } = useBestSeller();
 
-    const orders: IOrder[] = ordersData?.pages.flatMap((page) => page.data) ?? [];
+    const orders: IOrder[] = ordersData?.pages.flatMap((page) => page.data ?? []) ?? [];
 
     const topProduct      = bestSellers[0] ?? null;
     const ordenesActivas  = ordersData?.pages[0]?.total ?? 0;
