@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useShowOrder, useUpdateOrder, useToggleOrderProductReady } from "@/services/useOrderService";
@@ -8,6 +8,8 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 export const useOrderPreviewModal = (orderId: number) => {
     const [isOpen, setIsOpen] = useState(false);
     const queryClient = useQueryClient();
+    const pendingRef = useRef(new Set<number>());
+    const [pendingProductIds, setPendingProductIds] = useState<Set<number>>(new Set());
 
     const { data: order, isLoading } = useShowOrder(isOpen ? orderId : 0);
     const { mutate: updateOrder, isPending: isUpdatingStatus } = useUpdateOrder(orderId);
@@ -43,8 +45,13 @@ export const useOrderPreviewModal = (orderId: number) => {
     };
 
     const toggleProductReady = async (orderProductId: number) => {
+        if (pendingRef.current.has(orderProductId)) return;
+
         const item        = products.find((p) => p.id === orderProductId);
         const willBeReady = !item?.is_ready;
+
+        pendingRef.current.add(orderProductId);
+        setPendingProductIds(new Set(pendingRef.current));
 
         try {
             await toggleReady(orderProductId, { onSuccess: invalidateOrder });
@@ -58,6 +65,9 @@ export const useOrderPreviewModal = (orderId: number) => {
             }
         } catch {
             toast.error("Error al actualizar el platillo");
+        } finally {
+            pendingRef.current.delete(orderProductId);
+            setPendingProductIds(new Set(pendingRef.current));
         }
     };
 
@@ -69,6 +79,7 @@ export const useOrderPreviewModal = (orderId: number) => {
         isLoading,
         isServed,
         isUpdatingStatus,
+        pendingProductIds,
         readyCount,
         totalCount,
         allReady,
