@@ -117,7 +117,7 @@ class OrderController extends Controller
     public function salesByCategory(Request $request): JsonResponse
     {
         $sistemaId = (int) $request->query('sistema_id', 0);
-        $date      = $request->query('fecha');
+        $date = $request->query('fecha');
 
         $query = OrderProductModel::query()
             ->join('order', 'order.id', '=', 'order_product.pedido_id')
