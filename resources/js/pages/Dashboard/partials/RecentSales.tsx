@@ -1,15 +1,19 @@
-import { ReceiptText } from "lucide-react";
+import { ReceiptText, Clock } from "lucide-react";
 import { useRecentSales } from "./useRecentSales";
 import { formatOrderTime } from "../useDashboard";
 import { EmptyState } from "@/components/ui/interactions/EmptyState";
 import { LoadingSkeleton } from "@/components/ui/interactions/LoadingSkeleton";
 import { OrderPreviewModal } from "@/components/orders/OrderPreviewModal";
-import { PrintTicketButton } from "@/components/orders/PrintTicketButton";
-import { usePermissions } from "@/hooks/usePermissions";
+import { SaleActions } from "@/components/orders/SaleActions";
+import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
+import { IOrder } from "@/models/IOrder";
 
-export const RecentSales = () => {
-    const { sales, total, isLoading, sistemaId } = useRecentSales();
-    const { can } = usePermissions();
+interface RecentSalesProps {
+    onSelect?: (order: IOrder) => void;
+}
+
+export const RecentSales = ({ onSelect }: RecentSalesProps) => {
+    const { sales, total, isLoading, sistemaId, sellByWeight } = useRecentSales();
 
     return (
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
@@ -34,33 +38,52 @@ export const RecentSales = () => {
                     <EmptyState message="Sin ventas en esta sesión." />
                 ) : (
                     <div className="flex flex-col gap-2">
-                        {sales.map((sale) => (
-                            <div
-                                key={sale.id}
-                                className="flex items-center justify-between px-4 py-3 rounded-xl bg-stone-50 border border-stone-100"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                                        <ReceiptText size={14} className="text-emerald-600" />
+                        {sales.map((sale) => {
+                            const isPending = sale.estatus_pedido_id === OrderStatusEnum.InProcess;
+                            const clickable = sellByWeight && isPending && !!onSelect;
+
+                            return (
+                                <div
+                                    key={sale.id}
+                                    onClick={clickable ? () => onSelect!(sale) : undefined}
+                                    className={`flex items-center justify-between px-4 py-3 rounded-xl bg-stone-50 border transition-colors ${
+                                        clickable
+                                            ? "border-amber-200 cursor-pointer hover:bg-amber-50 hover:border-amber-300"
+                                            : "border-stone-100"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                            isPending ? "bg-amber-100" : "bg-emerald-100"
+                                        }`}>
+                                            {isPending
+                                                ? <Clock size={14} className="text-amber-600" />
+                                                : <ReceiptText size={14} className="text-emerald-600" />
+                                            }
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-stone-900">
+                                                {sale.nombre_pedido ?? `Pedido #${sale.id}`}
+                                            </p>
+                                            <p className="text-xs text-stone-400">
+                                                {formatOrderTime(sale.created_at)}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-semibold text-stone-900">
-                                            {sale.nombre_pedido ?? `Venta #${sale.id}`}
-                                        </p>
-                                        <p className="text-xs text-stone-400">
-                                            {formatOrderTime(sale.created_at)}
-                                        </p>
+                                    <div className="flex items-center gap-1">
+                                        <span className={`text-sm font-bold mr-1 ${
+                                            isPending ? "text-amber-600" : "text-emerald-600"
+                                        }`}>
+                                            ${sale.total.toFixed(2)}
+                                        </span>
+                                        {sellByWeight
+                                            ? <SaleActions orderId={sale.id} />
+                                            : <OrderPreviewModal order={sale} />
+                                        }
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-sm font-bold text-emerald-600 mr-1">
-                                        ${sale.total.toFixed(2)}
-                                    </span>
-                                    <OrderPreviewModal order={sale} />
-                                    {can("printTicket") && <PrintTicketButton orderId={sale.id} />}
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>

@@ -43,7 +43,6 @@ class BusinessConfigController extends Controller
             'printer_host' => $request->printer_host,
             'logo_icon' => $request->logo_icon,
             'costo_domicilio_default' => $request->costo_domicilio_default ?? 0,
-            'delivery_paid_by' => $request->delivery_paid_by ?? 'customer',
         ]);
 
         return Response::success($tenant->fresh());

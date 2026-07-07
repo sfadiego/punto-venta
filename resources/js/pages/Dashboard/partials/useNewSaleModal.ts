@@ -1,40 +1,95 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAxios } from "@/hooks/useAxios";
 import { usePrintAgent } from "@/hooks/usePrintAgent";
 import { useIndexProducts } from "@/services/useProductService";
 import { useIndexCategories } from "@/services/useCategoriesService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
-import { useNewSale, ICartItem } from "@/services/useNewSaleService";
-import { axiosPOST } from "@/hooks/useApi";
+import { useShowOrder } from "@/services/useOrderService";
+import { axiosPOST, axiosPUT, axiosDELETE } from "@/hooks/useApi";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IProduct } from "@/models/IProduct";
+import { IOrder } from "@/models/IOrder";
+import { IOrderProduct } from "@/models/IOrderProduct";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
+import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 
-export const useNewSaleModal = (onClose: () => void) => {
+export type ModalCartItem = {
+    orderProductId: number;
+    productId: number;
+    product: IProduct;
+    cantidad: number;
+};
+
+function mapOrderProducts(orderProducts: IOrderProduct[]): ModalCartItem[] {
+    return (orderProducts ?? [])
+        .filter((op) => op.product != null && op.producto_id != null)
+        .map((op) => ({
+            orderProductId: op.id!,
+            productId: op.producto_id!,
+            product: op.product,
+            cantidad: parseFloat(String(op.cantidad)),
+        }));
+}
+
+export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
     const { sistemaId, axiosApi, features } = useAxios();
+    const queryClient = useQueryClient();
     const sellByWeight = features?.sell_by_weight === true;
     const { data: businessConfig } = useGetBusinessConfig();
     const { isConnected: agentConnected, print: agentPrint } = usePrintAgent();
 
-    const [search, setSearch] = useState("");
-    const [nombrePedido, setNombrePedido] = useState("");
-    const [domicilioActivo, setDomicilioActivo] = useState(false);
-    const [costoDomicilio, setCostoDomicilio] = useState<string>("");
-    const [orderDeliveryPaidBy, setOrderDeliveryPaidBy] = useState<'customer' | 'business'>('customer');
-    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-    const [cart, setCart] = useState<ICartItem[]>([]);
+    // Use a ref for orderId so async callbacks always have the latest value
+    const orderIdRef = useRef<number | null>(initialOrder?.id ?? null);
+    const [orderId, setOrderIdState] = useState<number | null>(initialOrder?.id ?? null);
+    const setOrderId = (id: number | null) => {
+        orderIdRef.current = id;
+        setOrderIdState(id);
+    };
 
-    const toggleDomicilio = (checked: boolean) => {
-        setDomicilioActivo(checked);
-        if (checked) {
-            const defaultCost = businessConfig?.costo_domicilio_default ?? 0;
-            setCostoDomicilio(defaultCost > 0 ? String(defaultCost) : "");
-            setOrderDeliveryPaidBy(businessConfig?.delivery_paid_by ?? 'customer');
-        } else {
-            setCostoDomicilio("");
+    const [nombrePedido, setNombrePedido] = useState(initialOrder?.nombre_pedido ?? "");
+
+    const handleNombreBlur = async () => {
+        const oid = orderIdRef.current;
+        if (!oid || !nombrePedido.trim()) return;
+        try {
+            await axiosPUT(axiosApi, {
+                url: `${ApiRoutes.Orders}/${oid}`,
+                data: { nombre_pedido: nombrePedido.trim() },
+            });
+        } catch {
+            // silently ignore — not critical
         }
     };
+    const [search, setSearch] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    const [cart, setCart] = useState<ModalCartItem[]>([]);
+    const [editingQtys, setEditingQtys] = useState<Record<number, string>>({});
+    const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+
+    const initialDomicilio = Number(initialOrder?.costo_domicilio ?? 0);
+    const [domicilioActivo, setDomicilioActivo] = useState(initialDomicilio > 0);
+    const [costoDomicilio, setCostoDomicilio] = useState<string>(
+        initialDomicilio > 0 ? String(initialDomicilio) : "",
+    );
+    const [orderDeliveryPaidBy, setOrderDeliveryPaidBy] = useState<"customer" | "business">("customer");
+
+    const [showPayModal, setShowPayModal] = useState(false);
+    const [cash, setCash] = useState("");
+    const [isPaying, setIsPaying] = useState(false);
+
+    // Load full order with products only for resume mode
+    const { data: fullOrder, isLoading: loadingFullOrder } = useShowOrder(
+        initialOrder ? (orderId ?? 0) : 0,
+    );
+
+    useEffect(() => {
+        if (fullOrder?.order_products && initialOrder) {
+            setCart(mapOrderProducts(fullOrder.order_products));
+        }
+    }, [fullOrder, initialOrder]);
 
     const { data: productsData, isLoading: productsLoading } = useIndexProducts({
         page: 1,
@@ -42,8 +97,6 @@ export const useNewSaleModal = (onClose: () => void) => {
         order: "asc",
     });
     const { data: categories } = useIndexCategories();
-
-    const mutation = useNewSale();
 
     const products = useMemo(() => {
         let all = productsData?.data?.filter((p) => p.activo) ?? [];
@@ -58,107 +111,231 @@ export const useNewSaleModal = (onClose: () => void) => {
         [cart],
     );
 
+    const domicilio = parseFloat(costoDomicilio) || 0;
+    const customerPays = orderDeliveryPaidBy === "customer";
+    const totalFinal = domicilioActivo && domicilio > 0
+        ? (customerPays ? total + domicilio : total - domicilio)
+        : total;
+    const cashNum = parseFloat(cash) || 0;
+    const change = cashNum - totalFinal;
+    const canPay = cashNum >= totalFinal && totalFinal > 0;
+
     const defaultCantidad = (product: IProduct) =>
         product.unidad_medida === UnidadMedidaEnum.Kg ? 0.5 : 1;
 
-    const addToCart = (product: IProduct) => {
-        setCart((prev) => {
-            const existing = prev.find((i) => i.product.id === product.id);
-            if (existing) {
-                return prev.map((i) =>
-                    i.product.id === product.id
-                        ? { ...i, cantidad: i.cantidad + defaultCantidad(product) }
-                        : i,
-                );
-            }
-            return [...prev, { product, cantidad: defaultCantidad(product) }];
-        });
-    };
+    const ensureOrderCreated = async (): Promise<number> => {
+        const existing = orderIdRef.current;
+        if (existing) return existing;
 
-    const updateCantidad = (productId: number, cantidad: number) => {
-        if (cantidad <= 0) {
-            setCart((prev) => prev.filter((i) => i.product.id !== productId));
-            return;
-        }
-        setCart((prev) =>
-            prev.map((i) => (i.product.id === productId ? { ...i, cantidad } : i)),
-        );
-    };
-
-    const removeFromCart = (productId: number) =>
-        setCart((prev) => prev.filter((i) => i.product.id !== productId));
-
-    const clearCart = () => setCart([]);
-
-    const printOrder = async (orderId: number) => {
-        if (!businessConfig?.printer_name?.trim()) {
-            toast.warning("Impresora no configurada. Ve a Configuración → Impresora para agregarla.");
-            return;
-        }
-
-        try {
-            if (agentConnected) {
-                const url = ApiRoutes.PrintBytes.replace(":id", String(orderId));
-                const res = await axiosApi.get(url, { responseType: "arraybuffer" });
-                await agentPrint(new Uint8Array(res.data as ArrayBuffer));
-                toast.success("Ticket impreso");
-            } else {
-                await axiosPOST(axiosApi, {
-                    url: `${ApiRoutes.Orders}/${orderId}/print`,
-                    data: {},
-                });
-                toast.success("Ticket enviado a la impresora");
-            }
-        } catch {
-            toast.error("Error al imprimir el ticket");
-        }
-    };
-
-    const handleSubmit = async () => {
-        if (!sistemaId || cart.length === 0) return;
+        setIsCreatingOrder(true);
         try {
             const now = new Date();
             const pad = (n: number) => String(n).padStart(2, "0");
-            const fallback = `VTA-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-            const res = await mutation.mutateAsync({
-                sistemaId,
-                nombrePedido: nombrePedido.trim() || fallback,
-                costoDomicilio: parseFloat(costoDomicilio) || 0,
-                items: cart,
+            const fallback = `VTA-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+            const res = await axiosPOST(axiosApi, {
+                url: ApiRoutes.Orders,
+                data: {
+                    nombre_pedido: nombrePedido.trim() || fallback,
+                    total: 0,
+                    subtotal: 0,
+                    descuento: 0,
+                    sistema_id: sistemaId,
+                    estatus_pedido_id: OrderStatusEnum.InProcess,
+                },
             });
-            const orderId: number = (res as any).data.data.id;
+            const newId = (res as { data: { data: IOrder } }).data.data.id;
+            setOrderId(newId);
+            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
+            return newId;
+        } finally {
+            setIsCreatingOrder(false);
+        }
+    };
+
+    const addToCart = async (product: IProduct) => {
+        try {
+            const oid = await ensureOrderCreated();
+            const res = await axiosPOST(axiosApi, {
+                url: `${ApiRoutes.Orders}/${oid}/product`,
+                data: {
+                    producto_id: product.id,
+                    cantidad: defaultCantidad(product),
+                    precio: product.precio,
+                    descuento: 0,
+                },
+            });
+            const op = (res as { data: { data: IOrderProduct } }).data.data;
+            setCart((prev) => {
+                const existing = prev.find((i) => i.productId === product.id);
+                if (existing) {
+                    return prev.map((i) =>
+                        i.productId === product.id
+                            ? { ...i, cantidad: i.cantidad + defaultCantidad(product), orderProductId: op.id! }
+                            : i,
+                    );
+                }
+                return [...prev, {
+                    orderProductId: op.id!,
+                    productId: product.id,
+                    product,
+                    cantidad: parseFloat(String(op.cantidad)),
+                }];
+            });
+        } catch {
+            toast.error("Error al agregar producto");
+        }
+    };
+
+    const removeFromCart = async (productId: number) => {
+        const oid = orderIdRef.current;
+        if (!oid) return;
+        const item = cart.find((i) => i.productId === productId);
+        if (!item) return;
+        try {
+            await axiosDELETE(axiosApi, {
+                url: `${ApiRoutes.Orders}/${oid}/extra/${item.orderProductId}`,
+            });
+            setCart((prev) => prev.filter((i) => i.productId !== productId));
+        } catch {
+            toast.error("Error al eliminar producto");
+        }
+    };
+
+    const clearCart = async () => {
+        const oid = orderIdRef.current;
+        if (!oid || cart.length === 0) return;
+        try {
+            await Promise.all(
+                cart.map((item) =>
+                    axiosDELETE(axiosApi, { url: `${ApiRoutes.Orders}/${oid}/extra/${item.orderProductId}` }),
+                ),
+            );
+            setCart([]);
+        } catch {
+            toast.error("Error al limpiar carrito");
+        }
+    };
+
+    // Quantity editing: local state for display, API call on blur
+    const getDisplayQty = (productId: number, cantidad: number) =>
+        editingQtys[productId] !== undefined ? editingQtys[productId] : String(cantidad);
+
+    const handleQtyChange = (productId: number, value: string) => {
+        setEditingQtys((prev) => ({ ...prev, [productId]: value }));
+        const num = parseFloat(value);
+        if (!isNaN(num) && num > 0) {
+            setCart((prev) =>
+                prev.map((i) => i.productId === productId ? { ...i, cantidad: num } : i),
+            );
+        }
+    };
+
+    const handleQtyBlur = async (productId: number) => {
+        const oid = orderIdRef.current;
+        if (!oid) return;
+        const value = editingQtys[productId];
+        if (value === undefined) return;
+        const qty = parseFloat(value) || 0;
+        setEditingQtys((prev) => { const n = { ...prev }; delete n[productId]; return n; });
+        if (qty <= 0) {
+            await removeFromCart(productId);
+            return;
+        }
+        try {
+            await axiosPUT(axiosApi, {
+                url: `${ApiRoutes.Orders}/${oid}/product/${productId}`,
+                data: { cantidad: qty },
+            });
+        } catch {
+            toast.error("Error al actualizar cantidad");
+        }
+    };
+
+    const toggleDomicilio = (checked: boolean) => {
+        setDomicilioActivo(checked);
+        if (checked) {
+            const defaultCost = businessConfig?.costo_domicilio_default ?? 0;
+            setCostoDomicilio(defaultCost > 0 ? String(defaultCost) : "");
+            setOrderDeliveryPaidBy("customer");
+        } else {
+            setCostoDomicilio("");
+        }
+    };
+
+    const printTicket = async (oid: number) => {
+        try {
+            if (agentConnected) {
+                const url = ApiRoutes.PrintBytes.replace(":id", String(oid));
+                const res = await axiosApi.get(url, { responseType: "arraybuffer" });
+                await agentPrint(new Uint8Array(res.data as ArrayBuffer));
+            } else {
+                await axiosPOST(axiosApi, { url: `${ApiRoutes.Orders}/${oid}/print`, data: {} });
+            }
+            toast.success("Ticket impreso");
+        } catch {
+            toast.error("Error al imprimir ticket");
+        }
+    };
+
+    const handleClose = () => {
+        if (orderIdRef.current) {
+            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
+        }
+        onClose();
+    };
+
+    const handlePay = async () => {
+        const oid = orderIdRef.current;
+        if (!oid || !canPay) return;
+        setIsPaying(true);
+        try {
+            await axiosPUT(axiosApi, {
+                url: `${ApiRoutes.Orders}/${oid}`,
+                data: { estatus_pedido_id: OrderStatusEnum.Closed },
+            });
+            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
             toast.success("Venta registrada correctamente.");
+            setShowPayModal(false);
             onClose();
-            await printOrder(orderId);
+
+            if (businessConfig?.printer_name?.trim()) {
+                const { isConfirmed } = await Swal.fire({
+                    title: "¿Imprimir ticket?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonColor: "#f59e0b",
+                    cancelButtonColor: "#78716c",
+                    confirmButtonText: "Imprimir",
+                    cancelButtonText: "No, gracias",
+                    reverseButtons: true,
+                });
+                if (isConfirmed) await printTicket(oid);
+            }
         } catch {
             toast.error("Error al registrar la venta.");
+        } finally {
+            setIsPaying(false);
         }
     };
 
     return {
-        search,
-        setSearch,
-        nombrePedido,
-        setNombrePedido,
-        domicilioActivo,
-        toggleDomicilio,
-        costoDomicilio,
-        setCostoDomicilio,
-        orderDeliveryPaidBy,
-        setOrderDeliveryPaidBy,
+        search, setSearch,
+        nombrePedido, setNombrePedido, handleNombreBlur,
+        domicilioActivo, toggleDomicilio,
+        costoDomicilio, setCostoDomicilio,
+        orderDeliveryPaidBy, setOrderDeliveryPaidBy,
         categories: categories ?? [],
-        selectedCategory,
-        setSelectedCategory,
-        products,
-        productsLoading,
-        cart,
-        total,
-        addToCart,
-        updateCantidad,
-        removeFromCart,
-        clearCart,
+        selectedCategory, setSelectedCategory,
+        products, productsLoading,
+        cart, total, totalFinal, domicilio, customerPays,
         sellByWeight,
-        handleSubmit,
-        isPending: mutation.isPending,
+        addToCart, removeFromCart, clearCart,
+        getDisplayQty, handleQtyChange, handleQtyBlur,
+        isCreatingOrder, handleClose,
+        loadingOrder: !!initialOrder && loadingFullOrder && cart.length === 0,
+        isResuming: !!initialOrder,
+        showPayModal, setShowPayModal,
+        cash, setCash, cashNum, change, canPay,
+        isPaying, handlePay,
     };
 };

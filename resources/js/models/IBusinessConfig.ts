@@ -17,7 +17,6 @@ export interface IBusinessConfig {
     printer_name: string | null;
     printer_host: string | null;
     costo_domicilio_default: number;
-    delivery_paid_by: 'customer' | 'business';
     logo_icon: string | null;
     logo_upload_enabled: boolean;
     created_at: string;

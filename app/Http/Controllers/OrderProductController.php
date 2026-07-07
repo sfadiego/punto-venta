@@ -98,7 +98,7 @@ class OrderProductController extends Controller
 
         DB::table('order')->where('id', $orderId)->update([
             'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$deltaSubtotal}"),
-            'total'    => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
+            'total' => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
         ]);
 
         $this->resetStatusIfReady($order->fresh());
@@ -142,7 +142,7 @@ class OrderProductController extends Controller
 
         DB::table('order')->where('id', $orderId)->update([
             'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$deltaSubtotal}"),
-            'total'    => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
+            'total' => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
         ]);
 
         $this->resetStatusIfReady($order->fresh());
@@ -220,7 +220,7 @@ class OrderProductController extends Controller
 
         DB::table('order')->where('id', $orderId)->update([
             'subtotal' => DB::raw("GREATEST(0, COALESCE(subtotal, 0) - {$lineSubtotal})"),
-            'total'    => DB::raw("GREATEST(0, COALESCE(total, 0) - {$lineTotal})"),
+            'total' => DB::raw("GREATEST(0, COALESCE(total, 0) - {$lineTotal})"),
         ]);
 
         return Response::success('elemento borrado de la orden');
@@ -250,7 +250,7 @@ class OrderProductController extends Controller
 
         DB::table('order')->where('id', $orderId)->update([
             'subtotal' => DB::raw("GREATEST(0, COALESCE(subtotal, 0) - {$lineSubtotal})"),
-            'total'    => DB::raw("GREATEST(0, COALESCE(total, 0) - {$lineTotal})"),
+            'total' => DB::raw("GREATEST(0, COALESCE(total, 0) - {$lineTotal})"),
         ]);
 
         return Response::success('elemento borrado de la orden');
