@@ -10,6 +10,7 @@ import {
     useUpdateProductInOrder,
     useUpdateOrderProductNote,
     useDeleteItemFromOrder,
+    useUpdateOrder,
 } from "@/services/useOrderService";
 
 export type CartItem = {
@@ -18,6 +19,7 @@ export type CartItem = {
     name: string;
     price: number;
     quantity: number;
+    descuento: number;
     isExtra: boolean;
     observacion: string | null;
     isReady: boolean;
@@ -43,6 +45,7 @@ export const useTakeOrder = () => {
         name: op.nombre_extra ?? op.product?.nombre ?? "",
         price: op.precio,
         quantity: parseFloat(String(op.cantidad)),
+        descuento: op.descuento ?? 0,
         isExtra: !op.producto_id,
         observacion: op.observacion ?? null,
         isReady: op.is_ready ?? false,
@@ -52,6 +55,7 @@ export const useTakeOrder = () => {
     const { mutateAsync: updateProduct } = useUpdateProductInOrder(orderId);
     const { mutateAsync: updateNote } = useUpdateOrderProductNote(orderId);
     const { mutateAsync: deleteItem } = useDeleteItemFromOrder(orderId);
+    const { mutateAsync: updateOrder } = useUpdateOrder(orderId);
     // Add regular product (click on ProductCard)
     const addToCart = async (productId: number, _name: string, price: number) => {
         if (isReadOnly) return;
@@ -142,8 +146,34 @@ export const useTakeOrder = () => {
         });
     };
 
+    const updateOrderDiscount = async (descuento: number) => {
+        if (isReadOnly) return;
+        try {
+            await updateOrder({ descuento }, { onSuccess: invalidateOrder });
+        } catch {
+            toast.error("Error al aplicar descuento");
+        }
+    };
+
+    const updateProductDiscount = async (productId: number, descuento: number) => {
+        if (isReadOnly) return;
+        try {
+            await updateProduct(
+                { productId, data: { descuento } },
+                { onSuccess: invalidateOrder },
+            );
+        } catch {
+            toast.error("Error al aplicar descuento");
+        }
+    };
+
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = cart.reduce(
+        (sum, item) => sum + item.price * item.quantity * (1 - item.descuento / 100),
+        0,
+    );
+    const orderDiscount = order?.descuento ?? 0;
+    const total = subtotal * (1 - orderDiscount / 100);
 
     return {
         orderId,
@@ -154,11 +184,15 @@ export const useTakeOrder = () => {
         cart,
         cartCount,
         subtotal,
+        orderDiscount,
+        total,
         addToCart,
         addExtra,
         updateQuantity,
         saveObservacion,
         removeFromCart,
         clearCart,
+        updateOrderDiscount,
+        updateProductDiscount,
     };
 };

@@ -152,6 +152,12 @@ class VentaFormatter implements TicketFormatterInterface
 
         $lines = $line1."\n".$line2;
 
+        if ($item['descuento'] > 0) {
+            $originalTotal = $item['precio'] * $item['cantidad'];
+            $saved = round($originalTotal - $item['total'], 2);
+            $lines .= "\n  Desc. ".(int) $item['descuento'].'% (-$'.number_format($saved, 2).')';
+        }
+
         if ($item['es_extra']) {
             $lines .= "\n  [Extra]";
         }

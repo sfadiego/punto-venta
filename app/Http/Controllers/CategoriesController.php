@@ -63,10 +63,9 @@ class CategoriesController extends Controller
     {
         $tenantId = app()->bound('tenant_id') ? app('tenant_id') : 0;
 
-        $data = Cache::remember("categories_list_{$tenantId}", 600, fn () =>
-            CategoryModel::select('id', CategoryModel::NOMBRE, CategoryModel::ICON_NAME)
-                ->orderBy(CategoryModel::ORDEN)
-                ->get()
+        $data = Cache::remember("categories_list_{$tenantId}", 600, fn () => CategoryModel::select('id', CategoryModel::NOMBRE, CategoryModel::ICON_NAME)
+            ->orderBy(CategoryModel::ORDEN)
+            ->get()
         );
 
         return Response::success($data);
