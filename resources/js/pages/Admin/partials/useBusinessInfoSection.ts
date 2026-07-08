@@ -72,7 +72,6 @@ export const useBusinessInfoSection = (config: IBusinessConfig | undefined) => {
                     printer_host:              config.printer_host,
                     logo_icon:                 config.logo_icon,
                     costo_domicilio_default:   config.costo_domicilio_default,
-                    delivery_paid_by:          config.delivery_paid_by,
                 });
                 toast.success("Información actualizada correctamente.");
             } catch {
