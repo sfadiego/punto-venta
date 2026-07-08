@@ -33,25 +33,18 @@ export const usePrintTicket = (orderId: number) => {
         onError: (err: Error) => toast.error(`Error: ${err.message}`),
     });
 
-    const isLocal = import.meta.env.VITE_APP_ENV === "local";
-
     const print = () => {
         if (agentConnected) {
             sendPrintAgent();
             return;
         }
 
-        // Fallback servidor: solo disponible en local con impresora configurada
-        if (isLocal && businessConfig?.printer_name?.trim()) {
-            sendPrintServer();
+        if (!businessConfig?.printer_name?.trim()) {
+            toast.warning("Impresora no configurada. Ve a Configuración → Impresora para agregarla.");
             return;
         }
 
-        if (isLocal) {
-            toast.warning("Impresora no configurada. Ve a Configuración → Impresora para agregarla.");
-        } else {
-            toast.error("Agente de impresión no conectado. Verifica que el agente esté corriendo en esta máquina.");
-        }
+        sendPrintServer();
     };
 
     return { print, isPending: isPendingAgent || isPendingServer };
