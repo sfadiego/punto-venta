@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useQueryClient } from "@tanstack/react-query";
@@ -59,8 +60,8 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 url: `${ApiRoutes.Orders}/${oid}`,
                 data: { nombre_pedido: nombrePedido.trim() },
             });
-        } catch {
-            // silently ignore — not critical
+        } catch (error) {
+            logUnexpectedError(error, "useNewSaleModal.handleNombreBlur");
         }
     };
     const [search, setSearch] = useState("");
@@ -181,7 +182,8 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                     cantidad: parseFloat(String(op.cantidad)),
                 }];
             });
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useNewSaleModal.addToCart");
             toast.error("Error al agregar producto");
         }
     };
@@ -196,7 +198,8 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 url: `${ApiRoutes.Orders}/${oid}/extra/${item.orderProductId}`,
             });
             setCart((prev) => prev.filter((i) => i.productId !== productId));
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useNewSaleModal.removeFromCart");
             toast.error("Error al eliminar producto");
         }
     };
@@ -211,7 +214,8 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 ),
             );
             setCart([]);
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useNewSaleModal.clearCart");
             toast.error("Error al limpiar carrito");
         }
     };
@@ -246,7 +250,8 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 url: `${ApiRoutes.Orders}/${oid}/product/${productId}`,
                 data: { cantidad: qty },
             });
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useNewSaleModal.handleQtyBlur");
             toast.error("Error al actualizar cantidad");
         }
     };
@@ -272,7 +277,8 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 await axiosPOST(axiosApi, { url: `${ApiRoutes.Orders}/${oid}/print`, data: {} });
             }
             toast.success("Ticket impreso");
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useNewSaleModal.printTicket");
             toast.error("Error al imprimir ticket");
         }
     };
@@ -314,7 +320,8 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 });
                 if (isConfirmed) await printTicket(oid);
             }
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useNewSaleModal.handlePay");
             toast.error("Error al registrar la venta.");
         } finally {
             setIsPaying(false);

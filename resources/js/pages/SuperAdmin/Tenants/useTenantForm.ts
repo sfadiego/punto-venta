@@ -47,19 +47,20 @@ export const useTenantForm = (tenantId?: number) => {
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
-            slug:           tenant?.slug ?? "",
-            business_name:  tenant?.business_name ?? "",
-            primary_color:  tenant?.primary_color ?? COLOR_DEFAULTS.primary_color,
-            sidebar_color:  tenant?.sidebar_color ?? COLOR_DEFAULTS.sidebar_color,
-            font_color:     tenant?.font_color ?? COLOR_DEFAULTS.font_color,
-            label_color:    tenant?.label_color ?? COLOR_DEFAULTS.label_color,
-            logo_icon:      tenant?.logo_icon ?? "",
-            tipo_negocio:   tenant?.tipo_negocio ?? BusinessTypeEnum.Restaurante,
-            admin_nombre:   "",
-            admin_apellido: "",
-            admin_email:    "",
-            admin_usuario:  "",
-            admin_password: "",
+            slug:             tenant?.slug ?? "",
+            business_name:    tenant?.business_name ?? "",
+            primary_color:    tenant?.primary_color ?? COLOR_DEFAULTS.primary_color,
+            sidebar_color:    tenant?.sidebar_color ?? COLOR_DEFAULTS.sidebar_color,
+            font_color:       tenant?.font_color ?? COLOR_DEFAULTS.font_color,
+            label_color:      tenant?.label_color ?? COLOR_DEFAULTS.label_color,
+            logo_icon:        tenant?.logo_icon ?? "",
+            tipo_negocio:     tenant?.tipo_negocio ?? BusinessTypeEnum.Restaurante,
+            printer_enabled:  tenant?.printer_enabled ?? false,
+            admin_nombre:     "",
+            admin_apellido:   "",
+            admin_email:      "",
+            admin_usuario:    "",
+            admin_password:   "",
         },
         validationSchema: isEdit ? editSchema : createSchema,
         onSubmit: async (values, helpers) => {
@@ -67,7 +68,11 @@ export const useTenantForm = (tenantId?: number) => {
                 if (isEdit) {
                     await updateMutation.mutateAsync({
                         id: tenantId,
-                        data: { ...values, logo_icon: values.logo_icon || null },
+                        data: {
+                            ...values,
+                            logo_icon:       values.logo_icon || null,
+                            printer_enabled: values.printer_enabled,
+                        },
                     });
                     toast.success("Cliente actualizado.");
                 } else {

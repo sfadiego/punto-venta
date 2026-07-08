@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -69,7 +70,8 @@ export const useTakeOrder = () => {
                 { producto_id: productId, cantidad: 1, precio: price, descuento: 0 },
                 { onSuccess: invalidateOrder },
             );
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTakeOrder.addToCart");
             toast.error("Error al agregar producto");
         } finally {
             pendingRef.current.delete(productId);
@@ -85,7 +87,8 @@ export const useTakeOrder = () => {
                 { nombre_extra: nombre, cantidad, precio, descuento: 0 },
                 { onSuccess: invalidateOrder },
             );
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTakeOrder.addExtra");
             toast.error("Error al agregar extra");
         }
     };
@@ -105,7 +108,8 @@ export const useTakeOrder = () => {
                     { onSuccess: invalidateOrder },
                 );
             }
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTakeOrder.updateQuantity");
             toast.error("Error al actualizar producto");
         }
     };
@@ -118,7 +122,8 @@ export const useTakeOrder = () => {
                 { orderProductId, observacion },
                 { onSuccess: invalidateOrder },
             );
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTakeOrder.saveObservacion");
             toast.error("Error al guardar la observación");
         }
     };
@@ -128,7 +133,8 @@ export const useTakeOrder = () => {
         if (isReadOnly) return;
         try {
             await deleteItem(orderProductId, { onSuccess: invalidateOrder });
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTakeOrder.removeFromCart");
             toast.error("Error al eliminar producto");
         }
     };
@@ -158,7 +164,8 @@ export const useTakeOrder = () => {
         if (isReadOnly) return;
         try {
             await updateOrder({ descuento }, { onSuccess: invalidateOrder });
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTakeOrder.updateOrderDiscount");
             toast.error("Error al aplicar descuento");
         }
     };
@@ -170,7 +177,8 @@ export const useTakeOrder = () => {
                 { productId, data: { descuento } },
                 { onSuccess: invalidateOrder },
             );
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTakeOrder.updateProductDiscount");
             toast.error("Error al aplicar descuento");
         }
     };

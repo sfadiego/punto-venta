@@ -72,14 +72,15 @@ class TenantManagementController extends Controller
     public function update(BusinessConfigModel $tenant, TenantUpdateRequest $param): JsonResponse
     {
         $tenant->update([
-            BusinessConfigModel::SLUG => $param->slug,
-            BusinessConfigModel::BUSINESS_NAME => $param->business_name,
-            BusinessConfigModel::PRIMARY_COLOR => $param->primary_color,
-            BusinessConfigModel::SIDEBAR_COLOR => $param->sidebar_color,
-            BusinessConfigModel::FONT_COLOR => $param->font_color,
-            BusinessConfigModel::LABEL_COLOR => $param->label_color,
-            BusinessConfigModel::LOGO_ICON => $param->logo_icon,
-            BusinessConfigModel::TIPO_NEGOCIO => $param->tipo_negocio ?? $tenant->tipo_negocio->value,
+            BusinessConfigModel::SLUG             => $param->slug,
+            BusinessConfigModel::BUSINESS_NAME    => $param->business_name,
+            BusinessConfigModel::PRIMARY_COLOR    => $param->primary_color,
+            BusinessConfigModel::SIDEBAR_COLOR    => $param->sidebar_color,
+            BusinessConfigModel::FONT_COLOR       => $param->font_color,
+            BusinessConfigModel::LABEL_COLOR      => $param->label_color,
+            BusinessConfigModel::LOGO_ICON        => $param->logo_icon,
+            BusinessConfigModel::TIPO_NEGOCIO     => $param->tipo_negocio ?? $tenant->tipo_negocio->value,
+            BusinessConfigModel::PRINTER_ENABLED  => (bool) $param->printer_enabled,
         ]);
 
         return Response::success($tenant);

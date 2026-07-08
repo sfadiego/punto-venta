@@ -44,10 +44,13 @@ docker compose down
 | ARG | Descripción | Ejemplo |
 |---|---|---|
 | `VITE_APP_URL` | URL pública de la app | `https://mi-app.com` |
+| `VITE_APP_ENV` | Entorno activo — controla features de desarrollo | `production` |
 | `VITE_REVERB_APP_KEY` | Clave pública de Reverb | valor de `REVERB_APP_KEY` en `.env` |
 | `VITE_REVERB_HOST` | Host público de la app | `mi-app.com` |
 | `VITE_REVERB_PORT` | Puerto público (nginx proxy) | `443` en HTTPS |
 | `VITE_REVERB_SCHEME` | Esquema | `https` |
+
+> **Nota:** `VITE_APP_ENV=local` activa el agente de impresión y la sección de impresora en el panel de administración sin necesitar habilitarlos por cliente desde el SuperAdmin. En producción debe ser `VITE_APP_ENV=production`.
 
 Nginx dentro del contenedor actúa como proxy WebSocket: redirige `/app/*` a Reverb en el puerto interno 6001.
 
@@ -61,6 +64,7 @@ php artisan migrate
 
 Migraciones relevantes recientes:
 - `2026_07_07_151043_drop_delivery_paid_by_from_business_config_table` — elimina `delivery_paid_by` de `business_config`.
+- `2026_07_08_000001_add_printer_enabled_to_business_config_table` — agrega `printer_enabled` (boolean, default false) a `business_config`.
 
 ## Flujo de ramas (Git)
 

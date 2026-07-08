@@ -28,6 +28,7 @@ export const useIconSelector = (config: IBusinessConfig | undefined) => {
                 printer_host:              config.printer_host,
                 logo_icon:                 isDeselect ? null : iconName,
                 costo_domicilio_default:   config.costo_domicilio_default,
+                printer_enabled:           config.printer_enabled,
             },
             {
                 onSuccess: () =>

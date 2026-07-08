@@ -39,6 +39,7 @@ export const usePrinterSection = (config: IBusinessConfig | undefined) => {
                     printer_name:             values.printer_name || null,
                     printer_host:             values.printer_host || null,
                     costo_domicilio_default:  config.costo_domicilio_default,
+                    printer_enabled:          config.printer_enabled,
                 });
                 toast.success("Configuración de impresora guardada.");
             } catch {

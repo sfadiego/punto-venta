@@ -12,6 +12,7 @@ export interface ITenant {
     logo_path: string | null;
     logo_icon: string | null;
     tipo_negocio: BusinessTypeEnum;
+    printer_enabled: boolean;
     features?: IBusinessFeatures;
     users_count?: number;
     created_at: string;
@@ -44,4 +45,6 @@ export interface IUpdateTenantPayload {
     label_color: string;
     logo_icon: string | null;
     tipo_negocio: BusinessTypeEnum;
+    printer_enabled: boolean;
 }
+
