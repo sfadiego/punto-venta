@@ -57,9 +57,9 @@ class BusinessConfigModel extends Model
     const COSTO_DOMICILIO_DEFAULT = 'costo_domicilio_default';
 
     protected $casts = [
-        self::ACTIVO           => 'boolean',
-        self::PRINTER_ENABLED  => 'boolean',
-        self::TIPO_NEGOCIO     => BusinessTypeEnum::class,
+        self::ACTIVO => 'boolean',
+        self::PRINTER_ENABLED => 'boolean',
+        self::TIPO_NEGOCIO => BusinessTypeEnum::class,
     ];
 
     protected $fillable = [
