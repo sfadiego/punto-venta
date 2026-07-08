@@ -37,6 +37,7 @@ export const useDeliverySection = (config: IBusinessConfig | undefined) => {
                     printer_name:            config.printer_name,
                     printer_host:            config.printer_host,
                     costo_domicilio_default: values.costo_domicilio_default,
+                    printer_enabled:         config.printer_enabled,
                 });
                 toast.success("Configuración de domicilio guardada.");
             } catch {

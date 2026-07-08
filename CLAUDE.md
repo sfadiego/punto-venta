@@ -261,3 +261,29 @@ El campo `delivery_paid_by` fue removido de `business_config` (migración `2026_
 
 ### `OrderPreviewModal` — botón disparador deshabilitado
 El botón Eye que abre el modal se deshabilita cuando `order.total === 0`. Aplica en Dashboard (`RecentSales`), Órdenes (`OrderActionGroup`) y Ventas (`actionsColumn` de `useSalesPage`).
+
+### Agente de impresión (`printer_enabled`)
+El agente de impresión es un proceso local del cliente que recibe bytes ESC/POS vía WebSocket en `localhost:8765` (repo: `sfadiego/printer-agent`). Su nombre de impresora se configura en el `config.json` del ejecutable, no en el panel admin.
+
+`printer_enabled` en `business_config` controla por cliente si el `PrintAgentProvider` se conecta y si la sección de impresora es visible en el panel admin. Se gestiona exclusivamente desde el SuperAdmin.
+
+La variable `VITE_APP_ENV` en el `.env` actúa como override para desarrollo:
+
+```
+# .env local
+VITE_APP_ENV=local   → agente siempre activo, sección visible sin importar printer_enabled
+
+# .env producción
+VITE_APP_ENV=production → agente activo solo si SuperAdmin habilitó printer_enabled para ese cliente
+```
+
+**⚠️ Variable requerida en producción:** `VITE_APP_ENV=production` debe estar en las variables de entorno de build (Dockerfile ARGs o CI/CD). Sin ella el valor es `undefined` y la condición falla silenciosamente.
+
+Lógica en frontend:
+```ts
+// AppLayout.tsx
+enabled={import.meta.env.VITE_APP_ENV === "local" || !!config?.printer_enabled}
+
+// AdminPage.tsx
+const printerVisible = import.meta.env.VITE_APP_ENV === "local" || config?.printer_enabled === true;
+```

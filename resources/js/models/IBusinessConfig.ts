@@ -16,6 +16,7 @@ export interface IBusinessConfig {
     ticket_footer: string | null;
     printer_name: string | null;
     printer_host: string | null;
+    printer_enabled: boolean;
     costo_domicilio_default: number;
     logo_icon: string | null;
     logo_upload_enabled: boolean;

@@ -9,6 +9,7 @@ import { useAdminPage } from "./useAdminPage";
 
 function AdminPage() {
     const { config, isLoading, sellByWeight } = useAdminPage();
+    const printerVisible = import.meta.env.VITE_APP_ENV === "local" || config?.printer_enabled === true;
 
     return (
         <div className="p-4 md:p-6 max-w-4xl mx-auto">
@@ -33,7 +34,9 @@ function AdminPage() {
                         <div id="logo"><LogoSection config={config} /></div>
                         <div id="colores"><ColorsSection config={config} /></div>
                         <div id="negocio"><BusinessInfoSection config={config} /></div>
-                        <div id="impresora"><PrinterSection config={config} /></div>
+                        {printerVisible && (
+                            <div id="impresora"><PrinterSection config={config} /></div>
+                        )}
                         {sellByWeight && (
                             <div id="domicilio"><DeliverySection config={config} /></div>
                         )}

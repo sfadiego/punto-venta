@@ -80,6 +80,7 @@ class TenantManagementController extends Controller
             BusinessConfigModel::LABEL_COLOR => $param->label_color,
             BusinessConfigModel::LOGO_ICON => $param->logo_icon,
             BusinessConfigModel::TIPO_NEGOCIO => $param->tipo_negocio ?? $tenant->tipo_negocio->value,
+            BusinessConfigModel::PRINTER_ENABLED => (bool) $param->printer_enabled,
         ]);
 
         return Response::success($tenant);

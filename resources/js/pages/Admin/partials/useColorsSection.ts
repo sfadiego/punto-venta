@@ -56,7 +56,7 @@ export const useColorsSection = (config: IBusinessConfig | undefined) => {
                 printer_host:              config?.printer_host  ?? null,
                 logo_icon:                 config?.logo_icon     ?? null,
                 costo_domicilio_default:   config?.costo_domicilio_default ?? 0,
-                delivery_paid_by:          config?.delivery_paid_by ?? 'customer',
+                printer_enabled:           config?.printer_enabled ?? false,
             },
             {
                 onSuccess: () => toast.success("Configuración guardada"),
@@ -89,7 +89,7 @@ export const useColorsSection = (config: IBusinessConfig | undefined) => {
                 printer_host:              config?.printer_host  ?? null,
                 logo_icon:                 config?.logo_icon     ?? null,
                 costo_domicilio_default:   config?.costo_domicilio_default ?? 0,
-                delivery_paid_by:          config?.delivery_paid_by ?? 'customer',
+                printer_enabled:           config?.printer_enabled ?? false,
             },
             {
                 onSuccess: () => toast.success("Colores restablecidos"),

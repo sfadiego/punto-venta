@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { useShowOrder, useUpdateOrder, useToggleOrderProductReady } from "@/services/useOrderService";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -64,7 +65,8 @@ export const useOrderPreviewModal = (orderId: number) => {
                 );
                 if (allWillBeReady) markServed();
             }
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useOrderPreviewModal.toggleProductReady");
             toast.error("Error al actualizar el platillo");
         } finally {
             pendingRef.current.delete(orderProductId);

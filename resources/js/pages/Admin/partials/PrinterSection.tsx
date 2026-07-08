@@ -1,22 +1,58 @@
-import { Printer, Network, Loader, Info } from "lucide-react";
+import { Printer, Network, Loader, Info, Wifi, WifiOff } from "lucide-react";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { usePrinterSection } from "./usePrinterSection";
+import { usePrintAgent } from "@/hooks/usePrintAgent";
 
 interface PrinterSectionProps {
     config: IBusinessConfig | undefined;
 }
 
+const isLocal = import.meta.env.VITE_APP_ENV === "local";
+
 export const PrinterSection = ({ config }: PrinterSectionProps) => {
     const { formik } = usePrinterSection(config);
+    const { isConnected } = usePrintAgent();
+
+    if (!isLocal) {
+        return (
+            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
+                <div className="mb-4">
+                    <h2 className="text-sm font-semibold text-stone-700 mb-0.5">Agente de impresión</h2>
+                    <p className="text-xs text-stone-400">Estado de conexión con el agente local</p>
+                </div>
+
+                <div className={`flex items-center gap-3 p-4 rounded-xl border ${
+                    isConnected
+                        ? "bg-emerald-50 border-emerald-100"
+                        : "bg-stone-50 border-stone-200"
+                }`}>
+                    {isConnected ? (
+                        <Wifi size={20} className="text-emerald-500 shrink-0" />
+                    ) : (
+                        <WifiOff size={20} className="text-stone-400 shrink-0" />
+                    )}
+                    <div>
+                        <p className={`text-sm font-medium ${isConnected ? "text-emerald-700" : "text-stone-500"}`}>
+                            {isConnected ? "Agente conectado" : "Agente desconectado"}
+                        </p>
+                        <p className="text-xs text-stone-400 mt-0.5">
+                            {isConnected
+                                ? "La impresora está lista para imprimir tickets."
+                                : "Verifica que el agente esté corriendo en esta máquina."}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <form onSubmit={formik.handleSubmit} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-5">
             <div>
                 <h2 className="text-sm font-semibold text-stone-700 mb-0.5">Configuración de impresora</h2>
-                <p className="text-xs text-stone-400">Impresora térmica para tickets de venta</p>
+                <p className="text-xs text-stone-400">Impresora térmica para tickets de venta (solo desarrollo local)</p>
             </div>
 
-            {/* Nombre de impresora — usado por el printer-agent */}
             <div>
                 <label className="flex items-center gap-1.5 text-xs font-medium text-stone-600 mb-1.5">
                     <span className="text-amber-500"><Printer size={15} /></span>
@@ -40,12 +76,11 @@ export const PrinterSection = ({ config }: PrinterSectionProps) => {
                     <p className="text-xs text-amber-700 leading-relaxed">
                         Requiere el{" "}
                         <span className="font-semibold">printer-agent</span>{" "}
-                        corriendo en la máquina del cliente. El nombre debe coincidir exactamente con el configurado en el agente.
+                        corriendo en esta máquina. El nombre debe coincidir con el configurado en el agente.
                     </p>
                 </div>
             </div>
 
-            {/* IP de impresora — solo para instalaciones locales con acceso de red directo */}
             <div>
                 <label className="flex items-center gap-1.5 text-xs font-medium text-stone-600 mb-1.5">
                     <span className="text-stone-400"><Network size={15} /></span>
@@ -66,7 +101,7 @@ export const PrinterSection = ({ config }: PrinterSectionProps) => {
                     <p className="text-red-500 text-xs mt-1">{formik.errors.printer_host}</p>
                 )}
                 <p className="text-xs text-stone-400 mt-1">
-                    Usado cuando el servidor tiene acceso directo a la impresora por red local. No aplica en producción en la nube.
+                    Usado cuando el servidor tiene acceso directo a la impresora por red local.
                 </p>
             </div>
 

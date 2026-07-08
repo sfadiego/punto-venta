@@ -48,6 +48,8 @@ class BusinessConfigModel extends Model
 
     const PRINTER_HOST = 'printer_host';
 
+    const PRINTER_ENABLED = 'printer_enabled';
+
     const LOGO_ICON = 'logo_icon';
 
     const TIPO_NEGOCIO = 'tipo_negocio';
@@ -56,6 +58,7 @@ class BusinessConfigModel extends Model
 
     protected $casts = [
         self::ACTIVO => 'boolean',
+        self::PRINTER_ENABLED => 'boolean',
         self::TIPO_NEGOCIO => BusinessTypeEnum::class,
     ];
 
@@ -77,6 +80,7 @@ class BusinessConfigModel extends Model
         self::TICKET_FOOTER,
         self::PRINTER_NAME,
         self::PRINTER_HOST,
+        self::PRINTER_ENABLED,
         self::LOGO_ICON,
         self::TIPO_NEGOCIO,
         self::COSTO_DOMICILIO_DEFAULT,

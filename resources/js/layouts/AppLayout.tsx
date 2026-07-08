@@ -50,7 +50,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     const handleMenuClick = () => setSidebarOpen((prev) => !prev);
 
     return (
-        <PrintAgentProvider enabled={!!config?.printer_name}>
+        <PrintAgentProvider enabled={import.meta.env.VITE_APP_ENV === "local" || !!config?.printer_enabled}>
         <LayoutProvider onToggleSidebar={handleMenuClick}>
             <div className="flex h-screen bg-stone-50 overflow-hidden">
                 {sidebarOpen && (

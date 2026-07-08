@@ -7,7 +7,6 @@ use App\Core\Paginator\DataTable;
 use App\Enums\OrderStatusEnum;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 
 class OrderService extends DataTable
@@ -57,10 +56,7 @@ class OrderService extends DataTable
 
         $fecha = request()->query('fecha');
         if ($fecha) {
-            $tz = config('app.timezone');
-            $start = Carbon::createFromFormat('Y-m-d', $fecha, $tz)->startOfDay()->utc();
-            $end = Carbon::createFromFormat('Y-m-d', $fecha, $tz)->endOfDay()->utc();
-            $query->whereBetween('created_at', [$start, $end]);
+            $query->whereDate('created_at', $fecha);
         }
 
         $categoriaId = request()->query('categoria_id');

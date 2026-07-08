@@ -36,6 +36,9 @@ export default defineConfig({
             host: "localhost",
         },
     },
+    define: {
+        global: "globalThis",
+    },
     resolve: {
         alias: {
             "@/": path.resolve(__dirname, "resources/js") + "/",

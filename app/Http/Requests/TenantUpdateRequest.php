@@ -28,6 +28,7 @@ class TenantUpdateRequest extends FormRequest
             BusinessConfigModel::LABEL_COLOR => 'required|string|max:20',
             BusinessConfigModel::LOGO_ICON => 'nullable|string|max:50',
             BusinessConfigModel::TIPO_NEGOCIO => ['nullable', Rule::enum(BusinessTypeEnum::class)],
+            BusinessConfigModel::PRINTER_ENABLED => 'boolean',
         ];
     }
 }

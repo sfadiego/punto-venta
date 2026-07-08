@@ -1,4 +1,4 @@
-import { ChevronLeft, Loader, Users, AlertTriangle, RotateCcw } from "lucide-react";
+import { ChevronLeft, Loader, Users, AlertTriangle, RotateCcw, Printer } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { useTenantForm } from "./useTenantForm";
@@ -123,6 +123,44 @@ export default function TenantFormPage() {
                         </section>
                     )}
 
+
+                    {/* Agente de impresión — solo en edición */}
+                    {isEdit && (
+                        <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                                        <Printer size={17} className="text-slate-500" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-slate-900">
+                                            Agente de impresión
+                                        </h2>
+                                        <p className="text-xs text-slate-400 mt-0.5">
+                                            Habilita la conexión con el agente local del cliente. Se activa automáticamente en desarrollo.
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        formik.setFieldValue("printer_enabled", !formik.values.printer_enabled)
+                                    }
+                                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                                        formik.values.printer_enabled ? "bg-indigo-600" : "bg-slate-200"
+                                    }`}
+                                    role="switch"
+                                    aria-checked={formik.values.printer_enabled}
+                                >
+                                    <span
+                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${
+                                            formik.values.printer_enabled ? "translate-x-5" : "translate-x-0"
+                                        }`}
+                                    />
+                                </button>
+                            </div>
+                        </section>
+                    )}
 
                     {isEdit && (
                         <section className="mt-6 bg-white rounded-2xl border border-red-100 shadow-sm p-6">
