@@ -1,4 +1,4 @@
-import { Plus, Minus, Trash2, Tag, X } from "lucide-react";
+import { Plus, Minus, Trash2, Tag, X, Loader } from "lucide-react";
 import { CartItem } from "../useTakeOrder";
 import { CartItemNote } from "./CartItemNote";
 import { useCartItemRow } from "./useCartItemRow";
@@ -6,6 +6,7 @@ import { useCartItemRow } from "./useCartItemRow";
 interface CartItemRowProps {
     item: CartItem;
     isReadOnly?: boolean;
+    isPending?: boolean;
     onUpdate: (productId: number, delta: number) => void;
     onRemove: (orderProductId: number) => void;
     onNote: (orderProductId: number, note: string) => Promise<void>;
@@ -15,6 +16,7 @@ interface CartItemRowProps {
 export const CartItemRow = ({
     item,
     isReadOnly = false,
+    isPending = false,
     onUpdate,
     onRemove,
     onNote,
@@ -104,17 +106,17 @@ export const CartItemRow = ({
                 <div className="flex items-center gap-1">
                     <button
                         onClick={() => !item.isExtra && item.id !== null && onUpdate(item.id, -1)}
-                        disabled={isReadOnly || item.isExtra}
+                        disabled={isReadOnly || item.isExtra || isPending}
                         className="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                     >
                         <Minus size={12} className="text-stone-600" />
                     </button>
                     <span className="w-6 text-center text-sm font-bold text-stone-900 tabular-nums">
-                        {item.quantity}
+                        {isPending ? <Loader size={12} className="animate-spin text-amber-500 mx-auto" /> : item.quantity}
                     </span>
                     <button
                         onClick={() => !item.isExtra && item.id !== null && onUpdate(item.id, 1)}
-                        disabled={isReadOnly || item.isExtra}
+                        disabled={isReadOnly || item.isExtra || isPending}
                         className="w-7 h-7 rounded-lg bg-amber-100 hover:bg-amber-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                     >
                         <Plus size={12} className="text-amber-700" />

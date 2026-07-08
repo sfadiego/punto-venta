@@ -95,10 +95,12 @@ export const useTakeOrder = () => {
 
     // Update quantity — only valid for regular products
     const updateQuantity = async (productId: number, delta: number) => {
-        if (isReadOnly) return;
+        if (isReadOnly || pendingRef.current.has(productId)) return;
         const existing = cart.find((item) => item.id === productId);
         if (!existing) return;
         const newQty = existing.quantity + delta;
+        pendingRef.current.add(productId);
+        setPendingProductIds(new Set(pendingRef.current));
         try {
             if (newQty <= 0) {
                 await deleteItem(existing.orderProductId, { onSuccess: invalidateOrder });
@@ -111,6 +113,9 @@ export const useTakeOrder = () => {
         } catch (error) {
             logUnexpectedError(error, "useTakeOrder.updateQuantity");
             toast.error("Error al actualizar producto");
+        } finally {
+            pendingRef.current.delete(productId);
+            setPendingProductIds(new Set(pendingRef.current));
         }
     };
 

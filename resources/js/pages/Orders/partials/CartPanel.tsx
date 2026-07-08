@@ -16,6 +16,7 @@ interface CartPanelProps {
     total: number;
     isLoading: boolean;
     isReadOnly?: boolean;
+    pendingProductIds?: Set<number>;
     onUpdate: (productId: number, delta: number) => void;
     onRemove: (orderProductId: number) => void;
     onNote: (orderProductId: number, note: string) => Promise<void>;
@@ -32,6 +33,7 @@ export const CartPanel = ({
     total,
     isLoading,
     isReadOnly = false,
+    pendingProductIds,
     onUpdate,
     onRemove,
     onNote,
@@ -93,6 +95,7 @@ export const CartPanel = ({
                                     key={item.orderProductId}
                                     item={item}
                                     isReadOnly={isReadOnly}
+                                    isPending={item.id !== null && (pendingProductIds?.has(item.id) ?? false)}
                                     onUpdate={onUpdate}
                                     onRemove={onRemove}
                                     onNote={onNote}
