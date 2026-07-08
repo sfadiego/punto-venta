@@ -88,7 +88,7 @@ export const OrderActionGroup = ({
                 </button>
             )}
 
-            {can("deleteOrder") && (
+            {can("deleteOrder") && order.estatus_pedido_id !== OrderStatusEnum.Closed && (
                 <button
                     onClick={onDelete}
                     disabled={isDeleting}
