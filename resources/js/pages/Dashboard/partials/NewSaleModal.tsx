@@ -88,7 +88,7 @@ export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
                                         value={nombrePedido}
                                         onChange={(e) => setNombrePedido(e.target.value)}
                                         onBlur={handleNombreBlur}
-                                        placeholder="Mesa / cliente (opc.)"
+                                        placeholder="Referencia (opc.)"
                                         className="w-44 px-3 py-2 border border-stone-200 rounded-xl text-sm
                                             focus:outline-none focus:ring-2 focus:ring-amber-400 bg-stone-50 placeholder:text-stone-300"
                                     />

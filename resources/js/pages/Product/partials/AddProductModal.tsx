@@ -53,7 +53,7 @@ export const AddProductModal = ({
                             value={formik.values.nombre}
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
-                            placeholder="Ej: Café americano"
+                            placeholder={sellByWeight ? "Ej: Lomo de res" : "Ej: Café americano"}
                             maxLength={255}
                             autoFocus
                             className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
