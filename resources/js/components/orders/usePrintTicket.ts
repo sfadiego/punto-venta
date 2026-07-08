@@ -39,6 +39,13 @@ export const usePrintTicket = (orderId: number) => {
             return;
         }
 
+        // En producción con agente habilitado el servidor no puede imprimir — el agente es el único path válido
+        if (businessConfig?.printer_enabled) {
+            toast.error("Agente de impresión no conectado. Verifica que el agente esté corriendo en esta máquina.");
+            return;
+        }
+
+        // Fallback local: impresión vía servidor (CUPS / red)
         if (!businessConfig?.printer_name?.trim()) {
             toast.warning("Impresora no configurada. Ve a Configuración → Impresora para agregarla.");
             return;
