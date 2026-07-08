@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { useMatch } from "react-router-dom";
+import { PanelLeftOpen } from "lucide-react";
 import { useAxios } from "@/hooks/useAxios";
 import { Sidebar } from "./Sidebar/Sidebar";
 import { Navbar } from "./Navbar/Navbar";
@@ -18,6 +19,7 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [desktopCollapsed, setDesktopCollapsed] = useState(false);
     const { user, logout, setSistema } = useAxios();
     useOrdersSocket({ showToast: true });
     const { data: activeSale } = useGetActiveSale();
@@ -48,6 +50,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
     const userRole = user ? getRoleLabel(user.rol_id) : "";
 
     const handleMenuClick = () => setSidebarOpen((prev) => !prev);
+    const handleDesktopToggle = () => setDesktopCollapsed((prev) => !prev);
+
+    const sidebarFullyHidden = desktopSidebarHidden || desktopCollapsed;
 
     return (
         <PrintAgentProvider enabled={import.meta.env.VITE_APP_ENV === "local" || !!config?.printer_enabled}>
@@ -55,23 +60,36 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <div className="flex h-screen bg-stone-50 overflow-hidden">
                 {sidebarOpen && (
                     <div
-                        className={`fixed inset-0 bg-black/50 z-20 ${desktopSidebarHidden ? "" : "lg:hidden"}`}
+                        className={`fixed inset-0 bg-black/50 z-20 ${sidebarFullyHidden ? "" : "lg:hidden"}`}
                         onClick={() => setSidebarOpen(false)}
                     />
                 )}
 
                 <Sidebar
                     open={sidebarOpen}
-                    desktopHidden={desktopSidebarHidden}
+                    desktopHidden={sidebarFullyHidden}
                     onClose={() => setSidebarOpen(false)}
                     onLogout={logout}
                     userName={userName}
                     userRole={userRole}
+                    onDesktopToggle={handleDesktopToggle}
                 />
 
-                <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                    {/* Navbar solo en móvil (en desktop el toggle está en el header de la página) */}
+                <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
                     <Navbar onMenuClick={handleMenuClick} />
+
+                    {/* Botón para reabrir sidebar en desktop cuando está colapsado */}
+                    {sidebarFullyHidden && !desktopSidebarHidden && (
+                        <button
+                            onClick={handleDesktopToggle}
+                            title="Abrir menú"
+                            className="hidden lg:flex absolute top-4 left-4 z-10 items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full shadow-md border border-stone-200 bg-white text-stone-500 hover:text-stone-800 hover:shadow-lg transition-all duration-200 text-xs font-medium"
+                        >
+                            <PanelLeftOpen size={15} />
+                            Menú
+                        </button>
+                    )}
+
                     <main className="flex-1 overflow-y-auto">{children ?? <Outlet />}</main>
                 </div>
             </div>

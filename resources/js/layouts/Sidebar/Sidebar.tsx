@@ -9,9 +9,10 @@ interface SidebarProps {
     onLogout: () => void;
     userName: string;
     userRole: string;
+    onDesktopToggle?: () => void;
 }
 
-export function Sidebar({ open, desktopHidden = false, onClose, onLogout, userName, userRole }: SidebarProps) {
+export function Sidebar({ open, desktopHidden = false, onClose, onLogout, userName, userRole, onDesktopToggle }: SidebarProps) {
     return (
         <aside
             style={{ backgroundColor: "var(--color-sidebar)" }}
@@ -20,7 +21,7 @@ export function Sidebar({ open, desktopHidden = false, onClose, onLogout, userNa
                 ${open ? "translate-x-0" : "-translate-x-full"}
                 ${desktopHidden ? "" : "lg:relative lg:translate-x-0"}`}
         >
-            <SidebarBrand onClose={onClose} />
+            <SidebarBrand onClose={onClose} onDesktopToggle={onDesktopToggle} />
             <SidebarNav onItemClick={onClose} />
             <SidebarUser name={userName} role={userRole} onLogout={onLogout} />
         </aside>

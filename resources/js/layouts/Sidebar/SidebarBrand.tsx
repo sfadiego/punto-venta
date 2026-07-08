@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, PanelLeftClose } from "lucide-react";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { ApisEnum } from "@/configs/apisEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -6,9 +6,10 @@ import { BusinessLogo } from "@/components/BusinessLogo/BusinessLogo";
 
 interface SidebarBrandProps {
     onClose: () => void;
+    onDesktopToggle?: () => void;
 }
 
-export function SidebarBrand({ onClose }: SidebarBrandProps) {
+export function SidebarBrand({ onClose, onDesktopToggle }: SidebarBrandProps) {
     const { data: config } = useGetBusinessConfig();
     const appName = config?.business_name ?? import.meta.env.VITE_APP_NAME;
     const logoUrl = config?.logo_path
@@ -35,6 +36,7 @@ export function SidebarBrand({ onClose }: SidebarBrandProps) {
                     {appName}
                 </span>
             </div>
+            {/* Cerrar en móvil */}
             <button
                 onClick={onClose}
                 className="lg:hidden p-1 rounded transition-colors"
@@ -43,6 +45,19 @@ export function SidebarBrand({ onClose }: SidebarBrandProps) {
             >
                 <X size={18} />
             </button>
+
+            {/* Colapsar en desktop */}
+            {onDesktopToggle && (
+                <button
+                    onClick={onDesktopToggle}
+                    title="Ocultar menú"
+                    aria-label="Ocultar menú"
+                    className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200 opacity-40 hover:opacity-100"
+                    style={{ color: "var(--color-font)" }}
+                >
+                    <PanelLeftClose size={17} />
+                </button>
+            )}
         </div>
     );
 }

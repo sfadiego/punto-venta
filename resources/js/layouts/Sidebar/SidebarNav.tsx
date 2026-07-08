@@ -10,6 +10,7 @@ import {
     Settings,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAxios } from "@/hooks/useAxios";
 
 type Action = Parameters<ReturnType<typeof usePermissions>["can"]>[0];
 
@@ -35,6 +36,8 @@ interface SidebarNavProps {
 
 export function SidebarNav({ onItemClick }: SidebarNavProps) {
     const { can } = usePermissions();
+    const { features } = useAxios();
+    const sellByWeight = features?.sell_by_weight === true;
 
     return (
         <nav className="flex-1 px-3 py-5 overflow-y-auto flex flex-col">
@@ -42,7 +45,15 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
                 {navItems
                     .filter((item) => can(item.permission))
                     .map((item) => (
-                        <SidebarNavItem key={item.path} item={item} onClick={onItemClick} />
+                        <SidebarNavItem
+                            key={item.path}
+                            item={
+                                item.path === "/orders" && sellByWeight
+                                    ? { ...item, label: "Pedidos" }
+                                    : item
+                            }
+                            onClick={onItemClick}
+                        />
                     ))}
             </div>
 
