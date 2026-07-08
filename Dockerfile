@@ -3,6 +3,7 @@ FROM node:22-alpine AS frontend
 
 ARG VITE_APP_URL=https://pos-app-rpts9.ondigitalocean.app
 ARG VITE_APP_NAME=POS
+ARG VITE_APP_ENV=production
 ARG VITE_REVERB_APP_KEY=
 ARG VITE_REVERB_HOST=pos-app-rpts9.ondigitalocean.app
 ARG VITE_REVERB_PORT=443
@@ -10,6 +11,7 @@ ARG VITE_REVERB_SCHEME=https
 
 ENV VITE_APP_URL=$VITE_APP_URL
 ENV VITE_APP_NAME=$VITE_APP_NAME
+ENV VITE_APP_ENV=$VITE_APP_ENV
 ENV VITE_REVERB_APP_KEY=$VITE_REVERB_APP_KEY
 ENV VITE_REVERB_HOST=$VITE_REVERB_HOST
 ENV VITE_REVERB_PORT=$VITE_REVERB_PORT
@@ -25,8 +27,8 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Escribir .env explícitamente para que Vite tome los valores correctos en build time
-RUN printf "VITE_APP_URL=%s\nVITE_APP_NAME=%s\nVITE_REVERB_APP_KEY=%s\nVITE_REVERB_HOST=%s\nVITE_REVERB_PORT=%s\nVITE_REVERB_SCHEME=%s\n" \
-    "$VITE_APP_URL" "$VITE_APP_NAME" "$VITE_REVERB_APP_KEY" "$VITE_REVERB_HOST" "$VITE_REVERB_PORT" "$VITE_REVERB_SCHEME" > .env
+RUN printf "VITE_APP_URL=%s\nVITE_APP_NAME=%s\nVITE_APP_ENV=%s\nVITE_REVERB_APP_KEY=%s\nVITE_REVERB_HOST=%s\nVITE_REVERB_PORT=%s\nVITE_REVERB_SCHEME=%s\n" \
+    "$VITE_APP_URL" "$VITE_APP_NAME" "$VITE_APP_ENV" "$VITE_REVERB_APP_KEY" "$VITE_REVERB_HOST" "$VITE_REVERB_PORT" "$VITE_REVERB_SCHEME" > .env
 
 RUN pnpm run build
 
@@ -55,8 +57,13 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Entrypoint y configs
 COPY docker/php/*.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/*.sh
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/php/php-fpm.conf /usr/local/etc/php-fpm.d/zz-app.conf
 COPY docker/nginx/default.conf /etc/nginx/sites-available/default
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Habilitar OPcache (viene incluido en la imagen php pero deshabilitado por defecto)
+RUN docker-php-ext-enable opcache
 
 WORKDIR /var/www/html
 
