@@ -32,7 +32,7 @@ const actionsColumn: DataTableColumn<IOrder> = {
 const ventaPorPesoActionsColumn: DataTableColumn<IOrder> = {
     accessor: "_acciones" as keyof IOrder,
     title: "",
-    width: 60,
+    width: 110,
     textAlign: "center",
     render: (order: IOrder) => <SaleActions order={order} />,
 };
@@ -47,7 +47,7 @@ export const useOrderList = () => {
 
     const [estatusId, setEstatusId] = useState<string>(defaultStatuses);
 
-    const { dataTableProps, isLoading, refetch, setPage } = useDataTable({
+    const { dataTableProps, isLoading, isFetching, refetch, setPage } = useDataTable({
         service: useIndexOrder,
         payload: {
             sistema_id: sistemaId,
@@ -87,6 +87,7 @@ export const useOrderList = () => {
     return {
         dataTableProps: enhancedDataTableProps,
         isLoading,
+        isRefetching: isFetching && !isLoading,
         refetch,
         sistemaId,
         estatusId,

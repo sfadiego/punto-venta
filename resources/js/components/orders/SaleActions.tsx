@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { Eye, Trash2, Loader } from "lucide-react";
 import { PrintTicketButton } from "./PrintTicketButton";
 import { OrderDetailModal } from "@/pages/Sales/partials/OrderDetailModal";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useOrderActions } from "./useOrderActions";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
-import { Eye } from "lucide-react";
 
 interface SaleActionsProps {
     order: IOrder;
@@ -13,6 +14,8 @@ interface SaleActionsProps {
 export const SaleActions = ({ order }: SaleActionsProps) => {
     const { can } = usePermissions();
     const [detailOpen, setDetailOpen] = useState(false);
+    const { handleDelete, isDeleting } = useOrderActions(order);
+
     const isClosed = order.estatus_pedido_id === OrderStatusEnum.Closed;
 
     return (
@@ -31,6 +34,22 @@ export const SaleActions = ({ order }: SaleActionsProps) => {
             </button>
 
             {can("printTicket") && <PrintTicketButton orderId={order.id} />}
+
+            {can("deleteOrder") && !isClosed && (
+                <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    title="Eliminar orden"
+                    className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400
+                            hover:text-red-600 hover:bg-red-50 border border-transparent
+                            hover:border-red-200 transition-all disabled:opacity-50"
+                >
+                    {isDeleting
+                        ? <Loader size={20} className="animate-spin text-red-500" />
+                        : <Trash2 size={20} />
+                    }
+                </button>
+            )}
 
             <OrderDetailModal
                 isOpen={detailOpen}

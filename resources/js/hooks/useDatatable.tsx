@@ -25,7 +25,7 @@ export const useDataTable = ({
     const [page, setPage] = useState(1);
     const pageSize = [10, 20, 30, 50, 100];
     const [limit, setLimit] = useState(pageSize[0]);
-    const { data, isLoading, refetch } = service({ page, limit, ...payload });
+    const { data, isLoading, isFetching, refetch } = service({ page, limit, ...payload });
 
     useEffect(() => {
         if (!refetchInterval) return;
@@ -92,6 +92,7 @@ export const useDataTable = ({
         pageSize,
         data,
         isLoading,
+        isFetching,
         refetch,
     };
 };

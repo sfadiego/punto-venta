@@ -1,4 +1,4 @@
-import { ReceiptText, Clock } from "lucide-react";
+import { ReceiptText, Clock, Loader } from "lucide-react";
 import { useRecentSales } from "./useRecentSales";
 import { formatOrderTime } from "../useDashboard";
 import { EmptyState } from "@/components/ui/interactions/EmptyState";
@@ -13,7 +13,7 @@ interface RecentSalesProps {
 }
 
 export const RecentSales = ({ onSelect }: RecentSalesProps) => {
-    const { sales, total, isLoading, sistemaId, sellByWeight } = useRecentSales();
+    const { sales, total, isLoading, isRefetching, sistemaId, sellByWeight } = useRecentSales();
 
     return (
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
@@ -21,6 +21,9 @@ export const RecentSales = ({ onSelect }: RecentSalesProps) => {
                 <div className="flex items-center gap-2">
                     <ReceiptText size={16} className="text-stone-400" />
                     <h2 className="font-semibold text-stone-900 text-sm">Ventas del día</h2>
+                    {isRefetching && (
+                        <Loader size={13} className="animate-spin text-amber-400" />
+                    )}
                 </div>
                 {total > 0 && (
                     <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">

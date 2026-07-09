@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DataTable } from "mantine-datatable";
-import { ClipboardList, RefreshCw } from "lucide-react";
+import { ClipboardList, RefreshCw, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
@@ -22,6 +22,7 @@ export default function OrderListPage() {
     const {
         dataTableProps,
         isLoading,
+        isRefetching,
         refetch,
         sistemaId,
         estatusId,
@@ -48,7 +49,12 @@ export default function OrderListPage() {
         <div className="px-5 py-6 max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-stone-900">{sellByWeight ? "Pedidos" : "Órdenes"}</h1>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-2xl font-bold text-stone-900">{sellByWeight ? "Pedidos" : "Órdenes"}</h1>
+                        {isRefetching && (
+                            <Loader size={16} className="animate-spin text-amber-400" />
+                        )}
+                    </div>
                     <p className="text-stone-500 text-sm mt-0.5">
                         {sistemaId ? `Sesión #${sistemaId}` : "Sin caja abierta"}
                     </p>

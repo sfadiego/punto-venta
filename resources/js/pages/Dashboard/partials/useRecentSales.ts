@@ -8,7 +8,7 @@ export const useRecentSales = () => {
     const { sistemaId, features } = useAxios();
     const sellByWeight = features?.sell_by_weight === true;
 
-    const { data, isLoading } = useIndexOrder({
+    const { data, isLoading, isFetching } = useIndexOrder({
         sistema_id: sistemaId,
         estatus_pedido_id: sellByWeight ? undefined : OrderStatusEnum.Closed,
         fecha: today(),
@@ -20,6 +20,7 @@ export const useRecentSales = () => {
         sales: data?.data ?? [],
         total: data?.total ?? 0,
         isLoading,
+        isRefetching: isFetching && !isLoading,
         sistemaId,
         sellByWeight,
     };
