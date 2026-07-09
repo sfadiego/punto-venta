@@ -307,7 +307,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
             setShowPayModal(false);
             onClose();
 
-            if (businessConfig?.printer_name?.trim()) {
+            if (agentConnected && businessConfig?.printer_name?.trim()) {
                 const { isConfirmed } = await Swal.fire({
                     title: "¿Imprimir ticket?",
                     icon: "question",
