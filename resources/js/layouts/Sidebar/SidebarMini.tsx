@@ -63,7 +63,7 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
 
     return (
         <aside
-            className={`${desktopVisible ? "flex" : "flex lg:hidden"} flex-col flex-shrink-0 w-[60px]`}
+            className={`${desktopVisible ? "flex" : "flex lg:hidden"} flex-col flex-shrink-0 w-[60px] overflow-x-hidden`}
             style={{ backgroundColor: "var(--color-sidebar)" }}
         >
             {/* Brand + expand button */}
@@ -92,7 +92,7 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
             </div>
 
             {/* Nav icons */}
-            <nav className="flex-1 flex flex-col items-center gap-1 py-4 px-2 overflow-y-auto">
+            <nav className="flex-1 flex flex-col items-center gap-1 py-4 px-2 overflow-y-auto overflow-x-hidden">
                 {navItems
                     .filter((item) => canAction(item.permission))
                     .map((item) => {

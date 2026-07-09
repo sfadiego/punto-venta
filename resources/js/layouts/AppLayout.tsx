@@ -62,7 +62,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return (
         <PrintAgentProvider enabled={import.meta.env.VITE_APP_ENV === "local" || !!config?.printer_enabled}>
         <LayoutProvider onToggleSidebar={handleMenuClick}>
-            <div className="flex h-screen bg-stone-50 overflow-hidden">
+            <div className="flex h-dvh bg-stone-50 overflow-hidden">
                 {sidebarOpen && (
                     <div
                         className="fixed inset-0 bg-black/50 z-20"
