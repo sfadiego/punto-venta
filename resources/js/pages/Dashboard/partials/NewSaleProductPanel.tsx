@@ -97,7 +97,7 @@ export const NewSaleProductPanel = ({
             ) : products.length === 0 ? (
                 <p className="text-sm text-stone-400 text-center py-8">Sin resultados</p>
             ) : (
-                <div className="flex flex-col sm:grid sm:grid-cols-2 sm:gap-2">
+                <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-1.5">
                     {products.map((product) => (
                         <button
                             key={product.id}
@@ -108,20 +108,21 @@ export const NewSaleProductPanel = ({
                                 border-b border-stone-100 last:border-0 text-left
                                 hover:bg-amber-50 active:bg-amber-100 transition-colors
                                 disabled:opacity-60 disabled:cursor-wait group
-                                sm:flex-col sm:items-start sm:justify-start sm:p-3
+                                sm:flex-col sm:items-start sm:gap-1 sm:p-2.5
                                 sm:rounded-xl sm:border sm:border-stone-100 sm:bg-stone-50
-                                sm:hover:border-amber-300 sm:last:border sm:mb-0
+                                sm:hover:bg-amber-50 sm:hover:border-amber-200 sm:last:border sm:mb-0
                             "
                         >
-                            <p className="flex-1 text-sm font-medium text-stone-800 leading-tight truncate group-hover:text-amber-700
-                                sm:font-semibold sm:line-clamp-2 sm:whitespace-normal">
+                            <p className="flex-1 text-sm font-medium text-stone-800 leading-tight truncate
+                                group-hover:text-amber-700
+                                sm:text-xs sm:font-semibold sm:line-clamp-2 sm:whitespace-normal sm:w-full">
                                 {product.nombre}
                             </p>
-                            <div className="flex items-center gap-2 shrink-0 sm:w-full sm:justify-between sm:mt-auto sm:pt-2">
+                            <div className="flex items-center gap-2 shrink-0 sm:w-full sm:justify-between sm:pt-0.5">
                                 <span className="text-xs text-stone-400 hidden sm:inline">
                                     {UNIDAD_LABELS[product.unidad_medida]}
                                 </span>
-                                <span className="text-sm font-bold text-amber-600">
+                                <span className="text-sm font-bold text-amber-600 sm:text-xs sm:font-bold">
                                     ${product.precio.toFixed(2)}
                                 </span>
                             </div>
