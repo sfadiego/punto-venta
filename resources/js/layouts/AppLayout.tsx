@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import { useMatch } from "react-router-dom";
 import { useAxios } from "@/hooks/useAxios";
 import { Sidebar } from "./Sidebar/Sidebar";
-import { Navbar } from "./Navbar/Navbar";
+import { SidebarMini } from "./Sidebar/SidebarMini";
 import { LayoutProvider } from "@/contexts/LayoutContext";
 import { PrintAgentProvider } from "@/contexts/PrintAgentContext";
 import { useGetActiveSale } from "@/services/useOpenSalesService";
@@ -51,7 +51,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
     const handleMenuClick = () => setSidebarOpen((prev) => !prev);
     const handleDesktopToggle = () => setDesktopCollapsed((prev) => !prev);
 
-    const sidebarFullyHidden = desktopSidebarHidden || desktopCollapsed;
+    // Desktop sidebar is hidden either because we're on TakeOrder route or user collapsed it
+    const sidebarDesktopHidden = desktopSidebarHidden || desktopCollapsed;
+
+    // Mini rail: visible on all screen sizes unless on TakeOrder route.
+    // On desktop it's hidden when the full sidebar is expanded (CSS lg:hidden via prop).
+    // On mobile it's always visible as the primary nav.
+    const handleMiniExpand = desktopCollapsed ? handleDesktopToggle : handleMenuClick;
 
     return (
         <PrintAgentProvider enabled={import.meta.env.VITE_APP_ENV === "local" || !!config?.printer_enabled}>
@@ -59,14 +65,24 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <div className="flex h-screen bg-stone-50 overflow-hidden">
                 {sidebarOpen && (
                     <div
-                        className={`fixed inset-0 bg-black/50 z-20 ${sidebarFullyHidden ? "" : "lg:hidden"}`}
+                        className="fixed inset-0 bg-black/50 z-20"
                         onClick={() => setSidebarOpen(false)}
+                    />
+                )}
+
+                {/* Icon rail — always visible except on TakeOrder route */}
+                {!desktopSidebarHidden && (
+                    <SidebarMini
+                        userName={userName}
+                        desktopVisible={desktopCollapsed}
+                        onExpand={handleMiniExpand}
+                        onLogout={logout}
                     />
                 )}
 
                 <Sidebar
                     open={sidebarOpen}
-                    desktopHidden={sidebarFullyHidden}
+                    desktopHidden={sidebarDesktopHidden}
                     onClose={() => setSidebarOpen(false)}
                     onLogout={logout}
                     userName={userName}
@@ -75,10 +91,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 />
 
                 <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                    <Navbar
-                        onMenuClick={sidebarFullyHidden && !desktopSidebarHidden ? handleDesktopToggle : handleMenuClick}
-                        showOnDesktop={sidebarFullyHidden && !desktopSidebarHidden}
-                    />
                     <main className="flex-1 overflow-y-auto">{children ?? <Outlet />}</main>
                 </div>
             </div>
