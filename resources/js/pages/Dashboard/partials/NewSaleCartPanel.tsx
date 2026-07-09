@@ -50,7 +50,7 @@ export const NewSaleCartPanel = ({
             )}
         </div>
 
-        <div className="flex-1 overflow-y-auto pb-2">
+        <div className="flex-1 min-h-0 overflow-y-auto pb-2">
             {cart.length === 0 ? (
                 <p className="text-xs text-stone-400 text-center pt-8">Sin productos</p>
             ) : (

@@ -41,7 +41,7 @@ export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
                         <Loader size={28} className="animate-spin text-amber-400" />
                     </div>
                 ) : (
-                    <div className="flex flex-col sm:flex-row flex-1 overflow-hidden">
+                    <div className="flex flex-col sm:flex-row flex-1 min-h-0 overflow-hidden">
                         <NewSaleProductPanel
                             search={search}
                             setSearch={setSearch}
