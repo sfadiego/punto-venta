@@ -32,7 +32,7 @@ export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 overflow-hidden">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-7xl max-h-[92vh] flex flex-col overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-7xl flex flex-col overflow-hidden max-h-[calc(100dvh-2rem)]">
 
                 <NewSaleModalHeader isResuming={isResuming} onClose={handleClose} />
 
