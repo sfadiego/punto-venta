@@ -81,7 +81,8 @@ class AuthController extends Controller
             }
         }
 
-        $result['features'] = $tenant?->tipo_negocio->features() ?? BusinessTypeEnum::Restaurante->features();
+        $result['features']     = $tenant?->tipo_negocio->features() ?? BusinessTypeEnum::Restaurante->features();
+        $result['tenant_slug']  = $tenant?->slug;
 
         return Response::success($result);
     }

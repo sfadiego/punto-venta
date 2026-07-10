@@ -73,10 +73,13 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         window.location.replace(slug ? `/${slug}/login` : "/login");
     }, []);
 
-    const saveAuth = useCallback((accessToken: string, user: IUser, features: IBusinessFeatures) => {
+    const saveAuth = useCallback((accessToken: string, user: IUser, features: IBusinessFeatures, tenantSlug?: string | null) => {
         configureAxiosHeaders(accessToken);
         configUser(user);
         configFeatures(features);
+        if (tenantSlug) {
+            localStorage.setItem("tenantSlug", tenantSlug);
+        }
     }, []);
 
     // Sincroniza el header de axios cuando el token cambia

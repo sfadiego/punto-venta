@@ -8,7 +8,7 @@ export interface IAuthContextType {
     user: IUser | null;
     features: IBusinessFeatures | null;
     axiosApi: AxiosInstance;
-    saveAuth: (accessToken: string, user: IUser, features: IBusinessFeatures) => void;
+    saveAuth: (accessToken: string, user: IUser, features: IBusinessFeatures, tenantSlug?: string | null) => void;
     sistemaId: number | null;
     logout: () => void;
     setSistema: (sistema: number | null) => void;

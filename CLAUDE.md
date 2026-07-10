@@ -164,6 +164,10 @@ no hacer peticiones directamete a axios, utiliza la capa de servicios como esta 
 - Invalidar queries con `queryClient.invalidateQueries` tras mutaciones.
 - Cuando una mutación necesita un ID dinámico **en la URL** (no solo en el body), usar `useMutation` + `axiosPUT` / `axiosDELETE` directamente dentro del service, ya que `usePUT`/`useDELETE` fijan la URL en el momento de la llamada al hook.
 
+### typescript
+- Cada que se modifique una funcion existente actualiza las interfaces si es necesario para evitar errores
+- revisa los errores despues de cada modificacion utilizando Lint u otra herramienta para evitar errores de typescript o errores de sintaxis.
+
 #### `useOrderService.ts` — hooks disponibles
 
 | Hook | Método | Endpoint |

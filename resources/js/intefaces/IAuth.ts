@@ -11,4 +11,5 @@ export interface IAuthResponse {
     user: IUser;
     access_token: string;
     features: IBusinessFeatures;
+    tenant_slug: string | null;
 }
