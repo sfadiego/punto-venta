@@ -3,6 +3,13 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { SubscriptionStatusEnum } from "@/enums/SubscriptionStatusEnum";
 import { SubscriptionPlanEnum, PLAN_LABELS } from "@/enums/SubscriptionPlanEnum";
 
+export interface IPaymentInfo {
+    bank: string;
+    account: string;
+    holder: string;
+    concept: string;
+}
+
 export interface ISubscriptionDetail {
     status: SubscriptionStatusEnum;
     plan: SubscriptionPlanEnum | null;
@@ -10,6 +17,7 @@ export interface ISubscriptionDetail {
     expires_at: string | null;
     business_name: string;
     payment_whatsapp: string | null;
+    payment_info: IPaymentInfo | null;
 }
 
 export const useSubscriptionPage = () => {

@@ -61,19 +61,22 @@ class AuthController extends Controller
             }
         }
 
-        // Bloquear acceso si la suscripción está vencida o nunca fue activada
         $tenant = $result['user']->tenant;
-        if ($tenant) {
-            $sub = $tenant->latestSubscription;
-            $status = $sub?->status ?? SubscriptionStatusEnum::Pending->value;
 
-            if ($status === SubscriptionStatusEnum::Expired->value || $status === SubscriptionStatusEnum::Pending->value) {
+        if ($tenant) {
+            $status = $tenant->subscription_status;
+
+            if (in_array($status, [SubscriptionStatusEnum::Expired->value, SubscriptionStatusEnum::Pending->value])) {
                 $result['user']->tokens()->latest()->first()?->delete();
+
+                $message = $status === SubscriptionStatusEnum::Pending->value
+                    ? 'Este negocio aún no tiene una suscripción activa. Contacta al administrador para activar tu plan.'
+                    : 'La suscripción de este negocio ha vencido. Contacta al administrador para renovarla.';
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Suscripción inactiva. Contacta al administrador para renovarla.',
-                    'code' => 'SUBSCRIPTION_EXPIRED',
+                    'message' => $message,
+                    'code'    => 'SUBSCRIPTION_EXPIRED',
                 ], 403);
             }
         }

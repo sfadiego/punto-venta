@@ -100,11 +100,8 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
                     logout();
                 }
 
-                // Solo cerrar sesión por suscripción vencida si ya había una sesión activa.
-                // Durante el login no hay token, así que el error llega al catch del formulario.
-                if (status === 403 && code === ApiErrorCodeEnum.SubscriptionExpired && isAuthenticated) {
-                    logout();
-                }
+                // SUBSCRIPTION_EXPIRED no cierra sesión — el usuario permanece logueado
+                // y ve el banner con el link para regularizar su pago.
                 return Promise.reject(error);
             },
         );

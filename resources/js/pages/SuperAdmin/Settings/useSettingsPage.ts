@@ -1,5 +1,22 @@
+import { useEffect } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { useGetAppSettings, useUpdateAppSettings } from "@/services/useAppSettingService";
+import { useGetAppSettings, useUpdateAppSettings, IPaymentInfo } from "@/services/useAppSettingService";
+
+const paymentSchema = Yup.object({
+    bank:    Yup.string().required("Requerido"),
+    account: Yup.string().required("Requerido"),
+    holder:  Yup.string().required("Requerido"),
+    concept: Yup.string(),
+});
+
+const defaultPayment = (info?: IPaymentInfo | null) => ({
+    bank:    info?.bank    ?? "",
+    account: info?.account ?? "",
+    holder:  info?.holder  ?? "",
+    concept: info?.concept ?? "",
+});
 
 export const useSettingsPage = () => {
     const { data: settings, isLoading } = useGetAppSettings();
@@ -15,5 +32,27 @@ export const useSettingsPage = () => {
         );
     };
 
-    return { settings, isLoading, saving, toggleLogoUpload };
+    const paymentFormik = useFormik({
+        initialValues: defaultPayment(settings?.payment_info),
+        validationSchema: paymentSchema,
+        enableReinitialize: false,
+        onSubmit: (values, { setSubmitting }) => {
+            update(
+                { payment_info: values },
+                {
+                    onSuccess: () => toast.success("Datos de pago guardados"),
+                    onError:   () => toast.error("Error al guardar"),
+                    onSettled: () => setSubmitting(false),
+                }
+            );
+        },
+    });
+
+    useEffect(() => {
+        if (settings?.payment_info) {
+            paymentFormik.resetForm({ values: defaultPayment(settings.payment_info) });
+        }
+    }, [settings?.payment_info?.account]);
+
+    return { settings, isLoading, saving, toggleLogoUpload, paymentFormik };
 };

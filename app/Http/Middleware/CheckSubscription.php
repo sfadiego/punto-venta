@@ -9,6 +9,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckSubscription
 {
+    private const ALLOWED_PATHS = [
+        'api/admin/config/subscription-status',
+    ];
+
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
@@ -17,12 +21,18 @@ class CheckSubscription
             return $next($request);
         }
 
+        foreach (self::ALLOWED_PATHS as $path) {
+            if ($request->is($path)) {
+                return $next($request);
+            }
+        }
+
         $status = $user->tenant->subscription_status;
 
         if ($status === SubscriptionStatusEnum::Expired->value || $status === SubscriptionStatusEnum::Pending->value) {
             return response()->json([
                 'success' => false,
-                'message' => 'Suscripción inactiva. Contacta al administrador.',
+                'message' => 'Tu suscripción no está activa. Revisa el estado de tu plan o contacta al administrador.',
                 'code' => 'SUBSCRIPTION_EXPIRED',
             ], 403);
         }

@@ -5,8 +5,16 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 const url = ApiRoutes.SuperAdminSettings;
 const QUERY_KEY = "app-settings";
 
+export interface IPaymentInfo {
+    bank: string;
+    account: string;
+    holder: string;
+    concept: string;
+}
+
 export interface IAppSettings {
     logo_upload_enabled: boolean;
+    payment_info: IPaymentInfo | null;
 }
 
 export const useGetAppSettings = () =>
