@@ -87,9 +87,11 @@ class SubscriptionModel extends Model
     public static function createFromPlan(int $tenantId, SubscriptionPlanEnum $plan, Carbon $startsAt, ?float $amount, ?string $notes): self
     {
         // lifetime no tiene fecha de vencimiento real; usamos una fecha muy lejana
-        $expiresAt = $plan->isLifetime()
-            ? Carbon::parse('2099-12-31')
-            : $startsAt->copy()->addMonths($plan->months());
+        $expiresAt = match (true) {
+            $plan->isLifetime()    => Carbon::parse('2099-12-31'),
+            $plan->isWeekBased()   => $startsAt->copy()->addWeeks($plan->weeks()),
+            default                => $startsAt->copy()->addMonths($plan->months()),
+        };
 
         return self::create([
             self::TENANT_ID => $tenantId,

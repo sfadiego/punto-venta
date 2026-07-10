@@ -17,8 +17,7 @@ class CheckSubscription
             return $next($request);
         }
 
-        $sub = $user->tenant->latestSubscription;
-        $status = $sub?->status ?? SubscriptionStatusEnum::Pending->value;
+        $status = $user->tenant->subscription_status;
 
         if ($status === SubscriptionStatusEnum::Expired->value || $status === SubscriptionStatusEnum::Pending->value) {
             return response()->json([

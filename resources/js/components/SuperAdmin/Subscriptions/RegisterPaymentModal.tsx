@@ -9,19 +9,9 @@ interface RegisterPaymentModalProps {
 }
 
 export const RegisterPaymentModal = ({ tenant, onClose }: RegisterPaymentModalProps) => {
-    const { formik } = useRegisterPaymentModal(tenant, onClose);
+    const { formik, isLifetime, expiresAt } = useRegisterPaymentModal(tenant, onClose);
 
     if (!tenant) return null;
-
-    const isLifetime = formik.values.plan === SubscriptionPlanEnum.Lifetime;
-
-    const expiresAt = (() => {
-        if (isLifetime || !formik.values.starts_at) return null;
-        const months = { monthly: 1, biannual: 6, annual: 12 }[formik.values.plan as string] ?? 0;
-        const d = new Date(formik.values.starts_at);
-        d.setMonth(d.getMonth() + months);
-        return d.toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
-    })();
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -45,7 +35,7 @@ export const RegisterPaymentModal = ({ tenant, onClose }: RegisterPaymentModalPr
                         <select
                             name="plan"
                             value={formik.values.plan}
-                            onChange={formik.handleChange}
+                            onChange={(e) => formik.setFieldValue("plan", e.target.value)}
                             className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
                         >
                             {Object.values(SubscriptionPlanEnum).map((p) => (

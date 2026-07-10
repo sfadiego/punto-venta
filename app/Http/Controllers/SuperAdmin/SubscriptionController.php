@@ -20,7 +20,6 @@ class SubscriptionController extends Controller
     public function index(): JsonResponse
     {
         $tenants = BusinessConfigModel::withoutTrashed()
-            ->with('latestSubscription')
             ->withCount('users')
             ->orderBy(BusinessConfigModel::BUSINESS_NAME)
             ->get();
@@ -33,10 +32,10 @@ class SubscriptionController extends Controller
      */
     public function store(BusinessConfigModel $tenant, SubscriptionStoreRequest $request): JsonResponse
     {
-        $plan = SubscriptionPlanEnum::from($request->plan);
+        $plan     = SubscriptionPlanEnum::from($request->plan);
         $startsAt = Carbon::parse($request->starts_at);
 
-        SubscriptionModel::createFromPlan(
+        $log = SubscriptionModel::createFromPlan(
             tenantId: $tenant->id,
             plan: $plan,
             startsAt: $startsAt,
@@ -44,7 +43,12 @@ class SubscriptionController extends Controller
             notes: $request->notes,
         );
 
-        return Response::success($this->formatTenant($tenant->fresh('latestSubscription')));
+        $tenant->update([
+            BusinessConfigModel::SUBSCRIPTION_PLAN       => $plan->value,
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => $log->expires_at,
+        ]);
+
+        return Response::success($this->formatTenant($tenant->fresh()));
     }
 
     /**
@@ -62,19 +66,21 @@ class SubscriptionController extends Controller
 
     private function formatTenant(BusinessConfigModel $tenant): array
     {
-        $sub = $tenant->latestSubscription;
+        $expiresAt = $tenant->subscription_expires_at;
 
         return [
-            'id' => $tenant->id,
-            'business_name' => $tenant->business_name,
-            'slug' => $tenant->slug,
-            'activo' => $tenant->activo,
-            'primary_color' => $tenant->primary_color,
-            'users_count' => $tenant->users_count,
-            'subscription' => $sub ? $this->formatSubscription($sub) : null,
-            'subscription_status' => $sub
-                ? $sub->status
-                : SubscriptionStatusEnum::Pending->value,
+            'id'                   => $tenant->id,
+            'business_name'        => $tenant->business_name,
+            'slug'                 => $tenant->slug,
+            'activo'               => $tenant->activo,
+            'primary_color'        => $tenant->primary_color,
+            'users_count'          => $tenant->users_count,
+            'subscription_plan'    => $tenant->subscription_plan,
+            'subscription_expires_at' => $expiresAt?->toDateString(),
+            'subscription_status'  => $tenant->subscription_status,
+            'days_remaining'       => $expiresAt
+                ? (int) Carbon::today()->diffInDays($expiresAt, false)
+                : null,
         ];
     }
 

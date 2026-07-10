@@ -21,6 +21,8 @@ export interface ITenantWithSubscription {
     activo: boolean;
     primary_color: string;
     users_count: number;
-    subscription: ISubscription | null;
+    subscription_plan: SubscriptionPlanEnum | null;
+    subscription_expires_at: string | null;
     subscription_status: SubscriptionStatusEnum;
+    days_remaining: number | null;
 }

@@ -52,45 +52,37 @@ export const SubscriptionTable = ({ records, isLoading, onRegisterPayment }: Sub
             },
         },
         {
-            accessor: "subscription.plan",
+            accessor: "subscription_plan",
             title: "Plan",
             render: (row) =>
-                row.subscription
-                    ? <span className="text-sm text-slate-600">{PLAN_LABELS[row.subscription.plan]}</span>
+                row.subscription_plan
+                    ? <span className="text-sm text-slate-600">{PLAN_LABELS[row.subscription_plan]}</span>
                     : <span className="text-slate-300">—</span>,
         },
         {
-            accessor: "subscription.expires_at",
+            accessor: "subscription_expires_at",
             title: "Vence",
             render: (row) => {
-                if (!row.subscription) return <span className="text-slate-300">—</span>;
-                if (row.subscription.is_lifetime) {
+                if (!row.subscription_expires_at) return <span className="text-slate-300">—</span>;
+                if (row.subscription_plan === "lifetime") {
                     return (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
                             ∞ Indefinida
                         </span>
                     );
                 }
-                const days = row.subscription.days_remaining!;
+                const days = row.days_remaining ?? 0;
                 const label = days >= 0 ? `${days}d restantes` : `Hace ${Math.abs(days)}d`;
                 const color = days > 7 ? "text-slate-400" : days >= 0 ? "text-amber-600" : "text-red-500";
                 return (
                     <div>
                         <p className="text-sm text-slate-700">
-                            {new Date(row.subscription.expires_at!).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}
+                            {new Date(row.subscription_expires_at).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}
                         </p>
                         <p className={`text-xs ${color}`}>{label}</p>
                     </div>
                 );
             },
-        },
-        {
-            accessor: "subscription.amount",
-            title: "Último pago",
-            render: (row) =>
-                row.subscription?.amount != null
-                    ? <span className="text-sm text-slate-600">${row.subscription.amount.toFixed(2)}</span>
-                    : <span className="text-slate-300">—</span>,
         },
         {
             accessor: "_acciones",

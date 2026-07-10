@@ -5,6 +5,7 @@ import { BusinessInfoSection } from "./partials/BusinessInfoSection";
 import { PrinterSection } from "./partials/PrinterSection";
 import { DeliverySection } from "./partials/DeliverySection";
 import { AdminNav } from "./partials/AdminNav";
+import { SubscriptionInfoSection } from "@/components/Admin/SubscriptionInfoSection";
 import { useAdminPage } from "./useAdminPage";
 
 function AdminPage() {
@@ -40,6 +41,7 @@ function AdminPage() {
                         {sellByWeight && (
                             <div id="domicilio"><DeliverySection config={config} /></div>
                         )}
+                        <div id="suscripcion"><SubscriptionInfoSection /></div>
                     </div>
                 </div>
             )}

@@ -27,6 +27,48 @@ pnpm run dev
 php artisan reverb:start
 ```
 
+### Probar en tablet / dispositivo móvil (misma red WiFi)
+
+**1. Obtener la IP local del Mac:**
+```bash
+ipconfig getifaddr en0
+# ejemplo: 192.168.1.112
+```
+
+**2. Editar `.env`** — reemplazar `localhost` / `127.0.0.1` con la IP obtenida:
+```
+APP_URL=http://192.168.1.112:8000
+VITE_APP_URL=http://192.168.1.112:8000
+VITE_REVERB_HOST=192.168.1.112
+```
+
+**3. Editar `vite.config.js`** — sección `server`:
+```js
+server: {
+    host: "0.0.0.0",
+    port: 5173,
+    hmr: { host: "192.168.1.112" },
+},
+```
+
+**4. Levantar servicios:**
+```bash
+# Terminal 1
+php artisan serve --host=0.0.0.0 --port=8000
+
+# Terminal 2
+pnpm dev
+
+# Terminal 3 (si usas WebSocket)
+php artisan reverb:start
+```
+
+**5. Abrir en la tablet:** `http://192.168.1.112:8000`
+
+> **Al terminar las pruebas**, revertir `.env` y `vite.config.js` a sus valores originales (`localhost` / `127.0.0.1`).
+
+---
+
 ## Docker
 
 El contenedor incluye nginx + php-fpm + **Reverb** gestionados por Supervisor. No se necesita un proceso externo para WebSocket en producción.

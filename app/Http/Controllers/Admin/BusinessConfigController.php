@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BusinessConfigUpdateRequest;
 use App\Models\AppSettingModel;
 use App\Models\ProductImageModel;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
@@ -76,18 +77,17 @@ class BusinessConfigController extends Controller
 
     public function subscriptionStatus(Request $request): JsonResponse
     {
-        $tenant = $request->user()->tenant->load('latestSubscription');
-        $sub = $tenant->latestSubscription;
-
-        if (! $sub) {
-            return Response::success(['status' => SubscriptionStatusEnum::Pending->value, 'days_remaining' => null, 'is_lifetime' => false]);
-        }
+        $tenant = $request->user()->tenant;
 
         return Response::success([
-            'status' => $sub->status,
-            'days_remaining' => $sub->days_remaining,
-            'is_lifetime' => $sub->is_lifetime,
-            'expires_at' => $sub->is_lifetime ? null : $sub->expires_at->toDateString(),
+            'status'           => $tenant->subscription_status,
+            'plan'             => $tenant->subscription_plan,
+            'days_remaining'   => $tenant->subscription_expires_at
+                ? (int) Carbon::today()->diffInDays($tenant->subscription_expires_at, false)
+                : null,
+            'expires_at'       => $tenant->subscription_expires_at?->toDateString(),
+            'business_name'    => $tenant->business_name,
+            'payment_whatsapp' => env('PAYMENT_WHATSAPP'),
         ]);
     }
 }

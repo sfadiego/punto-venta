@@ -18,6 +18,7 @@ const CloseSalesPage   = lazy(() => import("@/pages/Sales/partials/CloseSales/Cl
 const SalesPage        = lazy(() => import("@/pages/Sales/SalesPage"));
 const StatisticsPage   = lazy(() => import("@/pages/Statistics/StatisticsPage"));
 const AdminPage        = lazy(() => import("@/pages/Admin/AdminPage"));
+const SubscriptionPage = lazy(() => import("@/pages/Subscription/SubscriptionPage"));
 
 const PageLoader = () => (
     <div className="flex items-center justify-center h-full min-h-32">
@@ -43,7 +44,8 @@ const privateRoutes: IRoute[] = [
     { path: "/close-sales",    element: <CloseSalesPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
     { path: "/sales",          element: <SalesPage />,      private: true, hasPermission: allow(RoleEnum.Admin) },
     { path: "/statistics",     element: <StatisticsPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
-    { path: "/admin",          element: <AdminPage />,      private: true, hasPermission: allow(RoleEnum.Admin) },
+    { path: "/admin",          element: <AdminPage />,        private: true, hasPermission: allow(RoleEnum.Admin) },
+    { path: "/subscription",   element: <SubscriptionPage />, private: true },
 ];
 
 export const router = createBrowserRouter([

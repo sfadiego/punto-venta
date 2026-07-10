@@ -8,6 +8,7 @@ export enum AdminRoutes {
     Statistics   = "/statistics",
     SaleList     = "/sales",
     Admin        = "/admin",
+    Subscription = "/subscription",
     TenantLogin  = "/:slug/login",
 }
 

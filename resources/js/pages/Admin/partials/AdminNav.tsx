@@ -1,10 +1,11 @@
-import { Bike, Image, Palette, Phone, Printer } from "lucide-react";
+import { Bike, CreditCard, Image, Palette, Phone, Printer } from "lucide-react";
 
 const BASE_SECTIONS = [
-    { id: "logo",       label: "Logo",             icon: <Image size={20} /> },
-    { id: "colores",    label: "Colores",          icon: <Palette size={20} /> },
-    { id: "negocio",    label: "Info del negocio", icon: <Phone size={20} /> },
-    { id: "impresora",  label: "Impresora",        icon: <Printer size={20} /> },
+    { id: "logo",         label: "Logo",             icon: <Image size={20} /> },
+    { id: "colores",      label: "Colores",          icon: <Palette size={20} /> },
+    { id: "negocio",      label: "Info del negocio", icon: <Phone size={20} /> },
+    { id: "impresora",    label: "Impresora",        icon: <Printer size={20} /> },
+    { id: "suscripcion",  label: "Suscripción",      icon: <CreditCard size={20} /> },
 ];
 
 const DELIVERY_SECTION = { id: "domicilio", label: "Domicilio", icon: <Bike size={14} /> };

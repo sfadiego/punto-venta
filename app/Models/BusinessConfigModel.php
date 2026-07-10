@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\BusinessTypeEnum;
+use App\Enums\SubscriptionStatusEnum;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -56,10 +58,17 @@ class BusinessConfigModel extends Model
 
     const COSTO_DOMICILIO_DEFAULT = 'costo_domicilio_default';
 
+    const SUBSCRIPTION_PLAN       = 'subscription_plan';
+
+    const SUBSCRIPTION_EXPIRES_AT = 'subscription_expires_at';
+
+    const GRACE_DAYS = 3;
+
     protected $casts = [
         self::ACTIVO => 'boolean',
         self::PRINTER_ENABLED => 'boolean',
         self::TIPO_NEGOCIO => BusinessTypeEnum::class,
+        self::SUBSCRIPTION_EXPIRES_AT => 'date',
     ];
 
     protected $fillable = [
@@ -84,7 +93,33 @@ class BusinessConfigModel extends Model
         self::LOGO_ICON,
         self::TIPO_NEGOCIO,
         self::COSTO_DOMICILIO_DEFAULT,
+        self::SUBSCRIPTION_PLAN,
+        self::SUBSCRIPTION_EXPIRES_AT,
     ];
+
+    public function getSubscriptionStatusAttribute(): string
+    {
+        if (! $this->subscription_expires_at) {
+            return SubscriptionStatusEnum::Pending->value;
+        }
+
+        if ($this->subscription_plan === 'lifetime') {
+            return SubscriptionStatusEnum::Active->value;
+        }
+
+        $now     = Carbon::today();
+        $expires = Carbon::parse($this->subscription_expires_at);
+
+        if ($expires->gte($now)) {
+            return SubscriptionStatusEnum::Active->value;
+        }
+
+        if ($expires->gte($now->copy()->subDays(self::GRACE_DAYS))) {
+            return SubscriptionStatusEnum::Grace->value;
+        }
+
+        return SubscriptionStatusEnum::Expired->value;
+    }
 
     public function users(): HasMany
     {
