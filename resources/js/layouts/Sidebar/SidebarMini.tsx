@@ -9,6 +9,7 @@ import {
     ShoppingBag,
     Coffee,
     Settings,
+    Users,
     LucideIcon,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -122,27 +123,50 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
                         );
                     })}
 
-                {canAction("viewAdmin") && (
+                {(canAction("viewUsers") || canAction("viewAdmin")) && (
                     <div className="mt-auto pt-3 w-full flex flex-col items-center gap-1 border-t border-white/10">
-                        <MiniTooltipItem label="Configuración" side="right">
-                            <NavLink
-                                to="/admin"
-                                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
-                                style={({ isActive }) =>
-                                    isActive
-                                        ? {
-                                              backgroundColor: "var(--color-primary)",
-                                              color: "var(--color-font)",
-                                          }
-                                        : {
-                                              color: "color-mix(in srgb, var(--color-font) 60%, transparent)",
-                                          }
-                                }
-                                aria-label="Configuración"
-                            >
-                                <Settings size={18} />
-                            </NavLink>
-                        </MiniTooltipItem>
+                        {canAction("viewUsers") && (
+                            <MiniTooltipItem label="Usuarios" side="right">
+                                <NavLink
+                                    to="/users"
+                                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+                                    style={({ isActive }) =>
+                                        isActive
+                                            ? {
+                                                  backgroundColor: "var(--color-primary)",
+                                                  color: "var(--color-font)",
+                                              }
+                                            : {
+                                                  color: "color-mix(in srgb, var(--color-font) 60%, transparent)",
+                                              }
+                                    }
+                                    aria-label="Usuarios"
+                                >
+                                    <Users size={18} />
+                                </NavLink>
+                            </MiniTooltipItem>
+                        )}
+                        {canAction("viewAdmin") && (
+                            <MiniTooltipItem label="Configuración" side="right">
+                                <NavLink
+                                    to="/admin"
+                                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+                                    style={({ isActive }) =>
+                                        isActive
+                                            ? {
+                                                  backgroundColor: "var(--color-primary)",
+                                                  color: "var(--color-font)",
+                                              }
+                                            : {
+                                                  color: "color-mix(in srgb, var(--color-font) 60%, transparent)",
+                                              }
+                                    }
+                                    aria-label="Configuración"
+                                >
+                                    <Settings size={18} />
+                                </NavLink>
+                            </MiniTooltipItem>
+                        )}
                     </div>
                 )}
             </nav>
