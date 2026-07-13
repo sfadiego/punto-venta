@@ -108,6 +108,46 @@ Migraciones relevantes recientes:
 - `2026_07_07_151043_drop_delivery_paid_by_from_business_config_table` — elimina `delivery_paid_by` de `business_config`.
 - `2026_07_08_000001_add_printer_enabled_to_business_config_table` — agrega `printer_enabled` (boolean, default false) a `business_config`.
 
+## Calidad de código
+
+### Pre-commit hook
+
+El proyecto incluye un hook de Git que verifica las reglas de `CLAUDE.md` antes de cada commit: TypeScript sin errores, ESLint, sin importaciones directas de axios en pages/components, e interfaces de dominio en `models/`.
+
+Se activa automáticamente al instalar dependencias:
+
+```bash
+pnpm install
+```
+
+Si el hook no se activó (por ejemplo, clonaste antes de que existiera), actívalo manualmente:
+
+```bash
+git config core.hooksPath .hooks
+```
+
+### CI en Pull Requests
+
+Cada PR a `main` o `develop` ejecuta automáticamente en GitHub Actions:
+
+| Check | Qué verifica |
+|---|---|
+| **TypeScript** | `tsc --noEmit` — sin errores de tipos |
+| **ESLint** | Reglas de estilo + reglas de CLAUDE.md |
+| **Reglas estructurales** | Nombres de archivos, axios directo, interfaces fuera de `models/`, inline styles |
+
+### Reglas ESLint de CLAUDE.md
+
+Las siguientes prácticas bloquean el lint:
+
+| Regla | Alternativa correcta |
+|---|---|
+| `import ... from 'bootstrap-icons'` | Usar `lucide-react` |
+| `import ... from 'zustand'` | Usar TanStack Query |
+| `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<td>`, `<th>` en JSX | Usar el componente `DataTable` |
+
+---
+
 ## Flujo de ramas (Git)
 
 ```

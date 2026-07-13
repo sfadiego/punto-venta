@@ -1,5 +1,6 @@
 export enum ApiRoutes {
     Auth = "/api/auth",
+    Logout = "/api/auth/logout",
     Orders = "/api/order",
     OrderSalesByCategory = "/api/order/sales-by-category",
     Category = "/api/category",

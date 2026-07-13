@@ -3,6 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { SubscriptionPlanEnum } from "@/enums/SubscriptionPlanEnum";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { ITenantWithSubscription } from "@/models/ISubscription";
 import { useRegisterPayment } from "@/services/useSubscriptionService";
 
@@ -68,7 +69,9 @@ export const useRegisterPaymentModal = (tenant: ITenantWithSubscription | null, 
                 toast.success("Pago registrado correctamente.");
                 resetForm();
                 onClose();
-            } catch {
+            } catch (error) {
+
+                logUnexpectedError(error, "useRegisterPaymentModal.onSubmit");
                 toast.error("No se pudo registrar el pago.");
             } finally {
                 setSubmitting(false);

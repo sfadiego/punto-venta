@@ -52,13 +52,15 @@ class BusinessConfigModel extends Model
 
     const PRINTER_ENABLED = 'printer_enabled';
 
+    const MENU_ENABLED = 'menu_enabled';
+
     const LOGO_ICON = 'logo_icon';
 
     const TIPO_NEGOCIO = 'tipo_negocio';
 
     const COSTO_DOMICILIO_DEFAULT = 'costo_domicilio_default';
 
-    const SUBSCRIPTION_PLAN       = 'subscription_plan';
+    const SUBSCRIPTION_PLAN = 'subscription_plan';
 
     const SUBSCRIPTION_EXPIRES_AT = 'subscription_expires_at';
 
@@ -67,6 +69,7 @@ class BusinessConfigModel extends Model
     protected $casts = [
         self::ACTIVO => 'boolean',
         self::PRINTER_ENABLED => 'boolean',
+        self::MENU_ENABLED => 'boolean',
         self::TIPO_NEGOCIO => BusinessTypeEnum::class,
         self::SUBSCRIPTION_EXPIRES_AT => 'date',
     ];
@@ -90,6 +93,7 @@ class BusinessConfigModel extends Model
         self::PRINTER_NAME,
         self::PRINTER_HOST,
         self::PRINTER_ENABLED,
+        self::MENU_ENABLED,
         self::LOGO_ICON,
         self::TIPO_NEGOCIO,
         self::COSTO_DOMICILIO_DEFAULT,
@@ -107,7 +111,7 @@ class BusinessConfigModel extends Model
             return SubscriptionStatusEnum::Active->value;
         }
 
-        $now     = Carbon::today();
+        $now = Carbon::today();
         $expires = Carbon::parse($this->subscription_expires_at);
 
         if ($expires->gte($now)) {

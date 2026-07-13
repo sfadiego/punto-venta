@@ -30,6 +30,7 @@ class BusinessConfigUpdateRequest extends FormRequest
             'printer_host' => 'nullable|string|max:100',
             'logo_icon' => 'nullable|string|max:50',
             'costo_domicilio_default' => 'nullable|numeric|min:0',
+            'menu_enabled' => 'nullable|boolean',
         ];
     }
 }

@@ -8,13 +8,14 @@ import {
     useRestoreTenant,
 } from "@/services/useSuperAdminService";
 import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { ITenant } from "@/models/ITenant";
 
 export const useTenantList = () => {
     const [status, setStatus] = useState<TenantStatusEnum>(TenantStatusEnum.All);
     const [search, setSearch] = useState("");
 
-    const { data: tenants = [], isLoading } = useListTenants(status);
+    const { data: tenants = [], isLoading, refetch, isRefetching } = useListTenants(status, 30_000);
     const deleteMutation = useDeleteTenant();
     const toggleMutation = useToggleTenant();
     const restoreMutation = useRestoreTenant();
@@ -41,7 +42,8 @@ export const useTenantList = () => {
         try {
             await toggleMutation.mutateAsync(tenant.id);
             toast.success(`Cliente ${action === "activar" ? "activado" : "desactivado"} correctamente.`);
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTenantList.handleToggle");
             toast.error(`No se pudo ${action} el cliente.`);
         }
     };
@@ -60,7 +62,8 @@ export const useTenantList = () => {
         try {
             await restoreMutation.mutateAsync(tenant.id);
             toast.success("Cliente restaurado correctamente.");
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTenantList.handleRestore");
             toast.error("No se pudo restaurar el cliente.");
         }
     };
@@ -79,14 +82,18 @@ export const useTenantList = () => {
         try {
             await deleteMutation.mutateAsync(tenant.id);
             toast.success("Cliente eliminado correctamente.");
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTenantList.handleDelete");
             toast.error("No se pudo eliminar el cliente.");
         }
     };
 
     return {
         tenants: filtered,
+        allTenants: tenants,
         isLoading,
+        isRefetching,
+        refetch,
         status,
         setStatus,
         search,

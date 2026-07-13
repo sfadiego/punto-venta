@@ -7,6 +7,7 @@ import { useModal } from "@/hooks/useModal";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { usePrintTicket } from "@/components/orders/usePrintTicket";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 
 export const usePayModal = (orderId: number, subtotal: number) => {
     const navigate = useNavigate();
@@ -49,7 +50,8 @@ export const usePayModal = (orderId: number, subtotal: number) => {
             }
 
             navigate("/");
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "usePayModal.handlePay");
             toast.error("Error al cerrar la orden");
         }
     };

@@ -13,7 +13,8 @@ export const useIndexProducts = ({
     page = 1,
     limit = 10,
     categoria_id,
-}: IPaginateServiceProps & { categoria_id?: number | null }) =>
+    nombre,
+}: IPaginateServiceProps & { categoria_id?: number | null; nombre?: string }) =>
     useGET<IPaginate<IProduct>>({
         url,
         filters: {
@@ -22,6 +23,7 @@ export const useIndexProducts = ({
             page,
             limit,
             ...(categoria_id ? { categoria_id } : {}),
+            ...(nombre ? { nombre } : {}),
         },
     });
 const PRODUCT_PAGE_SIZE = 24;

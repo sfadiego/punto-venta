@@ -9,6 +9,7 @@ enum OrderStatusEnum: int
     case CLOSED = 3;
     case DELETED = 4;
     case SERVED = 5;
+    case PENDING_CONFIRMATION = 6;
 
     public static function orderStatusName(OrderStatusEnum $status): string
     {
@@ -18,6 +19,7 @@ enum OrderStatusEnum: int
             OrderStatusEnum::CLOSED->value => 'closed',
             OrderStatusEnum::DELETED->value => 'deleted',
             OrderStatusEnum::SERVED->value => 'order served',
+            OrderStatusEnum::PENDING_CONFIRMATION->value => 'pending confirmation',
             default => 'in process',
         };
     }

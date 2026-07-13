@@ -55,6 +55,61 @@ export default [
             }],
             "react-hooks/rules-of-hooks": "error",
             "react-hooks/exhaustive-deps": "warn",
+
+            // ── Reglas CLAUDE.md ────────────────────────────────────────────
+
+            // No usar bootstrap-icons ni zustand
+            "no-restricted-imports": ["error", {
+                patterns: [
+                    {
+                        group: ["bootstrap-icons", "react-bootstrap-icons"],
+                        message: "Usa lucide-react para iconos (CLAUDE.md: Iconos).",
+                    },
+                ],
+                paths: [
+                    {
+                        name: "zustand",
+                        message: "No uses Zustand. Usa TanStack Query para estado del servidor (CLAUDE.md: Servicios).",
+                    },
+                ],
+            }],
+
+            // No usar <table> HTML — usar DataTable
+            "no-restricted-syntax": [
+                "error",
+                {
+                    selector: "JSXOpeningElement[name.name='table']",
+                    message: "Usa el componente DataTable en lugar de <table> HTML (CLAUDE.md: Componentes).",
+                },
+                {
+                    selector: "JSXOpeningElement[name.name='thead']",
+                    message: "Usa el componente DataTable en lugar de <thead> HTML (CLAUDE.md: Componentes).",
+                },
+                {
+                    selector: "JSXOpeningElement[name.name='tbody']",
+                    message: "Usa el componente DataTable en lugar de <tbody> HTML (CLAUDE.md: Componentes).",
+                },
+                {
+                    selector: "JSXOpeningElement[name.name='tr']",
+                    message: "Usa el componente DataTable en lugar de <tr> HTML (CLAUDE.md: Componentes).",
+                },
+                {
+                    selector: "JSXOpeningElement[name.name='td']",
+                    message: "Usa el componente DataTable en lugar de <td> HTML (CLAUDE.md: Componentes).",
+                },
+                {
+                    selector: "JSXOpeningElement[name.name='th']",
+                    message: "Usa el componente DataTable en lugar de <th> HTML (CLAUDE.md: Componentes).",
+                },
+            ],
+        },
+    },
+
+    // ── Excepción: axiosConfig puede importar axios directamente ───────────
+    {
+        files: ["resources/js/configs/axiosConfig.ts"],
+        rules: {
+            "no-restricted-imports": "off",
         },
     },
     // 4. Prettier siempre al final para desactivar reglas de formato

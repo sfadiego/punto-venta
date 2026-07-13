@@ -5,10 +5,12 @@ import { useTenantList } from "./useTenantList";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
 import { ITenant } from "@/models/ITenant";
+import { ActiveUsersWidget } from "@/components/SuperAdmin/Tenants/ActiveUsersWidget";
+import { ActiveUsersBadge } from "@/components/SuperAdmin/Tenants/ActiveUsersBadge";
 
 const FILTERS: { label: string; value: TenantStatusEnum }[] = [
-    { label: "Todos",     value: TenantStatusEnum.All },
-    { label: "Inactivos", value: TenantStatusEnum.Inactive },
+    { label: "Todos",      value: TenantStatusEnum.All },
+    { label: "Inactivos",  value: TenantStatusEnum.Inactive },
     { label: "Eliminados", value: TenantStatusEnum.Deleted },
 ];
 
@@ -16,7 +18,10 @@ export default function TenantListPage() {
     const navigate = useNavigate();
     const {
         tenants,
+        allTenants,
         isLoading,
+        isRefetching,
+        refetch,
         status,
         setStatus,
         search,
@@ -42,6 +47,8 @@ export default function TenantListPage() {
                         Nuevo cliente
                     </button>
                 </div>
+
+                <ActiveUsersWidget tenants={allTenants} onRefresh={refetch} isRefreshing={isRefetching} />
 
                 <div className="flex flex-col sm:flex-row gap-3 mb-5">
                     <div className="relative flex-1">
@@ -124,7 +131,7 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
                 <Building2 size={18} className="text-white" />
             </div>
             <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-slate-900 truncate">{tenant.business_name}</p>
                     {isDeleted && (
                         <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">
@@ -136,6 +143,7 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
                             Inactivo
                         </span>
                     )}
+                    <ActiveUsersBadge count={tenant.active_users_count ?? 0} />
                 </div>
                 <a
                     href={`${import.meta.env.VITE_APP_URL}/${tenant.slug}/login`}
@@ -151,7 +159,7 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-slate-500">
-            <Users size={20} />
+            <Users size={14} />
             <span>{tenant.users_count ?? 0} usuario{tenant.users_count !== 1 ? "s" : ""}</span>
         </div>
 

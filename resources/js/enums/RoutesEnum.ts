@@ -10,6 +10,7 @@ export enum AdminRoutes {
     Admin        = "/admin",
     Subscription = "/subscription",
     TenantLogin  = "/:slug/login",
+    PublicMenu   = "/:slug/menu",
 }
 
 export enum SuperAdminRoutes {

@@ -29,6 +29,7 @@ export const useIconSelector = (config: IBusinessConfig | undefined) => {
                 logo_icon:                 isDeselect ? null : iconName,
                 costo_domicilio_default:   config.costo_domicilio_default,
                 printer_enabled:           config.printer_enabled,
+                menu_enabled:              config.menu_enabled,
             },
             {
                 onSuccess: () =>

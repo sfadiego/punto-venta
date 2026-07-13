@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { IUser } from "@/models/IUser";
 import { useListTenantUsers, useDeleteTenantUser } from "@/services/useTenantUserService";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { useListTenants } from "@/services/useSuperAdminService";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 
@@ -34,7 +35,8 @@ export const useTenantUsers = (tenantId: number) => {
         try {
             await deleteMutation.mutateAsync(user.id);
             toast.success("Usuario eliminado correctamente.");
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTenantUsers.handleDelete");
             toast.error("No se pudo eliminar el usuario.");
         }
     };

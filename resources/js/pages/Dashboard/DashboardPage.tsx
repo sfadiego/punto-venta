@@ -17,6 +17,7 @@ import { useOpenSalesModal } from "./partials/useOpenSalesModal";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { usePermissions } from "@/hooks/usePermissions";
 import { IOrder } from "@/models/IOrder";
+import { PendingOrdersSection } from "@/components/orders/PendingOrders/PendingOrdersSection";
 
 const ICON_MAP: Record<string, LucideIcon> = {
     Award,
@@ -86,7 +87,7 @@ export default function DashboardPage() {
             </div>
 
             <SubscriptionBanner />
-
+            {sistemaId && <PendingOrdersSection />}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {stats.map((stat) => (
                     <Widget

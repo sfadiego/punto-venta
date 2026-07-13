@@ -3,9 +3,10 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 
-const phoneRegex = /^[+\d][\d\s\-().]{3,29}$/;
-const handleOrUrlRegex = /^(@[\w.\-]+|https?:\/\/.+)$/;
+const phoneRegex = /^[+\d][\d\s().-]{3,29}$/;
+const handleOrUrlRegex = /^(@[\w.-]+|https?:\/\/.+)$/;
 
 const schema = Yup.object({
     phone: Yup.string().nullable().max(30).test(
@@ -73,9 +74,12 @@ export const useBusinessInfoSection = (config: IBusinessConfig | undefined) => {
                     logo_icon:                 config.logo_icon,
                     costo_domicilio_default:   config.costo_domicilio_default,
                 printer_enabled:           config.printer_enabled,
+                    menu_enabled:              config.menu_enabled,
                 });
                 toast.success("Información actualizada correctamente.");
-            } catch {
+            } catch (error) {
+
+                logUnexpectedError(error, "useBusinessInfoSection.onSubmit");
                 toast.error("No se pudo guardar la información.");
             } finally {
                 setSubmitting(false);

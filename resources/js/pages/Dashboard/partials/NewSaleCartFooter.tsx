@@ -20,7 +20,7 @@ export const NewSaleCartFooter = ({
     sellByWeight,
     domicilioActivo, toggleDomicilio,
     costoDomicilio, setCostoDomicilio,
-    orderDeliveryPaidBy, setOrderDeliveryPaidBy,
+    orderDeliveryPaidBy: _orderDeliveryPaidBy, setOrderDeliveryPaidBy,
     customerPays, domicilio,
     total, totalFinal,
     hasItems, onPay,

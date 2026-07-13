@@ -1,9 +1,10 @@
 import { IPaginate } from "@/intefaces/IPaginate";
+import { IPaginateServiceProps } from "@/intefaces/IPaginateServiceProps";
 import { axiosGET, axiosPATCH, axiosPUT, axiosDELETE, useDELETE, useGET, usePOST, usePUT } from "../hooks/useApi";
 import { IOrder } from "@/models/IOrder";
 import { IOrderProduct } from "@/models/IOrderProduct";
-import { IPaginateServiceProps } from "@/intefaces/IPaginateServiceProps";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import { useAxios } from "@/hooks/useAxios";
 
@@ -115,5 +116,26 @@ export const useToggleOrderProductReady = (orderId: number) => {
     return useMutation({
         mutationFn: (orderProductId: number) =>
             axiosPATCH(axiosApi, { url: `${url}/${orderId}/product/${orderProductId}/ready`, data: {} }),
+    });
+};
+
+export const useIndexPendingOrders = (sistemaId: number | null) =>
+    useGET<IPaginate<IOrder>>({
+        url,
+        nameQuery: "pending-orders",
+        filters: {
+            sistema_id: sistemaId,
+            estatus_pedido_id: OrderStatusEnum.PendingConfirmation,
+            limit: 50,
+            order: "asc",
+        },
+        enable: sistemaId !== null,
+    });
+
+export const useUpdateOrderStatus = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({ orderId, statusId, extra }: { orderId: number; statusId: number; extra?: Record<string, unknown> }) =>
+            axiosPUT(axiosApi, { url: `${url}/${orderId}`, data: { estatus_pedido_id: statusId, ...extra } }),
     });
 };

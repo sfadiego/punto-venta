@@ -35,12 +35,12 @@ export function LogoSection({ config }: LogoSectionProps) {
         <section className="bg-white rounded-xl border border-stone-200 p-6">
             <h2 className="text-base font-semibold text-stone-800 mb-4">Logo del negocio</h2>
 
-            <div className="flex items-start gap-6">
-                <div className="w-28 h-28 rounded-xl border-2 border-dashed border-stone-200 flex items-center justify-center bg-stone-50 overflow-hidden shrink-0">
+            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl border-2 border-dashed border-stone-200 flex items-center justify-center bg-stone-50 overflow-hidden shrink-0">
                     <LogoPreview config={config} logoUrl={logoUrl} />
                 </div>
 
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 min-w-0">
                     {uploadEnabled ? (
                         <>
                             <p className="text-sm text-stone-500">PNG, JPG o WebP. Máximo 2 MB.</p>

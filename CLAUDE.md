@@ -252,7 +252,9 @@ const toggle = async (id: number) => {
 
 ### migraciones
 - utiliza nombres en ingles a nuevas columnas en las migraciones
-
+- todas las nuevas columnas deben ser agregadas por migracion
+- las columnas que se deban borrar, deben ser borradas por migraciones
+- toda modificacion a la base de datos es mediante una migracion
 ---
 
 ## Decisiones de arquitectura relevantes

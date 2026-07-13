@@ -33,6 +33,8 @@ class User extends Authenticatable
 
     const TENANT_ID = 'tenant_id';
 
+    const LAST_SEEN_AT = 'last_seen_at';
+
     protected $fillable = [
         self::NOMBRE,
         self::EMAIL,
@@ -43,6 +45,7 @@ class User extends Authenticatable
         self::ACTIVO,
         self::PASSWORD,
         self::TENANT_ID,
+        self::LAST_SEEN_AT,
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -52,6 +55,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            self::LAST_SEEN_AT => 'datetime',
         ];
     }
 
@@ -94,6 +98,8 @@ class User extends Authenticatable
         }
 
         $user = User::where('email', $email)->first();
+
+        $user->tokens()->delete();
 
         return [
             'user' => $user,

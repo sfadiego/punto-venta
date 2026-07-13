@@ -11,6 +11,7 @@ import { useAddProductModal } from "./partials/useAddProductModal";
 import { EditProductModal } from "./partials/EditProductModal";
 import { useEditProductModal } from "./partials/useEditProductModal";
 import { ProductTableActions } from "./partials/ProductTableActions";
+import { ProductSearch } from "@/components/Product/ProductSearch";
 
 export default function ProductsPage() {
     const [editingProduct, setEditingProduct] = useState<IProduct | null>(null);
@@ -24,10 +25,12 @@ export default function ProductsPage() {
         isLoading,
         categories,
         categoryId,
+        search,
         setPage,
         setLimit,
         refetch,
         handleCategoryChange,
+        handleSearchChange,
         invalidateProducts,
     } = useProductsPage();
 
@@ -142,19 +145,24 @@ export default function ProductsPage() {
             </div>
 
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-                {/* Filtro de categorías */}
-                {categories.length > 0 && (
-                    <div className="px-5 py-4 border-b border-stone-100">
-                        <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-3">
-                            Filtrar por categoría
-                        </p>
-                        <CategoryFilter
-                            categories={categories}
-                            selected={categoryId}
-                            onChange={handleCategoryChange}
-                        />
-                    </div>
-                )}
+                <div className="px-5 py-4 border-b border-stone-100 space-y-4">
+                    {/* Buscador */}
+                    <ProductSearch value={search} onChange={handleSearchChange} />
+
+                    {/* Filtro de categorías */}
+                    {categories.length > 0 && (
+                        <>
+                            <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide">
+                                Filtrar por categoría
+                            </p>
+                            <CategoryFilter
+                                categories={categories}
+                                selected={categoryId}
+                                onChange={handleCategoryChange}
+                            />
+                        </>
+                    )}
+                </div>
 
                 {/* Tabla */}
                 <div className="p-4">

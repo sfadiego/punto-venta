@@ -19,6 +19,7 @@ const SalesPage        = lazy(() => import("@/pages/Sales/SalesPage"));
 const StatisticsPage   = lazy(() => import("@/pages/Statistics/StatisticsPage"));
 const AdminPage        = lazy(() => import("@/pages/Admin/AdminPage"));
 const SubscriptionPage = lazy(() => import("@/pages/Subscription/SubscriptionPage"));
+const MenuPage         = lazy(() => import("@/pages/Menu/MenuPage"));
 
 const PageLoader = () => (
     <div className="flex items-center justify-center h-full min-h-32">
@@ -62,6 +63,14 @@ export const router = createBrowserRouter([
         element: (
             <Suspense fallback={<FullPageLoader />}>
                 <TenantLoginPage />
+            </Suspense>
+        ),
+    },
+    {
+        path: "/:slug/menu",
+        element: (
+            <Suspense fallback={<FullPageLoader />}>
+                <MenuPage />
             </Suspense>
         ),
     },

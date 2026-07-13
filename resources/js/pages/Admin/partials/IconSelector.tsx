@@ -43,7 +43,7 @@ export function IconSelector({ selected, saving, onSelect }: IconSelectorProps) 
             <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-3">
                 Seleccionar icono predefinido
             </p>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
                 {BUSINESS_ICONS.map(({ name, label, component: Icon }) => {
                     const isSelected = selected === name;
                     return (
@@ -53,7 +53,7 @@ export function IconSelector({ selected, saving, onSelect }: IconSelectorProps) 
                             onClick={() => onSelect(name)}
                             disabled={saving}
                             title={label}
-                            className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-xs font-medium disabled:opacity-50
+                            className={`flex flex-col items-center gap-1.5 p-2 sm:p-3 rounded-xl border-2 transition-all text-xs font-medium disabled:opacity-50
                                 ${isSelected
                                     ? "border-amber-500 bg-amber-50 text-amber-700"
                                     : "border-stone-200 bg-white text-stone-500 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600"

@@ -88,9 +88,9 @@ class SubscriptionModel extends Model
     {
         // lifetime no tiene fecha de vencimiento real; usamos una fecha muy lejana
         $expiresAt = match (true) {
-            $plan->isLifetime()    => Carbon::parse('2099-12-31'),
-            $plan->isWeekBased()   => $startsAt->copy()->addWeeks($plan->weeks()),
-            default                => $startsAt->copy()->addMonths($plan->months()),
+            $plan->isLifetime() => Carbon::parse('2099-12-31'),
+            $plan->isWeekBased() => $startsAt->copy()->addWeeks($plan->weeks()),
+            default => $startsAt->copy()->addMonths($plan->months()),
         };
 
         return self::create([

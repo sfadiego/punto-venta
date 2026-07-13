@@ -14,19 +14,19 @@ class AppSettingController extends Controller
     {
         return Response::success([
             'logo_upload_enabled' => (bool) AppSettingModel::getValue('logo_upload_enabled', '0'),
-            'payment_info'        => json_decode(AppSettingModel::getValue('payment_info', 'null'), true),
+            'payment_info' => json_decode(AppSettingModel::getValue('payment_info', 'null'), true),
         ]);
     }
 
     public function update(Request $request): JsonResponse
     {
         $request->validate([
-            'logo_upload_enabled'    => 'sometimes|boolean',
-            'payment_info'           => 'sometimes|array',
-            'payment_info.bank'      => 'required_with:payment_info|string|max:100',
-            'payment_info.account'   => 'required_with:payment_info|string|max:30',
-            'payment_info.holder'    => 'required_with:payment_info|string|max:150',
-            'payment_info.concept'   => 'nullable|string|max:150',
+            'logo_upload_enabled' => 'sometimes|boolean',
+            'payment_info' => 'sometimes|array',
+            'payment_info.bank' => 'required_with:payment_info|string|max:100',
+            'payment_info.account' => 'required_with:payment_info|string|max:30',
+            'payment_info.holder' => 'required_with:payment_info|string|max:150',
+            'payment_info.concept' => 'nullable|string|max:150',
         ]);
 
         if ($request->has('logo_upload_enabled')) {
@@ -39,7 +39,7 @@ class AppSettingController extends Controller
 
         return Response::success([
             'logo_upload_enabled' => (bool) AppSettingModel::getValue('logo_upload_enabled', '0'),
-            'payment_info'        => json_decode(AppSettingModel::getValue('payment_info', 'null'), true),
+            'payment_info' => json_decode(AppSettingModel::getValue('payment_info', 'null'), true),
         ]);
     }
 }

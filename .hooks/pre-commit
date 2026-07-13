@@ -1,0 +1,56 @@
+#!/usr/bin/env sh
+# Pre-commit hook — verifica reglas de CLAUDE.md antes de cada commit
+# Instalar con: git config core.hooksPath .hooks
+
+set -e
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.(ts|tsx)$" || true)
+
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+echo "🔍 Verificando reglas CLAUDE.md..."
+
+# ── 1. TypeScript ────────────────────────────────────────────────────────────
+echo "  TypeScript..."
+if ! pnpm exec tsc --noEmit 2>&1; then
+  echo "❌ Error de TypeScript. Corrígelo antes de hacer commit."
+  exit 1
+fi
+echo "  ✅ TypeScript OK"
+
+# ── 2. ESLint sobre archivos staged ─────────────────────────────────────────
+echo "  ESLint..."
+if ! echo "$STAGED" | xargs pnpm exec eslint --max-warnings=0 2>&1; then
+  echo "❌ ESLint encontró errores. Corrígelos antes de hacer commit."
+  exit 1
+fi
+echo "  ✅ ESLint OK"
+
+# ── 3. Axios directo en pages/ o components/ ─────────────────────────────────
+echo "  Peticiones HTTP..."
+AXIOS_VIOLATIONS=$(echo "$STAGED" | grep -E "^resources/js/(pages|components)/" | \
+  xargs grep -lE "^import axios|from ['\"]axios['\"]" 2>/dev/null || true)
+if [ -n "$AXIOS_VIOLATIONS" ]; then
+  echo "❌ Importación directa de axios detectada en:"
+  echo "$AXIOS_VIOLATIONS"
+  echo "  Usa useAxios() o el servicio correspondiente (CLAUDE.md: peticiones http)"
+  exit 1
+fi
+echo "  ✅ Sin axios directo"
+
+# ── 4. Interfaces de dominio fuera de models/ ────────────────────────────────
+echo "  Interfaces de dominio..."
+IFACE_VIOLATIONS=$(echo "$STAGED" | grep -E "^resources/js/(pages|components)/" | \
+  xargs grep -lE "^export interface I[A-Z]" 2>/dev/null || true)
+if [ -n "$IFACE_VIOLATIONS" ]; then
+  echo "❌ Interfaces de dominio definidas fuera de models/:"
+  echo "$IFACE_VIOLATIONS"
+  echo "  Muévelas a resources/js/models/ (CLAUDE.md: Tipos)"
+  exit 1
+fi
+echo "  ✅ Interfaces en models/"
+
+echo ""
+echo "✅ Todas las verificaciones pasaron."

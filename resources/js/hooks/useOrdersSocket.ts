@@ -43,12 +43,22 @@ export const useOrdersSocket = ({ showToast = false }: UseOrdersSocketOptions = 
                     const key = query.queryKey as unknown[];
                     return (
                         key[0] === "orders-infinite" ||
-                        key[0] === (ApiRoutes.Orders as string)
+                        key[0] === (ApiRoutes.Orders as string) ||
+                        key[0] === "pending-orders"
                     );
                 },
             });
 
             if (!showToast) return;
+
+            if (data?.type === "new_public_order") {
+                toast.info("📋 Nueva solicitud de pedido recibida", {
+                    position: "top-right",
+                    autoClose: 6000,
+                    pauseOnHover: true,
+                });
+                return;
+            }
 
             if (data?.type === "created") {
                 toast.info("Nuevo pedido recibido", {

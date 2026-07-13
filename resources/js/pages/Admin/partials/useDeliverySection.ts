@@ -3,6 +3,7 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 
 const schema = Yup.object({
     costo_domicilio_default: Yup.number().min(0).required(),
@@ -38,9 +39,12 @@ export const useDeliverySection = (config: IBusinessConfig | undefined) => {
                     printer_host:            config.printer_host,
                     costo_domicilio_default: values.costo_domicilio_default,
                     printer_enabled:         config.printer_enabled,
+                    menu_enabled:            config.menu_enabled,
                 });
                 toast.success("Configuración de domicilio guardada.");
-            } catch {
+            } catch (error) {
+
+                logUnexpectedError(error, "useDeliverySection.onSubmit");
                 toast.error("No se pudo guardar la configuración.");
             } finally {
                 setSubmitting(false);

@@ -36,7 +36,7 @@ export const ErrorLogsTable = ({
     totalRecords,
     page,
     perPage,
-    limit,
+    limit: _limit,
     onPageChange,
     onLimitChange,
     onViewDetail,
