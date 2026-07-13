@@ -3,6 +3,7 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useModal } from "@/hooks/useModal";
 import { useStoreCategory } from "@/services/useCategoriesService";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 
 export type CategoryForm = {
     nombre: string;
@@ -34,7 +35,9 @@ export const useAddCategoryModal = (onSuccess: () => void) => {
                 helpers.resetForm();
                 closeModal();
                 onSuccess();
-            } catch {
+            } catch (error) {
+
+                logUnexpectedError(error, "useAddCategoryModal.onSubmit");
                 toast.error("Error al crear la categoría");
             }
         },

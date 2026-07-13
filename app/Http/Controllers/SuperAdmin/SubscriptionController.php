@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Enums\SubscriptionPlanEnum;
-use App\Enums\SubscriptionStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SubscriptionStoreRequest;
 use App\Models\BusinessConfigModel;
@@ -32,7 +31,7 @@ class SubscriptionController extends Controller
      */
     public function store(BusinessConfigModel $tenant, SubscriptionStoreRequest $request): JsonResponse
     {
-        $plan     = SubscriptionPlanEnum::from($request->plan);
+        $plan = SubscriptionPlanEnum::from($request->plan);
         $startsAt = Carbon::parse($request->starts_at);
 
         $log = SubscriptionModel::createFromPlan(
@@ -44,7 +43,7 @@ class SubscriptionController extends Controller
         );
 
         $tenant->update([
-            BusinessConfigModel::SUBSCRIPTION_PLAN       => $plan->value,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => $plan->value,
             BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => $log->expires_at,
         ]);
 
@@ -69,16 +68,16 @@ class SubscriptionController extends Controller
         $expiresAt = $tenant->subscription_expires_at;
 
         return [
-            'id'                   => $tenant->id,
-            'business_name'        => $tenant->business_name,
-            'slug'                 => $tenant->slug,
-            'activo'               => $tenant->activo,
-            'primary_color'        => $tenant->primary_color,
-            'users_count'          => $tenant->users_count,
-            'subscription_plan'    => $tenant->subscription_plan,
+            'id' => $tenant->id,
+            'business_name' => $tenant->business_name,
+            'slug' => $tenant->slug,
+            'activo' => $tenant->activo,
+            'primary_color' => $tenant->primary_color,
+            'users_count' => $tenant->users_count,
+            'subscription_plan' => $tenant->subscription_plan,
             'subscription_expires_at' => $expiresAt?->toDateString(),
-            'subscription_status'  => $tenant->subscription_status,
-            'days_remaining'       => $expiresAt
+            'subscription_status' => $tenant->subscription_status,
+            'days_remaining' => $expiresAt
                 ? (int) Carbon::today()->diffInDays($expiresAt, false)
                 : null,
         ];

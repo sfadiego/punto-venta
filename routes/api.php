@@ -15,6 +15,9 @@ require base_path('routes/modules/files.php');
 // Tenant branding público (para la pantalla de login personalizada)
 require base_path('routes/modules/tenant.php');
 
+// Menú público para pedidos de clientes
+require base_path('routes/modules/menu.php');
+
 // Panel super-admin
 require base_path('routes/modules/superadmin.php');
 

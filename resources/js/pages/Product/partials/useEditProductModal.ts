@@ -3,6 +3,7 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useIndexCategories } from "@/services/useCategoriesService";
 import { useUpdateProduct } from "@/services/useProductService";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { useAxios } from "@/hooks/useAxios";
 import { IProduct } from "@/models/IProduct";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
@@ -54,7 +55,9 @@ export const useEditProductModal = (
                 toast.success("Producto actualizado");
                 onSuccess();
                 onClose();
-            } catch {
+            } catch (error) {
+
+                logUnexpectedError(error, "useEditProductModal.onSubmit");
                 toast.error("Error al actualizar el producto");
             }
         },

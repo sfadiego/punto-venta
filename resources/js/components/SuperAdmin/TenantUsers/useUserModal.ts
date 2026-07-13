@@ -3,6 +3,7 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { IUser, ICreateUserPayload, IUpdateUserPayload } from "@/models/IUser";
 import { useCreateTenantUser, useUpdateTenantUser } from "@/services/useTenantUserService";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { RoleEnum } from "@/enums/RoleEnum";
 
 interface UseUserModalParams {
@@ -56,7 +57,9 @@ export const useUserModal = ({ tenantId, tenantSlug, user, onClose }: UseUserMod
                     toast.success("Usuario creado correctamente.");
                 }
                 onClose();
-            } catch {
+            } catch (error) {
+
+                logUnexpectedError(error, "useUserModal.onSubmit");
                 toast.error("No se pudo guardar el usuario.");
             } finally {
                 setSubmitting(false);

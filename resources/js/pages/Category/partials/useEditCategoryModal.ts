@@ -3,6 +3,7 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { ICategory } from "@/models/ICategory";
 import { useUpdateCategory } from "@/services/useCategoriesService";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { CategoryForm } from "./useAddCategoryModal";
 
 const schema = Yup.object({
@@ -36,7 +37,9 @@ export const useEditCategoryModal = (
                 toast.success("Categoría actualizada");
                 onSuccess();
                 onClose();
-            } catch {
+            } catch (error) {
+
+                logUnexpectedError(error, "useEditCategoryModal.onSubmit");
                 toast.error("Error al actualizar la categoría");
             }
         },

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\SubscriptionStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BusinessConfigUpdateRequest;
 use App\Models\AppSettingModel;
@@ -44,6 +43,7 @@ class BusinessConfigController extends Controller
             'printer_host' => $request->printer_host,
             'logo_icon' => $request->logo_icon,
             'costo_domicilio_default' => $request->costo_domicilio_default ?? 0,
+            'menu_enabled' => $request->boolean('menu_enabled'),
         ]);
 
         return Response::success($tenant->fresh());
@@ -80,15 +80,15 @@ class BusinessConfigController extends Controller
         $tenant = $request->user()->tenant;
 
         return Response::success([
-            'status'           => $tenant->subscription_status,
-            'plan'             => $tenant->subscription_plan,
-            'days_remaining'   => $tenant->subscription_expires_at
+            'status' => $tenant->subscription_status,
+            'plan' => $tenant->subscription_plan,
+            'days_remaining' => $tenant->subscription_expires_at
                 ? (int) Carbon::today()->diffInDays($tenant->subscription_expires_at, false)
                 : null,
-            'expires_at'       => $tenant->subscription_expires_at?->toDateString(),
-            'business_name'    => $tenant->business_name,
+            'expires_at' => $tenant->subscription_expires_at?->toDateString(),
+            'business_name' => $tenant->business_name,
             'payment_whatsapp' => env('PAYMENT_WHATSAPP'),
-            'payment_info'     => json_decode(AppSettingModel::getValue('payment_info', 'null'), true),
+            'payment_info' => json_decode(AppSettingModel::getValue('payment_info', 'null'), true),
         ]);
     }
 }

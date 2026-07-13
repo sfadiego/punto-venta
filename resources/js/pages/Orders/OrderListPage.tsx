@@ -10,6 +10,7 @@ import { NewOrderButton } from "@/components/orders/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { NewSaleModal } from "@/pages/Dashboard/partials/NewSaleModal";
 import { usePermissions } from "@/hooks/usePermissions";
+import { PendingOrdersSection } from "@/components/orders/PendingOrders/PendingOrdersSection";
 
 const getRowClassName = ({ estatus_pedido_id }: IOrder): string => {
     if (estatus_pedido_id === OrderStatusEnum.Served) return "!bg-blue-50";
@@ -74,6 +75,8 @@ export default function OrderListPage() {
                     {sistemaId && (sellByWeight ? <NewSaleButton /> : <NewOrderButton />)}
                 </div>
             </div>
+
+            {sistemaId && can("managePendingOrders") && <PendingOrdersSection />}
 
             {!sistemaId ? (
                 <div className="bg-white rounded-2xl border border-stone-100 shadow-sm py-16

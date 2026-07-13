@@ -8,6 +8,7 @@ import {
     useRestoreTenant,
 } from "@/services/useSuperAdminService";
 import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { ITenant } from "@/models/ITenant";
 
 export const useTenantList = () => {
@@ -41,7 +42,8 @@ export const useTenantList = () => {
         try {
             await toggleMutation.mutateAsync(tenant.id);
             toast.success(`Cliente ${action === "activar" ? "activado" : "desactivado"} correctamente.`);
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTenantList.handleToggle");
             toast.error(`No se pudo ${action} el cliente.`);
         }
     };
@@ -60,7 +62,8 @@ export const useTenantList = () => {
         try {
             await restoreMutation.mutateAsync(tenant.id);
             toast.success("Cliente restaurado correctamente.");
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTenantList.handleRestore");
             toast.error("No se pudo restaurar el cliente.");
         }
     };
@@ -79,7 +82,8 @@ export const useTenantList = () => {
         try {
             await deleteMutation.mutateAsync(tenant.id);
             toast.success("Cliente eliminado correctamente.");
-        } catch {
+        } catch (error) {
+            logUnexpectedError(error, "useTenantList.handleDelete");
             toast.error("No se pudo eliminar el cliente.");
         }
     };

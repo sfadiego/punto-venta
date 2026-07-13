@@ -4,6 +4,7 @@ import { ColorsSection } from "./partials/ColorsSection";
 import { BusinessInfoSection } from "./partials/BusinessInfoSection";
 import { PrinterSection } from "./partials/PrinterSection";
 import { DeliverySection } from "./partials/DeliverySection";
+import { MenuSection } from "./partials/MenuSection";
 import { AdminNav } from "./partials/AdminNav";
 import { SubscriptionInfoSection } from "@/components/Admin/SubscriptionInfoSection";
 import { useAdminPage } from "./useAdminPage";
@@ -41,6 +42,7 @@ function AdminPage() {
                         {sellByWeight && (
                             <div id="domicilio"><DeliverySection config={config} /></div>
                         )}
+                        <div id="menu"><MenuSection config={config} /></div>
                         <div id="suscripcion"><SubscriptionInfoSection /></div>
                     </div>
                 </div>

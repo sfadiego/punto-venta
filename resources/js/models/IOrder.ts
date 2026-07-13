@@ -14,4 +14,8 @@ export interface IOrder {
     updated_at: string;
     status: IOrderStatus;
     order_products?: IOrderProduct[];
+    customer_phone: string | null;
+    is_delivery: boolean;
+    delivery_address: string | null;
+    delivery_reference: string | null;
 }

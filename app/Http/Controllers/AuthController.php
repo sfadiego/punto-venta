@@ -76,13 +76,13 @@ class AuthController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => $message,
-                    'code'    => 'SUBSCRIPTION_EXPIRED',
+                    'code' => 'SUBSCRIPTION_EXPIRED',
                 ], 403);
             }
         }
 
-        $result['features']     = $tenant?->tipo_negocio->features() ?? BusinessTypeEnum::Restaurante->features();
-        $result['tenant_slug']  = $tenant?->slug;
+        $result['features'] = $tenant?->tipo_negocio->features() ?? BusinessTypeEnum::Restaurante->features();
+        $result['tenant_slug'] = $tenant?->slug;
 
         return Response::success($result);
     }

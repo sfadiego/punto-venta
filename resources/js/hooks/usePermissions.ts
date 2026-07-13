@@ -15,7 +15,8 @@ type Action =
     | "deleteOrder"
     | "editOrderName"
     | "printTicket"
-    | "kitchenView";
+    | "kitchenView"
+    | "managePendingOrders";
 
 const ROLE_PERMISSIONS: Record<number, Set<Action>> = {
     [RoleEnum.Admin]: new Set<Action>([
@@ -33,6 +34,7 @@ const ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "editOrderName",
         "printTicket",
         "kitchenView",
+        "managePendingOrders",
     ]),
     [RoleEnum.Employe]: new Set<Action>([
         "viewDashboard",
