@@ -35,7 +35,8 @@ class MenuService extends DataTable
         $this->queryBuilder = $this->makeQuery();
         $this->orderQuery('orden', 'asc');
 
-        $paginator = $this->queryBuilder->paginate(4, ['*'], 'page', $data->page);
+        $perPage = min($data->perPage ?? 4, 100);
+        $paginator = $this->queryBuilder->paginate($perPage, ['*'], 'page', $data->page);
 
         $productsMap = ProductModel::with('picture')
             ->where(ProductModel::ACTIVO, true)

@@ -24,7 +24,7 @@ export const useInfiniteMenuProducts = (slug: string) =>
         queryKey: ["menu-products", slug],
         queryFn: async ({ pageParam }) => {
             const res = await axios.get(`${base(slug)}/products`, {
-                params: { page: pageParam },
+                params: { page: pageParam, limit: 100 },
             });
             return res.data as IMenuProductsPage;
         },

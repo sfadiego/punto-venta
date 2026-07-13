@@ -9,13 +9,10 @@ interface CategoryFilterProps {
 
 export const CategoryFilter = ({ categories, activeId, onSelect, primaryColor }: CategoryFilterProps) => (
     <div className="shrink-0 bg-white border-b border-stone-100">
-        <div
-            className="max-w-3xl mx-auto px-4"
-            style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
-        >
+        <div className="max-w-3xl mx-auto px-4">
             <div
                 className="flex gap-2 overflow-x-auto py-3"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
             >
                 <Pill
                     label="Todos"
