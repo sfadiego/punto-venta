@@ -1,4 +1,4 @@
-import { IMenuCategory } from "@/services/useMenuService";
+import { IMenuCategory } from "@/models/IMenu";
 
 interface CategoryFilterProps {
     categories: IMenuCategory[];

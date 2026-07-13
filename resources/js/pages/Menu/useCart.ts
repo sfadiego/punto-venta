@@ -1,10 +1,7 @@
 import { useState } from "react";
-import { IMenuProduct } from "@/services/useMenuService";
+import { IMenuProduct, ICartItem } from "@/models/IMenu";
 
-export interface ICartItem {
-    product: IMenuProduct;
-    cantidad: number;
-}
+export type { ICartItem };
 
 export const useCart = () => {
     const [items, setItems] = useState<ICartItem[]>([]);

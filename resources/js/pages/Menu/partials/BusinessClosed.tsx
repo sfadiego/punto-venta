@@ -1,5 +1,5 @@
 import { Clock } from "lucide-react";
-import { IMenuBusiness } from "@/services/useMenuService";
+import { IMenuBusiness } from "@/models/IMenu";
 
 interface BusinessClosedProps {
     business: IMenuBusiness;

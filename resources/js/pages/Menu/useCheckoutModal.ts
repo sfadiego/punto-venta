@@ -3,7 +3,7 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useCreatePublicOrder } from "@/services/useMenuService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { ICartItem } from "./useCart";
+import { ICartItem } from "@/models/IMenu";
 
 interface CheckoutModalParams {
     slug: string;

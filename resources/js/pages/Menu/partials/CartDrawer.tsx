@@ -1,6 +1,6 @@
 import { X, Minus, Plus, ShoppingCart } from "lucide-react";
-import { ICartItem } from "../useCart";
-import { IMenuProduct } from "@/services/useMenuService";
+import { ICartItem, IMenuProduct } from "@/models/IMenu";
+
 
 interface CartDrawerProps {
     open: boolean;

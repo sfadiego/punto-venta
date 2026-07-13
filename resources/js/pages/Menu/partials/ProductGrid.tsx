@@ -1,5 +1,5 @@
 import { Loader } from "lucide-react";
-import { IMenuCategory, IMenuProduct } from "@/services/useMenuService";
+import { IMenuCategory, IMenuProduct } from "@/models/IMenu";
 import { ProductCard } from "./ProductCard";
 
 interface ProductGridProps {

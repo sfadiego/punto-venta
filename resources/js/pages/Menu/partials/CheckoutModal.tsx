@@ -1,9 +1,10 @@
 import { X, Bike, Store, Loader } from "lucide-react";
 import { useCheckoutModal } from "../useCheckoutModal";
-import { ICartItem } from "../useCart";
+import { ICartItem } from "@/models/IMenu";
 import { Input } from "@/components/ui/form/Input";
 import { AddressAutocomplete } from "@/components/ui/form/AddressAutocomplete";
 import { useGetMenuBusiness } from "@/services/useMenuService";
+import { DeliveryOption } from "./DeliveryOption";
 
 interface CheckoutModalProps {
     open: boolean;
@@ -146,27 +147,3 @@ export const CheckoutModal = ({ open, slug, items, deliveryCost, primaryColor, o
         </>
     );
 };
-
-interface DeliveryOptionProps {
-    icon: React.ReactNode;
-    label: string;
-    active: boolean;
-    primaryColor: string;
-    onClick: () => void;
-}
-
-const DeliveryOption = ({ icon, label, active, primaryColor, onClick }: DeliveryOptionProps) => (
-    <button
-        type="button"
-        onClick={onClick}
-        className="flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border text-sm font-medium transition-all active:scale-[0.97] w-full"
-        style={
-            active
-                ? { borderColor: primaryColor, color: primaryColor, backgroundColor: `${primaryColor}12` }
-                : { borderColor: "#e7e5e4", color: "#78716c", backgroundColor: "#fafaf9" }
-        }
-    >
-        {icon}
-        <span className="text-center leading-tight text-xs">{label}</span>
-    </button>
-);

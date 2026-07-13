@@ -1,5 +1,5 @@
 import { Plus, Minus } from "lucide-react";
-import { IMenuProduct } from "@/services/useMenuService";
+import { IMenuProduct } from "@/models/IMenu";
 
 interface ProductCardProps {
     product: IMenuProduct;

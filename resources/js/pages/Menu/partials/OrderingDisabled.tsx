@@ -1,5 +1,5 @@
 import { ShoppingBag } from "lucide-react";
-import { IMenuBusiness } from "@/services/useMenuService";
+import { IMenuBusiness } from "@/models/IMenu";
 
 interface OrderingDisabledProps {
     business: IMenuBusiness;
