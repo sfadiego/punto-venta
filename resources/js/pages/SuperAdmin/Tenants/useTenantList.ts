@@ -15,7 +15,7 @@ export const useTenantList = () => {
     const [status, setStatus] = useState<TenantStatusEnum>(TenantStatusEnum.All);
     const [search, setSearch] = useState("");
 
-    const { data: tenants = [], isLoading } = useListTenants(status);
+    const { data: tenants = [], isLoading, refetch, isRefetching } = useListTenants(status, 30_000);
     const deleteMutation = useDeleteTenant();
     const toggleMutation = useToggleTenant();
     const restoreMutation = useRestoreTenant();
@@ -90,7 +90,10 @@ export const useTenantList = () => {
 
     return {
         tenants: filtered,
+        allTenants: tenants,
         isLoading,
+        isRefetching,
+        refetch,
         status,
         setStatus,
         search,

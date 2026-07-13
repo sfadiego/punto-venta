@@ -6,6 +6,7 @@ use App\Core\Data\IndexData;
 use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionPlanEnum;
+use App\Http\Middleware\TrackActivity;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TenantStoreRequest;
 use App\Http\Requests\TenantUpdateRequest;
@@ -50,20 +51,31 @@ class TenantManagementController extends Controller
             User::TENANT_ID => $tenant->id,
         ]);
 
-        SubscriptionModel::createFromPlan(
+        $initialPlan = SubscriptionPlanEnum::Monthly;
+        $log = SubscriptionModel::createFromPlan(
             tenantId: $tenant->id,
-            plan: SubscriptionPlanEnum::Monthly,
+            plan: $initialPlan,
             startsAt: Carbon::today(),
             amount: 0,
             notes: 'Suscripción inicial de 1 mes',
         );
+
+        $tenant->update([
+            BusinessConfigModel::SUBSCRIPTION_PLAN       => $initialPlan->value,
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => $log->expires_at,
+        ]);
 
         return Response::success($tenant);
     }
 
     public function show(BusinessConfigModel $tenant): JsonResponse
     {
-        $tenant->loadCount('users');
+        $activeWindow = now()->subMinutes(TrackActivity::activeWindowMinutes());
+
+        $tenant->loadCount([
+            'users',
+            'users as active_users_count' => fn ($q) => $q->where('last_seen_at', '>=', $activeWindow),
+        ]);
         $tenant->features = $tenant->tipo_negocio->features();
 
         return Response::success($tenant);

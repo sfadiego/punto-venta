@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Core\Data\IndexData;
 use App\Core\Paginator\DataTable;
 use App\Enums\TenantStatusEnum;
+use App\Http\Middleware\TrackActivity;
 use App\Models\BusinessConfigModel;
 use Illuminate\Http\JsonResponse;
 
@@ -33,7 +34,12 @@ class TenantService extends DataTable
             ? $this->model->onlyTrashed()
             : $this->model->newQuery();
 
-        $query->withCount('users');
+        $activeWindow = now()->subMinutes(TrackActivity::activeWindowMinutes());
+
+        $query->withCount([
+            'users',
+            'users as active_users_count' => fn ($q) => $q->where('last_seen_at', '>=', $activeWindow),
+        ]);
 
         if ($status === TenantStatusEnum::Inactive) {
             $query->where(BusinessConfigModel::ACTIVO, false);

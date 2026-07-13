@@ -40,6 +40,18 @@ enum SubscriptionPlanEnum: string
         return $this === self::Weekly || $this === self::Biweekly;
     }
 
+    public function maxUsers(): int
+    {
+        return match ($this) {
+            self::Weekly   => 2,
+            self::Biweekly => 2,
+            self::Monthly  => 4,
+            self::Biannual => 5,
+            self::Annual   => 10,
+            self::Lifetime => PHP_INT_MAX,
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {

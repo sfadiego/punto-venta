@@ -6,12 +6,15 @@ import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { ClearDemoDataButton } from "@/components/SuperAdmin/Tenants/ClearDemoDataButton";
 import { SelectBusinessType } from "@/components/SuperAdmin/Tenants/SelectBusinessType";
 import { Input } from "@/components/ui/form/Input";
+import { ActiveUsersDetail } from "@/components/SuperAdmin/Tenants/ActiveUsersBadge";
+import { useGetTenant } from "@/services/useSuperAdminService";
 
 export default function TenantFormPage() {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const tenantId = id ? Number(id) : undefined;
     const { formik, isEdit, handleResetColors } = useTenantForm(tenantId);
+    const { data: tenantDetail, refetch: refetchDetail, isRefetching: isRefetchingDetail } = useGetTenant(tenantId ?? 0);
 
     const colorField = (name: keyof typeof formik.values & string, label: string) => (
         <div>
@@ -62,6 +65,17 @@ export default function TenantFormPage() {
                         </button>
                     )}
                 </div>
+
+                {isEdit && tenantDetail && (
+                    <div className="mb-4">
+                        <ActiveUsersDetail
+                            count={tenantDetail.active_users_count ?? 0}
+                            maxUsers={tenantDetail.users_count}
+                            onRefresh={refetchDetail}
+                            isRefreshing={isRefetchingDetail}
+                        />
+                    </div>
+                )}
 
                 <form onSubmit={formik.handleSubmit} className="space-y-6">
                     {/* Datos del negocio */}

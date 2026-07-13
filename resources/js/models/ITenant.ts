@@ -15,6 +15,7 @@ export interface ITenant {
     printer_enabled: boolean;
     features?: IBusinessFeatures;
     users_count?: number;
+    active_users_count?: number;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
