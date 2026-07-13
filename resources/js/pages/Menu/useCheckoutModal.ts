@@ -16,7 +16,8 @@ const schema = Yup.object({
     customer_name:    Yup.string().required("Tu nombre es requerido"),
     customer_phone:   Yup.string()
         .required("Tu teléfono es requerido")
-        .matches(/^[+]?[\d\s\-().]{7,20}$/, "Ingresa un número de teléfono válido"),
+        .max(12, "El teléfono no puede tener más de 12 dígitos")
+        .matches(/^\+?[\d]{10,12}$/, "Ingresa un número de teléfono válido (10-12 dígitos)"),
     is_delivery:      Yup.boolean().required(),
     delivery_address: Yup.string().when("is_delivery", {
         is: true,

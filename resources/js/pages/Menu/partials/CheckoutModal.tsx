@@ -66,6 +66,7 @@ export const CheckoutModal = ({ open, slug, items, deliveryCost, primaryColor, o
                                 placeholder="Para confirmar tu pedido"
                                 inputType="tel"
                                 autoComplete="tel"
+                                maxLength={12}
                             />
 
                             <div>
