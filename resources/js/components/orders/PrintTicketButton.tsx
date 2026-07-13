@@ -22,7 +22,9 @@ export const PrintTicketButton = ({
     showLabel = false,
     className,
 }: PrintTicketButtonProps) => {
-    const { print, isPending } = usePrintTicket(orderId);
+    const { print, isPending, isVisible } = usePrintTicket(orderId);
+
+    if (!isVisible) return null;
 
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();

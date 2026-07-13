@@ -54,5 +54,9 @@ export const usePrintTicket = (orderId: number) => {
         sendPrintServer();
     };
 
-    return { print, isPending: isPendingAgent || isPendingServer };
+    // En modo agente solo mostramos el botón si el agente está conectado.
+    // En modo servidor (printer_enabled=false) siempre mostramos el botón.
+    const isVisible = businessConfig?.printer_enabled ? agentConnected : true;
+
+    return { print, isPending: isPendingAgent || isPendingServer, isVisible };
 };
