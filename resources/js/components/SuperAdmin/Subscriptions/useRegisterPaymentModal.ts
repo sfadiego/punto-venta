@@ -84,6 +84,7 @@ export const useRegisterPaymentModal = (tenant: ITenantWithSubscription | null, 
             const currentPlan = tenant.subscription_plan ?? SubscriptionPlanEnum.Monthly;
             formik.resetForm({ values: defaultValues(currentPlan) });
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tenant?.id]);
 
     const isLifetime = formik.values.plan === SubscriptionPlanEnum.Lifetime;

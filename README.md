@@ -104,10 +104,6 @@ Siempre correr migraciones tras un pull:
 php artisan migrate
 ```
 
-Migraciones relevantes recientes:
-- `2026_07_07_151043_drop_delivery_paid_by_from_business_config_table` — elimina `delivery_paid_by` de `business_config`.
-- `2026_07_08_000001_add_printer_enabled_to_business_config_table` — agrega `printer_enabled` (boolean, default false) a `business_config`.
-
 ## Calidad de código
 
 ### Pre-commit hook

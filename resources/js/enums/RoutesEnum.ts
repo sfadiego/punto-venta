@@ -7,6 +7,7 @@ export enum AdminRoutes {
     CategoryList = "/categories",
     Statistics   = "/statistics",
     SaleList     = "/sales",
+    Users        = "/users",
     Admin        = "/admin",
     Subscription = "/subscription",
     TenantLogin  = "/:slug/login",

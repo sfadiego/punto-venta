@@ -33,3 +33,19 @@
 .text-stone-700 { color: var(--color-label); }
 
 body { color: var(--color-label); }
+
+/* Fade + collapse animado — oculta/muestra secciones con transición suave */
+.fade-collapse {
+    overflow: hidden;
+    transition: max-height 220ms ease, opacity 200ms ease;
+}
+.fade-collapse.is-visible {
+    max-height: 400px;
+    opacity: 1;
+    pointer-events: auto;
+}
+.fade-collapse.is-hidden {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+}

@@ -6,31 +6,45 @@ import Swal from "sweetalert2";
 import { useModal } from "@/hooks/useModal";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
+import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
 import { usePrintTicket } from "@/components/orders/usePrintTicket";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 
 export const usePayModal = (orderId: number, subtotal: number) => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { isOpen, openModal, closeModal } = useModal();
     const [cash, setCash] = useState("");
+    const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
 
     const { mutateAsync: updateOrder, isPending } = useUpdateOrder(orderId);
     const { data: businessConfig } = useGetBusinessConfig();
+    const { data: paymentMethods = [] } = useIndexPaymentMethods();
     const { print } = usePrintTicket(orderId);
+
+    const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
+    const isCash = !selectedMethod || selectedMethod.name.toLowerCase().includes("efectivo");
 
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - subtotal;
-    const canPay = cashNum >= subtotal && subtotal > 0;
+    const canPay = isCash
+        ? cashNum >= subtotal && subtotal > 0
+        : subtotal > 0;
 
     const handleOpen = () => {
         setCash("");
+        const firstMethod = paymentMethods.find((m) => m.active);
+        setPaymentMethodId(firstMethod?.id ?? null);
         openModal();
     };
 
     const handlePay = async () => {
         try {
-            await updateOrder({ estatus_pedido_id: 3 });
+            await updateOrder({
+                estatus_pedido_id: OrderStatusEnum.Closed,
+                payment_method_id: paymentMethodId,
+            });
             queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
             toast.success("Orden cerrada exitosamente");
             closeModal();
@@ -64,6 +78,10 @@ export const usePayModal = (orderId: number, subtotal: number) => {
         change,
         canPay,
         isPending,
+        paymentMethods,
+        paymentMethodId,
+        setPaymentMethodId,
+        isCash,
         handleOpen,
         handleClose: closeModal,
         handlePay,

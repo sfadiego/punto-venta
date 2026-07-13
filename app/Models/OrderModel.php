@@ -6,6 +6,7 @@ use App\Enums\OrderStatusEnum;
 use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -45,10 +46,13 @@ class OrderModel extends Model
 
     const DELIVERY_REFERENCE = 'delivery_reference';
 
+    const PAYMENT_METHOD_ID = 'payment_method_id';
+
     public static $ALLOWED_UPDATE = [
         self::DESCUENTO,
         self::NOMBRE_PEDIDO,
         self::ESTATUS_PEDIDO_ID,
+        self::PAYMENT_METHOD_ID,
     ];
 
     protected $fillable = [
@@ -64,7 +68,13 @@ class OrderModel extends Model
         self::IS_DELIVERY,
         self::DELIVERY_ADDRESS,
         self::DELIVERY_REFERENCE,
+        self::PAYMENT_METHOD_ID,
     ];
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethodModel::class, self::PAYMENT_METHOD_ID);
+    }
 
     public function orderProducts(): HasMany
     {

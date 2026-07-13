@@ -18,6 +18,7 @@ const CloseSalesPage   = lazy(() => import("@/pages/Sales/partials/CloseSales/Cl
 const SalesPage        = lazy(() => import("@/pages/Sales/SalesPage"));
 const StatisticsPage   = lazy(() => import("@/pages/Statistics/StatisticsPage"));
 const AdminPage        = lazy(() => import("@/pages/Admin/AdminPage"));
+const UsersPage        = lazy(() => import("@/pages/Users/UsersPage"));
 const SubscriptionPage = lazy(() => import("@/pages/Subscription/SubscriptionPage"));
 const MenuPage         = lazy(() => import("@/pages/Menu/MenuPage"));
 
@@ -45,6 +46,7 @@ const privateRoutes: IRoute[] = [
     { path: "/close-sales",    element: <CloseSalesPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
     { path: "/sales",          element: <SalesPage />,      private: true, hasPermission: allow(RoleEnum.Admin) },
     { path: "/statistics",     element: <StatisticsPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
+    { path: "/users",          element: <UsersPage />,        private: true, hasPermission: allow(RoleEnum.Admin) },
     { path: "/admin",          element: <AdminPage />,        private: true, hasPermission: allow(RoleEnum.Admin) },
     { path: "/subscription",   element: <SubscriptionPage />, private: true },
 ];

@@ -3,27 +3,30 @@ import { UseMutateAsyncFunction } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
 import { toast } from "react-toastify";
 
-export const useOnSubmit = <Request = any, Response = any>({
+type ApiError = { response?: { data?: { data?: Record<string, string>; message?: string } } };
+
+export const useOnSubmit = <Request = unknown, Response = unknown>({
     mutateAsync,
     onSuccess,
     onError,
 }: {
-    mutateAsync: UseMutateAsyncFunction<AxiosResponse<any>, Error, any>;
+    mutateAsync: UseMutateAsyncFunction<AxiosResponse<Response>, Error, Request>;
     onSuccess: (data: Response) => void;
     onError?: (data: Error) => void;
 }) => {
-    const onSubmit = async (data: Request, { setErrors }: any) => {
+    const onSubmit = async (data: Request, { setErrors }: { setErrors: (errors: Record<string, string>) => void }) => {
         try {
             const res = await mutateAsync(data);
             onSuccess(res.data);
-        } catch (error: any) {
-            if (error.response?.data?.data != null) {
-                setErrors(error.response.data.data);
+        } catch (error: unknown) {
+            const apiError = error as ApiError;
+            if (apiError.response?.data?.data != null) {
+                setErrors(apiError.response.data.data);
             } else if (onError) {
-                onError(error);
+                onError(error as Error);
             } else {
                 console.log(error);
-                toast.error(error.response?.data.message);
+                toast.error(apiError.response?.data?.message);
             }
         }
     };

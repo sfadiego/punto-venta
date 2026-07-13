@@ -24,6 +24,10 @@ export const PayOrderButton = ({
         change,
         canPay,
         isPending,
+        paymentMethods,
+        paymentMethodId,
+        setPaymentMethodId,
+        isCash,
         handleOpen,
         handleClose,
         handlePay,
@@ -61,6 +65,10 @@ export const PayOrderButton = ({
                 change={change}
                 canPay={canPay}
                 isPending={isPending}
+                paymentMethods={paymentMethods}
+                paymentMethodId={paymentMethodId}
+                setPaymentMethodId={setPaymentMethodId}
+                isCash={isCash}
                 onPay={handlePay}
                 onClose={handleClose}
             />

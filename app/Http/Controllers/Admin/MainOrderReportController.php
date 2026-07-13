@@ -48,6 +48,7 @@ class MainOrderReportController extends Controller
             'bruto' => $bruto,
             'domicilios' => $domicilios,
             'neto' => round($bruto - $domicilios, 2),
+            'by_payment_method' => $system->totalByPaymentMethod(),
         ]);
     }
 

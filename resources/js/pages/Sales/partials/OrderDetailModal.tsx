@@ -3,6 +3,7 @@ import { IOrder } from "@/models/IOrder";
 import { Bike, Receipt } from "lucide-react";
 import { getStatusStyle, getStatusLabel } from "@/pages/Dashboard/useDashboard";
 import { PrintTicketButton } from "@/components/orders/PrintTicketButton";
+import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
 import { useAxios } from "@/hooks/useAxios";
 
 interface OrderDetailModalProps {
@@ -52,10 +53,11 @@ export const OrderDetailModal = ({ isOpen, order, onClose }: OrderDetailModalPro
                             <p className="text-lg font-bold text-stone-900">{order.nombre_pedido}</p>
                             <p className="text-xs text-stone-400 mt-0.5">{formatDate(order.created_at)}</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusStyle(order.estatus_pedido_id)}`}>
                                 {getStatusLabel(order.estatus_pedido_id)}
                             </span>
+                            <PaymentMethodBadge name={order.payment_method?.name} />
                             <PrintTicketButton orderId={order.id} showLabel />
                         </div>
                     </div>

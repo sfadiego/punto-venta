@@ -26,6 +26,7 @@ class OrderUpdateRequest extends FormRequest
             OrderModel::DESCUENTO => 'numeric|min:0|max:99',
             OrderModel::NOMBRE_PEDIDO => 'nullable|string|max:255',
             OrderModel::ESTATUS_PEDIDO_ID => 'exists:order_status,id',
+            OrderModel::PAYMENT_METHOD_ID => 'nullable|exists:payment_methods,id',
         ];
     }
 }

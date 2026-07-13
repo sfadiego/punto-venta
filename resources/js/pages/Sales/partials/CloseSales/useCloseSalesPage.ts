@@ -29,11 +29,21 @@ export const useCloseSalesPage = () => {
     const activeOrdersCount = activeOrdersPage?.total ?? 0;
     const hasActiveOrders   = activeOrdersCount > 0;
 
-    const efectivoInicio  = activeSale?.efectivo_caja_inicio ?? 0;
-    const totalBruto      = totales?.bruto      ?? 0;
-    const totalDomicilios = totales?.domicilios ?? 0;
-    const totalNeto       = totales?.neto       ?? 0;
-    const efectivoCierre  = efectivoInicio + totalNeto;
+    const efectivoInicio      = activeSale?.efectivo_caja_inicio ?? 0;
+    const totalBruto          = totales?.bruto      ?? 0;
+    const totalDomicilios     = totales?.domicilios ?? 0;
+    const totalNeto           = totales?.neto       ?? 0;
+    const byPaymentMethod     = totales?.by_payment_method ?? [];
+
+    const totalEfectivoPagado     = byPaymentMethod
+        .filter((m) => m.name.toLowerCase().includes("efectivo"))
+        .reduce((sum, m) => sum + m.total, 0);
+
+    const totalTransferenciaPagado = byPaymentMethod
+        .filter((m) => !m.name.toLowerCase().includes("efectivo"))
+        .reduce((sum, m) => sum + m.total, 0);
+
+    const efectivoCierre = efectivoInicio + totalEfectivoPagado;
 
     const handleClose = async () => {
         if (hasActiveOrders) return;
@@ -56,8 +66,8 @@ export const useCloseSalesPage = () => {
             queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.System}/active-sale`] });
             toast.success("Caja cerrada exitosamente");
             navigate("/");
-        } catch (error: any) {
-            const msg = error?.response?.data?.message ?? "Error al cerrar la caja";
+        } catch (error) {
+            const msg = (error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Error al cerrar la caja";
             toast.error(msg);
         }
     };
@@ -70,6 +80,9 @@ export const useCloseSalesPage = () => {
         totalDomicilios,
         totalNeto,
         efectivoCierre,
+        totalEfectivoPagado,
+        totalTransferenciaPagado,
+        byPaymentMethod,
         sellByWeight,
         hasActiveOrders,
         activeOrdersCount,

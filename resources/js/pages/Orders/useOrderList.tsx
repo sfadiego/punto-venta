@@ -9,11 +9,13 @@ import { OrderActionButtons } from "@/components/orders/OrderActionButtons";
 import { SaleActions } from "@/components/orders/SaleActions";
 import { getActiveStatuses } from "./partials/OrderFilters";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
+import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
 
 const renderersMap: DataTableRenderersMap = {
     total: (o: IOrder) => `$${o.total.toFixed(2)}`,
     subtotal: (o: IOrder) => `$${o.subtotal.toFixed(2)}`,
     descuento: (o: IOrder) => (o.descuento > 0 ? `${o.descuento}%` : "—"),
+    payment_method: (o: IOrder) => <PaymentMethodBadge name={o.payment_method?.name} />,
     created_at: (o: IOrder) => formatOrderTime(o.created_at),
     estatus_pedido_id: (o: IOrder) => (
         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(o.estatus_pedido_id)}`}>
@@ -56,22 +58,25 @@ export const useOrderList = () => {
         renderersMap,
     });
 
+    const showingClosed = estatusId === String(OrderStatusEnum.Closed);
+
     const enhancedDataTableProps = useMemo(
         () => ({
             ...dataTableProps,
             columns:
                 dataTableProps.columns.length > 0
                     ? ([
-                          ...dataTableProps.columns.filter((col) =>
-                              sellByWeight
-                                  ? (col.accessor as string) !== "estatus_pedido_id"
-                                  : true,
-                          ),
+                          ...dataTableProps.columns.filter((col) => {
+                              const accessor = col.accessor as string;
+                              if (sellByWeight && accessor === "estatus_pedido_id") return false;
+                              if (!showingClosed && accessor === "payment_method") return false;
+                              return true;
+                          }),
                           sellByWeight ? ventaPorPesoActionsColumn : actionsColumn,
                       ] as DataTableColumn<IOrder>[])
                     : [],
         }),
-        [dataTableProps, sellByWeight],
+        [dataTableProps, sellByWeight, showingClosed],
     );
 
     const handleEstatusChange = (value: string) => {

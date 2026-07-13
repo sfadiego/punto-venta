@@ -8,6 +8,7 @@ import {
     LucideIcon,
     Coffee,
     Settings,
+    Users,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";
@@ -57,12 +58,20 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
                     ))}
             </div>
 
-            {can("viewAdmin") && (
+            {(can("viewUsers") || can("viewAdmin")) && (
                 <div className="pt-3 border-t border-white/10 mt-3 space-y-0.5">
-                    <SidebarNavItem
-                        item={{ label: "Configuración", icon: Settings, path: "/admin", permission: "viewAdmin" }}
-                        onClick={onItemClick}
-                    />
+                    {can("viewUsers") && (
+                        <SidebarNavItem
+                            item={{ label: "Usuarios", icon: Users, path: "/users", permission: "viewUsers" }}
+                            onClick={onItemClick}
+                        />
+                    )}
+                    {can("viewAdmin") && (
+                        <SidebarNavItem
+                            item={{ label: "Configuración", icon: Settings, path: "/admin", permission: "viewAdmin" }}
+                            onClick={onItemClick}
+                        />
+                    )}
                 </div>
             )}
         </nav>

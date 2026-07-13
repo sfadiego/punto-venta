@@ -22,6 +22,7 @@ class OrderService extends DataTable
             'id' => '#',
             'nombre_pedido' => 'Nombre',
             'estatus_pedido_id' => 'Estatus',
+            'payment_method' => 'Pago',
             'subtotal' => 'Subtotal',
             'total' => 'Total',
             'created_at' => 'Fecha',
@@ -31,7 +32,7 @@ class OrderService extends DataTable
 
     public function makeQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        $query = $this->model->newQuery()->with('status');
+        $query = $this->model->newQuery()->with(['status', 'paymentMethod:id,name']);
         $rawEstatus = request()->query('estatus_pedido_id');
         $sistemaId = request()->query('sistema_id');
 

@@ -26,7 +26,7 @@ export const useAppLayout = () => {
 
     useEffect(() => {
         setSistema(activeSale?.id ?? null);
-    }, [activeSale]);
+    }, [activeSale, setSistema]);
 
     useEffect(() => {
         if (!config) return;

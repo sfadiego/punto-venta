@@ -50,6 +50,10 @@ export const CartPanel = ({
         change,
         canPay,
         isPending,
+        paymentMethods,
+        paymentMethodId,
+        setPaymentMethodId,
+        isCash,
         handleOpen: openPay,
         handleClose: closePay,
         handlePay,
@@ -127,6 +131,10 @@ export const CartPanel = ({
                 change={change}
                 canPay={canPay}
                 isPending={isPending}
+                paymentMethods={paymentMethods}
+                paymentMethodId={paymentMethodId}
+                setPaymentMethodId={setPaymentMethodId}
+                isCash={isCash}
                 onPay={handlePay}
                 onClose={closePay}
             />

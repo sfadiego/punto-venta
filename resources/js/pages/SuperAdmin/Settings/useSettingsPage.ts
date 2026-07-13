@@ -52,6 +52,7 @@ export const useSettingsPage = () => {
         if (settings?.payment_info) {
             paymentFormik.resetForm({ values: defaultPayment(settings.payment_info) });
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [settings?.payment_info?.account]);
 
     return { settings, isLoading, saving, toggleLogoUpload, paymentFormik };
