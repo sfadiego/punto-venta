@@ -1,10 +1,22 @@
 services:
+    redis:
+        image: redis:7-alpine
+        container_name: laravel_redis
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_data:/data
+        networks:
+            - laravel
+
     php:
         build:
             context: .
         container_name: laravel_php
         extra_hosts:
             - "host.docker.internal:host-gateway"
+        depends_on:
+            - redis
         volumes:
             - .:/var/www/html
             - /var/www/html/storage
@@ -39,3 +51,6 @@ services:
 networks:
     laravel:
         driver: bridge
+
+volumes:
+    redis_data:

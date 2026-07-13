@@ -47,6 +47,8 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql mbstring zip gd pcntl \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
     && rm -rf /var/lib/apt/lists/*
 
 RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
