@@ -99,6 +99,8 @@ class User extends Authenticatable
 
         $user = User::where('email', $email)->first();
 
+        $user->tokens()->delete();
+
         return [
             'user' => $user,
             'access_token' => $user->createToken('access_token')->plainTextToken,
