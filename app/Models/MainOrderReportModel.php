@@ -71,6 +71,24 @@ class MainOrderReportModel extends Model
             ->value('total') ?? 0.0;
     }
 
+    public function totalByPaymentMethod(): array
+    {
+        return OrderModel::query()
+            ->where('sistema_id', $this->id)
+            ->where('estatus_pedido_id', OrderStatusEnum::CLOSED->value)
+            ->whereNull('deleted_at')
+            ->selectRaw('payment_method_id, ROUND(SUM(total), 2) as total')
+            ->groupBy('payment_method_id')
+            ->with('paymentMethod:id,name')
+            ->get()
+            ->map(fn ($order) => [
+                'payment_method_id' => $order->payment_method_id,
+                'name' => $order->paymentMethod?->name ?? 'Sin método',
+                'total' => (float) $order->total,
+            ])
+            ->toArray();
+    }
+
     public function totalDomiciliosByDay(): float
     {
         return round(

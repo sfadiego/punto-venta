@@ -1,5 +1,6 @@
 import { IOrderStatus } from "./IOrderStatus";
 import { IOrderProduct } from "./IOrderProduct";
+import { IPaymentMethod } from "./IPaymentMethod";
 
 export interface IOrder {
     id: number;
@@ -18,4 +19,6 @@ export interface IOrder {
     is_delivery: boolean;
     delivery_address: string | null;
     delivery_reference: string | null;
+    payment_method_id: number | null;
+    payment_method?: Pick<IPaymentMethod, "id" | "name"> | null;
 }

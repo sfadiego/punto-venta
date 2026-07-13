@@ -27,6 +27,7 @@ export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
         isCreatingOrder, handleClose, loadingOrder, isResuming,
         showPayModal, setShowPayModal,
         cash, setCash, cashNum, change, canPay,
+        paymentMethods, paymentMethodId, setPaymentMethodId, isCashMethod,
         isPaying, handlePay,
     } = useNewSaleModal(onClose, initialOrder);
 
@@ -75,7 +76,11 @@ export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
                             handleQtyBlur={handleQtyBlur}
                             removeFromCart={removeFromCart}
                             clearCart={clearCart}
-                            onPay={() => setShowPayModal(true)}
+                            onPay={() => {
+                                const first = paymentMethods.find((m) => m.active);
+                                setPaymentMethodId(first?.id ?? null);
+                                setShowPayModal(true);
+                            }}
                         />
                     </div>
                 )}
@@ -90,6 +95,10 @@ export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
                     change={change}
                     canPay={canPay}
                     isPaying={isPaying}
+                    paymentMethods={paymentMethods}
+                    paymentMethodId={paymentMethodId}
+                    setPaymentMethodId={setPaymentMethodId}
+                    isCashMethod={isCashMethod}
                     onConfirm={handlePay}
                     onClose={() => setShowPayModal(false)}
                 />

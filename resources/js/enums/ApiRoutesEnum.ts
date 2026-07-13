@@ -7,6 +7,8 @@ export enum ApiRoutes {
     Product = "/api/product",
     System = "/api/admin/system",
     Statistics = "/api/admin/system/statistics",
+    AdminUsers = "/api/admin/users",
+    PaymentMethods = "/api/admin/payment-methods",
     BusinessConfig = "/api/admin/config",
     Files = "/api/files",
     PrintBytes = "/api/order/:id/print/bytes",

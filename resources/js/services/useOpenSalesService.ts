@@ -15,6 +15,7 @@ export interface ITotalCurrentSale {
     bruto: number;
     domicilios: number;
     neto: number;
+    by_payment_method: { payment_method_id: number | null; name: string; total: number }[];
 }
 
 export const useCurrentTotalSale = (systemId: number | null) =>

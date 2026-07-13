@@ -5,6 +5,7 @@ import { useModal } from "@/hooks/useModal";
 import { useAxios } from "@/hooks/useAxios";
 import { useStoreOrder } from "@/services/useOrderService";
 import { IOrder } from "@/models/IOrder";
+import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 
 type NewOrderForm = {
     nombre_pedido: string;
@@ -30,7 +31,7 @@ export const useNewOrderModal = () => {
                 subtotal: 0,
                 descuento: 0,
                 sistema_id: sistemaId,
-                estatus_pedido_id: 1,
+                estatus_pedido_id: OrderStatusEnum.InProcess,
             });
 
             const newOrder = (response.data as { data: IOrder }).data;

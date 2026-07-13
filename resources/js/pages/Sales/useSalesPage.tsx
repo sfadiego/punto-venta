@@ -9,6 +9,7 @@ import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { getStatusStyle, getStatusLabel } from "@/pages/Dashboard/useDashboard";
 import { useOrderDetailModal } from "./partials/useOrderDetailModal";
+import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
 
 const today = () => new Date().toISOString().split("T")[0];
 
@@ -16,6 +17,7 @@ const renderersMap: DataTableRenderersMap = {
     total: (o: IOrder) => `$${o.total.toFixed(2)}`,
     subtotal: (o: IOrder) => `$${o.subtotal.toFixed(2)}`,
     descuento: (o: IOrder) => (o.descuento > 0 ? `${o.descuento}%` : "—"),
+    payment_method: (o: IOrder) => <PaymentMethodBadge name={o.payment_method?.name} />,
     created_at: (o: IOrder) =>
         new Date(o.created_at).toLocaleString("es-MX", {
             year: "numeric",

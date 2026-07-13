@@ -1,4 +1,4 @@
-import { DollarSign, TrendingUp, Wallet, CalendarClock, User, MessageSquare, AlertCircle, Lock, Bike } from "lucide-react";
+import { DollarSign, TrendingUp, Wallet, CalendarClock, User, MessageSquare, AlertCircle, Lock, Bike, CreditCard } from "lucide-react";
 import { useCloseSalesPage } from "./useCloseSalesPage";
 import BestSellerWidget from "./BestSellerWidget";
 import { SalesByCategoryButton, SalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal";
@@ -28,6 +28,7 @@ export default function CloseSalesPage() {
         totalDomicilios,
         totalNeto,
         efectivoCierre,
+        totalTransferenciaPagado,
         sellByWeight,
         hasActiveOrders,
         activeOrdersCount,
@@ -74,7 +75,7 @@ export default function CloseSalesPage() {
             </div>
 
             {/* Summary cards */}
-            <div className={`grid grid-cols-1 gap-4 mb-6 ${sellByWeight ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white rounded-2xl border border-stone-100 p-5 flex items-start gap-4 shadow-sm">
                     <div className="p-2.5 rounded-xl bg-blue-100">
                         <DollarSign size={20} className="text-blue-600" />
@@ -135,6 +136,18 @@ export default function CloseSalesPage() {
                         <p className="text-xs text-stone-500 font-medium">Efectivo en caja</p>
                         <p className="text-xl font-bold text-emerald-700 mt-0.5">
                             {formatCurrency(efectivoCierre)}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-stone-100 p-5 flex items-start gap-4 shadow-sm">
+                    <div className="p-2.5 rounded-xl bg-blue-100">
+                        <CreditCard size={20} className="text-blue-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs text-stone-500 font-medium">En transferencias</p>
+                        <p className="text-xl font-bold text-blue-700 mt-0.5">
+                            {formatCurrency(totalTransferenciaPagado)}
                         </p>
                     </div>
                 </div>

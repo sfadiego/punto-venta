@@ -3,14 +3,23 @@
 use App\Http\Controllers\Admin\BusinessConfigController;
 use App\Http\Controllers\Admin\MainOrderReportController;
 use App\Http\Controllers\Admin\StatisticsController;
+use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->group(function () {
+    Route::prefix('payment-methods')->controller(PaymentMethodController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::put('{paymentMethod}', 'update');
+        Route::delete('{paymentMethod}', 'delete');
+    });
+
     Route::prefix('users')->group(function () {
         Route::controller(UserController::class)->group(function () {
             Route::get('/', 'index');
             Route::get('{user}', 'show');
+            Route::put('{user}', 'update');
         });
     });
 

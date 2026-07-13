@@ -25,7 +25,7 @@ export const AddressAutocomplete = ({ formik, name, label, placeholder }: Addres
         };
         document.addEventListener("mousedown", handler);
         return () => document.removeEventListener("mousedown", handler);
-    }, []);
+    }, [setOpen]);
 
     return (
         <div ref={containerRef} className="relative">

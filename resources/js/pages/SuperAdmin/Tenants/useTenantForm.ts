@@ -76,12 +76,13 @@ export const useTenantForm = (tenantId?: number) => {
                     });
                     toast.success("Cliente actualizado.");
                 } else {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     await createMutation.mutateAsync(values as any);
                     toast.success("Cliente creado correctamente.");
                 }
                 navigate(SuperAdminRoutes.Tenants);
-            } catch (err: any) {
-                const msg = err?.response?.data?.message ?? "Error al guardar.";
+            } catch (err: unknown) {
+                const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Error al guardar.";
                 toast.error(msg);
                 helpers.setSubmitting(false);
             }

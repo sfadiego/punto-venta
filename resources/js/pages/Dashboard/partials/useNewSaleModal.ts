@@ -9,6 +9,7 @@ import { useIndexProducts } from "@/services/useProductService";
 import { useIndexCategories } from "@/services/useCategoriesService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useShowOrder } from "@/services/useOrderService";
+import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
 import { axiosPOST, axiosPUT, axiosDELETE } from "@/hooks/useApi";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IProduct } from "@/models/IProduct";
@@ -79,7 +80,10 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
 
     const [showPayModal, setShowPayModal] = useState(false);
     const [cash, setCash] = useState("");
+    const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
     const [isPaying, setIsPaying] = useState(false);
+
+    const { data: paymentMethods = [] } = useIndexPaymentMethods();
 
     // Load full order with products only for resume mode
     const { data: fullOrder, isLoading: loadingFullOrder } = useShowOrder(
@@ -119,7 +123,11 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
         : total;
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - totalFinal;
-    const canPay = cashNum >= totalFinal && totalFinal > 0;
+    const selectedPaymentMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
+    const isCashMethod = !selectedPaymentMethod || selectedPaymentMethod.name.toLowerCase().includes("efectivo");
+    const canPay = isCashMethod
+        ? cashNum >= totalFinal && totalFinal > 0
+        : totalFinal > 0;
 
     const defaultCantidad = (product: IProduct) =>
         product.unidad_medida === UnidadMedidaEnum.Kg ? 0.5 : 1;
@@ -300,6 +308,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 data: {
                     estatus_pedido_id: OrderStatusEnum.Closed,
                     costo_domicilio: domicilioActivo && domicilio > 0 && !customerPays ? domicilio : 0,
+                    payment_method_id: paymentMethodId,
                 },
             });
             queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
@@ -346,6 +355,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
         isResuming: !!initialOrder,
         showPayModal, setShowPayModal,
         cash, setCash, cashNum, change, canPay,
+        paymentMethods, paymentMethodId, setPaymentMethodId, isCashMethod,
         isPaying, handlePay,
     };
 };

@@ -23,7 +23,13 @@ export const formatTotal = (total: number, unidad: string): string => {
     return `${total} und`;
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
+interface TooltipEntry {
+    payload: IBestSellerItem;
+    value: number;
+    name: string;
+}
+
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: TooltipEntry[] }) => {
     if (!active || !payload?.length) return null;
     const item = payload[0];
     const unidad: string = item.payload.unidad_medida ?? "unidad";

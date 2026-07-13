@@ -40,7 +40,7 @@ class OrderController extends Controller
             ]);
         }
 
-        return Response::success($order->load('orderProducts.product'));
+        return Response::success($order->load(['orderProducts.product', 'paymentMethod:id,name']));
     }
 
     public function delete(OrderModel $order): JsonResponse

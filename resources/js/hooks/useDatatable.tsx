@@ -3,14 +3,17 @@ import { DataTableColumn } from "mantine-datatable";
 import { useEffect, useMemo, useState } from "react";
 
 export type DataTableRenderersMap = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: (record: any) => any;
 } & {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rowClassName?: (record: any) => string | undefined;
 };
 
 interface UseDataTableParams {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     service: (params: any) => any;
-    payload?: any;
+    payload?: Record<string, unknown>;
     columnProperties?: ColumnProperties<unknown>;
     renderersMap?: DataTableRenderersMap;
     refetchInterval?: number;
@@ -58,7 +61,7 @@ export const useDataTable = ({
             totalRecords: data?.total || 0,
             onPageChange: setPage,
             columns: data?.columns
-                ? applyRenderers<any>(data.columns, columnProperties)
+                ? applyRenderers(data.columns, columnProperties)
                 : [],
             records: data?.data || [],
             onRecordsPerPageChange: setLimit,
@@ -81,6 +84,7 @@ export const useDataTable = ({
                 totalRecords: number;
             }) => `Mostrando del ${from} al ${to} de ${totalRecords} registros`,
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data, isLoading, page, limit]);
 
     return {
