@@ -98,6 +98,7 @@ class MenuController extends Controller
                     'cantidad' => $item['cantidad'],
                     'precio' => $product->precio,
                     'descuento' => 0,
+                    OrderProductModel::OBSERVACION => $item['observacion'] ?? null,
                 ]);
             }
 

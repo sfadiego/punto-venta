@@ -33,6 +33,7 @@ export interface IMenuProductsPage {
 export interface IPublicOrderItem {
     product_id: number;
     cantidad: number;
+    observacion?: string | null;
 }
 
 export interface IPublicOrderPayload {
@@ -47,4 +48,5 @@ export interface IPublicOrderPayload {
 export interface ICartItem {
     product: IMenuProduct;
     cantidad: number;
+    observacion?: string | null;
 }

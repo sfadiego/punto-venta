@@ -14,8 +14,18 @@ export const useCart = () => {
                     i.product.id === product.id ? { ...i, cantidad: i.cantidad + 1 } : i
                 );
             }
-            return [...prev, { product, cantidad: 1 }];
+            return [...prev, { product, cantidad: 1, observacion: null }];
         });
+    };
+
+    const setNote = (productId: number, note: string) => {
+        setItems((prev) =>
+            prev.map((i) =>
+                i.product.id === productId
+                    ? { ...i, observacion: note.trim() || null }
+                    : i
+            )
+        );
     };
 
     const remove = (productId: number) => {
@@ -38,5 +48,5 @@ export const useCart = () => {
 
     const count = items.reduce((sum, i) => sum + i.cantidad, 0);
 
-    return { items, add, remove, clear, quantityOf, total, count };
+    return { items, add, remove, clear, quantityOf, total, count, setNote };
 };

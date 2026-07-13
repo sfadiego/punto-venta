@@ -47,8 +47,9 @@ export const useCheckoutModal = ({ slug, items, deliveryCost, onSuccess }: Check
                     delivery_address:   values.is_delivery ? values.delivery_address : null,
                     delivery_reference: values.is_delivery ? values.delivery_reference || null : null,
                     items: items.map((i) => ({
-                        product_id: i.product.id,
-                        cantidad:   i.cantidad,
+                        product_id:  i.product.id,
+                        cantidad:    i.cantidad,
+                        observacion: i.observacion ?? null,
                     })),
                 });
                 toast.success("¡Pedido enviado! El negocio se comunicará contigo para confirmarlo.");

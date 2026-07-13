@@ -94,6 +94,7 @@ function MenuPage() {
                 onClose={() => setCartOpen(false)}
                 onAdd={cart.add}
                 onRemove={cart.remove}
+                onNote={cart.setNote}
                 onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }}
             />
 

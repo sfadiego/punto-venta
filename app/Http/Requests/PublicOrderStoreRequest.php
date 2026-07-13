@@ -22,6 +22,7 @@ class PublicOrderStoreRequest extends FormRequest
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer',
             'items.*.cantidad' => 'required|integer|min:1',
+            'items.*.observacion' => 'nullable|string|max:200',
         ];
     }
 }
