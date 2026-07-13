@@ -1,5 +1,6 @@
 import { X, Minus, Plus, ShoppingCart } from "lucide-react";
 import { ICartItem, IMenuProduct } from "@/models/IMenu";
+import { CartItemNote } from "./CartItemNote";
 
 
 interface CartDrawerProps {
@@ -10,10 +11,11 @@ interface CartDrawerProps {
     onClose: () => void;
     onAdd: (product: IMenuProduct) => void;
     onRemove: (productId: number) => void;
+    onNote: (productId: number, note: string) => void;
     onCheckout: () => void;
 }
 
-export const CartDrawer = ({ open, items, total, primaryColor, onClose, onAdd, onRemove, onCheckout }: CartDrawerProps) => (
+export const CartDrawer = ({ open, items, total, primaryColor, onClose, onAdd, onRemove, onNote, onCheckout }: CartDrawerProps) => (
     <>
         <div
             className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
@@ -43,32 +45,38 @@ export const CartDrawer = ({ open, items, total, primaryColor, onClose, onAdd, o
 
             <div className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-4">
                 {items.map((item) => (
-                    <div key={item.product.id} className="flex items-center gap-3">
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-stone-800 truncate">{item.product.nombre}</p>
-                            <p className="text-xs text-stone-400 mt-0.5">${item.product.precio.toFixed(2)} c/u</p>
+                    <div key={item.product.id} className="py-1 border-b border-stone-100 last:border-0">
+                        <div className="flex items-center gap-3">
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-stone-800 truncate">{item.product.nombre}</p>
+                                <p className="text-xs text-stone-400 mt-0.5">${item.product.precio.toFixed(2)} c/u</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                    onClick={() => onRemove(item.product.id)}
+                                    className="w-9 h-9 rounded-xl bg-stone-100 active:bg-stone-200 flex items-center justify-center transition-colors"
+                                    aria-label="Quitar uno"
+                                >
+                                    <Minus size={14} className="text-stone-600" />
+                                </button>
+                                <span className="text-sm font-semibold w-5 text-center tabular-nums">{item.cantidad}</span>
+                                <button
+                                    onClick={() => onAdd(item.product)}
+                                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70"
+                                    style={{ backgroundColor: primaryColor }}
+                                    aria-label="Agregar uno"
+                                >
+                                    <Plus size={14} />
+                                </button>
+                            </div>
+                            <span className="text-sm font-semibold text-stone-800 w-14 text-right tabular-nums shrink-0">
+                                ${(item.product.precio * item.cantidad).toFixed(2)}
+                            </span>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                            <button
-                                onClick={() => onRemove(item.product.id)}
-                                className="w-9 h-9 rounded-xl bg-stone-100 active:bg-stone-200 flex items-center justify-center transition-colors"
-                                aria-label="Quitar uno"
-                            >
-                                <Minus size={14} className="text-stone-600" />
-                            </button>
-                            <span className="text-sm font-semibold w-5 text-center tabular-nums">{item.cantidad}</span>
-                            <button
-                                onClick={() => onAdd(item.product)}
-                                className="w-9 h-9 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70"
-                                style={{ backgroundColor: primaryColor }}
-                                aria-label="Agregar uno"
-                            >
-                                <Plus size={14} />
-                            </button>
-                        </div>
-                        <span className="text-sm font-semibold text-stone-800 w-14 text-right tabular-nums shrink-0">
-                            ${(item.product.precio * item.cantidad).toFixed(2)}
-                        </span>
+                        <CartItemNote
+                            observacion={item.observacion}
+                            onSave={(note) => onNote(item.product.id, note)}
+                        />
                     </div>
                 ))}
             </div>
