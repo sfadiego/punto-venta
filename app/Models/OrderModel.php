@@ -125,6 +125,7 @@ class OrderModel extends Model
             ->whereIn('estatus_pedido_id', [
                 OrderStatusEnum::IN_PROCESS->value,
                 OrderStatusEnum::SERVED->value,
+                OrderStatusEnum::PENDING_CONFIRMATION->value,
             ])
             ->whereNull('deleted_at')
             ->count();

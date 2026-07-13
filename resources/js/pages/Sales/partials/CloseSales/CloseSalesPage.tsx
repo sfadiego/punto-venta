@@ -215,7 +215,7 @@ export default function CloseSalesPage() {
                     <div>
                         <p className="text-sm font-semibold text-amber-800">No puedes cerrar la caja</p>
                         <p className="text-sm text-amber-700 mt-0.5">
-                            Tienes {activeOrdersCount} {activeOrdersCount === 1 ? "mesa activa" : "mesas activas"}. Finaliza todas las órdenes antes de cerrar.
+                            Tienes {activeOrdersCount} {activeOrdersCount === 1 ? "orden pendiente" : "órdenes pendientes"} (mesas activas o solicitudes del menú). Finaliza todas antes de cerrar.
                         </p>
                     </div>
                 </div>
