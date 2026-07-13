@@ -1,0 +1,140 @@
+name: CLAUDE.md Rules
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  typescript:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript check
+        run: pnpm exec tsc --noEmit
+
+  structural-rules:
+    name: Reglas estructurales
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verificar convenciones de nombres
+        run: |
+          ERRORS=0
+
+          # Models deben tener prefijo I (ej: IOrder.ts)
+          echo "── Verificando models/ ──"
+          while IFS= read -r file; do
+            base=$(basename "$file")
+            if [[ ! "$base" =~ ^I[A-Z] ]]; then
+              echo "❌ models/$base debe tener prefijo I (ej: IOrder.ts)"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done < <(find resources/js/models -name "*.ts" -not -name "index.ts" 2>/dev/null)
+
+          # Services deben tener prefijo use (ej: useOrderService.ts)
+          echo "── Verificando services/ ──"
+          while IFS= read -r file; do
+            base=$(basename "$file")
+            if [[ ! "$base" =~ ^use ]]; then
+              echo "❌ services/$base debe tener prefijo use (ej: useOrderService.ts)"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done < <(find resources/js/services -name "*.ts" 2>/dev/null)
+
+          # Hooks deben tener prefijo use
+          echo "── Verificando hooks/ ──"
+          while IFS= read -r file; do
+            base=$(basename "$file")
+            if [[ ! "$base" =~ ^use ]]; then
+              echo "❌ hooks/$base debe tener prefijo use (ej: useModal.ts)"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done < <(find resources/js/hooks -name "*.ts" -not -name "index.ts" 2>/dev/null)
+
+          echo ""
+          if [ $ERRORS -gt 0 ]; then
+            echo "❌ $ERRORS violación(es) de convenciones de nombres (CLAUDE.md)"
+            exit 1
+          else
+            echo "✅ Convenciones de nombres correctas"
+          fi
+
+      - name: Verificar que no hay peticiones directas a axios en pages/ y components/
+        run: |
+          ERRORS=0
+          echo "── Verificando peticiones HTTP directas ──"
+
+          # Buscar imports de axios fuera de configs/ y contexts/
+          while IFS= read -r file; do
+            if grep -qE "^import axios|from ['\"]axios['\"]" "$file" 2>/dev/null; then
+              echo "❌ $file importa axios directamente. Usa useAxios() o el servicio (CLAUDE.md: peticiones http)"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done < <(find resources/js/pages resources/js/components -name "*.ts" -o -name "*.tsx" 2>/dev/null)
+
+          if [ $ERRORS -gt 0 ]; then
+            exit 1
+          else
+            echo "✅ Sin importaciones directas de axios"
+          fi
+
+      - name: Verificar que no hay modelos definidos en pages/ o components/
+        run: |
+          ERRORS=0
+          echo "── Verificando definición de interfaces ──"
+
+          # Buscar interfaces con prefijo I definidas dentro de pages/ o components/
+          while IFS= read -r file; do
+            count=$(grep -cE "^export interface I[A-Z]" "$file" 2>/dev/null || true)
+            if [ "$count" -gt 0 ]; then
+              echo "❌ $file define $count interfaz(ces) de dominio. Muévelas a models/ (CLAUDE.md: Tipos)"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done < <(find resources/js/pages resources/js/components -name "*.ts" -o -name "*.tsx" 2>/dev/null)
+
+          if [ $ERRORS -gt 0 ]; then
+            exit 1
+          else
+            echo "✅ Interfaces de dominio en models/"
+          fi
+
+      - name: Verificar que no hay inline styles
+        run: |
+          echo "── Verificando inline styles ──"
+
+          # Excluir el caso válido de scrollbarWidth (CategoryFilter) y casos de color picker
+          MATCHES=$(grep -rn "style={{" resources/js/pages resources/js/components \
+            --include="*.tsx" \
+            | grep -v "scrollbarWidth\|msOverflowStyle" \
+            | grep -v "backgroundColor.*color" || true)
+
+          if [ -n "$MATCHES" ]; then
+            echo "⚠️  Posible uso de inline style (CLAUDE.md: Estilos):"
+            echo "$MATCHES"
+            echo ""
+            echo "Usa clases de Tailwind en lugar de style={{}}."
+            # Warning, no bloquea el PR
+          else
+            echo "✅ Sin inline styles detectados"
+          fi

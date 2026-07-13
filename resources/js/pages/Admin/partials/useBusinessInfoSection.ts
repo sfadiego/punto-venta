@@ -5,8 +5,8 @@ import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 
-const phoneRegex = /^[+\d][\d\s\-().]{3,29}$/;
-const handleOrUrlRegex = /^(@[\w.\-]+|https?:\/\/.+)$/;
+const phoneRegex = /^[+\d][\d\s().-]{3,29}$/;
+const handleOrUrlRegex = /^(@[\w.-]+|https?:\/\/.+)$/;
 
 const schema = Yup.object({
     phone: Yup.string().nullable().max(30).test(

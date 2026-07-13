@@ -97,8 +97,6 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
                 const status = error.response?.status;
                 const code   = error.response?.data?.code;
 
-                const isAuthenticated = !!localStorage.getItem("authToken");
-
                 if (status === 401 || (status === 403 && code === ApiErrorCodeEnum.TenantInactive)) {
                     logout();
                 }
