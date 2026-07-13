@@ -26,9 +26,11 @@ interface InputProps<T> {
     max?: number;
     step?: number;
     maxLength?: number;
+    value?: string;
+    onChange?: React.ChangeEventHandler<HTMLInputElement>;
 }
 
-export const Input = <T,>({
+export const Input = <T = Record<string, string>,>({
     label = "",
     formik,
     inputType = "text",
@@ -43,6 +45,8 @@ export const Input = <T,>({
     max,
     step,
     maxLength,
+    value,
+    onChange,
 }: InputProps<T>) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = inputType === "password";
@@ -52,7 +56,9 @@ export const Input = <T,>({
     const showError = (touched || (formik?.submitCount ?? 0) > 0) && hasError;
 
     const styleVariant = inputVariant[showError ? "error" : inputStyle] || "";
-    const fieldProps = formik ? formik.getFieldProps(name) : {};
+    const fieldProps = formik
+        ? formik.getFieldProps(name)
+        : { value: value ?? "", onChange };
     const resolvedType = isPassword ? (showPassword ? "text" : "password") : inputType;
 
     return (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { useIndexProducts } from "@/services/useProductService";
@@ -9,16 +9,29 @@ export const useProductsPage = () => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [categoryId, setCategoryId] = useState<number | null>(null);
+    const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(search), 400);
+        return () => clearTimeout(timer);
+    }, [search]);
 
     const { data, isLoading, refetch } = useIndexProducts({
         page,
         limit,
         categoria_id: categoryId,
+        nombre: debouncedSearch || undefined,
     });
     const { data: categories } = useIndexCategories();
 
     const handleCategoryChange = (id: number | null) => {
         setCategoryId(id);
+        setPage(1);
+    };
+
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
         setPage(1);
     };
 
@@ -37,10 +50,12 @@ export const useProductsPage = () => {
         isLoading,
         categories: categories ?? [],
         categoryId,
+        search,
         setPage,
         setLimit,
         refetch,
         handleCategoryChange,
+        handleSearchChange,
         invalidateProducts,
     };
 };
