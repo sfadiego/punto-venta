@@ -23,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('api', \App\Http\Middleware\ErrorReporting::class);
         $middleware->alias([
             'check.subscription' => \App\Http\Middleware\CheckSubscription::class,
-            'track.activity'     => \App\Http\Middleware\TrackActivity::class,
+            'track.activity' => \App\Http\Middleware\TrackActivity::class,
         ]);
         $middleware->trustProxies(headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
             \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |

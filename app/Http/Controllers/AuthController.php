@@ -100,7 +100,7 @@ class AuthController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => 'Se alcanzó el límite de usuarios simultáneos para tu plan. Intenta más tarde.',
-                        'code'    => 'CONCURRENT_USERS_LIMIT',
+                        'code' => 'CONCURRENT_USERS_LIMIT',
                     ], 403);
                 }
             }

@@ -30,12 +30,12 @@ class MenuController extends Controller
         $hasActiveSession = (new MainOrderReportModel)->getActiveSale() !== null;
 
         return Response::success([
-            'business_name'           => $tenant->business_name,
-            'primary_color'           => $tenant->primary_color,
-            'logo'                    => $tenant->logo_path,
+            'business_name' => $tenant->business_name,
+            'primary_color' => $tenant->primary_color,
+            'logo' => $tenant->logo_path,
             'costo_domicilio_default' => $tenant->costo_domicilio_default ?? 0,
-            'has_active_session'      => $hasActiveSession,
-            'menu_enabled'            => (bool) $tenant->menu_enabled,
+            'has_active_session' => $hasActiveSession,
+            'menu_enabled' => (bool) $tenant->menu_enabled,
         ]);
     }
 
