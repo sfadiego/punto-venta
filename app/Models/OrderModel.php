@@ -115,7 +115,7 @@ class OrderModel extends Model
             ->where(function ($q) {
                 $q->whereNotNull('producto_id')->orWhereNotNull('nombre_extra');
             })
-            ->selectRaw('ROUND(SUM(precio * cantidad * (1 - COALESCE(descuento, 0) / 100)), 2) as total')
+            ->selectRaw('ROUND(SUM(precio * cantidad * (1 - COALESCE(descuento, 0) / 100.0)), 2) as total')
             ->value('total') ?? 0.0;
     }
 

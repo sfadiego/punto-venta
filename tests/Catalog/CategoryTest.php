@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Catalog;
 
 use App\Models\CategoryModel;
 use Tests\TestCase;
@@ -115,6 +115,24 @@ class CategoryTest extends TestCase
         $this->assertSoftDeleted('categories', ['id' => $category->id]);
     }
 
+    // ── List (simple, cacheada) ──────────────────────────────
+
+    public function test_lista_categorias_simple(): void
+    {
+        $response = $this->getJson('/api/category/list', $this->authHeaders());
+
+        $response->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonStructure(['status', 'data' => [['id', 'nombre']]]);
+    }
+
+    public function test_lista_categorias_simple_retorna_array(): void
+    {
+        $response = $this->getJson('/api/category/list', $this->authHeaders());
+        $this->assertIsArray($response->json('data'));
+        $this->assertNotEmpty($response->json('data'));
+    }
+
     // ── CategoryProduct ──────────────────────────────────────
 
     public function test_lista_productos_de_categoria(): void
@@ -125,5 +143,11 @@ class CategoryTest extends TestCase
             ->assertStatus(200)
             ->assertJsonPath('status', 'OK')
             ->assertJsonStructure(['status', 'data']);
+    }
+
+    public function test_categoria_inexistente_retorna_404(): void
+    {
+        $this->getJson('/api/category/99999', $this->authHeaders())
+            ->assertStatus(404);
     }
 }

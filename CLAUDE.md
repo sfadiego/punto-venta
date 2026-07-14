@@ -293,3 +293,6 @@ enabled={import.meta.env.VITE_APP_ENV === "local" || !!config?.printer_enabled}
 // AdminPage.tsx
 const printerVisible = import.meta.env.VITE_APP_ENV === "local" || config?.printer_enabled === true;
 ```
+### Testing
+- Los test se van a crear para probar las apis existentes en `php artisan route:list`
+- no crear funciones nuevas para crear archivos, utiza factory en los metodos que lo requieran

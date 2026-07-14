@@ -1,6 +1,10 @@
 <?php
 
 use App\Enums\HttpErrors;
+use App\Http\Middleware\CheckSubscription;
+use App\Http\Middleware\ErrorReporting;
+use App\Http\Middleware\TrackActivity;
+use App\Http\Middleware\TransactionMiddleware;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,11 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->redirectGuestsTo(fn () => null);
-        $middleware->appendToGroup('api', \App\Http\Middleware\TransactionMiddleware::class);
-        $middleware->appendToGroup('api', \App\Http\Middleware\ErrorReporting::class);
+        $middleware->appendToGroup('api', TransactionMiddleware::class);
+        $middleware->appendToGroup('api', ErrorReporting::class);
         $middleware->alias([
-            'check.subscription' => \App\Http\Middleware\CheckSubscription::class,
-            'track.activity' => \App\Http\Middleware\TrackActivity::class,
+            'check.subscription' => CheckSubscription::class,
+            'track.activity' => TrackActivity::class,
         ]);
         $middleware->trustProxies(headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
             \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |

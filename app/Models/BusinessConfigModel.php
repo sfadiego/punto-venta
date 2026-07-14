@@ -103,12 +103,12 @@ class BusinessConfigModel extends Model
 
     public function getSubscriptionStatusAttribute(): string
     {
-        if (! $this->subscription_expires_at) {
-            return SubscriptionStatusEnum::Pending->value;
-        }
-
         if ($this->subscription_plan === 'lifetime') {
             return SubscriptionStatusEnum::Active->value;
+        }
+
+        if (! $this->subscription_expires_at) {
+            return SubscriptionStatusEnum::Pending->value;
         }
 
         $now = Carbon::today();

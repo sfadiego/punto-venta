@@ -111,7 +111,11 @@ class MenuController extends Controller
             return $order;
         });
 
-        broadcast(new OrdersUpdated('new_public_order'));
+        try {
+            broadcast(new OrdersUpdated('new_public_order'));
+        } catch (\Throwable) {
+            // Reverb unavailable — order must not fail
+        }
 
         return Response::success([
             'order_id' => $order->id,

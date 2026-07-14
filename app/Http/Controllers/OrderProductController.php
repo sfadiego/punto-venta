@@ -219,8 +219,8 @@ class OrderProductController extends Controller
         $item->delete();
 
         DB::table('order')->where('id', $orderId)->update([
-            'subtotal' => DB::raw("GREATEST(0, COALESCE(subtotal, 0) - {$lineSubtotal})"),
-            'total' => DB::raw("GREATEST(0, COALESCE(total, 0) - {$lineTotal})"),
+            'subtotal' => max(0, round(($order->subtotal ?? 0) - $lineSubtotal, 2)),
+            'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
         ]);
 
         return Response::success('elemento borrado de la orden');
@@ -249,8 +249,8 @@ class OrderProductController extends Controller
         $delete->delete();
 
         DB::table('order')->where('id', $orderId)->update([
-            'subtotal' => DB::raw("GREATEST(0, COALESCE(subtotal, 0) - {$lineSubtotal})"),
-            'total' => DB::raw("GREATEST(0, COALESCE(total, 0) - {$lineTotal})"),
+            'subtotal' => max(0, round(($order->subtotal ?? 0) - $lineSubtotal, 2)),
+            'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
         ]);
 
         return Response::success('elemento borrado de la orden');
