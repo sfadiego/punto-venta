@@ -170,9 +170,9 @@ class SuperAdminTest extends TestCase
         $tenant = BusinessConfigModel::first();
 
         $this->postJson("/api/super-admin/subscription/{$tenant->id}", [
-            'plan'      => 'lifetime',
+            'plan' => 'lifetime',
             'starts_at' => now()->toDateString(),
-            'amount'    => 0,
+            'amount' => 0,
         ], $this->superAdminHeaders())
             ->assertStatus(200)
             ->assertJsonPath('data.subscription_plan', 'lifetime');
@@ -187,7 +187,7 @@ class SuperAdminTest extends TestCase
         $tenant = BusinessConfigModel::first();
 
         $this->postJson("/api/super-admin/subscription/{$tenant->id}", [
-            'plan'      => 'noexiste',
+            'plan' => 'noexiste',
             'starts_at' => now()->toDateString(),
         ], $this->superAdminHeaders())
             ->assertStatus(400);
@@ -198,7 +198,7 @@ class SuperAdminTest extends TestCase
         $tenant = BusinessConfigModel::first();
 
         $this->postJson("/api/super-admin/subscription/{$tenant->id}", [
-            'plan'      => 'monthly',
+            'plan' => 'monthly',
             'starts_at' => 'no-es-fecha',
         ], $this->superAdminHeaders())
             ->assertStatus(400);
@@ -220,9 +220,9 @@ class SuperAdminTest extends TestCase
     {
         $this->putJson('/api/super-admin/settings', [
             'payment_info' => [
-                'bank'    => 'Bancolombia',
+                'bank' => 'Bancolombia',
                 'account' => '1234567890',
-                'holder'  => 'Mi Empresa',
+                'holder' => 'Mi Empresa',
                 'concept' => 'Pago mensual',
             ],
         ], $this->superAdminHeaders())

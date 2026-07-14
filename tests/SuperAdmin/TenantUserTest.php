@@ -12,21 +12,22 @@ class TenantUserTest extends TestCase
     private function superAdminHeaders(): array
     {
         $user = User::where('rol_id', RoleEnum::SUPERADMIN->value)->first();
+
         return $this->authHeaders($user);
     }
 
     private function crearTenant(): BusinessConfigModel
     {
-        $slug = 'tenant-users-' . uniqid();
+        $slug = 'tenant-users-'.uniqid();
 
         return BusinessConfigModel::create([
-            BusinessConfigModel::SLUG          => $slug,
-            BusinessConfigModel::ACTIVO        => true,
+            BusinessConfigModel::SLUG => $slug,
+            BusinessConfigModel::ACTIVO => true,
             BusinessConfigModel::BUSINESS_NAME => 'Tenant Para Usuarios',
             BusinessConfigModel::PRIMARY_COLOR => '#F59E0B',
             BusinessConfigModel::SIDEBAR_COLOR => '#1C1917',
-            BusinessConfigModel::FONT_COLOR    => '#FFFFFF',
-            BusinessConfigModel::LABEL_COLOR   => '#1C1917',
+            BusinessConfigModel::FONT_COLOR => '#FFFFFF',
+            BusinessConfigModel::LABEL_COLOR => '#1C1917',
             BusinessConfigModel::SUBSCRIPTION_PLAN => 'lifetime',
         ]);
     }
@@ -34,13 +35,13 @@ class TenantUserTest extends TestCase
     private function userPayload(array $overrides = []): array
     {
         return array_merge([
-            'nombre'           => 'Empleado',
+            'nombre' => 'Empleado',
             'apellido_paterno' => 'Test',
-            'email'            => 'empleado' . uniqid() . '@test.com',
-            'usuario'          => 'emp-' . uniqid(),
-            'password'         => 'password123',
-            'rol_id'           => RoleEnum::EMPLOYE->value,
-            'activo'           => true,
+            'email' => 'empleado'.uniqid().'@test.com',
+            'usuario' => 'emp-'.uniqid(),
+            'password' => 'password123',
+            'rol_id' => RoleEnum::EMPLOYE->value,
+            'activo' => true,
         ], $overrides);
     }
 
@@ -58,7 +59,7 @@ class TenantUserTest extends TestCase
 
     public function test_lista_no_incluye_superadmin(): void
     {
-        $tenant  = BusinessConfigModel::first();
+        $tenant = BusinessConfigModel::first();
         $response = $this->getJson("/api/super-admin/tenant/{$tenant->id}/users", $this->superAdminHeaders())
             ->assertStatus(200);
 
@@ -82,7 +83,7 @@ class TenantUserTest extends TestCase
 
     public function test_crea_usuario_en_tenant(): void
     {
-        $tenant  = $this->crearTenant();
+        $tenant = $this->crearTenant();
         $payload = $this->userPayload();
 
         $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $payload, $this->superAdminHeaders())
@@ -92,7 +93,7 @@ class TenantUserTest extends TestCase
             ->assertJsonPath('data.rol_id', RoleEnum::EMPLOYE->value);
 
         $this->assertDatabaseHas('users', [
-            'email'     => $payload['email'],
+            'email' => $payload['email'],
             'tenant_id' => $tenant->id,
         ]);
     }
@@ -115,7 +116,7 @@ class TenantUserTest extends TestCase
 
     public function test_no_crea_usuario_con_email_duplicado(): void
     {
-        $tenant  = $this->crearTenant();
+        $tenant = $this->crearTenant();
         $existing = User::where('rol_id', RoleEnum::ADMIN->value)->first();
 
         $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $this->userPayload([
@@ -126,7 +127,7 @@ class TenantUserTest extends TestCase
 
     public function test_no_crea_usuario_con_usuario_duplicado(): void
     {
-        $tenant   = $this->crearTenant();
+        $tenant = $this->crearTenant();
         $existing = User::where('rol_id', RoleEnum::ADMIN->value)->first();
 
         $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $this->userPayload([
@@ -162,11 +163,11 @@ class TenantUserTest extends TestCase
             ->json('data');
 
         $this->putJson("/api/super-admin/tenant/{$tenant->id}/users/{$created['id']}", [
-            'nombre'           => 'Actualizado',
+            'nombre' => 'Actualizado',
             'apellido_paterno' => 'Test',
-            'email'            => $payload['email'],
-            'usuario'          => $payload['usuario'],
-            'rol_id'           => RoleEnum::EMPLOYE->value,
+            'email' => $payload['email'],
+            'usuario' => $payload['usuario'],
+            'rol_id' => RoleEnum::EMPLOYE->value,
         ], $this->superAdminHeaders())
             ->assertStatus(200)
             ->assertJsonPath('status', 'OK')
@@ -175,18 +176,18 @@ class TenantUserTest extends TestCase
 
     public function test_actualiza_password_si_se_envia(): void
     {
-        $tenant  = $this->crearTenant();
+        $tenant = $this->crearTenant();
         $payload = $this->userPayload();
         $created = $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $payload, $this->superAdminHeaders())
             ->json('data');
 
         $this->putJson("/api/super-admin/tenant/{$tenant->id}/users/{$created['id']}", [
-            'nombre'           => $created['nombre'],
+            'nombre' => $created['nombre'],
             'apellido_paterno' => $created['apellido_paterno'],
-            'email'            => $payload['email'],
-            'usuario'          => $payload['usuario'],
-            'rol_id'           => RoleEnum::EMPLOYE->value,
-            'password'         => 'nuevapass123',
+            'email' => $payload['email'],
+            'usuario' => $payload['usuario'],
+            'rol_id' => RoleEnum::EMPLOYE->value,
+            'password' => 'nuevapass123',
         ], $this->superAdminHeaders())
             ->assertStatus(200);
     }
@@ -202,11 +203,11 @@ class TenantUserTest extends TestCase
 
         // Intentar actualizar usuario del tenant1 desde el endpoint del tenant2
         $this->putJson("/api/super-admin/tenant/{$tenant2->id}/users/{$user['id']}", [
-            'nombre'           => 'Hack',
+            'nombre' => 'Hack',
             'apellido_paterno' => 'Test',
-            'email'            => $payload['email'],
-            'usuario'          => $payload['usuario'],
-            'rol_id'           => RoleEnum::EMPLOYE->value,
+            'email' => $payload['email'],
+            'usuario' => $payload['usuario'],
+            'rol_id' => RoleEnum::EMPLOYE->value,
         ], $this->superAdminHeaders())
             ->assertStatus(404);
     }
@@ -214,7 +215,7 @@ class TenantUserTest extends TestCase
     public function test_actualiza_usuario_sin_autenticacion(): void
     {
         $tenant = BusinessConfigModel::first();
-        $user   = User::where('tenant_id', $tenant->id)->first();
+        $user = User::where('tenant_id', $tenant->id)->first();
 
         $this->putJson("/api/super-admin/tenant/{$tenant->id}/users/{$user->id}", [])
             ->assertStatus(401);
@@ -258,7 +259,7 @@ class TenantUserTest extends TestCase
 
     public function test_elimina_usuario_del_tenant(): void
     {
-        $tenant  = $this->crearTenant();
+        $tenant = $this->crearTenant();
         $payload = $this->userPayload();
         $created = $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $payload, $this->superAdminHeaders())
             ->json('data');
@@ -285,7 +286,7 @@ class TenantUserTest extends TestCase
     public function test_elimina_sin_autenticacion(): void
     {
         $tenant = BusinessConfigModel::first();
-        $user   = User::where('tenant_id', $tenant->id)->first();
+        $user = User::where('tenant_id', $tenant->id)->first();
 
         $this->deleteJson("/api/super-admin/tenant/{$tenant->id}/users/{$user->id}")
             ->assertStatus(401);

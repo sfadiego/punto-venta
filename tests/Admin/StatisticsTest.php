@@ -20,7 +20,7 @@ class StatisticsTest extends TestCase
     public function test_retorna_top3_con_fecha(): void
     {
         $this->getJson(
-            '/api/admin/system/statistics/best-seller?date=' . now()->format('Y-m'),
+            '/api/admin/system/statistics/best-seller?date='.now()->format('Y-m'),
             $this->authHeaders()
         )
             ->assertStatus(200)
@@ -30,9 +30,9 @@ class StatisticsTest extends TestCase
     public function test_retorna_top3_con_sistema_id(): void
     {
         $caja = MainOrderReportModel::create([
-            MainOrderReportModel::ESTATUS_CAJA        => 'open',
+            MainOrderReportModel::ESTATUS_CAJA => 'open',
             MainOrderReportModel::EFECTIVO_CAJA_INICIO => 0,
-            MainOrderReportModel::USER_ID             => 1,
+            MainOrderReportModel::USER_ID => 1,
         ]);
 
         $this->getJson(

@@ -220,7 +220,7 @@ class OrderProductController extends Controller
 
         DB::table('order')->where('id', $orderId)->update([
             'subtotal' => max(0, round(($order->subtotal ?? 0) - $lineSubtotal, 2)),
-            'total'    => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
+            'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
         ]);
 
         return Response::success('elemento borrado de la orden');
@@ -250,7 +250,7 @@ class OrderProductController extends Controller
 
         DB::table('order')->where('id', $orderId)->update([
             'subtotal' => max(0, round(($order->subtotal ?? 0) - $lineSubtotal, 2)),
-            'total'    => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
+            'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
         ]);
 
         return Response::success('elemento borrado de la orden');

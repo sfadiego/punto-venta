@@ -42,8 +42,8 @@ class BusinessConfigTest extends TestCase
             'business_name' => 'Mi Negocio Actualizado',
             'primary_color' => '#FF5733',
             'sidebar_color' => '#1C1917',
-            'font_color'    => '#FFFFFF',
-            'label_color'   => '#000000',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#000000',
         ], $this->authHeaders())
             ->assertStatus(200)
             ->assertJsonPath('status', 'OK')
@@ -57,16 +57,16 @@ class BusinessConfigTest extends TestCase
             'business_name' => 'Cafe Test',
             'primary_color' => '#F59E0B',
             'sidebar_color' => '#1C1917',
-            'font_color'    => '#FFFFFF',
-            'label_color'   => '#1C1917',
-            'phone'         => '3001234567',
-            'address'       => 'Calle 123',
-            'facebook'      => 'mi-cafe',
-            'instagram'     => '@mi-cafe',
-            'whatsapp'      => '3009876543',
-            'website'       => 'https://micafe.com',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'phone' => '3001234567',
+            'address' => 'Calle 123',
+            'facebook' => 'mi-cafe',
+            'instagram' => '@mi-cafe',
+            'whatsapp' => '3009876543',
+            'website' => 'https://micafe.com',
             'ticket_footer' => 'Gracias por su visita',
-            'menu_enabled'  => true,
+            'menu_enabled' => true,
         ], $this->authHeaders())
             ->assertStatus(200)
             ->assertJsonPath('data.phone', '3001234567')
@@ -78,8 +78,8 @@ class BusinessConfigTest extends TestCase
         $this->putJson('/api/admin/config', [
             'primary_color' => '#FF5733',
             'sidebar_color' => '#1C1917',
-            'font_color'    => '#FFFFFF',
-            'label_color'   => '#000000',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#000000',
         ], $this->authHeaders())
             ->assertStatus(400);
     }
@@ -90,8 +90,8 @@ class BusinessConfigTest extends TestCase
             'business_name' => 'Test',
             'primary_color' => 'rojo',   // no es hex válido
             'sidebar_color' => '#1C1917',
-            'font_color'    => '#FFFFFF',
-            'label_color'   => '#000000',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#000000',
         ], $this->authHeaders())
             ->assertStatus(400);
     }
@@ -102,9 +102,9 @@ class BusinessConfigTest extends TestCase
             'business_name' => 'Test',
             'primary_color' => '#FF5733',
             'sidebar_color' => '#1C1917',
-            'font_color'    => '#FFFFFF',
-            'label_color'   => '#000000',
-            'website'       => 'no-es-una-url',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#000000',
+            'website' => 'no-es-una-url',
         ], $this->authHeaders())
             ->assertStatus(400);
     }
@@ -115,8 +115,8 @@ class BusinessConfigTest extends TestCase
             'business_name' => 'Test',
             'primary_color' => '#FF5733',
             'sidebar_color' => '#1C1917',
-            'font_color'    => '#FFFFFF',
-            'label_color'   => '#000000',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#000000',
         ])->assertStatus(401);
     }
 

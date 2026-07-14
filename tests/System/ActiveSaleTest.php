@@ -3,8 +3,8 @@
 namespace Tests\System;
 
 use App\Enums\MainOrderStatusEnum;
-use App\Models\MainOrderReportModel;
 use App\Enums\RoleEnum;
+use App\Models\MainOrderReportModel;
 use App\Models\User;
 use Tests\TestCase;
 

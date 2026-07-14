@@ -2,10 +2,10 @@
 
 namespace Tests;
 
+use App\Enums\RoleEnum;
 use App\Enums\SubscriptionPlanEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\SubscriptionModel;
-use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;

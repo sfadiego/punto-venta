@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\RoleEnum;
-use App\Models\ErrorReporting;
 use App\Models\User;
 use Tests\TestCase;
 

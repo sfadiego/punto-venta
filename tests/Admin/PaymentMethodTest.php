@@ -12,8 +12,8 @@ class PaymentMethodTest extends TestCase
         $tenantId = \App\Models\BusinessConfigModel::first()->id;
 
         return PaymentMethodModel::create([
-            PaymentMethodModel::NAME      => $name,
-            PaymentMethodModel::ACTIVE    => $active,
+            PaymentMethodModel::NAME => $name,
+            PaymentMethodModel::ACTIVE => $active,
             PaymentMethodModel::TENANT_ID => $tenantId,
         ]);
     }
@@ -58,7 +58,7 @@ class PaymentMethodTest extends TestCase
     public function test_crea_metodo_de_pago(): void
     {
         $this->postJson('/api/admin/payment-methods', [
-            'name'   => 'Tarjeta',
+            'name' => 'Tarjeta',
             'active' => true,
         ], $this->authHeaders())
             ->assertStatus(200)
@@ -91,7 +91,7 @@ class PaymentMethodTest extends TestCase
     public function test_no_crea_con_active_invalido(): void
     {
         $this->postJson('/api/admin/payment-methods', [
-            'name'   => 'Test',
+            'name' => 'Test',
             'active' => 'si',
         ], $this->authHeaders())
             ->assertStatus(400);
@@ -110,7 +110,7 @@ class PaymentMethodTest extends TestCase
         $method = $this->crearMetodo('Viejo Nombre');
 
         $this->putJson("/api/admin/payment-methods/{$method->id}", [
-            'name'   => 'Nuevo Nombre',
+            'name' => 'Nuevo Nombre',
             'active' => false,
         ], $this->authHeaders())
             ->assertStatus(200)

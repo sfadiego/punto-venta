@@ -12,23 +12,24 @@ class TenantManagementTest extends TestCase
     private function superAdminHeaders(): array
     {
         $user = User::where('rol_id', RoleEnum::SUPERADMIN->value)->first();
+
         return $this->authHeaders($user);
     }
 
     private function tenantPayload(array $overrides = []): array
     {
         return array_merge([
-            'slug'            => 'nuevo-negocio-' . uniqid(),
-            'business_name'   => 'Negocio Test',
-            'primary_color'   => '#F59E0B',
-            'sidebar_color'   => '#1C1917',
-            'font_color'      => '#FFFFFF',
-            'label_color'     => '#1C1917',
-            'admin_nombre'    => 'Admin',
-            'admin_apellido'  => 'Test',
-            'admin_email'     => 'admin' . uniqid() . '@test.com',
-            'admin_usuario'   => 'admin-' . uniqid(),
-            'admin_password'  => 'password123',
+            'slug' => 'nuevo-negocio-'.uniqid(),
+            'business_name' => 'Negocio Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'admin_nombre' => 'Admin',
+            'admin_apellido' => 'Test',
+            'admin_email' => 'admin'.uniqid().'@test.com',
+            'admin_usuario' => 'admin-'.uniqid(),
+            'admin_password' => 'password123',
         ], $overrides);
     }
 
@@ -77,7 +78,7 @@ class TenantManagementTest extends TestCase
         $tenantId = $response->json('data.id');
         $this->assertDatabaseHas('subscriptions', [
             'tenant_id' => $tenantId,
-            'plan'      => 'monthly',
+            'plan' => 'monthly',
         ]);
     }
 
@@ -162,12 +163,12 @@ class TenantManagementTest extends TestCase
         $tenant = BusinessConfigModel::first();
 
         $this->putJson("/api/super-admin/tenant/{$tenant->id}", [
-            'slug'          => $tenant->slug,
+            'slug' => $tenant->slug,
             'business_name' => 'Nombre Actualizado',
             'primary_color' => '#FF5733',
             'sidebar_color' => '#1C1917',
-            'font_color'    => '#FFFFFF',
-            'label_color'   => '#000000',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#000000',
         ], $this->superAdminHeaders())
             ->assertStatus(200)
             ->assertJsonPath('status', 'OK')
@@ -179,19 +180,19 @@ class TenantManagementTest extends TestCase
     public function test_no_actualiza_tenant_con_slug_duplicado(): void
     {
         // Crear un segundo tenant para poder duplicar slug
-        $payload  = $this->tenantPayload(['slug' => 'slug-unico-' . uniqid()]);
+        $payload = $this->tenantPayload(['slug' => 'slug-unico-'.uniqid()]);
         $response = $this->postJson('/api/super-admin/tenant', $payload, $this->superAdminHeaders());
-        $newId    = $response->json('data.id');
+        $newId = $response->json('data.id');
 
         $original = BusinessConfigModel::first();
 
         $this->putJson("/api/super-admin/tenant/{$newId}", [
-            'slug'          => $original->slug, // slug del primer tenant → duplicado
+            'slug' => $original->slug, // slug del primer tenant → duplicado
             'business_name' => 'Test',
             'primary_color' => '#FF5733',
             'sidebar_color' => '#1C1917',
-            'font_color'    => '#FFFFFF',
-            'label_color'   => '#000000',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#000000',
         ], $this->superAdminHeaders())
             ->assertStatus(400);
     }
@@ -201,12 +202,12 @@ class TenantManagementTest extends TestCase
         $tenant = BusinessConfigModel::first();
 
         $this->putJson("/api/super-admin/tenant/{$tenant->id}", [
-            'slug'          => $tenant->slug,
+            'slug' => $tenant->slug,
             'business_name' => $tenant->business_name,
             'primary_color' => '#F59E0B',
             'sidebar_color' => '#1C1917',
-            'font_color'    => '#FFFFFF',
-            'label_color'   => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
         ], $this->superAdminHeaders())
             ->assertStatus(200);
     }
@@ -253,9 +254,9 @@ class TenantManagementTest extends TestCase
 
     public function test_elimina_tenant_soft_delete(): void
     {
-        $payload  = $this->tenantPayload();
+        $payload = $this->tenantPayload();
         $response = $this->postJson('/api/super-admin/tenant', $payload, $this->superAdminHeaders());
-        $id       = $response->json('data.id');
+        $id = $response->json('data.id');
 
         $this->deleteJson("/api/super-admin/tenant/{$id}", [], $this->superAdminHeaders())
             ->assertStatus(200)
@@ -274,9 +275,9 @@ class TenantManagementTest extends TestCase
 
     public function test_restaura_tenant_eliminado(): void
     {
-        $payload  = $this->tenantPayload();
+        $payload = $this->tenantPayload();
         $response = $this->postJson('/api/super-admin/tenant', $payload, $this->superAdminHeaders());
-        $id       = $response->json('data.id');
+        $id = $response->json('data.id');
 
         $this->deleteJson("/api/super-admin/tenant/{$id}", [], $this->superAdminHeaders());
 
