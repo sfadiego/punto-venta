@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $validIds = collect(OrderStatusEnum::cases())->map(fn($c) => $c->value)->all();
+        $validIds = collect(OrderStatusEnum::cases())->map(fn ($c) => $c->value)->all();
 
         DB::table('order_status')
             ->whereNotIn('id', $validIds)
