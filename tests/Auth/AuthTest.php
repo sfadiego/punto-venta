@@ -1,0 +1,191 @@
+<?php
+
+namespace Tests\Auth;
+
+use App\Enums\RoleEnum;
+use App\Models\BusinessConfigModel;
+use App\Models\User;
+use Tests\TestCase;
+
+class AuthTest extends TestCase
+{
+    public function test_login_con_credenciales_validas(): void
+    {
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonStructure([
+                'status',
+                'data' => ['access_token', 'user'],
+            ]);
+    }
+
+    public function test_login_con_password_incorrecta(): void
+    {
+        // Email válido + password incorrecta → pasa validación, falla Auth::attempt → Response::error 422
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'password_incorrecta',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+    }
+
+    public function test_login_con_email_inexistente_falla_validacion(): void
+    {
+        // Email inexistente falla la regla exists:users,email → ValidationException → 400
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'noexiste@example.com',
+            'password' => 'cualquiera',
+        ]);
+
+        $response->assertStatus(400);
+    }
+
+    public function test_login_requiere_email_y_password(): void
+    {
+        // Validación vacía → 400 (custom handler)
+        $this->postJson('/api/auth/login', [])
+            ->assertStatus(400);
+    }
+
+    public function test_rutas_protegidas_requieren_token(): void
+    {
+        $this->getJson('/api/category')->assertStatus(401);
+    }
+
+    // ── Register ─────────────────────────────────────────────
+
+    public function test_registro_usuario_exitoso(): void
+    {
+        $response = $this->postJson('/api/auth/register', [
+            'nombre' => 'Test',
+            'apellido_paterno' => 'User',
+            'apellido_materno' => 'Doe',
+            'email' => 'newuser@test.com',
+            'usuario' => 'newuser_test',
+            'rol_id' => RoleEnum::EMPLOYE->value,
+            'password' => 'Test1234',
+            'password_confirmation' => 'Test1234',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonStructure(['status', 'data' => ['user', 'token']]);
+
+        $this->assertDatabaseHas('users', ['email' => 'newuser@test.com']);
+    }
+
+    public function test_registro_requiere_campos_obligatorios(): void
+    {
+        $this->postJson('/api/auth/register', [])
+            ->assertStatus(400);
+    }
+
+    public function test_registro_email_duplicado(): void
+    {
+        $existing = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $this->postJson('/api/auth/register', [
+            'nombre' => 'Duplicado',
+            'apellido_paterno' => 'Test',
+            'email' => $existing->email,
+            'usuario' => 'otro_usuario_unico',
+            'rol_id' => RoleEnum::EMPLOYE->value,
+            'password' => 'Test1234',
+            'password_confirmation' => 'Test1234',
+        ])->assertStatus(400);
+    }
+
+    public function test_registro_password_debe_tener_letras_y_numeros(): void
+    {
+        $this->postJson('/api/auth/register', [
+            'nombre' => 'Test',
+            'apellido_paterno' => 'User',
+            'email' => 'validpwd@test.com',
+            'usuario' => 'validpwd_test',
+            'rol_id' => RoleEnum::EMPLOYE->value,
+            'password' => 'sololetras',
+            'password_confirmation' => 'sololetras',
+        ])->assertStatus(400);
+    }
+
+    // ── Logout ───────────────────────────────────────────────
+
+    public function test_logout_cierra_sesion(): void
+    {
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+        $tokensBefore = $user->tokens()->count();
+
+        // authHeaders crea 1 token; logout lo elimina; el conteo vuelve al original
+        $this->postJson('/api/auth/logout', [], $this->authHeaders($user))
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+
+        $this->assertEquals($tokensBefore, $user->fresh()->tokens()->count());
+    }
+
+    public function test_logout_sin_token_falla(): void
+    {
+        $this->postJson('/api/auth/logout', [])->assertStatus(401);
+    }
+
+    // ── Login con slug ────────────────────────────────────────
+
+    public function test_login_con_slug_valido(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+            'slug' => $tenant->slug,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+    }
+
+    public function test_login_con_slug_de_otro_tenant_falla(): void
+    {
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+            'slug' => 'slug-que-no-existe',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+    }
+
+    // ── Login bloquea SuperAdmin ──────────────────────────────
+
+    public function test_login_bloquea_superadmin(): void
+    {
+        $superadmin = User::where('rol_id', RoleEnum::SUPERADMIN->value)->first();
+
+        if (! $superadmin) {
+            $this->markTestSkipped('No hay usuario superadmin en el seed.');
+        }
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => $superadmin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+    }
+}

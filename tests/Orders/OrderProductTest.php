@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Orders;
+namespace Tests\Orders;
 
 use App\Enums\MainOrderStatusEnum;
 use App\Models\BusinessConfigModel;
@@ -10,6 +10,7 @@ use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\OrderStatusModel;
 use App\Models\ProductModel;
+use App\Enums\RoleEnum;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -20,7 +21,7 @@ class OrderProductTest extends TestCase
         $report = MainOrderReportModel::create([
             MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN,
             MainOrderReportModel::EFECTIVO_CAJA_INICIO => 500,
-            MainOrderReportModel::USER_ID => User::where('rol_id', 1)->first()->id,
+            MainOrderReportModel::USER_ID => User::where('rol_id', RoleEnum::ADMIN->value)->first()->id,
             MainOrderReportModel::TENANT_ID => BusinessConfigModel::first()->id,
         ]);
 
@@ -203,6 +204,56 @@ class OrderProductTest extends TestCase
             ->assertJsonPath('status', 'OK');
 
         $this->assertDatabaseMissing('order_product', ['id' => $item->id]);
+    }
+
+    // ── ToggleReady ──────────────────────────────────────────
+
+    public function test_toggle_ready_marca_item_como_listo(): void
+    {
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto();
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->assertFalse((bool) $item->is_ready);
+
+        $this->patchJson("/api/order/{$orden->id}/product/{$item->id}/ready", [], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonPath('data.is_ready', true);
+    }
+
+    public function test_toggle_ready_desmarca_item_ya_listo(): void
+    {
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto();
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => true,
+        ]);
+
+        $this->patchJson("/api/order/{$orden->id}/product/{$item->id}/ready", [], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.is_ready', false);
+    }
+
+    public function test_toggle_ready_item_inexistente(): void
+    {
+        $orden = $this->crearOrden();
+
+        $this->patchJson("/api/order/{$orden->id}/product/99999/ready", [], $this->authHeaders())
+            ->assertStatus(422);
     }
 
     // ── Auth ─────────────────────────────────────────────────

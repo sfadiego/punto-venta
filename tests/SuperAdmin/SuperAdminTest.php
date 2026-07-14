@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\SuperAdmin;
+namespace Tests\SuperAdmin;
 
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
@@ -83,8 +83,10 @@ class SuperAdminTest extends TestCase
 
     public function test_actualiza_setting_sin_campos_requeridos(): void
     {
+        // Todos los campos son "sometimes" → body vacío es válido y retorna 200
         $this->putJson('/api/super-admin/settings', [], $this->superAdminHeaders())
-            ->assertStatus(400);
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
     }
 
     // ── Subscription index ────────────────────────────────────
@@ -153,5 +155,89 @@ class SuperAdminTest extends TestCase
 
         $this->getJson("/api/super-admin/subscription/{$tenant->id}/history")
             ->assertStatus(401);
+    }
+
+    public function test_historial_sin_rol_superadmin(): void
+    {
+        $tenant = BusinessConfigModel::first();
+
+        $this->getJson("/api/super-admin/subscription/{$tenant->id}/history", $this->authHeaders())
+            ->assertStatus(403);
+    }
+
+    public function test_crea_suscripcion_con_plan_lifetime(): void
+    {
+        $tenant = BusinessConfigModel::first();
+
+        $this->postJson("/api/super-admin/subscription/{$tenant->id}", [
+            'plan'      => 'lifetime',
+            'starts_at' => now()->toDateString(),
+            'amount'    => 0,
+        ], $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.subscription_plan', 'lifetime');
+
+        $tenant->refresh();
+        $this->assertEquals('lifetime', $tenant->subscription_plan);
+        $this->assertEquals('active', $tenant->subscription_status);
+    }
+
+    public function test_crea_suscripcion_plan_invalido(): void
+    {
+        $tenant = BusinessConfigModel::first();
+
+        $this->postJson("/api/super-admin/subscription/{$tenant->id}", [
+            'plan'      => 'noexiste',
+            'starts_at' => now()->toDateString(),
+        ], $this->superAdminHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_crea_suscripcion_fecha_invalida(): void
+    {
+        $tenant = BusinessConfigModel::first();
+
+        $this->postJson("/api/super-admin/subscription/{$tenant->id}", [
+            'plan'      => 'monthly',
+            'starts_at' => 'no-es-fecha',
+        ], $this->superAdminHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_tenant_inexistente_retorna_404(): void
+    {
+        $this->getJson('/api/super-admin/subscription/99999/history', $this->superAdminHeaders())
+            ->assertStatus(404);
+    }
+
+    public function test_lista_suscripciones_sin_rol_superadmin(): void
+    {
+        $this->getJson('/api/super-admin/subscription', $this->authHeaders())
+            ->assertStatus(403);
+    }
+
+    public function test_actualiza_payment_info(): void
+    {
+        $this->putJson('/api/super-admin/settings', [
+            'payment_info' => [
+                'bank'    => 'Bancolombia',
+                'account' => '1234567890',
+                'holder'  => 'Mi Empresa',
+                'concept' => 'Pago mensual',
+            ],
+        ], $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonPath('data.payment_info.bank', 'Bancolombia');
+    }
+
+    public function test_payment_info_requiere_campos_obligatorios(): void
+    {
+        $this->putJson('/api/super-admin/settings', [
+            'payment_info' => [
+                'concept' => 'solo concept sin bank ni account ni holder',
+            ],
+        ], $this->superAdminHeaders())
+            ->assertStatus(400);
     }
 }

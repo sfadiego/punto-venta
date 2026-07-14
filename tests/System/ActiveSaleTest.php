@@ -1,9 +1,10 @@
 <?php
 
-namespace Tests\Feature\System;
+namespace Tests\System;
 
 use App\Enums\MainOrderStatusEnum;
 use App\Models\MainOrderReportModel;
+use App\Enums\RoleEnum;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -11,7 +12,7 @@ class ActiveSaleTest extends TestCase
 {
     private function crearCajaAbierta(): MainOrderReportModel
     {
-        $user = User::where('rol_id', 1)->first();
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
 
         return MainOrderReportModel::create([
             MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN,

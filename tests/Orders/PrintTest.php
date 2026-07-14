@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Orders;
+namespace Tests\Orders;
 
 use App\Models\BusinessConfigModel;
 use App\Models\MainOrderReportModel;
