@@ -5,8 +5,6 @@ namespace Tests\Feature\Catalog;
 use App\Models\BusinessConfigModel;
 use App\Models\ProductImageModel;
 use App\Models\ProductModel;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProductImageTest extends TestCase
