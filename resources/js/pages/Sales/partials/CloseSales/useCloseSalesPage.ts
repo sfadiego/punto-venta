@@ -32,8 +32,17 @@ export const useCloseSalesPage = () => {
         limit: 1,
     });
 
-    const activeOrdersCount = (activeOrdersPage?.total ?? 0) + (pendingOrdersPage?.total ?? 0);
-    const hasActiveOrders   = activeOrdersCount > 0;
+    const { data: servedOrdersPage } = useIndexOrder({
+        sistema_id: sistemaId,
+        estatus_pedido_id: OrderStatusEnum.Served,
+        limit: 1,
+    });
+
+    const activeOrdersCount =
+        (activeOrdersPage?.total ?? 0) +
+        (pendingOrdersPage?.total ?? 0) +
+        (servedOrdersPage?.total ?? 0);
+    const hasActiveOrders = activeOrdersCount > 0;
 
     const efectivoInicio      = activeSale?.efectivo_caja_inicio ?? 0;
     const totalBruto          = totales?.bruto      ?? 0;

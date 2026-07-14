@@ -22,7 +22,8 @@ class OrderProductController extends Controller
     public function index(OrderModel $order): JsonResponse
     {
         return Response::success(
-            OrderProductModel::where('pedido_id', $order->id)
+            OrderProductModel::with('product')
+                ->where('pedido_id', $order->id)
                 ->get()
         );
     }
