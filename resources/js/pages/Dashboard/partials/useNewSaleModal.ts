@@ -291,10 +291,31 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
         }
     };
 
-    const handleClose = () => {
-        if (orderIdRef.current) {
-            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
+    const invalidateOrderQueries = () => {
+        queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
+        queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
+    };
+
+    const handleClose = async () => {
+        const oid = orderIdRef.current;
+
+        // No order created yet: nothing to clean up
+        if (!oid) {
+            onClose();
+            return;
         }
+
+        // No products: delete the empty order silently
+        if (cart.length === 0) {
+            try {
+                await axiosDELETE(axiosApi, { url: `${ApiRoutes.Orders}/${oid}` });
+            } catch (error) {
+                logUnexpectedError(error, "useNewSaleModal.handleClose.deleteEmpty");
+            }
+        }
+
+        // Has products (or resume mode): leave as InProcess, refresh list
+        invalidateOrderQueries();
         onClose();
     };
 

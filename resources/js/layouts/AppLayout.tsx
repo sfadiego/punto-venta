@@ -5,13 +5,15 @@ import { LayoutProvider } from "@/contexts/LayoutContext";
 import { PrintAgentProvider } from "@/contexts/PrintAgentContext";
 import { useOrdersSocket } from "@/hooks/useOrdersSocket";
 import { useAppLayout } from "./useAppLayout";
+import { useAxios } from "@/hooks/useAxios";
 
 interface AppLayoutProps {
     children?: React.ReactNode;
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-    useOrdersSocket({ showToast: true });
+    const { features } = useAxios();
+    useOrdersSocket({ showToast: true, suppressCreated: features?.sell_by_weight === true });
 
     const {
         sidebarOpen,
