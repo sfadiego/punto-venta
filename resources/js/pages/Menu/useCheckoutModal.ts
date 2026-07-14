@@ -52,7 +52,7 @@ export const useCheckoutModal = ({ slug, items, deliveryCost, onSuccess }: Check
                         observacion: i.observacion ?? null,
                     })),
                 });
-                toast.success("¡Pedido enviado! El negocio se comunicará contigo para confirmarlo.");
+                toast.success("¡Pedido solicitado! Comunicate con el negocio para confirmarlo.");
                 resetForm();
                 onSuccess();
             } catch (error) {
