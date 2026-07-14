@@ -37,6 +37,8 @@ export default function CloseSalesPage() {
         handleClose,
     } = useCloseSalesPage();
 
+    const totalEnCaja = efectivoCierre + totalTransferenciaPagado;
+
     const categoryModal = useSalesByCategoryModal();
 
     if (isLoading) {
@@ -153,6 +155,19 @@ export default function CloseSalesPage() {
                 </div>
             </div>
 
+            {/* Total en caja */}
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl px-6 py-5 mb-6 flex items-center justify-between gap-4">
+                <div>
+                    <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Total en caja</p>
+                    <p className="text-xs text-amber-500 mt-0.5">
+                        Efectivo en caja + transferencias
+                    </p>
+                </div>
+                <p className="text-3xl font-bold text-amber-700 tabular-nums shrink-0">
+                    {formatCurrency(totalEnCaja)}
+                </p>
+            </div>
+
             {/* Detail section */}
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-6 mb-6 space-y-5">
                 <div className="flex items-start gap-3">
@@ -215,7 +230,7 @@ export default function CloseSalesPage() {
                     <div>
                         <p className="text-sm font-semibold text-amber-800">No puedes cerrar la caja</p>
                         <p className="text-sm text-amber-700 mt-0.5">
-                            Tienes {activeOrdersCount} {activeOrdersCount === 1 ? "orden pendiente" : "órdenes pendientes"} (mesas activas o solicitudes del menú). Finaliza todas antes de cerrar.
+                            Tienes {activeOrdersCount} {activeOrdersCount === 1 ? "orden pendiente" : "órdenes pendientes"} (en proceso, servidas o pendientes de confirmar). Finaliza todas antes de cerrar.
                         </p>
                     </div>
                 </div>
