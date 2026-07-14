@@ -36,7 +36,6 @@ export const useOrderPreviewModal = (orderId: number) => {
             {
                 onSuccess: () => {
                     invalidateOrder();
-                    toast.success("Orden servida");
                     setIsOpen(false);
                 },
                 onError: () => {
