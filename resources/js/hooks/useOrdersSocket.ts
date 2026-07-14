@@ -28,9 +28,10 @@ const EVENT = ".orders.updated";
 
 interface UseOrdersSocketOptions {
     showToast?: boolean;
+    suppressCreated?: boolean;
 }
 
-export const useOrdersSocket = ({ showToast = false }: UseOrdersSocketOptions = {}) => {
+export const useOrdersSocket = ({ showToast = false, suppressCreated = false }: UseOrdersSocketOptions = {}) => {
     const queryClient = useQueryClient();
 
     useEffect(() => {
@@ -60,7 +61,7 @@ export const useOrdersSocket = ({ showToast = false }: UseOrdersSocketOptions = 
                 return;
             }
 
-            if (data?.type === "created") {
+            if (data?.type === "created" && !suppressCreated) {
                 toast.info("Nuevo pedido recibido", {
                     position: "top-right",
                     autoClose: 4000,
@@ -82,5 +83,5 @@ export const useOrdersSocket = ({ showToast = false }: UseOrdersSocketOptions = 
         return () => {
             channel.stopListening(EVENT, handler);
         };
-    }, [queryClient, showToast]);
+    }, [queryClient, showToast, suppressCreated]);
 };

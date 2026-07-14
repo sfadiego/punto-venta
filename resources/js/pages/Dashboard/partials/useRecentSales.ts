@@ -10,8 +10,10 @@ export const useRecentSales = () => {
 
     const { data, isLoading, isFetching } = useIndexOrder({
         sistema_id: sistemaId,
-        estatus_pedido_id: sellByWeight ? undefined : OrderStatusEnum.Closed,
-        fecha: today(),
+        estatus_pedido_id: sellByWeight ? OrderStatusEnum.InProcess : OrderStatusEnum.Closed,
+        // sell_by_weight: sistema_id already scopes the session; fecha (UTC) can mismatch
+        // MySQL timezone in production, so we omit it and rely on sistema_id alone.
+        fecha: sellByWeight ? undefined : today(),
         limit: 20,
         order: "desc",
     });
