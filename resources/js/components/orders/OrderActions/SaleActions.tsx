@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Eye, Trash2, Loader } from "lucide-react";
+import { Eye, Trash2, Loader, DollarSign } from "lucide-react";
 import { PrintTicketButton } from "../PrintTicket/PrintTicketButton";
 import { OrderDetailModal } from "@/pages/Sales/partials/OrderDetailModal/OrderDetailModal";
+import { SellByWeightPayModal } from "@/pages/Dashboard/partials/NewSaleModal/SellByWeightPayModal";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useOrderActions } from "./useOrderActions";
+import { useSaleQuickPay } from "./useSaleQuickPay";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 
@@ -17,21 +19,44 @@ export const SaleActions = ({ order }: SaleActionsProps) => {
     const { handleDelete, isDeleting } = useOrderActions(order);
 
     const isClosed = order.estatus_pedido_id === OrderStatusEnum.Closed;
+    const isInProcess = order.estatus_pedido_id === OrderStatusEnum.InProcess;
+
+    const {
+        isOpen: payOpen, totalFinal,
+        cash, setCash, cashNum, change, canPay, isPaying,
+        paymentMethods, paymentMethodId, setPaymentMethodId, isCashMethod,
+        openPayModal, closePayModal, handlePay,
+    } = useSaleQuickPay(order);
 
     return (
         <div
             className="flex items-center justify-center gap-1"
             onClick={(e) => e.stopPropagation()}
         >
-            <button
-                onClick={() => setDetailOpen(true)}
-                title="Ver detalle"
-                className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400
-                        hover:text-orange-600 hover:bg-orange-50 border border-transparent
-                        hover:border-orange-200 transition-all"
-            >
-                <Eye size={20} />
-            </button>
+            {isInProcess && (
+                <button
+                    onClick={openPayModal}
+                    disabled={order.total === 0}
+                    title="Cobrar"
+                    className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400
+                            hover:text-emerald-600 hover:bg-emerald-50 border border-transparent
+                            hover:border-emerald-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                    <DollarSign size={20} />
+                </button>
+            )}
+
+            {isClosed && (
+                <button
+                    onClick={() => setDetailOpen(true)}
+                    title="Ver detalle"
+                    className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400
+                            hover:text-orange-600 hover:bg-orange-50 border border-transparent
+                            hover:border-orange-200 transition-all"
+                >
+                    <Eye size={20} />
+                </button>
+            )}
 
             {can("printTicket") && <PrintTicketButton orderId={order.id} />}
 
@@ -51,11 +76,31 @@ export const SaleActions = ({ order }: SaleActionsProps) => {
                 </button>
             )}
 
-            <OrderDetailModal
-                isOpen={detailOpen}
-                order={order}
-                onClose={() => setDetailOpen(false)}
-            />
+            {isClosed && (
+                <OrderDetailModal
+                    isOpen={detailOpen}
+                    order={order}
+                    onClose={() => setDetailOpen(false)}
+                />
+            )}
+
+            {payOpen && (
+                <SellByWeightPayModal
+                    totalFinal={totalFinal}
+                    cash={cash}
+                    setCash={setCash}
+                    cashNum={cashNum}
+                    change={change}
+                    canPay={canPay}
+                    isPaying={isPaying}
+                    paymentMethods={paymentMethods}
+                    paymentMethodId={paymentMethodId}
+                    setPaymentMethodId={setPaymentMethodId}
+                    isCashMethod={isCashMethod}
+                    onConfirm={handlePay}
+                    onClose={closePayModal}
+                />
+            )}
         </div>
     );
 };

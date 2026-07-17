@@ -123,8 +123,10 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
 
     const domicilio = parseFloat(costoDomicilio) || 0;
     const customerPays = orderDeliveryPaidBy === "customer";
-    const totalFinal = domicilioActivo && domicilio > 0
-        ? (customerPays ? total + domicilio : total - domicilio)
+    // cliente paga: el cliente paga el domicilio directo al repartidor, no se suma al cobro del POS
+    // negocio paga: el negocio cobra el domicilio al cliente a través del POS para cubrirlo
+    const totalFinal = domicilioActivo && domicilio > 0 && !customerPays
+        ? total + domicilio
         : total;
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - totalFinal;

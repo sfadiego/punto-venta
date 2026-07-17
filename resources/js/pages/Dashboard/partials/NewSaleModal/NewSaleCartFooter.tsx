@@ -87,20 +87,16 @@ export const NewSaleCartFooter = ({
         {sellByWeight && domicilioActivo && domicilio > 0 && (
             <div className="flex items-center justify-between">
                 <span className="text-xs text-stone-400">
-                    {customerPays ? "+ Domicilio" : "- Domicilio"}
+                    {customerPays ? "Domicilio (cliente paga)" : "+ Domicilio"}
                 </span>
-                <span className={`text-sm ${customerPays ? "text-amber-600" : "text-red-500"}`}>
-                    {customerPays ? "+" : "-"}${domicilio.toFixed(2)}
+                <span className={`text-sm ${customerPays ? "text-stone-400" : "text-amber-600"}`}>
+                    {customerPays ? "—" : `+$${domicilio.toFixed(2)}`}
                 </span>
             </div>
         )}
 
         <div className="flex items-center justify-between pt-1 border-t border-stone-100">
-            <span className="text-sm font-medium text-stone-600">
-                {sellByWeight && domicilioActivo && domicilio > 0 && !customerPays
-                    ? "Ingreso neto"
-                    : "Total"}
-            </span>
+            <span className="text-sm font-medium text-stone-600">Total</span>
             <span className="text-lg font-bold text-stone-900">
                 ${totalFinal.toFixed(2)}
             </span>

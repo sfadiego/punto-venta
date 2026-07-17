@@ -81,6 +81,7 @@ export const SellByWeightPayModal = ({
                         <Input
                             name="cash"
                             label="Efectivo recibido"
+                            inputStyle="outlined"
                             inputType="number"
                             placeholder="0.00"
                             min={0}
