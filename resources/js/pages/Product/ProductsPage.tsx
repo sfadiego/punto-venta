@@ -6,10 +6,10 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { useProductsPage } from "./useProductsPage";
 import { CategoryFilter } from "./partials/CategoryFilter";
-import { AddProductModal } from "./partials/AddProductModal";
-import { useAddProductModal } from "./partials/useAddProductModal";
-import { EditProductModal } from "./partials/EditProductModal";
-import { useEditProductModal } from "./partials/useEditProductModal";
+import { AddProductModal } from "./partials/ProductModals/AddProductModal";
+import { useAddProductModal } from "./partials/ProductModals/useAddProductModal";
+import { EditProductModal } from "./partials/ProductModals/EditProductModal";
+import { useEditProductModal } from "./partials/ProductModals/useEditProductModal";
 import { ProductTableActions } from "./partials/ProductTableActions";
 import { ProductSearch } from "@/components/Product/ProductSearch";
 

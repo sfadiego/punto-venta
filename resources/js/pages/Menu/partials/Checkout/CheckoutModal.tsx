@@ -1,5 +1,5 @@
 import { X, Bike, Store, Loader } from "lucide-react";
-import { useCheckoutModal } from "../useCheckoutModal";
+import { useCheckoutModal } from "../../useCheckoutModal";
 import { ICartItem } from "@/models/IMenu";
 import { Input } from "@/components/ui/form/Input";
 import { AddressAutocomplete } from "@/components/ui/form/AddressAutocomplete";
