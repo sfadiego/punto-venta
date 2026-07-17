@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLayout } from "@/contexts/LayoutContext";
 import { useTakeOrder } from "./useTakeOrder";
-import { ProductGrid } from "./partials/ProductGrid";
-import { CartPanel } from "./partials/CartPanel";
-import { AddExtraModal } from "./partials/AddExtraModal";
-import { useAddExtraModal } from "./partials/useAddExtraModal";
+import { ProductGrid } from "./partials/ProductSelector/ProductGrid";
+import { CartPanel } from "./partials/Cart/CartPanel";
+import { AddExtraModal } from "./partials/AddExtraModal/AddExtraModal";
+import { useAddExtraModal } from "./partials/AddExtraModal/useAddExtraModal";
 
 export default function TakeOrderPage() {
     const navigate = useNavigate();

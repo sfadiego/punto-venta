@@ -1,6 +1,6 @@
 import { Loader, Package } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
-import { CartItem } from "../useTakeOrder";
+import { CartItem } from "../../useTakeOrder";
 
 interface ProductCardProps {
     product: IProduct;

@@ -1,5 +1,5 @@
 import { Plus, Minus, Trash2, Tag, X, Loader } from "lucide-react";
-import { CartItem } from "../useTakeOrder";
+import { CartItem } from "../../useTakeOrder";
 import { CartItemNote } from "./CartItemNote";
 import { useCartItemRow } from "./useCartItemRow";
 

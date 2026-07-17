@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { Search, Package, Loader } from "lucide-react";
-import { CartItem } from "../useTakeOrder";
+import { CartItem } from "../../useTakeOrder";
 import { useProductGrid } from "./useProductGrid";
 import { CategoryTabs } from "./CategoryTabs";
 import { ProductCard } from "./ProductCard";
