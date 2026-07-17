@@ -7,7 +7,7 @@ import { useModal } from "@/hooks/useModal";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
-import { usePrintTicket } from "./usePrintTicket";
+import { usePrintTicket } from "../PrintTicket/usePrintTicket";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";

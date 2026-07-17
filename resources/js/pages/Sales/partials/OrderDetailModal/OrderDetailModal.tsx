@@ -2,7 +2,7 @@ import { Modal } from "@mantine/core";
 import { IOrder } from "@/models/IOrder";
 import { Bike, Receipt } from "lucide-react";
 import { getStatusStyle, getStatusLabel } from "@/pages/Dashboard/useDashboard";
-import { PrintTicketButton } from "@/components/orders/PrintTicketButton";
+import { PrintTicketButton } from "@/components/orders/PrintTicket/PrintTicketButton";
 import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
 import { useAxios } from "@/hooks/useAxios";
 

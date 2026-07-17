@@ -3,8 +3,8 @@ import { useRecentSales } from "./useRecentSales";
 import { formatOrderTime } from "../../useDashboard";
 import { EmptyState } from "@/components/ui/interactions/EmptyState";
 import { LoadingSkeleton } from "@/components/ui/interactions/LoadingSkeleton";
-import { OrderPreviewModal } from "@/components/orders/OrderPreviewModal";
-import { SaleActions } from "@/components/orders/SaleActions";
+import { OrderPreviewModal } from "@/components/orders/OrderPreviewModal/OrderPreviewModal";
+import { SaleActions } from "@/components/orders/OrderActions/SaleActions";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
 

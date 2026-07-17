@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useDashboard } from "./useDashboard";
 import { RecentOrders } from "./partials/RecentOrders/RecentOrders";
 import { RecentSales } from "./partials/RecentSales/RecentSales";
-import { NewOrderButton } from "@/components/orders/NewOrderButton";
+import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { NewSaleModal } from "./partials/NewSaleModal/NewSaleModal";
 import { OpenSalesModal } from "./partials/OpenSalesModal/OpenSalesModal";

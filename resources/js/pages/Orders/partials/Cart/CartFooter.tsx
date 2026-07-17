@@ -1,5 +1,5 @@
 import { Tag, Lock, Banknote, X } from "lucide-react";
-import { PrintTicketButton } from "@/components/orders/PrintTicketButton";
+import { PrintTicketButton } from "@/components/orders/PrintTicket/PrintTicketButton";
 import { useCartFooter } from "./useCartFooter";
 
 interface CartFooterProps {

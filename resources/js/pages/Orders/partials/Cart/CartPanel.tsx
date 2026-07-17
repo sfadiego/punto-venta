@@ -2,7 +2,7 @@ import { Loader } from "lucide-react";
 import { IOrder } from "@/models/IOrder";
 import { CartItem } from "../../useTakeOrder";
 import { usePayModal } from "./usePayModal";
-import { RestaurantPayModal } from "@/components/orders/RestaurantPayModal";
+import { RestaurantPayModal } from "@/components/orders/PayOrder/RestaurantPayModal";
 import { CartEmptyState } from "./CartEmptyState";
 import { CartItemRow } from "./CartItemRow";
 import { CartFooter } from "./CartFooter";

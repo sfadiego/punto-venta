@@ -7,7 +7,7 @@ import { useModal } from "@/hooks/useModal";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
-import { usePrintTicket } from "@/components/orders/usePrintTicket";
+import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 

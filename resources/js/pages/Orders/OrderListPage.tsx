@@ -6,7 +6,7 @@ import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { useOrderList } from "./useOrderList";
 import { OrderFilters } from "./partials/OrderFilters";
-import { NewOrderButton } from "@/components/orders/NewOrderButton";
+import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { NewSaleModal } from "@/pages/Dashboard/partials/NewSaleModal/NewSaleModal";
 import { usePermissions } from "@/hooks/usePermissions";
