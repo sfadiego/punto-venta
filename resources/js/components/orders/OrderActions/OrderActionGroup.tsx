@@ -2,9 +2,9 @@ import { Pencil, Trash2, Check, X, Loader } from "lucide-react";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { usePermissions } from "@/hooks/usePermissions";
-import { PayOrderButton } from "./PayOrderButton";
-import { PrintTicketButton } from "./PrintTicketButton";
-import { OrderPreviewModal } from "./OrderPreviewModal";
+import { PayOrderButton } from "../PayOrder/PayOrderButton";
+import { PrintTicketButton } from "../PrintTicket/PrintTicketButton";
+import { OrderPreviewModal } from "../OrderPreviewModal/OrderPreviewModal";
 
 interface OrderEditControlsProps {
     isUpdating: boolean;

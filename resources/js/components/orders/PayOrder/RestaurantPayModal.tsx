@@ -1,11 +1,11 @@
 import { IPaymentMethod } from "@/models/IPaymentMethod";
-import { PayModalHeader } from "./PayModal/PayModalHeader";
-import { PayModalTotal } from "./PayModal/PayModalTotal";
-import { PayMethodSelector } from "./PayModal/PayMethodSelector";
-import { PayTransferAlert } from "./PayModal/PayTransferAlert";
-import { PayCashInput } from "./PayModal/PayCashInput";
-import { PayPropinaInput } from "./PayModal/PayPropinaInput";
-import { PayModalActions } from "./PayModal/PayModalActions";
+import { PayModalHeader } from "../PayModal/PayModalHeader";
+import { PayModalTotal } from "../PayModal/PayModalTotal";
+import { PayMethodSelector } from "../PayModal/PayMethodSelector";
+import { PayTransferAlert } from "../PayModal/PayTransferAlert";
+import { PayCashInput } from "../PayModal/PayCashInput";
+import { PayPropinaInput } from "../PayModal/PayPropinaInput";
+import { PayModalActions } from "../PayModal/PayModalActions";
 
 interface RestaurantPayModalProps {
     isOpen: boolean;
