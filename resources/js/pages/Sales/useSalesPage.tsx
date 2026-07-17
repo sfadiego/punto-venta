@@ -8,7 +8,7 @@ import { useAxios } from "@/hooks/useAxios";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { getStatusStyle, getStatusLabel } from "@/pages/Dashboard/useDashboard";
-import { useOrderDetailModal } from "./partials/useOrderDetailModal";
+import { useOrderDetailModal } from "./partials/OrderDetailModal/useOrderDetailModal";
 import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
 
 const today = () => new Date().toISOString().split("T")[0];

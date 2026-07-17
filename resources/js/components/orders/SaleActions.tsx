@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, Trash2, Loader } from "lucide-react";
 import { PrintTicketButton } from "./PrintTicketButton";
-import { OrderDetailModal } from "@/pages/Sales/partials/OrderDetailModal";
+import { OrderDetailModal } from "@/pages/Sales/partials/OrderDetailModal/OrderDetailModal";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useOrderActions } from "./useOrderActions";
 import { IOrder } from "@/models/IOrder";

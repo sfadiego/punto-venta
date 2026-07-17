@@ -2,9 +2,9 @@ import { DataTable } from "mantine-datatable";
 import { ShoppingBag, RefreshCw } from "lucide-react";
 import { useSalesPage } from "./useSalesPage";
 import { SalesFilters } from "./partials/SalesFilters";
-import { OrderDetailModal } from "./partials/OrderDetailModal";
-import { SalesByCategoryModal } from "./partials/SalesByCategoryModal";
-import { useSalesByCategoryModal } from "./partials/useSalesByCategoryModal";
+import { OrderDetailModal } from "./partials/OrderDetailModal/OrderDetailModal";
+import { SalesByCategoryModal } from "./partials/SalesByCategoryModal/SalesByCategoryModal";
+import { useSalesByCategoryModal } from "./partials/SalesByCategoryModal/useSalesByCategoryModal";
 
 export default function SalesPage() {
     const { dataTableProps, isLoading, refetch, fecha, categoriaId, categories, sellByWeight, handleFechaChange, handleCategoriaChange, handleClear, modal } =

@@ -1,7 +1,7 @@
 import { Calendar, X, SlidersHorizontal } from "lucide-react";
 import { ICategory } from "@/models/ICategory";
 import { Select, SelectOption } from "@/components/ui/form/Select";
-import { SalesByCategoryButton } from "./SalesByCategoryModal";
+import { SalesByCategoryButton } from "./SalesByCategoryModal/SalesByCategoryModal";
 
 interface SalesFiltersProps {
     fecha: string | null;
