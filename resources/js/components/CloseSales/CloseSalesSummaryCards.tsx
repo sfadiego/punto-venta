@@ -88,7 +88,7 @@ export const CloseSalesSummaryCards = ({
                     </p>
                     {totalPropinasTarjeta > 0 && (
                         <p className="text-xs text-violet-500 mt-1">
-                            {formatCurrency(totalPropinasTarjeta)} por tarjeta/transferencia — este monto no está en la caja física
+                            {formatCurrency(totalPropinasTarjeta)} por tarjeta/transferencia — este monto no aparece en el efectivo en caja
                         </p>
                     )}
                 </div>
