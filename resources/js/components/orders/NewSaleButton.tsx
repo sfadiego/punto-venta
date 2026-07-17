@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ShoppingCart } from "lucide-react";
-import { NewSaleModal } from "@/pages/Dashboard/partials/NewSaleModal";
+import { NewSaleModal } from "@/pages/Dashboard/partials/NewSaleModal/NewSaleModal";
 
 interface NewSaleButtonProps {
     className?: string;

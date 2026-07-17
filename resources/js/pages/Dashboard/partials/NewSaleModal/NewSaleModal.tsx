@@ -24,6 +24,7 @@ export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
         sellByWeight,
         addToCart, removeFromCart, clearCart,
         getDisplayQty, handleQtyChange, handleQtyBlur,
+        getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,
         isCreatingOrder, handleClose, loadingOrder, isResuming,
         showPayModal, setShowPayModal,
         cash, setCash, cashNum, change, canPay,
@@ -74,6 +75,11 @@ export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
                             getDisplayQty={getDisplayQty}
                             handleQtyChange={handleQtyChange}
                             handleQtyBlur={handleQtyBlur}
+                            getItemMode={getItemMode}
+                            toggleItemMode={toggleItemMode}
+                            getDisplayPrice={getDisplayPrice}
+                            handlePriceChange={handlePriceChange}
+                            handlePriceBlur={handlePriceBlur}
                             removeFromCart={removeFromCart}
                             clearCart={clearCart}
                             onPay={() => {

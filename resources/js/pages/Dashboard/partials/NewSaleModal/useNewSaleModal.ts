@@ -23,6 +23,8 @@ export type ModalCartItem = {
     productId: number;
     product: IProduct;
     cantidad: number;
+    // precio real guardado en order_product (puede diferir del catálogo en modo precio)
+    precioEfectivo: number;
 };
 
 function mapOrderProducts(orderProducts: IOrderProduct[]): ModalCartItem[] {
@@ -33,6 +35,7 @@ function mapOrderProducts(orderProducts: IOrderProduct[]): ModalCartItem[] {
             productId: op.producto_id!,
             product: op.product,
             cantidad: parseFloat(String(op.cantidad)),
+            precioEfectivo: parseFloat(String(op.precio)),
         }));
 }
 
@@ -69,6 +72,8 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
     const [cart, setCart] = useState<ModalCartItem[]>([]);
     const [editingQtys, setEditingQtys] = useState<Record<number, string>>({});
+    const [editingPrices, setEditingPrices] = useState<Record<number, string>>({});
+    const [itemModes, setItemModes] = useState<Record<number, 'weight' | 'price'>>({});
     const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
     const initialDomicilio = Number(initialOrder?.costo_domicilio ?? 0);
@@ -112,7 +117,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
     }, [productsData, search, selectedCategory]);
 
     const total = useMemo(
-        () => cart.reduce((sum, item) => sum + item.product.precio * item.cantidad, 0),
+        () => cart.reduce((sum, item) => sum + item.precioEfectivo * item.cantidad, 0),
         [cart],
     );
 
@@ -131,6 +136,65 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
 
     const defaultCantidad = (product: IProduct) =>
         product.unidad_medida === UnidadMedidaEnum.Kg ? 0.5 : 1;
+
+    const isPesoProduct = (product: IProduct) =>
+        product.unidad_medida === UnidadMedidaEnum.Kg || product.unidad_medida === UnidadMedidaEnum.Gr;
+
+    const getItemMode = (productId: number, product: IProduct): 'weight' | 'price' =>
+        isPesoProduct(product) ? (itemModes[productId] ?? 'weight') : 'weight';
+
+    const toggleItemMode = (productId: number, product: IProduct) => {
+        if (!isPesoProduct(product)) return;
+        const current = getItemMode(productId, product);
+        setItemModes(prev => ({ ...prev, [productId]: current === 'weight' ? 'price' : 'weight' }));
+        setEditingQtys(prev => { const n = { ...prev }; delete n[productId]; return n; });
+        setEditingPrices(prev => { const n = { ...prev }; delete n[productId]; return n; });
+    };
+
+    // En modo precio el display usa precioEfectivo × cantidad del item (siempre exacto)
+    const getDisplayPrice = (productId: number, item: ModalCartItem): string =>
+        editingPrices[productId] !== undefined
+            ? editingPrices[productId]
+            : (item.precioEfectivo * item.cantidad).toFixed(2);
+
+    const handlePriceChange = (productId: number, value: string) => {
+        setEditingPrices(prev => ({ ...prev, [productId]: value }));
+        const price = parseFloat(value);
+        if (isNaN(price) || price <= 0) return;
+        // cantidad=1, precioEfectivo=price → line_total = price exacto, sin división
+        setCart(prev => prev.map(i =>
+            i.productId === productId ? { ...i, cantidad: 1, precioEfectivo: price } : i
+        ));
+    };
+
+    const handlePriceBlur = async (productId: number) => {
+        const oid = orderIdRef.current;
+        if (!oid) return;
+        const priceStr = editingPrices[productId];
+        if (priceStr === undefined) return;
+        const price = parseFloat(priceStr) || 0;
+        setEditingPrices(prev => { const n = { ...prev }; delete n[productId]; return n; });
+
+        if (price <= 0) {
+            await removeFromCart(productId);
+            return;
+        }
+
+        // cantidad=1, precio=monto — backend: 1 × price = price exacto
+        setCart(prev => prev.map(i =>
+            i.productId === productId ? { ...i, cantidad: 1, precioEfectivo: price } : i
+        ));
+
+        try {
+            await axiosPUT(axiosApi, {
+                url: `${ApiRoutes.Orders}/${oid}/product/${productId}`,
+                data: { cantidad: 1, precio: price },
+            });
+        } catch (error) {
+            logUnexpectedError(error, "useNewSaleModal.handlePriceBlur");
+            toast.error("Error al actualizar precio");
+        }
+    };
 
     const ensureOrderCreated = async (): Promise<number> => {
         const existing = orderIdRef.current;
@@ -188,6 +252,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                     productId: product.id,
                     product,
                     cantidad: parseFloat(String(op.cantidad)),
+                    precioEfectivo: product.precio,
                 }];
             });
         } catch (error) {
@@ -253,10 +318,16 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
             await removeFromCart(productId);
             return;
         }
+        const item = cart.find(i => i.productId === productId);
+        const catalogPrice = item?.product.precio ?? 0;
+        // Restaura precio de catálogo por si el item estuvo en modo precio antes
+        setCart(prev => prev.map(i =>
+            i.productId === productId ? { ...i, cantidad: qty, precioEfectivo: catalogPrice } : i
+        ));
         try {
             await axiosPUT(axiosApi, {
                 url: `${ApiRoutes.Orders}/${oid}/product/${productId}`,
-                data: { cantidad: qty },
+                data: { cantidad: qty, precio: catalogPrice },
             });
         } catch (error) {
             logUnexpectedError(error, "useNewSaleModal.handleQtyBlur");
@@ -371,6 +442,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
         sellByWeight,
         addToCart, removeFromCart, clearCart,
         getDisplayQty, handleQtyChange, handleQtyBlur,
+        getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,
         isCreatingOrder, handleClose,
         loadingOrder: !!initialOrder && loadingFullOrder && cart.length === 0,
         isResuming: !!initialOrder,

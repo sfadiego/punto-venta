@@ -2,6 +2,7 @@ import { Eraser } from "lucide-react";
 import { ModalCartItem } from "./useNewSaleModal";
 import { NewSaleCartItem } from "./NewSaleCartItem";
 import { NewSaleCartFooter } from "./NewSaleCartFooter";
+import { IProduct } from "@/models/IProduct";
 
 interface NewSaleCartPanelProps {
     cart: ModalCartItem[];
@@ -19,6 +20,11 @@ interface NewSaleCartPanelProps {
     getDisplayQty: (productId: number, cantidad: number) => string;
     handleQtyChange: (productId: number, value: string) => void;
     handleQtyBlur: (productId: number) => void;
+    getItemMode: (productId: number, product: IProduct) => 'weight' | 'price';
+    toggleItemMode: (productId: number, product: IProduct) => void;
+    getDisplayPrice: (productId: number, item: ModalCartItem) => string;
+    handlePriceChange: (productId: number, value: string) => void;
+    handlePriceBlur: (productId: number) => void;
     removeFromCart: (productId: number) => void;
     clearCart: () => void;
     onPay: () => void;
@@ -32,6 +38,7 @@ export const NewSaleCartPanel = ({
     customerPays, domicilio,
     total, totalFinal,
     getDisplayQty, handleQtyChange, handleQtyBlur,
+    getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,
     removeFromCart, clearCart, onPay,
 }: NewSaleCartPanelProps) => (
     <div className="flex flex-col w-full sm:w-80 shrink-0 min-h-0 overflow-hidden">
@@ -55,16 +62,24 @@ export const NewSaleCartPanel = ({
                 <p className="text-xs text-stone-400 text-center pt-8">Sin productos</p>
             ) : (
                 <div className="sm:px-4 sm:space-y-2">
-                    {cart.map((item) => (
-                        <NewSaleCartItem
-                            key={item.productId}
-                            item={item}
-                            displayQty={getDisplayQty(item.productId, item.cantidad)}
-                            onQtyChange={(v) => handleQtyChange(item.productId, v)}
-                            onQtyBlur={() => handleQtyBlur(item.productId)}
-                            onRemove={() => removeFromCart(item.productId)}
-                        />
-                    ))}
+                    {cart.map((item) => {
+                        const mode = getItemMode(item.productId, item.product);
+                        return (
+                            <NewSaleCartItem
+                                key={item.productId}
+                                item={item}
+                                mode={mode}
+                                displayQty={getDisplayQty(item.productId, item.cantidad)}
+                                displayPrice={getDisplayPrice(item.productId, item)}
+                                onModeToggle={() => toggleItemMode(item.productId, item.product)}
+                                onQtyChange={(v) => handleQtyChange(item.productId, v)}
+                                onQtyBlur={() => handleQtyBlur(item.productId)}
+                                onPriceChange={(v) => handlePriceChange(item.productId, v)}
+                                onPriceBlur={() => handlePriceBlur(item.productId)}
+                                onRemove={() => removeFromCart(item.productId)}
+                            />
+                        );
+                    })}
                 </div>
             )}
         </div>
