@@ -235,22 +235,129 @@ class CloseSalesTotalsTest extends TestCase
 
     // ── Domicilios y neto ─────────────────────────────────────
 
-    public function test_neto_es_bruto_menos_domicilios(): void
+    public function test_neto_es_bruto_menos_domicilios_negocio_absorbe(): void
     {
         $caja   = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
         $prod   = $this->crearProducto(100);
 
-        // Total=300, domicilio=50 → neto=250
+        // negocio absorbe: costo_domicilio = -50 → domicilios=50, neto=bruto-50
         $this->crearOrdenCerrada($caja->id, [
             ['producto_id' => $prod->id, 'cantidad' => 3, 'precio' => 100],
-        ], $metodo->id, costoDomicilio: 50);
+        ], $metodo->id, costoDomicilio: -50);
 
         $totales = $this->totalesActuales($caja->id);
 
         $this->assertEquals(300.0, $totales['bruto']);
         $this->assertEquals(50.0,  $totales['domicilios']);
         $this->assertEquals(250.0, $totales['neto']);
+    }
+
+    public function test_domicilios_cero_cuando_cliente_paga_por_pos(): void
+    {
+        $caja   = $this->crearCaja();
+        $metodo = $this->crearMetodoPago('Efectivo');
+        $prod   = $this->crearProducto(100);
+
+        // cliente paga por POS: costo_domicilio = +25, NO se cuenta en domicilios del corte
+        $this->crearOrdenCerrada($caja->id, [
+            ['producto_id' => $prod->id, 'cantidad' => 2, 'precio' => 100],
+        ], $metodo->id, costoDomicilio: 25);
+
+        $totales = $this->totalesActuales($caja->id);
+
+        $this->assertEquals(200.0, $totales['bruto']);
+        $this->assertEquals(0.0,   $totales['domicilios']);
+        $this->assertEquals(200.0, $totales['neto']);
+    }
+
+    public function test_domicilios_sin_envio_retorna_ceros(): void
+    {
+        $caja   = $this->crearCaja();
+        $metodo = $this->crearMetodoPago('Efectivo');
+        $prod   = $this->crearProducto(100);
+
+        // sin domicilio: costo_domicilio = 0
+        $this->crearOrdenCerrada($caja->id, [
+            ['producto_id' => $prod->id, 'cantidad' => 2, 'precio' => 100],
+        ], $metodo->id, costoDomicilio: 0);
+
+        $totales = $this->totalesActuales($caja->id);
+
+        $this->assertEquals(200.0, $totales['bruto']);
+        $this->assertEquals(0.0,   $totales['domicilios']);
+        $this->assertEquals(200.0, $totales['neto']);
+    }
+
+    public function test_domicilios_solo_cuenta_valores_negativos_en_sesion_mixta(): void
+    {
+        $caja   = $this->crearCaja();
+        $metodo = $this->crearMetodoPago('Efectivo');
+        $prod   = $this->crearProducto(100);
+
+        // Orden 1: negocio absorbe (negativo) → suma a domicilios
+        $this->crearOrdenCerrada($caja->id, [
+            ['producto_id' => $prod->id, 'cantidad' => 2, 'precio' => 100],
+        ], $metodo->id, costoDomicilio: -30);
+
+        // Orden 2: cliente paga por POS (positivo) → no suma a domicilios
+        $this->crearOrdenCerrada($caja->id, [
+            ['producto_id' => $prod->id, 'cantidad' => 3, 'precio' => 100],
+        ], $metodo->id, costoDomicilio: 25);
+
+        // Orden 3: negocio absorbe (negativo) → suma a domicilios
+        $this->crearOrdenCerrada($caja->id, [
+            ['producto_id' => $prod->id, 'cantidad' => 1, 'precio' => 100],
+        ], $metodo->id, costoDomicilio: -20);
+
+        $totales = $this->totalesActuales($caja->id);
+
+        // bruto = 200 + 300 + 100 = 600 (order.total es siempre solo productos)
+        $this->assertEquals(600.0, $totales['bruto']);
+        // domicilios = ABS(-30) + ABS(-20) = 50 (solo los negativos)
+        $this->assertEquals(50.0,  $totales['domicilios']);
+        // neto = 600 - 50 = 550
+        $this->assertEquals(550.0, $totales['neto']);
+    }
+
+    public function test_cierre_caja_efectivo_cierre_resta_domicilios_absorbidos(): void
+    {
+        $caja   = $this->crearCaja(inicio: 100);
+        $metodo = $this->crearMetodoPago('Efectivo');
+        $prod   = $this->crearProducto(100);
+
+        // negocio absorbe: costo_domicilio = -50
+        $this->crearOrdenCerrada($caja->id, [
+            ['producto_id' => $prod->id, 'cantidad' => 3, 'precio' => 100],
+        ], $metodo->id, costoDomicilio: -50);
+
+        $this->postJson("/api/admin/system/{$caja->id}/close", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        $caja->refresh();
+
+        // efectivo_caja_cierre = inicio(100) + bruto(300) - domicilios(50) = 350
+        $this->assertEquals(350.0, (float) $caja->efectivo_caja_cierre);
+    }
+
+    public function test_cierre_caja_efectivo_no_resta_cuando_cliente_paga_por_pos(): void
+    {
+        $caja   = $this->crearCaja(inicio: 100);
+        $metodo = $this->crearMetodoPago('Efectivo');
+        $prod   = $this->crearProducto(100);
+
+        // cliente paga por POS: costo_domicilio = +25, no afecta domicilios del cierre
+        $this->crearOrdenCerrada($caja->id, [
+            ['producto_id' => $prod->id, 'cantidad' => 3, 'precio' => 100],
+        ], $metodo->id, costoDomicilio: 25);
+
+        $this->postJson("/api/admin/system/{$caja->id}/close", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        $caja->refresh();
+
+        // efectivo_caja_cierre = inicio(100) + bruto(300) - domicilios(0) = 400
+        $this->assertEquals(400.0, (float) $caja->efectivo_caja_cierre);
     }
 
     // ── Propinas ─────────────────────────────────────────────

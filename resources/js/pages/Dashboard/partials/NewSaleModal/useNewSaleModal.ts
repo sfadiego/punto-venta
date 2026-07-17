@@ -123,10 +123,12 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
 
     const domicilio = parseFloat(costoDomicilio) || 0;
     const customerPays = orderDeliveryPaidBy === "customer";
-    // cliente paga: el cliente paga el domicilio directo al repartidor, no se suma al cobro del POS
-    // negocio paga: el negocio cobra el domicilio al cliente a través del POS para cubrirlo
-    const totalFinal = domicilioActivo && domicilio > 0 && !customerPays
-        ? total + domicilio
+    // "cliente paga": POS cobra el domicilio al cliente → total + domicilio.
+    // "negocio absorbe": el negocio subsidia el envío → total - domicilio.
+    //   El domicilio se guarda como negativo en costo_domicilio y se refleja
+    //   en el neto del corte de caja.
+    const totalFinal = domicilioActivo && domicilio > 0
+        ? customerPays ? total + domicilio : total - domicilio
         : total;
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - totalFinal;
@@ -401,7 +403,9 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 url: `${ApiRoutes.Orders}/${oid}`,
                 data: {
                     estatus_pedido_id: OrderStatusEnum.Closed,
-                    costo_domicilio: domicilioActivo && domicilio > 0 && !customerPays ? domicilio : 0,
+                    costo_domicilio: domicilioActivo && domicilio > 0
+                        ? (customerPays ? domicilio : -domicilio)
+                        : 0,
                     payment_method_id: paymentMethodId,
                 },
             });

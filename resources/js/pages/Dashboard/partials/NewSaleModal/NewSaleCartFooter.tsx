@@ -87,10 +87,10 @@ export const NewSaleCartFooter = ({
         {sellByWeight && domicilioActivo && domicilio > 0 && (
             <div className="flex items-center justify-between">
                 <span className="text-xs text-stone-400">
-                    {customerPays ? "Domicilio (cliente paga)" : "+ Domicilio"}
+                    {customerPays ? "+ Domicilio" : "Domicilio (negocio absorbe)"}
                 </span>
-                <span className={`text-sm ${customerPays ? "text-stone-400" : "text-amber-600"}`}>
-                    {customerPays ? "—" : `+$${domicilio.toFixed(2)}`}
+                <span className={`text-sm ${customerPays ? "text-amber-600" : "text-stone-400"}`}>
+                    {customerPays ? `+$${domicilio.toFixed(2)}` : `-$${domicilio.toFixed(2)}`}
                 </span>
             </div>
         )}

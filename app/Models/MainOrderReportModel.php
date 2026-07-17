@@ -103,10 +103,15 @@ class MainOrderReportModel extends Model
 
     public function totalDomiciliosByDay(): float
     {
-        return round(
+        // Solo los valores negativos (negocio absorbe el costo de envío).
+        // costo_domicilio > 0 = cliente paga a través del POS (no afecta el neto del negocio).
+        // costo_domicilio < 0 = negocio absorbe (se descuenta del neto en el corte).
+        return (float) round(
             OrderModel::where('sistema_id', $this->id)
                 ->where('estatus_pedido_id', OrderStatusEnum::CLOSED->value)
-                ->sum('costo_domicilio'),
+                ->where('costo_domicilio', '<', 0)
+                ->selectRaw('ABS(SUM(costo_domicilio)) as total')
+                ->value('total') ?? 0,
             2
         );
     }

@@ -76,7 +76,7 @@ class OrderController extends Controller
         $data = $request->validate([
             'sistema_id' => 'required|numeric|exists:main_order_report,id',
             'nombre_pedido' => 'required|string',
-            'costo_domicilio' => 'sometimes|numeric|min:0',
+            'costo_domicilio' => 'sometimes|numeric',
             'items' => 'required|array|min:1',
             'items.*.producto_id' => 'required|numeric|exists:product,id',
             'items.*.cantidad' => 'required|numeric|min:0.001',
