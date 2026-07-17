@@ -132,7 +132,7 @@ class OrderController extends Controller
 
         $results = $query
             ->groupBy('categories.id', 'categories.nombre')
-            ->selectRaw('categories.id, categories.nombre, SUM(order_product.cantidad) as total_cantidad, SUM(order_product.precio * order_product.cantidad) as total_revenue')
+            ->selectRaw('categories.id, categories.nombre, SUM(order_product.cantidad) as total_cantidad, ROUND(SUM(order_product.precio * order_product.cantidad * (1 - COALESCE(order_product.descuento, 0) / 100) * (1 - COALESCE(order.descuento, 0) / 100)), 2) as total_revenue')
             ->orderByDesc('total_revenue')
             ->get();
 

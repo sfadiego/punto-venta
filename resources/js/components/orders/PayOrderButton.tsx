@@ -2,7 +2,7 @@ import { Banknote } from "lucide-react";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { usePayOrder } from "./usePayOrder";
-import { PayModal } from "./PayModal";
+import { RestaurantPayModal } from "./RestaurantPayModal";
 
 interface PayOrderButtonProps {
     order: IOrder;
@@ -24,6 +24,8 @@ export const PayOrderButton = ({
         change,
         canPay,
         isPending,
+        propina,
+        setPropina,
         paymentMethods,
         paymentMethodId,
         setPaymentMethodId,
@@ -57,7 +59,7 @@ export const PayOrderButton = ({
                 {showLabel && <span className="hidden sm:inline">Pagar</span>}
             </button>
 
-            <PayModal
+            <RestaurantPayModal
                 isOpen={isOpen}
                 subtotal={order.total}
                 cash={cash}
@@ -65,6 +67,8 @@ export const PayOrderButton = ({
                 change={change}
                 canPay={canPay}
                 isPending={isPending}
+                propina={propina}
+                setPropina={setPropina}
                 paymentMethods={paymentMethods}
                 paymentMethodId={paymentMethodId}
                 setPaymentMethodId={setPaymentMethodId}
@@ -75,3 +79,4 @@ export const PayOrderButton = ({
         </>
     );
 };
+

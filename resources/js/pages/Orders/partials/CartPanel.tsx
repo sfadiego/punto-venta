@@ -2,7 +2,7 @@ import { Loader } from "lucide-react";
 import { IOrder } from "@/models/IOrder";
 import { CartItem } from "../useTakeOrder";
 import { usePayModal } from "./usePayModal";
-import { PayModal } from "@/components/orders/PayModal";
+import { RestaurantPayModal } from "@/components/orders/RestaurantPayModal";
 import { CartEmptyState } from "./CartEmptyState";
 import { CartItemRow } from "./CartItemRow";
 import { CartFooter } from "./CartFooter";
@@ -50,6 +50,8 @@ export const CartPanel = ({
         change,
         canPay,
         isPending,
+        propina,
+        setPropina,
         paymentMethods,
         paymentMethodId,
         setPaymentMethodId,
@@ -123,7 +125,7 @@ export const CartPanel = ({
                 />
             </div>
 
-            <PayModal
+            <RestaurantPayModal
                 isOpen={payOpen}
                 subtotal={subtotal}
                 cash={cash}
@@ -131,6 +133,8 @@ export const CartPanel = ({
                 change={change}
                 canPay={canPay}
                 isPending={isPending}
+                propina={propina}
+                setPropina={setPropina}
                 paymentMethods={paymentMethods}
                 paymentMethodId={paymentMethodId}
                 setPaymentMethodId={setPaymentMethodId}

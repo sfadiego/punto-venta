@@ -1,8 +1,9 @@
-import { X, Loader, ShoppingCart, Banknote, CreditCard, TriangleAlert } from "lucide-react";
+import { X, Loader, ShoppingCart, Banknote, CreditCard } from "lucide-react";
 import { IPaymentMethod } from "@/models/IPaymentMethod";
 import { Input } from "@/components/ui/form/Input";
+import { PayTransferAlert } from "@/components/orders/PayModal/PayTransferAlert";
 
-interface NewSalePayModalProps {
+interface SellByWeightPayModalProps {
     totalFinal: number;
     cash: string;
     setCash: (v: string) => void;
@@ -18,11 +19,12 @@ interface NewSalePayModalProps {
     onClose: () => void;
 }
 
-export const NewSalePayModal = ({
+export const SellByWeightPayModal = ({
     totalFinal, cash, setCash, cashNum, change,
-    canPay, isPaying, paymentMethods, paymentMethodId, setPaymentMethodId, isCashMethod,
+    canPay, isPaying,
+    paymentMethods, paymentMethodId, setPaymentMethodId, isCashMethod,
     onConfirm, onClose,
-}: NewSalePayModalProps) => {
+}: SellByWeightPayModalProps) => {
     const activeMethods = paymentMethods.filter((m) => m.active);
 
     return (
@@ -72,15 +74,7 @@ export const NewSalePayModal = ({
                         </div>
                     )}
 
-                    {/* Alerta de comprobante — visible solo en métodos que no son efectivo */}
-                    <div className={`fade-collapse ${!isCashMethod ? "is-visible" : "is-hidden"}`}>
-                        <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                            <TriangleAlert size={15} className="text-amber-500 shrink-0 mt-0.5" />
-                            <p className="text-xs text-amber-700 leading-relaxed">
-                                <span className="font-semibold">Solicita el comprobante</span> de transferencia al cliente antes de confirmar el pago.
-                            </p>
-                        </div>
-                    </div>
+                    <PayTransferAlert isCash={isCashMethod} />
 
                     {/* Efectivo + cambio — fade in/out */}
                     <div className={`fade-collapse space-y-3 ${isCashMethod ? "is-visible" : "is-hidden"}`}>

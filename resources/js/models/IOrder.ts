@@ -21,4 +21,5 @@ export interface IOrder {
     delivery_reference: string | null;
     payment_method_id: number | null;
     payment_method?: Pick<IPaymentMethod, "id" | "name"> | null;
+    propina: number;
 }

@@ -4,9 +4,10 @@ import { PayModalTotal } from "./PayModal/PayModalTotal";
 import { PayMethodSelector } from "./PayModal/PayMethodSelector";
 import { PayTransferAlert } from "./PayModal/PayTransferAlert";
 import { PayCashInput } from "./PayModal/PayCashInput";
+import { PayPropinaInput } from "./PayModal/PayPropinaInput";
 import { PayModalActions } from "./PayModal/PayModalActions";
 
-interface PayModalProps {
+interface RestaurantPayModalProps {
     isOpen: boolean;
     subtotal: number;
     cash: string;
@@ -14,6 +15,8 @@ interface PayModalProps {
     change: number;
     canPay: boolean;
     isPending: boolean;
+    propina: string;
+    setPropina: (v: string) => void;
     paymentMethods: IPaymentMethod[];
     paymentMethodId: number | null;
     setPaymentMethodId: (id: number | null) => void;
@@ -22,7 +25,7 @@ interface PayModalProps {
     onClose: () => void;
 }
 
-export const PayModal = ({
+export const RestaurantPayModal = ({
     isOpen,
     subtotal,
     cash,
@@ -30,13 +33,15 @@ export const PayModal = ({
     change,
     canPay,
     isPending,
+    propina,
+    setPropina,
     paymentMethods,
     paymentMethodId,
     setPaymentMethodId,
     isCash,
     onPay,
     onClose,
-}: PayModalProps) => {
+}: RestaurantPayModalProps) => {
     if (!isOpen) return null;
 
     return (
@@ -56,6 +61,13 @@ export const PayModal = ({
                     />
 
                     <PayTransferAlert isCash={isCash} />
+
+                    <PayPropinaInput
+                        isCash={isCash}
+                        subtotal={subtotal}
+                        propina={propina}
+                        setPropina={setPropina}
+                    />
 
                     <PayCashInput
                         isCash={isCash}

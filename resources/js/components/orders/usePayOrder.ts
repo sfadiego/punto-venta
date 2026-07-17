@@ -16,6 +16,7 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
     const queryClient = useQueryClient();
     const { isOpen, openModal, closeModal } = useModal();
     const [cash, setCash] = useState("");
+    const [propina, setPropina] = useState("");
     const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
 
     const { mutateAsync: updateOrder, isPending } = useUpdateOrder(order.id);
@@ -34,16 +35,19 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
 
     const handleOpen = () => {
         setCash("");
+        setPropina("");
         const firstMethod = paymentMethods.find((m) => m.active);
         setPaymentMethodId(firstMethod?.id ?? null);
         openModal();
     };
 
     const handlePay = async () => {
+        const propinaNum = parseFloat(propina) || 0;
         try {
             await updateOrder({
                 estatus_pedido_id: OrderStatusEnum.Closed,
                 payment_method_id: paymentMethodId,
+                propina: propinaNum > 0 ? propinaNum : 0,
             });
             queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
             queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
@@ -78,6 +82,8 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
         change,
         canPay,
         isPending,
+        propina,
+        setPropina,
         paymentMethods,
         paymentMethodId,
         setPaymentMethodId,

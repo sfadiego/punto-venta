@@ -16,6 +16,7 @@ export const usePayModal = (orderId: number, subtotal: number) => {
     const queryClient = useQueryClient();
     const { isOpen, openModal, closeModal } = useModal();
     const [cash, setCash] = useState("");
+    const [propina, setPropina] = useState("");
     const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
 
     const { mutateAsync: updateOrder, isPending } = useUpdateOrder(orderId);
@@ -34,16 +35,19 @@ export const usePayModal = (orderId: number, subtotal: number) => {
 
     const handleOpen = () => {
         setCash("");
+        setPropina("");
         const firstMethod = paymentMethods.find((m) => m.active);
         setPaymentMethodId(firstMethod?.id ?? null);
         openModal();
     };
 
     const handlePay = async () => {
+        const propinaNum = parseFloat(propina) || 0;
         try {
             await updateOrder({
                 estatus_pedido_id: OrderStatusEnum.Closed,
                 payment_method_id: paymentMethodId,
+                propina: propinaNum > 0 ? propinaNum : 0,
             });
             queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
             toast.success("Orden cerrada exitosamente");
@@ -78,6 +82,8 @@ export const usePayModal = (orderId: number, subtotal: number) => {
         change,
         canPay,
         isPending,
+        propina,
+        setPropina,
         paymentMethods,
         paymentMethodId,
         setPaymentMethodId,

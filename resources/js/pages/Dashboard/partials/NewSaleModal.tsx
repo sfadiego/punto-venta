@@ -4,7 +4,7 @@ import { IOrder } from "@/models/IOrder";
 import { NewSaleModalHeader } from "./NewSaleModalHeader";
 import { NewSaleProductPanel } from "./NewSaleProductPanel";
 import { NewSaleCartPanel } from "./NewSaleCartPanel";
-import { NewSalePayModal } from "./NewSalePayModal";
+import { SellByWeightPayModal } from "./SellByWeightPayModal";
 
 interface NewSaleModalProps {
     onClose: () => void;
@@ -87,7 +87,7 @@ export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
             </div>
 
             {showPayModal && (
-                <NewSalePayModal
+                <SellByWeightPayModal
                     totalFinal={totalFinal}
                     cash={cash}
                     setCash={setCash}

@@ -48,6 +48,7 @@ export const useCloseSalesPage = () => {
     const totalBruto          = totales?.bruto      ?? 0;
     const totalDomicilios     = totales?.domicilios ?? 0;
     const totalNeto           = totales?.neto       ?? 0;
+    const totalPropinas       = totales?.propinas   ?? 0;
     const byPaymentMethod     = totales?.by_payment_method ?? [];
 
     const totalEfectivoPagado     = byPaymentMethod
@@ -58,7 +59,15 @@ export const useCloseSalesPage = () => {
         .filter((m) => !m.name.toLowerCase().includes("efectivo"))
         .reduce((sum, m) => sum + m.total, 0);
 
-    const efectivoCierre = efectivoInicio + totalEfectivoPagado;
+    const totalPropinasTarjeta = byPaymentMethod
+        .filter((m) => !m.name.toLowerCase().includes("efectivo"))
+        .reduce((sum, m) => sum + m.propina, 0);
+
+    const totalPropinaEfectivo = byPaymentMethod
+        .filter((m) => m.name.toLowerCase().includes("efectivo"))
+        .reduce((sum, m) => sum + m.propina, 0);
+
+    const efectivoCierre = efectivoInicio + totalEfectivoPagado + totalPropinaEfectivo;
 
     const handleClose = async () => {
         if (hasActiveOrders) return;
@@ -97,6 +106,9 @@ export const useCloseSalesPage = () => {
         efectivoCierre,
         totalEfectivoPagado,
         totalTransferenciaPagado,
+        totalPropinas,
+        totalPropinasTarjeta,
+        totalPropinaEfectivo,
         byPaymentMethod,
         sellByWeight,
         hasActiveOrders,

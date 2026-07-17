@@ -43,11 +43,13 @@ class MainOrderReportController extends Controller
     {
         $bruto = $system->totalSalesByDay();
         $domicilios = $system->totalDomiciliosByDay();
+        $propinas = $system->totalPropinasByDay();
 
         return Response::success([
             'bruto' => $bruto,
             'domicilios' => $domicilios,
             'neto' => round($bruto - $domicilios, 2),
+            'propinas' => $propinas,
             'by_payment_method' => $system->totalByPaymentMethod(),
         ]);
     }
