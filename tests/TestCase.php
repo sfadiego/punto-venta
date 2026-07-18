@@ -24,8 +24,8 @@ abstract class TestCase extends BaseTestCase
         // RefreshDatabase corra las migraciones. Esto evita que los tests toquen
         // la base de datos MySQL de desarrollo/producción sin importar la configuración.
         config([
-            'database.default'                       => 'sqlite',
-            'database.connections.sqlite.database'   => ':memory:',
+            'database.default' => 'sqlite',
+            'database.connections.sqlite.database' => ':memory:',
         ]);
     }
 

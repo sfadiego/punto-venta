@@ -30,28 +30,28 @@ class CloseSalesTotalsTest extends TestCase
     private function crearCaja(float $inicio = 0): MainOrderReportModel
     {
         return MainOrderReportModel::create([
-            MainOrderReportModel::ESTATUS_CAJA         => MainOrderStatusEnum::OPEN,
+            MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN,
             MainOrderReportModel::EFECTIVO_CAJA_INICIO => $inicio,
-            MainOrderReportModel::USER_ID              => User::where('rol_id', RoleEnum::ADMIN->value)->first()->id,
-            MainOrderReportModel::TENANT_ID            => BusinessConfigModel::first()->id,
+            MainOrderReportModel::USER_ID => User::where('rol_id', RoleEnum::ADMIN->value)->first()->id,
+            MainOrderReportModel::TENANT_ID => BusinessConfigModel::first()->id,
         ]);
     }
 
     private function crearMetodoPago(string $nombre): PaymentMethodModel
     {
         return PaymentMethodModel::create([
-            PaymentMethodModel::NAME      => $nombre,
-            PaymentMethodModel::ACTIVE    => true,
+            PaymentMethodModel::NAME => $nombre,
+            PaymentMethodModel::ACTIVE => true,
         ]);
     }
 
     private function crearProducto(float $precio = 100): ProductModel
     {
         return ProductModel::create([
-            ProductModel::NOMBRE       => "Producto $precio",
-            ProductModel::PRECIO       => $precio,
+            ProductModel::NOMBRE => "Producto $precio",
+            ProductModel::PRECIO => $precio,
             ProductModel::CATEGORIA_ID => CategoryModel::first()->id,
-            ProductModel::ACTIVO       => true,
+            ProductModel::ACTIVO => true,
         ]);
     }
 
@@ -69,29 +69,29 @@ class CloseSalesTotalsTest extends TestCase
         float $costoDomicilio = 0,
     ): OrderModel {
         $orden = OrderModel::create([
-            OrderModel::NOMBRE_PEDIDO     => 'Orden Test',
-            OrderModel::TOTAL             => 0,
-            OrderModel::SUBTOTAL          => 0,
-            OrderModel::DESCUENTO         => $descuentoOrden,
-            OrderModel::COSTO_DOMICILIO   => $costoDomicilio,
+            OrderModel::NOMBRE_PEDIDO => 'Orden Test',
+            OrderModel::TOTAL => 0,
+            OrderModel::SUBTOTAL => 0,
+            OrderModel::DESCUENTO => $descuentoOrden,
+            OrderModel::COSTO_DOMICILIO => $costoDomicilio,
             OrderModel::ESTATUS_PEDIDO_ID => OrderStatusModel::first()->id,
-            OrderModel::SISTEMA_ID        => $cajaId,
-            OrderModel::TENANT_ID         => BusinessConfigModel::first()->id,
+            OrderModel::SISTEMA_ID => $cajaId,
+            OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
         ]);
 
         foreach ($items as $item) {
             $this->postJson("/api/order/{$orden->id}/product", [
                 'producto_id' => $item['producto_id'],
-                'cantidad'    => $item['cantidad'],
-                'precio'      => $item['precio'],
-                'descuento'   => $item['descuento'] ?? 0,
+                'cantidad' => $item['cantidad'],
+                'precio' => $item['precio'],
+                'descuento' => $item['descuento'] ?? 0,
             ], $this->authHeaders())->assertStatus(200);
         }
 
         $this->putJson("/api/order/{$orden->id}", [
             OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
             OrderModel::PAYMENT_METHOD_ID => $metodoPagoId,
-            OrderModel::PROPINA           => $propina,
+            OrderModel::PROPINA => $propina,
         ], $this->authHeaders())->assertStatus(200);
 
         return $orden->refresh();
@@ -135,9 +135,9 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_bruto_suma_totales_de_ordenes_cerradas(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // Orden 1: 100×2 = 200  |  Orden 2: 100×3 = 300  → bruto = 500
         $this->crearOrdenCerrada($caja->id,
@@ -156,9 +156,9 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_bruto_aplica_descuento_de_producto(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // precio=100, cantidad=2, descuento producto=25% → total = 100×2×0.75 = 150
         $this->crearOrdenCerrada($caja->id, [
@@ -172,9 +172,9 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_bruto_aplica_descuento_de_orden(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // precio=100, cantidad=4, descuento orden=10% → subtotal=400, total=360
         $this->crearOrdenCerrada($caja->id, [
@@ -188,9 +188,9 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_bruto_aplica_descuento_producto_y_orden_combinados(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(200);
+        $prod = $this->crearProducto(200);
 
         // precio=200, cantidad=2, descuento prod=20%, descuento orden=10%
         // subtotal línea = 200×2×0.80 = 320 → total = 320×0.90 = 288
@@ -205,9 +205,9 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_ordenes_no_cerradas_no_se_cuentan_en_bruto(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // Orden cerrada: 100×2 = 200
         $this->crearOrdenCerrada($caja->id, [
@@ -216,13 +216,13 @@ class CloseSalesTotalsTest extends TestCase
 
         // Orden en proceso (no cerrada)
         $ordenAbierta = OrderModel::create([
-            OrderModel::NOMBRE_PEDIDO     => 'Abierta',
-            OrderModel::TOTAL             => 500,
-            OrderModel::SUBTOTAL          => 500,
-            OrderModel::DESCUENTO         => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Abierta',
+            OrderModel::TOTAL => 500,
+            OrderModel::SUBTOTAL => 500,
+            OrderModel::DESCUENTO => 0,
             OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS->value,
-            OrderModel::SISTEMA_ID        => $caja->id,
-            OrderModel::TENANT_ID         => BusinessConfigModel::first()->id,
+            OrderModel::SISTEMA_ID => $caja->id,
+            OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
         ]);
         $this->assertNotNull($ordenAbierta);
 
@@ -236,9 +236,9 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_neto_es_bruto_menos_domicilios_negocio_absorbe(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // negocio absorbe: costo_domicilio = -50 → domicilios=50, neto=bruto-50
         $this->crearOrdenCerrada($caja->id, [
@@ -248,15 +248,15 @@ class CloseSalesTotalsTest extends TestCase
         $totales = $this->totalesActuales($caja->id);
 
         $this->assertEquals(300.0, $totales['bruto']);
-        $this->assertEquals(50.0,  $totales['domicilios']);
+        $this->assertEquals(50.0, $totales['domicilios']);
         $this->assertEquals(250.0, $totales['neto']);
     }
 
     public function test_domicilios_cero_cuando_cliente_paga_por_pos(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // cliente paga por POS: costo_domicilio = +25, NO se cuenta en domicilios del corte
         $this->crearOrdenCerrada($caja->id, [
@@ -266,15 +266,15 @@ class CloseSalesTotalsTest extends TestCase
         $totales = $this->totalesActuales($caja->id);
 
         $this->assertEquals(200.0, $totales['bruto']);
-        $this->assertEquals(0.0,   $totales['domicilios']);
+        $this->assertEquals(0.0, $totales['domicilios']);
         $this->assertEquals(200.0, $totales['neto']);
     }
 
     public function test_domicilios_sin_envio_retorna_ceros(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // sin domicilio: costo_domicilio = 0
         $this->crearOrdenCerrada($caja->id, [
@@ -284,15 +284,15 @@ class CloseSalesTotalsTest extends TestCase
         $totales = $this->totalesActuales($caja->id);
 
         $this->assertEquals(200.0, $totales['bruto']);
-        $this->assertEquals(0.0,   $totales['domicilios']);
+        $this->assertEquals(0.0, $totales['domicilios']);
         $this->assertEquals(200.0, $totales['neto']);
     }
 
     public function test_domicilios_solo_cuenta_valores_negativos_en_sesion_mixta(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // Orden 1: negocio absorbe (negativo) → suma a domicilios
         $this->crearOrdenCerrada($caja->id, [
@@ -314,16 +314,16 @@ class CloseSalesTotalsTest extends TestCase
         // bruto = 200 + 300 + 100 = 600 (order.total es siempre solo productos)
         $this->assertEquals(600.0, $totales['bruto']);
         // domicilios = ABS(-30) + ABS(-20) = 50 (solo los negativos)
-        $this->assertEquals(50.0,  $totales['domicilios']);
+        $this->assertEquals(50.0, $totales['domicilios']);
         // neto = 600 - 50 = 550
         $this->assertEquals(550.0, $totales['neto']);
     }
 
     public function test_cierre_caja_efectivo_cierre_resta_domicilios_absorbidos(): void
     {
-        $caja   = $this->crearCaja(inicio: 100);
+        $caja = $this->crearCaja(inicio: 100);
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // negocio absorbe: costo_domicilio = -50
         $this->crearOrdenCerrada($caja->id, [
@@ -341,9 +341,9 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_cierre_caja_efectivo_no_resta_cuando_cliente_paga_por_pos(): void
     {
-        $caja   = $this->crearCaja(inicio: 100);
+        $caja = $this->crearCaja(inicio: 100);
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // cliente paga por POS: costo_domicilio = +25, no afecta domicilios del cierre
         $this->crearOrdenCerrada($caja->id, [
@@ -363,9 +363,9 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_propinas_suma_correctamente(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Transferencia');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // Orden 1: propina=20  |  Orden 2: propina=30  → total propinas=50
         $this->crearOrdenCerrada($caja->id,
@@ -384,9 +384,9 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_propinas_no_inflacion_bruto(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Transferencia');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // venta = 100, propina = 40 → bruto debe ser 100 (no 140)
         $this->crearOrdenCerrada($caja->id, [
@@ -396,14 +396,14 @@ class CloseSalesTotalsTest extends TestCase
         $totales = $this->totalesActuales($caja->id);
 
         $this->assertEquals(100.0, $totales['bruto']);
-        $this->assertEquals(40.0,  $totales['propinas']);
+        $this->assertEquals(40.0, $totales['propinas']);
     }
 
     public function test_caja_sin_propinas_retorna_cero(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         $this->crearOrdenCerrada($caja->id, [
             ['producto_id' => $prod->id, 'cantidad' => 2, 'precio' => 100],
@@ -418,10 +418,10 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_by_payment_method_separa_efectivo_y_transferencia(): void
     {
-        $caja         = $this->crearCaja();
-        $efectivo     = $this->crearMetodoPago('Efectivo');
+        $caja = $this->crearCaja();
+        $efectivo = $this->crearMetodoPago('Efectivo');
         $transferencia = $this->crearMetodoPago('Transferencia');
-        $prod         = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // Efectivo: 100×2 = 200  |  Transferencia: 100×3 = 300
         $this->crearOrdenCerrada($caja->id,
@@ -433,10 +433,10 @@ class CloseSalesTotalsTest extends TestCase
             $transferencia->id
         );
 
-        $totales  = $this->totalesActuales($caja->id);
-        $metodos  = collect($totales['by_payment_method']);
+        $totales = $this->totalesActuales($caja->id);
+        $metodos = collect($totales['by_payment_method']);
 
-        $totalEfectivo     = $metodos->firstWhere('payment_method_id', $efectivo->id);
+        $totalEfectivo = $metodos->firstWhere('payment_method_id', $efectivo->id);
         $totalTransferencia = $metodos->firstWhere('payment_method_id', $transferencia->id);
 
         $this->assertNotNull($totalEfectivo);
@@ -447,10 +447,10 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_propinas_desglosadas_por_metodo(): void
     {
-        $caja         = $this->crearCaja();
-        $efectivo     = $this->crearMetodoPago('Efectivo');
+        $caja = $this->crearCaja();
+        $efectivo = $this->crearMetodoPago('Efectivo');
         $transferencia = $this->crearMetodoPago('Transferencia');
-        $prod         = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // Propina en efectivo=10, propina en transferencia=25
         $this->crearOrdenCerrada($caja->id,
@@ -465,7 +465,7 @@ class CloseSalesTotalsTest extends TestCase
         $totales = $this->totalesActuales($caja->id);
         $metodos = collect($totales['by_payment_method']);
 
-        $propEfectivo     = $metodos->firstWhere('payment_method_id', $efectivo->id)['propina'];
+        $propEfectivo = $metodos->firstWhere('payment_method_id', $efectivo->id)['propina'];
         $propTransferencia = $metodos->firstWhere('payment_method_id', $transferencia->id)['propina'];
 
         $this->assertEquals(10.0, $propEfectivo);
@@ -475,9 +475,9 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_by_payment_method_tiene_campo_propina(): void
     {
-        $caja   = $this->crearCaja();
+        $caja = $this->crearCaja();
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         $this->crearOrdenCerrada($caja->id, [
             ['producto_id' => $prod->id, 'cantidad' => 1, 'precio' => 100],
@@ -494,9 +494,9 @@ class CloseSalesTotalsTest extends TestCase
 
     public function test_cierre_caja_calcula_venta_dia_correctamente(): void
     {
-        $caja   = $this->crearCaja(inicio: 200);
+        $caja = $this->crearCaja(inicio: 200);
         $metodo = $this->crearMetodoPago('Efectivo');
-        $prod   = $this->crearProducto(100);
+        $prod = $this->crearProducto(100);
 
         // 100×3 = 300 → venta_dia esperada = 300
         $this->crearOrdenCerrada($caja->id, [
@@ -517,13 +517,13 @@ class CloseSalesTotalsTest extends TestCase
         $caja = $this->crearCaja();
 
         OrderModel::create([
-            OrderModel::NOMBRE_PEDIDO     => 'Orden Activa',
-            OrderModel::TOTAL             => 100,
-            OrderModel::SUBTOTAL          => 100,
-            OrderModel::DESCUENTO         => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Orden Activa',
+            OrderModel::TOTAL => 100,
+            OrderModel::SUBTOTAL => 100,
+            OrderModel::DESCUENTO => 0,
             OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS->value,
-            OrderModel::SISTEMA_ID        => $caja->id,
-            OrderModel::TENANT_ID         => BusinessConfigModel::first()->id,
+            OrderModel::SISTEMA_ID => $caja->id,
+            OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
         ]);
 
         $this->postJson("/api/admin/system/{$caja->id}/close", [], $this->authHeaders())
@@ -535,13 +535,13 @@ class CloseSalesTotalsTest extends TestCase
         $caja = $this->crearCaja();
 
         OrderModel::create([
-            OrderModel::NOMBRE_PEDIDO     => 'Orden Servida',
-            OrderModel::TOTAL             => 100,
-            OrderModel::SUBTOTAL          => 100,
-            OrderModel::DESCUENTO         => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Orden Servida',
+            OrderModel::TOTAL => 100,
+            OrderModel::SUBTOTAL => 100,
+            OrderModel::DESCUENTO => 0,
             OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::SERVED->value,
-            OrderModel::SISTEMA_ID        => $caja->id,
-            OrderModel::TENANT_ID         => BusinessConfigModel::first()->id,
+            OrderModel::SISTEMA_ID => $caja->id,
+            OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
         ]);
 
         $this->postJson("/api/admin/system/{$caja->id}/close", [], $this->authHeaders())

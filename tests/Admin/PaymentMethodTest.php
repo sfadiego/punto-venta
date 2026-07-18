@@ -10,7 +10,7 @@ class PaymentMethodTest extends TestCase
     private function crearMetodo(string $name = 'Efectivo', bool $active = true): PaymentMethodModel
     {
         return PaymentMethodModel::create([
-            PaymentMethodModel::NAME   => $name,
+            PaymentMethodModel::NAME => $name,
             PaymentMethodModel::ACTIVE => $active,
         ]);
     }
