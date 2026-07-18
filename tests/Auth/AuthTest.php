@@ -3,6 +3,7 @@
 namespace Tests\Auth;
 
 use App\Enums\RoleEnum;
+use App\Enums\SubscriptionPlanEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\User;
 use Tests\TestCase;
@@ -168,6 +169,122 @@ class AuthTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonPath('status', 'error');
+    }
+
+    // ── Sesiones simultáneas ─────────────────────────────────
+
+    public function test_login_desde_segundo_dispositivo_no_invalida_primera_sesion(): void
+    {
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+        $password = env('APP_ADMIN_PASSWORD');
+
+        // Primer login (dispositivo A)
+        $responseA = $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => $password,
+        ]);
+        $responseA->assertStatus(200);
+        $tokenA = $responseA->json('data.access_token');
+
+        // Segundo login (dispositivo B)
+        $responseB = $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => $password,
+        ]);
+        $responseB->assertStatus(200);
+
+        // El token del dispositivo A sigue siendo válido (no 401 Unauthorized)
+        $this->getJson('/api/category', ['Authorization' => "Bearer $tokenA"])
+            ->assertSuccessful();
+    }
+
+    public function test_login_crea_token_nuevo_sin_borrar_los_existentes(): void
+    {
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $tokensBefore = $user->tokens()->count();
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ])->assertStatus(200);
+
+        // Debe haber exactamente un token más que antes
+        $this->assertEquals($tokensBefore + 1, $user->fresh()->tokens()->count());
+    }
+
+    // ── Límite de usuarios simultáneos ───────────────────────
+
+    public function test_login_bloquea_cuando_se_alcanza_limite_de_usuarios_simultaneos(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        // Plan Weekly (máximo 2 usuarios) con suscripción activa
+        $tenant->update([
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Weekly->value,
+            'subscription_expires_at' => now()->addDays(7),
+        ]);
+
+        // Crear 2 usuarios activos del mismo tenant (distintos al admin)
+        User::factory()->count(2)->create([
+            User::TENANT_ID => $tenant->id,
+            User::LAST_SEEN_AT => now(),
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
+    }
+
+    public function test_login_permite_acceso_cuando_no_se_supera_el_limite(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        // Plan Weekly (máximo 2 usuarios) con suscripción activa
+        $tenant->update([
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Weekly->value,
+            'subscription_expires_at' => now()->addDays(7),
+        ]);
+
+        // Solo 1 usuario activo → activeCount (1) < maxUsers (2) → debe pasar
+        User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::LAST_SEEN_AT => now(),
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ])->assertStatus(200)->assertJsonPath('status', 'OK');
+    }
+
+    public function test_usuarios_inactivos_no_cuentan_para_el_limite(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $tenant->update([
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Weekly->value,
+            'subscription_expires_at' => now()->addDays(7),
+        ]);
+
+        // 2 usuarios con last_seen_at fuera de la ventana activa (más de 15 min)
+        User::factory()->count(2)->create([
+            User::TENANT_ID => $tenant->id,
+            User::LAST_SEEN_AT => now()->subMinutes(20),
+        ]);
+
+        // Deben ser ignorados → login debe pasar
+        $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ])->assertStatus(200)->assertJsonPath('status', 'OK');
     }
 
     // ── Login bloquea SuperAdmin ──────────────────────────────
