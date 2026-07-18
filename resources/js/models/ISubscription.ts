@@ -1,6 +1,23 @@
 import { SubscriptionPlanEnum } from "@/enums/SubscriptionPlanEnum";
 import { SubscriptionStatusEnum } from "@/enums/SubscriptionStatusEnum";
 
+export interface IPaymentInfo {
+    bank: string;
+    account: string;
+    holder: string;
+    concept: string;
+}
+
+export interface ISubscriptionDetail {
+    status: SubscriptionStatusEnum;
+    plan: SubscriptionPlanEnum | null;
+    days_remaining: number | null;
+    expires_at: string | null;
+    business_name: string;
+    payment_whatsapp: string | null;
+    payment_info: IPaymentInfo | null;
+}
+
 export interface ISubscription {
     id: number;
     plan: SubscriptionPlanEnum;

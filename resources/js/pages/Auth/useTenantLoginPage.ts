@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import axios from "axios";
+import { isAxiosError } from "@/utils/axiosError";
 import { useGetTenantBranding } from "@/services/useTenantService";
 import { ApiErrorCodeEnum } from "@/enums/ApiErrorCodeEnum";
 
@@ -8,7 +8,7 @@ export const useTenantLoginPage = (slug: string) => {
 
     const isInactive =
         isError &&
-        axios.isAxiosError(error) &&
+        isAxiosError(error) &&
         error.response?.status === 403 &&
         error.response?.data?.code === ApiErrorCodeEnum.TenantInactive;
 

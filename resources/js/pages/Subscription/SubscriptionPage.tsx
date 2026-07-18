@@ -1,6 +1,9 @@
-import { CreditCard, Calendar, AlertTriangle, CheckCircle, XCircle, Clock, MessageCircle, Info, Building2, Hash, User, FileText } from "lucide-react";
-import { useSubscriptionPage, IPaymentInfo } from "./useSubscriptionPage";
-import { SubscriptionStatusEnum } from "@/enums/SubscriptionStatusEnum";
+import { CreditCard } from "lucide-react";
+import { useSubscriptionPage } from "./useSubscriptionPage";
+import { SubscriptionStatusCard } from "./partials/SubscriptionStatusCard";
+import { SubscriptionPlanCard } from "./partials/SubscriptionPlanCard";
+import { PaymentInfoCard } from "./partials/PaymentInfoCard";
+import { RenewalCard } from "./partials/RenewalCard";
 
 function SubscriptionPage() {
     const { data, isLoading, planLabel, expiresLabel, whatsappUrl } = useSubscriptionPage();
@@ -23,171 +26,22 @@ function SubscriptionPage() {
                 </div>
             ) : data ? (
                 <div className="flex flex-col gap-4">
-                    <StatusCard status={data.status} daysRemaining={data.days_remaining} />
+                    <SubscriptionStatusCard status={data.status} daysRemaining={data.days_remaining} />
 
-                    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 flex flex-col gap-4">
-                        <Row
-                            icon={<CreditCard size={15} className="text-amber-500" />}
-                            label="Plan activo"
-                            value={planLabel ?? "Sin plan"}
-                        />
-                        <Divider />
-                        <Row
-                            icon={<Calendar size={15} className="text-amber-500" />}
-                            label="Fecha de vencimiento"
-                            value={data.plan === "lifetime" ? "Indefinida" : (expiresLabel ?? "—")}
-                        />
-                        {data.days_remaining !== null && data.plan !== "lifetime" && (
-                            <>
-                                <Divider />
-                                <Row
-                                    icon={<Clock size={15} className="text-amber-500" />}
-                                    label="Días restantes"
-                                    value={
-                                        data.days_remaining >= 0
-                                            ? `${data.days_remaining} día${data.days_remaining !== 1 ? "s" : ""}`
-                                            : `Venció hace ${Math.abs(data.days_remaining)} día${Math.abs(data.days_remaining) !== 1 ? "s" : ""}`
-                                    }
-                                />
-                            </>
-                        )}
-                    </div>
+                    <SubscriptionPlanCard
+                        planLabel={planLabel}
+                        expiresLabel={expiresLabel}
+                        daysRemaining={data.days_remaining}
+                        isLifetime={data.plan === "lifetime"}
+                    />
 
                     {data.payment_info && <PaymentInfoCard info={data.payment_info} />}
 
-                    <div className="bg-stone-50 rounded-2xl border border-stone-100 p-5 flex flex-col gap-3">
-                        <div className="flex items-start gap-2.5">
-                            <Info size={15} className="text-stone-400 mt-0.5 shrink-0" />
-                            <div className="text-sm text-stone-500 leading-relaxed">
-                                <p className="font-medium text-stone-600 mb-1">¿Cómo renovar tu suscripción?</p>
-                                <p>
-                                    Si realizaste una <span className="font-medium">transferencia bancaria</span>, envía
-                                    tu comprobante por WhatsApp y lo procesaremos a la brevedad.
-                                </p>
-                                <p className="mt-1.5">
-                                    Si pagaste de <span className="font-medium">manera presencial</span>, el
-                                    administrador actualizará tu plan directamente.
-                                </p>
-                            </div>
-                        </div>
-
-                        {whatsappUrl ? (
-                            <a
-                                href={whatsappUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-green-500 hover:bg-green-600 text-white text-sm font-medium transition-colors"
-                            >
-                                <MessageCircle size={16} />
-                                Enviar comprobante por WhatsApp
-                            </a>
-                        ) : (
-                            <p className="text-xs text-stone-400 text-center">
-                                Contacta al administrador para obtener información de pago.
-                            </p>
-                        )}
-                    </div>
+                    <RenewalCard whatsappUrl={whatsappUrl} />
                 </div>
             ) : null}
         </div>
     );
 }
-
-const PaymentInfoCard = ({ info }: { info: IPaymentInfo }) => (
-    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 flex flex-col gap-4">
-        <p className="text-sm font-semibold text-stone-700">Datos para transferencia</p>
-        <Row icon={<Building2 size={15} className="text-amber-500" />} label="Banco" value={info.bank} />
-        <Divider />
-        <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-sm text-stone-500">
-                <Hash size={15} className="text-amber-500" />
-                Número de cuenta
-            </div>
-            <button
-                onClick={() => navigator.clipboard.writeText(info.account)}
-                title="Copiar número de cuenta"
-                className="text-sm font-mono font-medium text-stone-800 hover:text-amber-600 transition-colors"
-            >
-                {info.account}
-            </button>
-        </div>
-        <Divider />
-        <Row icon={<User size={15} className="text-amber-500" />} label="Titular" value={info.holder} />
-        {info.concept && (
-            <>
-                <Divider />
-                <Row icon={<FileText size={15} className="text-amber-500" />} label="Concepto" value={info.concept} />
-            </>
-        )}
-    </div>
-);
-
-interface StatusCardProps {
-    status: SubscriptionStatusEnum;
-    daysRemaining: number | null;
-}
-
-const STATUS_CONFIG = {
-    [SubscriptionStatusEnum.Active]: {
-        icon: <CheckCircle size={18} />,
-        label: "Suscripción activa",
-        color: "bg-emerald-50 border-emerald-200 text-emerald-700",
-    },
-    [SubscriptionStatusEnum.Grace]: {
-        icon: <AlertTriangle size={18} />,
-        label: "Período de gracia",
-        color: "bg-amber-50 border-amber-200 text-amber-700",
-    },
-    [SubscriptionStatusEnum.Expired]: {
-        icon: <XCircle size={18} />,
-        label: "Suscripción vencida",
-        color: "bg-red-50 border-red-200 text-red-700",
-    },
-    [SubscriptionStatusEnum.Pending]: {
-        icon: <Clock size={18} />,
-        label: "Sin suscripción activa",
-        color: "bg-slate-50 border-slate-200 text-slate-500",
-    },
-};
-
-const StatusCard = ({ status, daysRemaining }: StatusCardProps) => {
-    const cfg = STATUS_CONFIG[status];
-    return (
-        <div className={`flex items-center gap-3 px-5 py-4 rounded-2xl border ${cfg.color}`}>
-            <span className="shrink-0">{cfg.icon}</span>
-            <div>
-                <p className="font-semibold text-sm">{cfg.label}</p>
-                {status === SubscriptionStatusEnum.Grace && (
-                    <p className="text-xs opacity-80 mt-0.5">
-                        Tu acceso se mantendrá activo por unos días más mientras regularizas el pago.
-                    </p>
-                )}
-                {status === SubscriptionStatusEnum.Active && daysRemaining !== null && daysRemaining <= 7 && (
-                    <p className="text-xs opacity-80 mt-0.5">
-                        Vence pronto — considera renovar para no perder el acceso.
-                    </p>
-                )}
-            </div>
-        </div>
-    );
-};
-
-interface RowProps {
-    icon: React.ReactNode;
-    label: string;
-    value: string;
-}
-
-const Row = ({ icon, label, value }: RowProps) => (
-    <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-sm text-stone-500">
-            {icon}
-            {label}
-        </div>
-        <span className="text-sm font-medium text-stone-800">{value}</span>
-    </div>
-);
-
-const Divider = () => <hr className="border-stone-100" />;
 
 export default SubscriptionPage;
