@@ -1,11 +1,11 @@
-import { DollarSign, TrendingUp, Wallet, CreditCard, HandCoins } from "lucide-react";
+import { DollarSign, TrendingUp, Banknote, CreditCard, HandCoins } from "lucide-react";
 import { SummaryCard } from "./SummaryCard";
 import { formatCurrency } from "@/utils/formatCurrency";
 
 interface CloseSalesSummaryCardsRestaurantProps {
     efectivoInicio: number;
     totalBruto: number;
-    efectivoCierre: number;
+    totalEfectivoPagado: number;
     totalTransferenciaPagado: number;
     totalPropinas: number;
     totalPropinasTarjeta: number;
@@ -14,7 +14,7 @@ interface CloseSalesSummaryCardsRestaurantProps {
 export const CloseSalesSummaryCardsRestaurant = ({
     efectivoInicio,
     totalBruto,
-    efectivoCierre,
+    totalEfectivoPagado,
     totalTransferenciaPagado,
     totalPropinas,
     totalPropinasTarjeta,
@@ -28,19 +28,10 @@ export const CloseSalesSummaryCardsRestaurant = ({
         />
 
         <SummaryCard
-            icon={<Wallet size={20} className="text-emerald-600" />}
-            iconBg="bg-emerald-100"
-            label="Efectivo en caja"
-            value={formatCurrency(efectivoCierre)}
-            valueColor="text-emerald-700"
-            note="Efectivo inicial + ventas en efectivo"
-        />
-
-        <SummaryCard
-            icon={<TrendingUp size={20} className="text-amber-600" />}
+            icon={<Banknote size={20} className="text-amber-600" />}
             iconBg="bg-amber-100"
-            label="Ventas brutas"
-            value={formatCurrency(totalBruto)}
+            label="Ventas en efectivo"
+            value={formatCurrency(totalEfectivoPagado)}
         />
 
         <SummaryCard
@@ -50,6 +41,15 @@ export const CloseSalesSummaryCardsRestaurant = ({
             value={formatCurrency(totalTransferenciaPagado)}
             valueColor="text-blue-700"
         />
+
+        <SummaryCard
+            icon={<TrendingUp size={20} className="text-emerald-600" />}
+            iconBg="bg-emerald-100"
+            label="Ventas Totales"
+            value={formatCurrency(totalBruto)}
+            valueColor="text-emerald-700"
+        />
+
 
         {totalPropinas > 0 && (
             <div className="sm:col-span-2 bg-violet-50 border border-violet-200 rounded-2xl p-5 flex items-start gap-4 shadow-sm">

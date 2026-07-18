@@ -73,7 +73,7 @@ export default function CloseSalesPage() {
                 <CloseSalesSummaryCardsRestaurant
                     efectivoInicio={efectivoInicio}
                     totalBruto={totalBruto}
-                    efectivoCierre={efectivoCierre}
+                    totalEfectivoPagado={totalEfectivoPagado}
                     totalTransferenciaPagado={totalTransferenciaPagado}
                     totalPropinas={totalPropinas}
                     totalPropinasTarjeta={totalPropinasTarjeta}
