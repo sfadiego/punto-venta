@@ -227,6 +227,8 @@ class OrderProductController extends Controller
             'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
         ]);
 
+        $this->restoreServedIfAllReady($order->fresh());
+
         return Response::success('elemento borrado de la orden');
     }
 
@@ -257,6 +259,8 @@ class OrderProductController extends Controller
             'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
         ]);
 
+        $this->restoreServedIfAllReady($order->fresh());
+
         return Response::success('elemento borrado de la orden');
     }
 
@@ -264,6 +268,34 @@ class OrderProductController extends Controller
     {
         if ($order->estatus_pedido_id === OrderStatusEnum::SERVED->value) {
             $order->update(['estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value]);
+        }
+    }
+
+    /**
+     * After a product is removed, if the order is still InProcess and every
+     * remaining product is ready, auto-promote it back to Served.
+     */
+    private function restoreServedIfAllReady(OrderModel $order): void
+    {
+        if ($order->estatus_pedido_id !== OrderStatusEnum::IN_PROCESS->value) {
+            return;
+        }
+
+        $remaining = OrderProductModel::where('pedido_id', $order->id)->count();
+        if ($remaining === 0) {
+            return;
+        }
+
+        $hasUnready = OrderProductModel::where('pedido_id', $order->id)
+            ->where('is_ready', false)
+            ->exists();
+
+        if (! $hasUnready) {
+            $order->update(['estatus_pedido_id' => OrderStatusEnum::SERVED->value]);
+            try {
+                OrdersUpdated::dispatch('restored_served', $order->id);
+            } catch (\Throwable) {
+            }
         }
     }
 }

@@ -14,7 +14,45 @@ interface SubscriptionStatusResponse {
     payment_whatsapp: string | null;
 }
 
+interface BannerConfig {
+    icon: React.ReactNode;
+    color: string;
+    message: string;
+}
+
 const WARN_DAYS = 7;
+
+const STATUS_BANNER: Partial<Record<SubscriptionStatusEnum, BannerConfig>> = {
+    [SubscriptionStatusEnum.Expired]: {
+        icon:    <XCircle size={15} />,
+        color:   "bg-red-50 border-red-200 text-red-700 hover:bg-red-100",
+        message: "Tu suscripción ha vencido.",
+    },
+    [SubscriptionStatusEnum.Grace]: {
+        icon:    <AlertTriangle size={15} />,
+        color:   "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100",
+        message: "Período de gracia activo — tu suscripción venció hace poco.",
+    },
+    [SubscriptionStatusEnum.Pending]: {
+        icon:    <Clock size={15} />,
+        color:   "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100",
+        message: "No tienes una suscripción activa.",
+    },
+};
+
+const getActiveBannerConfig = (days: number | null): BannerConfig | null => {
+    if (days === null || days > WARN_DAYS) return null;
+    return {
+        icon:    <Clock size={15} />,
+        color:   "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100",
+        message: `Tu suscripción vence en ${days} día${days !== 1 ? "s" : ""}.`,
+    };
+};
+
+const resolveBanner = (status: SubscriptionStatusEnum, days: number | null): BannerConfig | null => {
+    if (status === SubscriptionStatusEnum.Active) return getActiveBannerConfig(days);
+    return STATUS_BANNER[status] ?? null;
+};
 
 export const SubscriptionBanner = () => {
     const { data } = useGET<SubscriptionStatusResponse>({
@@ -24,53 +62,10 @@ export const SubscriptionBanner = () => {
 
     if (!data) return null;
 
-    const { status, days_remaining } = data;
+    const config = resolveBanner(data.status, data.days_remaining);
+    if (!config) return null;
 
-    if (status === SubscriptionStatusEnum.Active && (days_remaining === null || days_remaining > WARN_DAYS)) {
-        return null;
-    }
-
-    if (status === SubscriptionStatusEnum.Expired) {
-        return (
-            <Banner
-                icon={<XCircle size={15} />}
-                color="bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
-                message="Tu suscripción ha vencido."
-            />
-        );
-    }
-
-    if (status === SubscriptionStatusEnum.Grace) {
-        return (
-            <Banner
-                icon={<AlertTriangle size={15} />}
-                color="bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
-                message="Período de gracia activo — tu suscripción venció hace poco."
-            />
-        );
-    }
-
-    if (status === SubscriptionStatusEnum.Pending) {
-        return (
-            <Banner
-                icon={<Clock size={15} />}
-                color="bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
-                message="No tienes una suscripción activa."
-            />
-        );
-    }
-
-    if (status === SubscriptionStatusEnum.Active && days_remaining !== null && days_remaining <= WARN_DAYS) {
-        return (
-            <Banner
-                icon={<Clock size={15} />}
-                color="bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
-                message={`Tu suscripción vence en ${days_remaining} día${days_remaining !== 1 ? "s" : ""}.`}
-            />
-        );
-    }
-
-    return null;
+    return <Banner {...config} />;
 };
 
 interface BannerProps {

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-toastify";
+import { useQueryClient, QueryKey } from "@tanstack/react-query";
+import { toast, ToastOptions } from "react-toastify";
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -26,6 +26,19 @@ export const getEcho = (): Echo<"reverb"> => {
 
 const EVENT = ".orders.updated";
 
+const TOAST_BASE: ToastOptions = { position: "top-right", autoClose: 4000, pauseOnHover: true };
+
+const ORDER_QUERY_KEYS = [
+    "orders-infinite",
+    ApiRoutes.Orders as string,
+    "pending-orders",
+];
+
+const isOrderQuery = (key: QueryKey) =>
+    ORDER_QUERY_KEYS.includes((key as unknown[])[0] as string);
+
+type ToastHandler = () => void;
+
 interface UseOrdersSocketOptions {
     showToast?: boolean;
     suppressCreated?: boolean;
@@ -35,46 +48,20 @@ export const useOrdersSocket = ({ showToast = false, suppressCreated = false }: 
     const queryClient = useQueryClient();
 
     useEffect(() => {
-        const echo    = getEcho();
-        const channel = echo.channel("orders");
+        const toastHandlers: Record<string, ToastHandler | undefined> = {
+            new_public_order: () => toast.info("📋 Nueva solicitud de pedido recibida", { ...TOAST_BASE, autoClose: 6000 }),
+            created:          suppressCreated ? undefined : () => toast.info("Nuevo pedido recibido", TOAST_BASE),
+            served:           () => toast.success("Orden servida", TOAST_BASE),
+            restored_served:  () => toast.info("Orden actualizada", TOAST_BASE),
+        };
+
+        const channel = getEcho().channel("orders");
 
         const handler = (data: { type?: string }) => {
-            queryClient.refetchQueries({
-                predicate: (query) => {
-                    const key = query.queryKey as unknown[];
-                    return (
-                        key[0] === "orders-infinite" ||
-                        key[0] === (ApiRoutes.Orders as string) ||
-                        key[0] === "pending-orders"
-                    );
-                },
-            });
+            queryClient.refetchQueries({ predicate: (q) => isOrderQuery(q.queryKey) });
 
-            if (!showToast) return;
-
-            if (data?.type === "new_public_order") {
-                toast.info("📋 Nueva solicitud de pedido recibida", {
-                    position: "top-right",
-                    autoClose: 6000,
-                    pauseOnHover: true,
-                });
-                return;
-            }
-
-            if (data?.type === "created" && !suppressCreated) {
-                toast.info("Nuevo pedido recibido", {
-                    position: "top-right",
-                    autoClose: 4000,
-                    pauseOnHover: true,
-                });
-            }
-
-            if (data?.type === "served") {
-                toast.success("Orden servida", {
-                    position: "top-right",
-                    autoClose: 4000,
-                    pauseOnHover: true,
-                });
+            if (showToast && data.type) {
+                toastHandlers[data.type]?.();
             }
         };
 

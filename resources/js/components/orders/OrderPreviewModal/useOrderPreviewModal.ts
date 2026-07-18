@@ -38,7 +38,12 @@ export const useOrderPreviewModal = (orderId: number) => {
 
         const handler = (data: { type?: string; order_id?: number }) => {
             if (data.order_id !== orderId) return;
-            if (data.type === "product_updated" || data.type === "served" || data.type === "updated") {
+            if (
+                data.type === "product_updated" ||
+                data.type === "served" ||
+                data.type === "restored_served" ||
+                data.type === "updated"
+            ) {
                 queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${orderId}`] });
             }
         };

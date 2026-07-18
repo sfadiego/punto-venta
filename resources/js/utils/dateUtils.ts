@@ -18,20 +18,26 @@ export const parseDateLocal = (dateStr: string): Date | null => {
 export const formatOrderTime = (dateStr: string): string =>
     new Date(dateStr).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
 
+type DateMutator = (d: Date) => void;
+
+// null = plan sin vencimiento (Lifetime). undefined = plan desconocido → también retorna null.
+const PLAN_OFFSET: Partial<Record<SubscriptionPlanEnum, DateMutator | null>> = {
+    [SubscriptionPlanEnum.Lifetime]: null,
+    [SubscriptionPlanEnum.Weekly]:   (d) => d.setDate(d.getDate() + 7),
+    [SubscriptionPlanEnum.Biweekly]: (d) => d.setDate(d.getDate() + 14),
+    [SubscriptionPlanEnum.Monthly]:  (d) => d.setMonth(d.getMonth() + 1),
+    [SubscriptionPlanEnum.Biannual]: (d) => d.setMonth(d.getMonth() + 6),
+    [SubscriptionPlanEnum.Annual]:   (d) => d.setMonth(d.getMonth() + 12),
+};
+
 /** Calcula la fecha de expiración de una suscripción a partir del plan y la fecha de inicio. */
 export const computeExpiresAt = (plan: string, startsAt: string): string | null => {
     const d = parseDateLocal(startsAt);
     if (!d) return null;
 
-    if (plan === SubscriptionPlanEnum.Lifetime) return null;
-    if (plan === SubscriptionPlanEnum.Weekly) d.setDate(d.getDate() + 7);
-    else if (plan === SubscriptionPlanEnum.Biweekly) d.setDate(d.getDate() + 14);
-    else {
-        const months: Record<string, number> = { monthly: 1, biannual: 6, annual: 12 };
-        const m = months[plan] ?? 0;
-        if (m === 0) return null;
-        d.setMonth(d.getMonth() + m);
-    }
+    const offset = PLAN_OFFSET[plan as SubscriptionPlanEnum];
+    if (!offset) return null;
 
+    offset(d);
     return d.toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
 };

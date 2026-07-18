@@ -3,6 +3,7 @@
 namespace Tests\Orders;
 
 use App\Enums\MainOrderStatusEnum;
+use App\Enums\OrderStatusEnum;
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
@@ -254,6 +255,119 @@ class OrderProductTest extends TestCase
 
         $this->patchJson("/api/order/{$orden->id}/product/99999/ready", [], $this->authHeaders())
             ->assertStatus(422);
+    }
+
+    // ── restoreServedIfAllReady ──────────────────────────────
+
+    public function test_eliminar_producto_restaura_served_si_restantes_listos(): void
+    {
+        $orden = $this->crearOrden();
+        $prod1 = $this->crearProducto();
+        $prod2 = $this->crearProducto();
+
+        // Producto 1 ya listo, producto 2 recién agregado (pendiente)
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod1->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => true,
+        ]);
+
+        $item2 = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod2->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => false,
+        ]);
+
+        $orden->update(['estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value]);
+
+        // Cliente cancela el producto pendiente
+        $this->deleteJson("/api/order/{$orden->id}/product/{$prod2->id}", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        // La orden debe volver a Served automáticamente
+        $this->assertEquals(OrderStatusEnum::SERVED->value, $orden->fresh()->estatus_pedido_id);
+    }
+
+    public function test_eliminar_extra_restaura_served_si_restantes_listos(): void
+    {
+        $orden = $this->crearOrden();
+        $prod1 = $this->crearProducto();
+        $prod2 = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod1->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => true,
+        ]);
+
+        $item2 = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod2->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 30,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => false,
+        ]);
+
+        $orden->update(['estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value]);
+
+        // Elimina por ID de item (endpoint deleteExtra), igual que un extra real
+        $this->deleteJson("/api/order/{$orden->id}/extra/{$item2->id}", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertEquals(OrderStatusEnum::SERVED->value, $orden->fresh()->estatus_pedido_id);
+    }
+
+    public function test_eliminar_producto_no_restaura_served_si_quedan_pendientes(): void
+    {
+        $orden = $this->crearOrden();
+        $prod1 = $this->crearProducto();
+        $prod2 = $this->crearProducto();
+        $prod3 = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod1->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => true,
+        ]);
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod2->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => false,
+        ]);
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod3->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => false,
+        ]);
+
+        $orden->update(['estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value]);
+
+        // Elimina prod3 pero prod2 sigue pendiente — no debe volver a Served
+        $this->deleteJson("/api/order/{$orden->id}/product/{$prod3->id}", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertEquals(OrderStatusEnum::IN_PROCESS->value, $orden->fresh()->estatus_pedido_id);
     }
 
     // ── Auth ─────────────────────────────────────────────────
