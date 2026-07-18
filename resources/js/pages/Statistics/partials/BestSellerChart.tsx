@@ -10,6 +10,7 @@ import {
     LabelList,
 } from "recharts";
 import { IBestSellerItem } from "@/services/useStatisticsService";
+import { formatTotal } from "@/utils/formatUnits";
 
 const COLORS = ["#f59e0b", "#fbbf24", "#fcd34d"];
 const MEDALS = ["🥇", "🥈", "🥉"];
@@ -17,11 +18,6 @@ const MEDALS = ["🥇", "🥈", "🥉"];
 interface BestSellerChartProps {
     data: IBestSellerItem[];
 }
-
-export const formatTotal = (total: number, unidad: string): string => {
-    if (unidad === "kg" || unidad === "gr") return `${total.toFixed(3)} ${unidad}`;
-    return `${total} und`;
-};
 
 interface TooltipEntry {
     payload: IBestSellerItem;

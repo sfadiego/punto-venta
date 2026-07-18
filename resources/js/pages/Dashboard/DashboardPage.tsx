@@ -11,7 +11,7 @@ import { RecentOrders } from "./partials/RecentOrders/RecentOrders";
 import { RecentSales } from "./partials/RecentSales/RecentSales";
 import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
-import { NewSaleModal } from "./partials/NewSaleModal/NewSaleModal";
+import { SellByWeightSaleModal } from "./partials/SellByWeightSaleModal/SellByWeightSaleModal";
 import { OpenSalesModal } from "./partials/OpenSalesModal/OpenSalesModal";
 import { useOpenSalesModal } from "./partials/OpenSalesModal/useOpenSalesModal";
 import { AdminRoutes } from "@/enums/RoutesEnum";
@@ -125,7 +125,7 @@ export default function DashboardPage() {
             />
 
             {resumeOrder && (
-                <NewSaleModal
+                <SellByWeightSaleModal
                     initialOrder={resumeOrder}
                     onClose={() => setResumeOrder(null)}
                 />

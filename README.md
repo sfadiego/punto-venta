@@ -104,6 +104,24 @@ Siempre correr migraciones tras un pull:
 php artisan migrate
 ```
 
+## Tests
+
+Los tests corren contra **SQLite en memoria** — nunca tocan la base de datos MySQL de desarrollo.
+
+### Correr los tests
+
+```bash
+composer test
+```
+
+> **No usar `php artisan test` directamente.** El script `composer test` limpia el config cache antes de ejecutar PHPUnit, lo que garantiza que el override de SQLite aplique correctamente. Si se ejecuta `php artisan test` sin limpiar el cache, los tests pueden correr contra MySQL y borrar todos los datos de desarrollo.
+
+### Cómo funciona el aislamiento
+
+`TestCase::refreshApplication()` sobrescribe la conexión a `sqlite` / `:memory:` justo después de que Laravel carga el `.env` pero antes de que `RefreshDatabase` corra las migraciones. Esto protege la base de datos MySQL sin importar qué tenga el `.env` o el config cache.
+
+---
+
 ## Calidad de código
 
 ### Pre-commit hook

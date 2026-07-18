@@ -1,5 +1,6 @@
 import { Eraser } from "lucide-react";
-import { ModalCartItem } from "./useNewSaleModal";
+import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
+import { ModalCartItem } from "./useSellByWeightSaleModal";
 import { NewSaleCartItem } from "./NewSaleCartItem";
 import { NewSaleCartFooter } from "./NewSaleCartFooter";
 import { IProduct } from "@/models/IProduct";
@@ -11,8 +12,8 @@ interface NewSaleCartPanelProps {
     toggleDomicilio: (checked: boolean) => void;
     costoDomicilio: string;
     setCostoDomicilio: (v: string) => void;
-    orderDeliveryPaidBy: "customer" | "business";
-    setOrderDeliveryPaidBy: (v: "customer" | "business") => void;
+    orderDeliveryPaidBy: DeliveryPaidByEnum;
+    setOrderDeliveryPaidBy: (v: DeliveryPaidByEnum) => void;
     customerPays: boolean;
     domicilio: number;
     total: number;

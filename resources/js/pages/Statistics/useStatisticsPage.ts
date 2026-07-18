@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAxios } from "@/hooks/useAxios";
 import { useBestSeller } from "@/services/useStatisticsService";
 import { useCurrentTotalSale } from "@/services/useOpenSalesService";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 const currentMonth = () => {
     const now = new Date();
@@ -15,9 +16,6 @@ const formatMonth = (month: string) =>
         year: "numeric",
         month: "long",
     });
-
-const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(value);
 
 export const useStatisticsPage = () => {
     const [month, setMonth] = useState<string>(currentMonth());

@@ -64,7 +64,6 @@ class OrderPropinasTest extends TestCase
         return PaymentMethodModel::create([
             PaymentMethodModel::NAME      => $nombre,
             PaymentMethodModel::ACTIVE    => true,
-            PaymentMethodModel::TENANT_ID => BusinessConfigModel::first()->id,
         ]);
     }
 

@@ -1,11 +1,12 @@
 import { useGET } from "../hooks/useApi";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 
 export interface IBestSellerItem {
     id: number;
     product: string;
     total: number;
-    unidad_medida: "unidad" | "kg" | "gr";
+    unidad_medida: UnidadMedidaEnum;
 }
 
 const url = ApiRoutes.Statistics;

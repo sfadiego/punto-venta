@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ShoppingCart } from "lucide-react";
-import { NewSaleModal } from "@/pages/Dashboard/partials/NewSaleModal/NewSaleModal";
+import { SellByWeightSaleModal } from "@/pages/Dashboard/partials/SellByWeightSaleModal/SellByWeightSaleModal";
 
 interface NewSaleButtonProps {
     className?: string;
@@ -19,7 +19,7 @@ export const NewSaleButton = ({ className }: NewSaleButtonProps) => {
                 Nueva venta
             </button>
 
-            {open && <NewSaleModal onClose={() => setOpen(false)} />}
+            {open && <SellByWeightSaleModal onClose={() => setOpen(false)} />}
         </>
     );
 };

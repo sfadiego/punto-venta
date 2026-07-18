@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useGetActiveSale, useCloseSales, useCurrentTotalSale } from "@/services/useOpenSalesService";
+import { calcEfectivoCierre } from "@/utils/deliveryCalc";
 import { useIndexOrder } from "@/services/useOrderService";
 import { useAxios } from "@/hooks/useAxios";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -67,7 +68,12 @@ export const useCloseSalesPage = () => {
         .filter((m) => m.name.toLowerCase().includes("efectivo"))
         .reduce((sum, m) => sum + m.propina, 0);
 
-    const efectivoCierre = efectivoInicio + totalEfectivoPagado + totalPropinaEfectivo;
+    const efectivoCierre = calcEfectivoCierre(
+        efectivoInicio,
+        totalEfectivoPagado,
+        sellByWeight ? 0 : totalPropinaEfectivo,
+        totalDomicilios,
+    );
 
     const handleClose = async () => {
         if (hasActiveOrders) return;

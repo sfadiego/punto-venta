@@ -1,36 +1,39 @@
-import { DollarSign, TrendingUp, Wallet, Bike, CreditCard, HandCoins } from "lucide-react";
+import { DollarSign, TrendingUp, Wallet, CreditCard, HandCoins } from "lucide-react";
 import { SummaryCard } from "./SummaryCard";
 import { formatCurrency } from "@/utils/formatCurrency";
 
-interface CloseSalesSummaryCardsProps {
+interface CloseSalesSummaryCardsRestaurantProps {
     efectivoInicio: number;
     totalBruto: number;
-    totalDomicilios: number;
-    totalNeto: number;
     efectivoCierre: number;
     totalTransferenciaPagado: number;
     totalPropinas: number;
     totalPropinasTarjeta: number;
-    sellByWeight: boolean;
 }
 
-export const CloseSalesSummaryCards = ({
+export const CloseSalesSummaryCardsRestaurant = ({
     efectivoInicio,
     totalBruto,
-    totalDomicilios,
-    totalNeto,
     efectivoCierre,
     totalTransferenciaPagado,
     totalPropinas,
     totalPropinasTarjeta,
-    sellByWeight,
-}: CloseSalesSummaryCardsProps) => (
+}: CloseSalesSummaryCardsRestaurantProps) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <SummaryCard
-            icon={<DollarSign size={20} className="text-blue-600" />}
-            iconBg="bg-blue-100"
+            icon={<DollarSign size={20} className="text-stone-500" />}
+            iconBg="bg-stone-100"
             label="Efectivo inicial"
             value={formatCurrency(efectivoInicio)}
+        />
+
+        <SummaryCard
+            icon={<Wallet size={20} className="text-emerald-600" />}
+            iconBg="bg-emerald-100"
+            label="Efectivo en caja"
+            value={formatCurrency(efectivoCierre)}
+            valueColor="text-emerald-700"
+            note="Efectivo inicial + ventas en efectivo"
         />
 
         <SummaryCard
@@ -40,38 +43,10 @@ export const CloseSalesSummaryCards = ({
             value={formatCurrency(totalBruto)}
         />
 
-        {sellByWeight && (
-            <SummaryCard
-                icon={<Bike size={20} className="text-red-500" />}
-                iconBg="bg-red-100"
-                label="Domicilios"
-                value={`-${formatCurrency(totalDomicilios)}`}
-                valueColor="text-red-500"
-            />
-        )}
-
-        {sellByWeight && (
-            <SummaryCard
-                icon={<TrendingUp size={20} className="text-violet-600" />}
-                iconBg="bg-violet-100"
-                label="Ingreso neto"
-                value={formatCurrency(totalNeto)}
-                valueColor="text-violet-700"
-            />
-        )}
-
-        <SummaryCard
-            icon={<Wallet size={20} className="text-emerald-600" />}
-            iconBg="bg-emerald-100"
-            label="Efectivo en caja"
-            value={formatCurrency(efectivoCierre)}
-            valueColor="text-emerald-700"
-        />
-
         <SummaryCard
             icon={<CreditCard size={20} className="text-blue-600" />}
             iconBg="bg-blue-100"
-            label="En transferencias"
+            label="Transferencias"
             value={formatCurrency(totalTransferenciaPagado)}
             valueColor="text-blue-700"
         />
@@ -88,7 +63,7 @@ export const CloseSalesSummaryCards = ({
                     </p>
                     {totalPropinasTarjeta > 0 && (
                         <p className="text-xs text-violet-500 mt-1">
-                            {formatCurrency(totalPropinasTarjeta)} por tarjeta/transferencia — este monto no aparece en el efectivo en caja
+                            {formatCurrency(totalPropinasTarjeta)} por tarjeta/transferencia — no aparece en el efectivo en caja
                         </p>
                     )}
                 </div>

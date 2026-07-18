@@ -1,17 +1,17 @@
 import { Loader } from "lucide-react";
-import { useNewSaleModal } from "./useNewSaleModal";
+import { useSellByWeightSaleModal } from "./useSellByWeightSaleModal";
 import { IOrder } from "@/models/IOrder";
 import { NewSaleModalHeader } from "./NewSaleModalHeader";
 import { NewSaleProductPanel } from "./NewSaleProductPanel";
 import { NewSaleCartPanel } from "./NewSaleCartPanel";
 import { SellByWeightPayModal } from "./SellByWeightPayModal";
 
-interface NewSaleModalProps {
+interface SellByWeightSaleModalProps {
     onClose: () => void;
     initialOrder?: IOrder;
 }
 
-export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
+export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSaleModalProps) => {
     const {
         search, setSearch,
         nombrePedido, setNombrePedido, handleNombreBlur,
@@ -30,7 +30,7 @@ export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
         cash, setCash, cashNum, change, canPay,
         paymentMethods, paymentMethodId, setPaymentMethodId, isCashMethod,
         isPaying, handlePay,
-    } = useNewSaleModal(onClose, initialOrder);
+    } = useSellByWeightSaleModal(onClose, initialOrder);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 overflow-hidden">
@@ -95,6 +95,10 @@ export const NewSaleModal = ({ onClose, initialOrder }: NewSaleModalProps) => {
             {showPayModal && (
                 <SellByWeightPayModal
                     totalFinal={totalFinal}
+                    subtotal={total}
+                    domicilio={domicilio}
+                    domicilioActivo={domicilioActivo}
+                    customerPays={customerPays}
                     cash={cash}
                     setCash={setCash}
                     cashNum={cashNum}

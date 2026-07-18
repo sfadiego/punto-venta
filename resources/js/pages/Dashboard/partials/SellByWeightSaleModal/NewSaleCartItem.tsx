@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import { ModalCartItem } from "./useNewSaleModal";
+import { ModalCartItem } from "./useSellByWeightSaleModal";
 import { UNIDAD_LABELS, UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { calcWeightFromPrice } from "@/utils/calcWeightFromPrice";
 

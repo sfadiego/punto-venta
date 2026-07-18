@@ -2,7 +2,9 @@ import { useAxios } from "@/hooks/useAxios";
 import { useIndexOrder } from "@/services/useOrderService";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 
-const today = () => new Date().toISOString().split("T")[0];
+import { localDateString } from "@/utils/dateUtils";
+
+const today = () => localDateString();
 
 export const useRecentSales = () => {
     const { sistemaId, features } = useAxios();

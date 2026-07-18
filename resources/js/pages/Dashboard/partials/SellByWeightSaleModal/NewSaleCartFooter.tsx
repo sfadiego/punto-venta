@@ -1,4 +1,5 @@
-import { Bike, DollarSign } from "lucide-react";
+import { Bike, DollarSign, AlertTriangle } from "lucide-react";
+import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 
 interface NewSaleCartFooterProps {
     sellByWeight: boolean;
@@ -6,8 +7,8 @@ interface NewSaleCartFooterProps {
     toggleDomicilio: (checked: boolean) => void;
     costoDomicilio: string;
     setCostoDomicilio: (v: string) => void;
-    orderDeliveryPaidBy: "customer" | "business";
-    setOrderDeliveryPaidBy: (v: "customer" | "business") => void;
+    orderDeliveryPaidBy: DeliveryPaidByEnum;
+    setOrderDeliveryPaidBy: (v: DeliveryPaidByEnum) => void;
     customerPays: boolean;
     domicilio: number;
     total: number;
@@ -24,7 +25,10 @@ export const NewSaleCartFooter = ({
     customerPays, domicilio,
     total, totalFinal,
     hasItems, onPay,
-}: NewSaleCartFooterProps) => (
+}: NewSaleCartFooterProps) => {
+    const domicilioExcedeTotal = domicilioActivo && !customerPays && domicilio > total && total > 0;
+
+    return (
     <div className="px-4 py-4 border-t border-stone-100 shrink-0 space-y-2">
         {sellByWeight && (
             <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -59,7 +63,7 @@ export const NewSaleCartFooter = ({
                 <div className="flex rounded-lg border border-stone-200 overflow-hidden text-xs">
                     <button
                         type="button"
-                        onClick={() => setOrderDeliveryPaidBy("customer")}
+                        onClick={() => setOrderDeliveryPaidBy(DeliveryPaidByEnum.Customer)}
                         className={`flex-1 py-1.5 font-medium transition-colors ${
                             customerPays ? "bg-amber-500 text-white" : "bg-white text-stone-500 hover:bg-stone-50"
                         }`}
@@ -68,7 +72,7 @@ export const NewSaleCartFooter = ({
                     </button>
                     <button
                         type="button"
-                        onClick={() => setOrderDeliveryPaidBy("business")}
+                        onClick={() => setOrderDeliveryPaidBy(DeliveryPaidByEnum.Business)}
                         className={`flex-1 py-1.5 font-medium transition-colors border-l border-stone-200 ${
                             !customerPays ? "bg-amber-500 text-white" : "bg-white text-stone-500 hover:bg-stone-50"
                         }`}
@@ -87,7 +91,7 @@ export const NewSaleCartFooter = ({
         {sellByWeight && domicilioActivo && domicilio > 0 && (
             <div className="flex items-center justify-between">
                 <span className="text-xs text-stone-400">
-                    {customerPays ? "+ Domicilio" : "Domicilio (negocio absorbe)"}
+                    Domicilio
                 </span>
                 <span className={`text-sm ${customerPays ? "text-amber-600" : "text-stone-400"}`}>
                     {customerPays ? `+$${domicilio.toFixed(2)}` : `-$${domicilio.toFixed(2)}`}
@@ -102,9 +106,18 @@ export const NewSaleCartFooter = ({
             </span>
         </div>
 
+        {domicilioExcedeTotal && (
+            <div className="flex items-start gap-2 p-2.5 rounded-xl bg-red-50 border border-red-200">
+                <AlertTriangle size={14} className="text-red-500 shrink-0 mt-0.5" />
+                <p className="text-xs text-red-600">
+                    El costo de envío no puede superar el total de la venta cuando lo absorbe el negocio.
+                </p>
+            </div>
+        )}
+
         <button
             onClick={onPay}
-            disabled={!hasItems}
+            disabled={!hasItems || domicilioExcedeTotal}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl
                 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed
                 text-white text-sm font-semibold transition-colors"
@@ -113,4 +126,5 @@ export const NewSaleCartFooter = ({
             Cobrar
         </button>
     </div>
-);
+    );
+};

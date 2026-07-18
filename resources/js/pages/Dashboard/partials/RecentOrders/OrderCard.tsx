@@ -1,7 +1,8 @@
 import { IOrder } from "@/models/IOrder";
 import { Clock, Receipt } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getStatusStyle, getStatusLabel, formatOrderTime } from "../../useDashboard";
+import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
+import { formatOrderTime } from "@/utils/dateUtils";
 import { useOrderActions } from "@/components/orders/OrderActions/useOrderActions";
 import { usePermissions } from "@/hooks/usePermissions";
 import { OrderActionGroup, OrderEditControls } from "@/components/orders/OrderActions/OrderActionGroup";

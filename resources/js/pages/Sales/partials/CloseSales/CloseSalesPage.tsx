@@ -4,7 +4,8 @@ import BestSellerWidget from "./BestSellerWidget";
 import { SalesByCategoryButton, SalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/SalesByCategoryModal";
 import { useSalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/useSalesByCategoryModal";
 import { CloseSalesHeader } from "@/components/CloseSales/CloseSalesHeader";
-import { CloseSalesSummaryCards } from "@/components/CloseSales/CloseSalesSummaryCards";
+import { CloseSalesSummaryCardsRestaurant } from "@/components/CloseSales/CloseSalesSummaryCardsRestaurant";
+import { CloseSalesSummaryCardsSellByWeight } from "@/components/CloseSales/CloseSalesSummaryCardsSellByWeight";
 import { CloseSalesTotalBanner } from "@/components/CloseSales/CloseSalesTotalBanner";
 import { CloseSalesSessionDetail } from "@/components/CloseSales/CloseSalesSessionDetail";
 import { CloseSalesActiveOrdersAlert } from "@/components/CloseSales/CloseSalesActiveOrdersAlert";
@@ -17,8 +18,8 @@ export default function CloseSalesPage() {
         efectivoInicio,
         totalBruto,
         totalDomicilios,
-        totalNeto,
         efectivoCierre,
+        totalEfectivoPagado,
         totalTransferenciaPagado,
         totalPropinas,
         totalPropinasTarjeta,
@@ -57,17 +58,26 @@ export default function CloseSalesPage() {
         <div className="px-5 py-6 max-w-3xl mx-auto">
             <CloseSalesHeader />
 
-            <CloseSalesSummaryCards
-                efectivoInicio={efectivoInicio}
-                totalBruto={totalBruto}
-                totalDomicilios={totalDomicilios}
-                totalNeto={totalNeto}
-                efectivoCierre={efectivoCierre}
-                totalTransferenciaPagado={totalTransferenciaPagado}
-                totalPropinas={totalPropinas}
-                totalPropinasTarjeta={totalPropinasTarjeta}
-                sellByWeight={sellByWeight}
-            />
+            {sellByWeight ? (
+                <CloseSalesSummaryCardsSellByWeight
+                    efectivoInicio={efectivoInicio}
+                    totalEfectivoPagado={totalEfectivoPagado}
+                    totalDomicilios={totalDomicilios}
+                    efectivoCierre={efectivoCierre}
+                    totalTransferenciaPagado={totalTransferenciaPagado}
+                    totalPropinas={totalPropinas}
+                    totalPropinasTarjeta={totalPropinasTarjeta}
+                />
+            ) : (
+                <CloseSalesSummaryCardsRestaurant
+                    efectivoInicio={efectivoInicio}
+                    totalBruto={totalBruto}
+                    efectivoCierre={efectivoCierre}
+                    totalTransferenciaPagado={totalTransferenciaPagado}
+                    totalPropinas={totalPropinas}
+                    totalPropinasTarjeta={totalPropinasTarjeta}
+                />
+            )}
 
             <CloseSalesTotalBanner total={totalEnCaja} />
 

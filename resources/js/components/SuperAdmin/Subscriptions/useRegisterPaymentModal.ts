@@ -6,6 +6,7 @@ import { SubscriptionPlanEnum } from "@/enums/SubscriptionPlanEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { ITenantWithSubscription } from "@/models/ISubscription";
 import { useRegisterPayment } from "@/services/useSubscriptionService";
+import { localDateString, computeExpiresAt } from "@/utils/dateUtils";
 
 const schema = Yup.object({
     plan:      Yup.string().oneOf(Object.values(SubscriptionPlanEnum)).required("Requerido"),
@@ -14,32 +15,7 @@ const schema = Yup.object({
     notes:     Yup.string().nullable().max(300),
 });
 
-const parseDateLocal = (dateStr: string): Date | null => {
-    const parts = dateStr.split("-").map(Number);
-    if (parts.length !== 3 || parts.some(isNaN)) return null;
-    return new Date(parts[0], parts[1] - 1, parts[2]);
-};
-
-const computeExpiresAt = (plan: string, startsAt: string): string | null => {
-    const d = parseDateLocal(startsAt);
-    if (!d) return null;
-
-    if (plan === SubscriptionPlanEnum.Lifetime) return null;
-    if (plan === SubscriptionPlanEnum.Weekly)   d.setDate(d.getDate() + 7);
-    else if (plan === SubscriptionPlanEnum.Biweekly) d.setDate(d.getDate() + 14);
-    else {
-        const months: Record<string, number> = {
-            monthly: 1, biannual: 6, annual: 12,
-        };
-        const m = months[plan] ?? 0;
-        if (m === 0) return null;
-        d.setMonth(d.getMonth() + m);
-    }
-
-    return d.toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
-};
-
-const today = () => new Date().toISOString().split("T")[0];
+const today = () => localDateString();
 
 const defaultValues = (plan: SubscriptionPlanEnum = SubscriptionPlanEnum.Monthly) => ({
     plan,

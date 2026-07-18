@@ -1,4 +1,5 @@
 import { Banknote, CreditCard } from "lucide-react";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 interface PaymentMethodTotalItem {
     payment_method_id: number | null;
@@ -9,9 +10,6 @@ interface PaymentMethodTotalItem {
 interface PaymentMethodBreakdownProps {
     items: PaymentMethodTotalItem[];
 }
-
-const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(value);
 
 const isCashMethod = (name: string) => name.toLowerCase().includes("efectivo");
 

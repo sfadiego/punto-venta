@@ -1,6 +1,6 @@
 import { ReceiptText, Clock, Loader } from "lucide-react";
 import { useRecentSales } from "./useRecentSales";
-import { formatOrderTime } from "../../useDashboard";
+import { formatOrderTime } from "@/utils/dateUtils";
 import { EmptyState } from "@/components/ui/interactions/EmptyState";
 import { LoadingSkeleton } from "@/components/ui/interactions/LoadingSkeleton";
 import { OrderPreviewModal } from "@/components/orders/OrderPreviewModal/OrderPreviewModal";

@@ -5,6 +5,10 @@ import { PayTransferAlert } from "@/components/orders/PayModal/PayTransferAlert"
 
 interface SellByWeightPayModalProps {
     totalFinal: number;
+    subtotal?: number;
+    domicilio?: number;
+    domicilioActivo?: boolean;
+    customerPays?: boolean;
     cash: string;
     setCash: (v: string) => void;
     cashNum: number;
@@ -20,12 +24,14 @@ interface SellByWeightPayModalProps {
 }
 
 export const SellByWeightPayModal = ({
-    totalFinal, cash, setCash, cashNum, change,
+    totalFinal, subtotal, domicilio = 0, domicilioActivo = false, customerPays = true,
+    cash, setCash, cashNum, change,
     canPay, isPaying,
     paymentMethods, paymentMethodId, setPaymentMethodId, isCashMethod,
     onConfirm, onClose,
 }: SellByWeightPayModalProps) => {
     const activeMethods = paymentMethods.filter((m) => m.active);
+    const showBreakdown = domicilioActivo && domicilio > 0 && subtotal !== undefined;
 
     return (
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50">
@@ -41,10 +47,31 @@ export const SellByWeightPayModal = ({
                 </div>
 
                 <div className="space-y-3">
-                    <div className="flex items-center justify-between py-2 border-b border-stone-100">
-                        <span className="text-sm text-stone-500">Total a cobrar</span>
-                        <span className="text-xl font-bold text-stone-900">${totalFinal.toFixed(2)}</span>
-                    </div>
+                    {showBreakdown ? (
+                        <div className="space-y-1.5 py-2 border-b border-stone-100">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-stone-400">Subtotal</span>
+                                <span className="text-sm text-stone-600">${subtotal!.toFixed(2)}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-stone-400">
+                                    {customerPays ? "Domicilio (cliente paga)" : "Domicilio (a cuenta de negocio)"}
+                                </span>
+                                <span className={`text-sm font-medium ${customerPays ? "text-amber-600" : "text-stone-400"}`}>
+                                    {customerPays ? `+$${domicilio.toFixed(2)}` : `-$${domicilio.toFixed(2)}`}
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between pt-1.5 border-t border-stone-100">
+                                <span className="text-sm font-semibold text-stone-700">Total a cobrar</span>
+                                <span className="text-xl font-bold text-stone-900">${totalFinal.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-between py-2 border-b border-stone-100">
+                            <span className="text-sm text-stone-500">Total a cobrar</span>
+                            <span className="text-xl font-bold text-stone-900">${totalFinal.toFixed(2)}</span>
+                        </div>
+                    )}
 
                     {/* Método de pago */}
                     {activeMethods.length > 0 && (

@@ -17,6 +17,8 @@ import { IOrder } from "@/models/IOrder";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
+import { calcDeliveryTotal, calcCostoDomicilio } from "@/utils/deliveryCalc";
+import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 
 export type ModalCartItem = {
     orderProductId: number;
@@ -39,7 +41,7 @@ function mapOrderProducts(orderProducts: IOrderProduct[]): ModalCartItem[] {
         }));
 }
 
-export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
+export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
     const { sistemaId, axiosApi, features } = useAxios();
     const queryClient = useQueryClient();
     const sellByWeight = features?.sell_by_weight === true;
@@ -65,7 +67,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 data: { nombre_pedido: nombrePedido.trim() },
             });
         } catch (error) {
-            logUnexpectedError(error, "useNewSaleModal.handleNombreBlur");
+            logUnexpectedError(error, "useSellByWeightSaleModal.handleNombreBlur");
         }
     };
     const [search, setSearch] = useState("");
@@ -76,12 +78,16 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
     const [itemModes, setItemModes] = useState<Record<number, 'weight' | 'price'>>({});
     const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
-    const initialDomicilio = Number(initialOrder?.costo_domicilio ?? 0);
-    const [domicilioActivo, setDomicilioActivo] = useState(initialDomicilio > 0);
+    const rawInitialDomicilio = Number(initialOrder?.costo_domicilio ?? 0);
+    const initialDomicilio = Math.abs(rawInitialDomicilio);
+    const initialDeliveryActive = initialDomicilio > 0;
+    const initialPaidBy = rawInitialDomicilio >= 0 ? DeliveryPaidByEnum.Customer : DeliveryPaidByEnum.Business;
+
+    const [domicilioActivo, setDomicilioActivo] = useState(initialDeliveryActive);
     const [costoDomicilio, setCostoDomicilio] = useState<string>(
-        initialDomicilio > 0 ? String(initialDomicilio) : "",
+        initialDeliveryActive ? String(initialDomicilio) : "",
     );
-    const [orderDeliveryPaidBy, setOrderDeliveryPaidBy] = useState<"customer" | "business">("customer");
+    const [orderDeliveryPaidBy, setOrderDeliveryPaidBy] = useState<DeliveryPaidByEnum>(initialPaidBy);
 
     const [showPayModal, setShowPayModal] = useState(false);
     const [cash, setCash] = useState("");
@@ -122,21 +128,16 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
     );
 
     const domicilio = parseFloat(costoDomicilio) || 0;
-    const customerPays = orderDeliveryPaidBy === "customer";
-    // "cliente paga": POS cobra el domicilio al cliente → total + domicilio.
-    // "negocio absorbe": el negocio subsidia el envío → total - domicilio.
-    //   El domicilio se guarda como negativo en costo_domicilio y se refleja
-    //   en el neto del corte de caja.
-    const totalFinal = domicilioActivo && domicilio > 0
-        ? customerPays ? total + domicilio : total - domicilio
-        : total;
+    const customerPays = orderDeliveryPaidBy === DeliveryPaidByEnum.Customer;
+    const totalFinal = calcDeliveryTotal(total, domicilio, domicilioActivo, customerPays);
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - totalFinal;
     const selectedPaymentMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
     const isCashMethod = !selectedPaymentMethod || selectedPaymentMethod.name.toLowerCase().includes("efectivo");
-    const canPay = isCashMethod
+    const domicilioExcedeTotal = domicilioActivo && !customerPays && domicilio > total && total > 0;
+    const canPay = !domicilioExcedeTotal && (isCashMethod
         ? cashNum >= totalFinal && totalFinal > 0
-        : totalFinal > 0;
+        : totalFinal > 0);
 
     const defaultCantidad = (product: IProduct) =>
         product.unidad_medida === UnidadMedidaEnum.Kg ? 0.5 : 1;
@@ -195,7 +196,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 data: { cantidad: 1, precio: price },
             });
         } catch (error) {
-            logUnexpectedError(error, "useNewSaleModal.handlePriceBlur");
+            logUnexpectedError(error, "useSellByWeightSaleModal.handlePriceBlur");
             toast.error("Error al actualizar precio");
         }
     };
@@ -260,7 +261,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 }];
             });
         } catch (error) {
-            logUnexpectedError(error, "useNewSaleModal.addToCart");
+            logUnexpectedError(error, "useSellByWeightSaleModal.addToCart");
             toast.error("Error al agregar producto");
         }
     };
@@ -276,7 +277,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
             });
             setCart((prev) => prev.filter((i) => i.productId !== productId));
         } catch (error) {
-            logUnexpectedError(error, "useNewSaleModal.removeFromCart");
+            logUnexpectedError(error, "useSellByWeightSaleModal.removeFromCart");
             toast.error("Error al eliminar producto");
         }
     };
@@ -292,7 +293,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
             );
             setCart([]);
         } catch (error) {
-            logUnexpectedError(error, "useNewSaleModal.clearCart");
+            logUnexpectedError(error, "useSellByWeightSaleModal.clearCart");
             toast.error("Error al limpiar carrito");
         }
     };
@@ -334,7 +335,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 data: { cantidad: qty, precio: catalogPrice },
             });
         } catch (error) {
-            logUnexpectedError(error, "useNewSaleModal.handleQtyBlur");
+            logUnexpectedError(error, "useSellByWeightSaleModal.handleQtyBlur");
             toast.error("Error al actualizar cantidad");
         }
     };
@@ -344,7 +345,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
         if (checked) {
             const defaultCost = businessConfig?.costo_domicilio_default ?? 0;
             setCostoDomicilio(defaultCost > 0 ? String(defaultCost) : "");
-            setOrderDeliveryPaidBy("customer");
+            setOrderDeliveryPaidBy(DeliveryPaidByEnum.Customer);
         } else {
             setCostoDomicilio("");
         }
@@ -361,7 +362,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
             }
             toast.success("Ticket impreso");
         } catch (error) {
-            logUnexpectedError(error, "useNewSaleModal.printTicket");
+            logUnexpectedError(error, "useSellByWeightSaleModal.printTicket");
             toast.error("Error al imprimir ticket");
         }
     };
@@ -369,6 +370,11 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
     const invalidateOrderQueries = () => {
         queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
         queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
+        if (sistemaId) {
+            queryClient.invalidateQueries({
+                queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`],
+            });
+        }
     };
 
     const handleClose = async () => {
@@ -385,7 +391,21 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
             try {
                 await axiosDELETE(axiosApi, { url: `${ApiRoutes.Orders}/${oid}` });
             } catch (error) {
-                logUnexpectedError(error, "useNewSaleModal.handleClose.deleteEmpty");
+                logUnexpectedError(error, "useSellByWeightSaleModal.handleClose.deleteEmpty");
+            }
+        } else {
+            // Persist delivery state so it restores correctly on resume
+            try {
+                await axiosPUT(axiosApi, {
+                    url: `${ApiRoutes.Orders}/${oid}`,
+                    data: {
+                        costo_domicilio: domicilioActivo
+                            ? calcCostoDomicilio(domicilio, domicilioActivo, customerPays)
+                            : 0,
+                    },
+                });
+            } catch (error) {
+                logUnexpectedError(error, "useSellByWeightSaleModal.handleClose.saveDelivery");
             }
         }
 
@@ -403,9 +423,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 url: `${ApiRoutes.Orders}/${oid}`,
                 data: {
                     estatus_pedido_id: OrderStatusEnum.Closed,
-                    costo_domicilio: domicilioActivo && domicilio > 0
-                        ? (customerPays ? domicilio : -domicilio)
-                        : 0,
+                    costo_domicilio: calcCostoDomicilio(domicilio, domicilioActivo, customerPays),
                     payment_method_id: paymentMethodId,
                 },
             });
@@ -428,7 +446,7 @@ export const useNewSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
                 if (isConfirmed) await printTicket(oid);
             }
         } catch (error) {
-            logUnexpectedError(error, "useNewSaleModal.handlePay");
+            logUnexpectedError(error, "useSellByWeightSaleModal.handlePay");
             toast.error("Error al registrar la venta.");
         } finally {
             setIsPaying(false);

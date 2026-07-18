@@ -14,6 +14,16 @@ superAdminAxios.interceptors.request.use((config) => {
     return config;
 });
 
+superAdminAxios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error?.response?.status === 401) {
+            superAdminAuth.logout();
+        }
+        return Promise.reject(error);
+    },
+);
+
 export const superAdminAuth = {
     isAuthenticated: () => !!localStorage.getItem(TOKEN_KEY),
 

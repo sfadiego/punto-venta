@@ -6,6 +6,7 @@ import { useUpdateOrder } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
 import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
+import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -13,6 +14,7 @@ import { IOrder } from "@/models/IOrder";
 
 export const useSaleQuickPay = (order: IOrder) => {
     const queryClient = useQueryClient();
+    const { sistemaId } = useAxios();
     const [isOpen, setIsOpen] = useState(false);
     const [cash, setCash] = useState("");
     const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
@@ -48,6 +50,11 @@ export const useSaleQuickPay = (order: IOrder) => {
             });
             queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
             queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
+            if (sistemaId) {
+                queryClient.invalidateQueries({
+                    queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`],
+                });
+            }
             toast.success("Orden cerrada exitosamente");
             closePayModal();
 
