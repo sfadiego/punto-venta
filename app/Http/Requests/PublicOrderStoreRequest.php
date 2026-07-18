@@ -21,7 +21,7 @@ class PublicOrderStoreRequest extends FormRequest
             'delivery_reference' => 'nullable|string|max:500',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer',
-            'items.*.cantidad' => 'required|integer|min:1',
+            'items.*.cantidad' => 'required|numeric|min:0.001',
             'items.*.observacion' => 'nullable|string|max:200',
         ];
     }

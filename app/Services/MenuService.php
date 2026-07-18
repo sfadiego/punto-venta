@@ -53,6 +53,7 @@ class MenuService extends DataTable
                 'nombre' => $p->nombre,
                 'descripcion' => $p->descripcion,
                 'precio' => $p->precio,
+                'unidad_medida' => $p->unidad_medida?->value,
                 'image_url' => $p->picture?->url ? "/api/files/{$p->picture->url}" : null,
             ])->values(),
         ]);
