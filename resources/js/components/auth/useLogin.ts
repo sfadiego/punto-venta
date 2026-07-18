@@ -3,7 +3,7 @@ import * as Yup from "yup";
 import { ISignInForm } from "@/intefaces/IAuth";
 import { useServiceLogin } from "@/services/auth/useServiceAuth";
 import { useFormik } from "formik";
-import axios from "axios";
+import { isAxiosError } from "@/utils/axiosError";
 import { toast } from "react-toastify";
 
 const validationSchema = Yup.object<ISignInForm>({
@@ -31,7 +31,7 @@ export const useLogin = () => {
                 saveAuth(access_token, user, features, tenant_slug);
                 window.location.replace("/");
             } catch (error) {
-                if (axios.isAxiosError(error)) {
+                if (isAxiosError(error)) {
                     const msg =
                         error.response?.data?.message ?? "Credenciales incorrectas";
                     toast.error(msg);

@@ -1,24 +1,7 @@
 import { useGET } from "@/hooks/useApi";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
-import { SubscriptionStatusEnum } from "@/enums/SubscriptionStatusEnum";
-import { SubscriptionPlanEnum, PLAN_LABELS } from "@/enums/SubscriptionPlanEnum";
-
-export interface IPaymentInfo {
-    bank: string;
-    account: string;
-    holder: string;
-    concept: string;
-}
-
-export interface ISubscriptionDetail {
-    status: SubscriptionStatusEnum;
-    plan: SubscriptionPlanEnum | null;
-    days_remaining: number | null;
-    expires_at: string | null;
-    business_name: string;
-    payment_whatsapp: string | null;
-    payment_info: IPaymentInfo | null;
-}
+import { PLAN_LABELS } from "@/enums/SubscriptionPlanEnum";
+import { ISubscriptionDetail } from "@/models/ISubscription";
 
 export const useSubscriptionPage = () => {
     const { data, isLoading } = useGET<ISubscriptionDetail>({
@@ -39,10 +22,9 @@ export const useSubscriptionPage = () => {
     const whatsappUrl = (() => {
         if (!data?.payment_whatsapp) return null;
 
-        const plan = planLabel ?? "mi plan";
         const message = [
             `Hola, soy ${data.business_name}.`,
-            `Quiero renovar mi suscripción (${plan}) y adjunto mi comprobante de pago.`,
+            `Quiero renovar mi suscripción y adjunto mi comprobante de pago.`,
             `Quedo pendiente de confirmación. ¡Gracias!`,
         ].join(" ");
 
