@@ -74,11 +74,17 @@ class OrderProductController extends Controller
                     $oldLineSubtotal = round($existing->precio * $existing->cantidad * (1 - $existing->descuento / 100), 2);
                     $newQty = $existing->cantidad + $params->cantidad;
                     $existing->update([
-                        OrderProductModel::CANTIDAD => $newQty,
-                        OrderProductModel::PRECIO => $params->precio,
+                        OrderProductModel::CANTIDAD  => $newQty,
+                        OrderProductModel::PRECIO    => $params->precio,
                         OrderProductModel::DESCUENTO => $itemDescuento,
+                        OrderProductModel::IS_READY  => false,
                     ]);
                     $newLineSubtotal = round($params->precio * $newQty * (1 - $itemDescuento / 100), 2);
+
+                    try {
+                        OrdersUpdated::dispatch('product_updated', (int) $orderId);
+                    } catch (\Throwable) {
+                    }
 
                     return [$existing->refresh(), $newLineSubtotal - $oldLineSubtotal];
                 }
@@ -268,6 +274,10 @@ class OrderProductController extends Controller
     {
         if ($order->estatus_pedido_id === OrderStatusEnum::SERVED->value) {
             $order->update(['estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value]);
+            try {
+                OrdersUpdated::dispatch('updated', $order->id);
+            } catch (\Throwable) {
+            }
         }
     }
 

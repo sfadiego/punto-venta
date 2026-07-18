@@ -257,6 +257,42 @@ class OrderProductTest extends TestCase
             ->assertStatus(422);
     }
 
+    // ── is_ready reset on quantity increase ─────────────────
+
+    public function test_agregar_mismo_producto_resetea_is_ready(): void
+    {
+        $orden = $this->crearOrden();
+        $prod  = $this->crearProducto();
+
+        // Producto ya en la orden y marcado como listo
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => true,
+        ]);
+
+        // Mesero agrega el mismo producto otra vez (aumenta cantidad)
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $prod->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.is_ready', false)
+            ->assertJsonPath('data.cantidad', 2);
+
+        $this->assertDatabaseHas('order_product', [
+            'pedido_id'  => $orden->id,
+            'producto_id' => $prod->id,
+            'cantidad'   => 2,
+            'is_ready'   => false,
+        ]);
+    }
+
     // ── restoreServedIfAllReady ──────────────────────────────
 
     public function test_eliminar_producto_restaura_served_si_restantes_listos(): void
