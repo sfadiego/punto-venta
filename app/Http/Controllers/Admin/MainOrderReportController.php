@@ -64,6 +64,10 @@ class MainOrderReportController extends Controller
             return Response::error('Debes de finalizar todos las mesas para cerrar sistema.');
         }
 
+        if ($system->totalSalesByDay() == 0) {
+            return Response::error('No se puede cerrar la caja sin ventas registradas.');
+        }
+
         return Response::success($system->closeSales());
     }
 }

@@ -547,4 +547,13 @@ class CloseSalesTotalsTest extends TestCase
         $this->postJson("/api/admin/system/{$caja->id}/close", [], $this->authHeaders())
             ->assertStatus(422);
     }
+
+    public function test_cierre_caja_bloquea_si_no_hay_ventas(): void
+    {
+        $caja = $this->crearCaja();
+
+        $this->postJson("/api/admin/system/{$caja->id}/close", [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'No se puede cerrar la caja sin ventas registradas.');
+    }
 }

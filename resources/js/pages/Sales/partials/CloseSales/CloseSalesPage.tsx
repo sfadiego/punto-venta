@@ -99,9 +99,16 @@ export default function CloseSalesPage() {
                 <CloseSalesActiveOrdersAlert count={activeOrdersCount} />
             )}
 
+            {totalBruto === 0 && (
+                <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl px-4 py-3 text-sm mb-4">
+                    <span className="shrink-0">⚠️</span>
+                    <span>No hay ventas registradas en esta sesión. Registra al menos una venta para poder cerrar la caja.</span>
+                </div>
+            )}
+
             <CloseSalesCloseButton
                 isClosing={isClosing}
-                disabled={hasActiveOrders}
+                disabled={hasActiveOrders || totalBruto === 0}
                 onClick={handleClose}
             />
 
