@@ -262,7 +262,7 @@ class OrderProductTest extends TestCase
     public function test_agregar_mismo_producto_resetea_is_ready(): void
     {
         $orden = $this->crearOrden();
-        $prod  = $this->crearProducto();
+        $prod = $this->crearProducto();
 
         // Producto ya en la orden y marcado como listo
         OrderProductModel::create([
@@ -286,10 +286,10 @@ class OrderProductTest extends TestCase
             ->assertJsonPath('data.cantidad', 2);
 
         $this->assertDatabaseHas('order_product', [
-            'pedido_id'  => $orden->id,
+            'pedido_id' => $orden->id,
             'producto_id' => $prod->id,
-            'cantidad'   => 2,
-            'is_ready'   => false,
+            'cantidad' => 2,
+            'is_ready' => false,
         ]);
     }
 

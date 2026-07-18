@@ -74,10 +74,10 @@ class OrderProductController extends Controller
                     $oldLineSubtotal = round($existing->precio * $existing->cantidad * (1 - $existing->descuento / 100), 2);
                     $newQty = $existing->cantidad + $params->cantidad;
                     $existing->update([
-                        OrderProductModel::CANTIDAD  => $newQty,
-                        OrderProductModel::PRECIO    => $params->precio,
+                        OrderProductModel::CANTIDAD => $newQty,
+                        OrderProductModel::PRECIO => $params->precio,
                         OrderProductModel::DESCUENTO => $itemDescuento,
-                        OrderProductModel::IS_READY  => false,
+                        OrderProductModel::IS_READY => false,
                     ]);
                     $newLineSubtotal = round($params->precio * $newQty * (1 - $itemDescuento / 100), 2);
 
