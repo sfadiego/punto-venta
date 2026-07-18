@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useGetActiveSale, useCloseSales, useCurrentTotalSale } from "@/services/useOpenSalesService";
+import { calcEfectivoCierre } from "@/utils/deliveryCalc";
 import { useIndexOrder } from "@/services/useOrderService";
 import { useAxios } from "@/hooks/useAxios";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -48,6 +49,7 @@ export const useCloseSalesPage = () => {
     const totalBruto          = totales?.bruto      ?? 0;
     const totalDomicilios     = totales?.domicilios ?? 0;
     const totalNeto           = totales?.neto       ?? 0;
+    const totalPropinas       = totales?.propinas   ?? 0;
     const byPaymentMethod     = totales?.by_payment_method ?? [];
 
     const totalEfectivoPagado     = byPaymentMethod
@@ -58,7 +60,20 @@ export const useCloseSalesPage = () => {
         .filter((m) => !m.name.toLowerCase().includes("efectivo"))
         .reduce((sum, m) => sum + m.total, 0);
 
-    const efectivoCierre = efectivoInicio + totalEfectivoPagado;
+    const totalPropinasTarjeta = byPaymentMethod
+        .filter((m) => !m.name.toLowerCase().includes("efectivo"))
+        .reduce((sum, m) => sum + m.propina, 0);
+
+    const totalPropinaEfectivo = byPaymentMethod
+        .filter((m) => m.name.toLowerCase().includes("efectivo"))
+        .reduce((sum, m) => sum + m.propina, 0);
+
+    const efectivoCierre = calcEfectivoCierre(
+        efectivoInicio,
+        totalEfectivoPagado,
+        sellByWeight ? 0 : totalPropinaEfectivo,
+        totalDomicilios,
+    );
 
     const handleClose = async () => {
         if (hasActiveOrders) return;
@@ -97,6 +112,9 @@ export const useCloseSalesPage = () => {
         efectivoCierre,
         totalEfectivoPagado,
         totalTransferenciaPagado,
+        totalPropinas,
+        totalPropinasTarjeta,
+        totalPropinaEfectivo,
         byPaymentMethod,
         sellByWeight,
         hasActiveOrders,

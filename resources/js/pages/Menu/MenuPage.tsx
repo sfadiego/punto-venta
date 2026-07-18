@@ -1,10 +1,10 @@
 import { useMenuPage } from "./useMenuPage";
 import { MenuHeader } from "./partials/MenuHeader";
-import { CategoryFilter } from "./partials/CategoryFilter";
-import { ProductGrid } from "./partials/ProductGrid";
-import { CartButton } from "./partials/CartButton";
-import { CartDrawer } from "./partials/CartDrawer";
-import { CheckoutModal } from "./partials/CheckoutModal";
+import { CategoryFilter } from "./partials/ProductSelector/CategoryFilter";
+import { ProductGrid } from "./partials/ProductSelector/ProductGrid";
+import { CartButton } from "./partials/Cart/CartButton";
+import { CartDrawer } from "./partials/Cart/CartDrawer";
+import { CheckoutModal } from "./partials/Checkout/CheckoutModal";
 import { BusinessClosed } from "./partials/BusinessClosed";
 import { OrderingDisabled } from "./partials/OrderingDisabled";
 

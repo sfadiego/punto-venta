@@ -62,13 +62,13 @@ class MainOrderReportModel extends Model
 
     public function totalSalesByDay(): float
     {
-        return (float) OrderProductModel::query()
-            ->join('order', 'order.id', '=', 'order_product.pedido_id')
-            ->where('order.sistema_id', $this->id)
-            ->where('order.estatus_pedido_id', OrderStatusEnum::CLOSED->value)
-            ->whereNull('order.deleted_at')
-            ->selectRaw('ROUND(SUM(order_product.precio * order_product.cantidad * (1 - order_product.descuento / 100)), 2) as total')
-            ->value('total') ?? 0.0;
+        return (float) round(
+            OrderModel::where('sistema_id', $this->id)
+                ->where('estatus_pedido_id', OrderStatusEnum::CLOSED->value)
+                ->whereNull('deleted_at')
+                ->sum('total'),
+            2
+        );
     }
 
     public function totalByPaymentMethod(): array
@@ -77,7 +77,7 @@ class MainOrderReportModel extends Model
             ->where('sistema_id', $this->id)
             ->where('estatus_pedido_id', OrderStatusEnum::CLOSED->value)
             ->whereNull('deleted_at')
-            ->selectRaw('payment_method_id, ROUND(SUM(total), 2) as total')
+            ->selectRaw('payment_method_id, ROUND(SUM(total), 2) as total, ROUND(SUM(propina), 2) as propina')
             ->groupBy('payment_method_id')
             ->with('paymentMethod:id,name')
             ->get()
@@ -85,16 +85,33 @@ class MainOrderReportModel extends Model
                 'payment_method_id' => $order->payment_method_id,
                 'name' => $order->paymentMethod?->name ?? 'Sin método',
                 'total' => (float) $order->total,
+                'propina' => (float) $order->propina,
             ])
             ->toArray();
     }
 
-    public function totalDomiciliosByDay(): float
+    public function totalPropinasByDay(): float
     {
-        return round(
+        return (float) round(
             OrderModel::where('sistema_id', $this->id)
                 ->where('estatus_pedido_id', OrderStatusEnum::CLOSED->value)
-                ->sum('costo_domicilio'),
+                ->whereNull('deleted_at')
+                ->sum('propina'),
+            2
+        );
+    }
+
+    public function totalDomiciliosByDay(): float
+    {
+        // Solo los valores negativos (negocio absorbe el costo de envío).
+        // costo_domicilio > 0 = cliente paga a través del POS (no afecta el neto del negocio).
+        // costo_domicilio < 0 = negocio absorbe (se descuenta del neto en el corte).
+        return (float) round(
+            OrderModel::where('sistema_id', $this->id)
+                ->where('estatus_pedido_id', OrderStatusEnum::CLOSED->value)
+                ->where('costo_domicilio', '<', 0)
+                ->selectRaw('ABS(SUM(costo_domicilio)) as total')
+                ->value('total') ?? 0,
             2
         );
     }

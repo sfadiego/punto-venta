@@ -43,11 +43,13 @@ class MainOrderReportController extends Controller
     {
         $bruto = $system->totalSalesByDay();
         $domicilios = $system->totalDomiciliosByDay();
+        $propinas = $system->totalPropinasByDay();
 
         return Response::success([
             'bruto' => $bruto,
             'domicilios' => $domicilios,
             'neto' => round($bruto - $domicilios, 2),
+            'propinas' => $propinas,
             'by_payment_method' => $system->totalByPaymentMethod(),
         ]);
     }
@@ -60,6 +62,10 @@ class MainOrderReportController extends Controller
 
         if (OrderModel::hasActiveOrders($system)) {
             return Response::error('Debes de finalizar todos las mesas para cerrar sistema.');
+        }
+
+        if ($system->totalSalesByDay() == 0) {
+            return Response::error('No se puede cerrar la caja sin ventas registradas.');
         }
 
         return Response::success($system->closeSales());

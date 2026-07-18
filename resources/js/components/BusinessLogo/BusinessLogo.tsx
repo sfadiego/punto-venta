@@ -1,5 +1,5 @@
 import { ShoppingCart } from "lucide-react";
-import { BUSINESS_ICONS } from "@/pages/Admin/partials/IconSelector";
+import { BUSINESS_ICONS } from "@/pages/Admin/partials/Logo/IconSelector";
 
 interface BusinessLogoProps {
     logoUrl: string | null;

@@ -4,10 +4,10 @@ import { Plus, RefreshCw } from "lucide-react";
 import { ICategory } from "@/models/ICategory";
 import { DynamicIcon } from "@/components/ui/DynamicIcon";
 import { useCategoriesPage } from "./useCategoriesPage";
-import { AddCategoryModal } from "./partials/AddCategoryModal";
-import { useAddCategoryModal } from "./partials/useAddCategoryModal";
-import { EditCategoryModal } from "./partials/EditCategoryModal";
-import { useEditCategoryModal } from "./partials/useEditCategoryModal";
+import { AddCategoryModal } from "./partials/CategoryModals/AddCategoryModal";
+import { useAddCategoryModal } from "./partials/CategoryModals/useAddCategoryModal";
+import { EditCategoryModal } from "./partials/CategoryModals/EditCategoryModal";
+import { useEditCategoryModal } from "./partials/CategoryModals/useEditCategoryModal";
 import { CategoryTableActions } from "./partials/CategoryTableActions";
 
 export default function CategoriesPage() {

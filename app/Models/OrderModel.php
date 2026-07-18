@@ -48,11 +48,14 @@ class OrderModel extends Model
 
     const PAYMENT_METHOD_ID = 'payment_method_id';
 
+    const PROPINA = 'propina';
+
     public static $ALLOWED_UPDATE = [
         self::DESCUENTO,
         self::NOMBRE_PEDIDO,
         self::ESTATUS_PEDIDO_ID,
         self::PAYMENT_METHOD_ID,
+        self::PROPINA,
     ];
 
     protected $fillable = [
@@ -60,6 +63,7 @@ class OrderModel extends Model
         self::SUBTOTAL,
         self::DESCUENTO,
         self::COSTO_DOMICILIO,
+        self::PROPINA,
         self::NOMBRE_PEDIDO,
         self::ESTATUS_PEDIDO_ID,
         self::SISTEMA_ID,

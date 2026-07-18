@@ -10,12 +10,9 @@ return new class extends Migration
     {
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('tenant_id');
             $table->string('name', 100);
             $table->boolean('active')->default(true);
             $table->timestamps();
-
-            $table->index('tenant_id');
         });
 
         Schema::table('order', function (Blueprint $table) {

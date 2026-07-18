@@ -10,9 +10,9 @@ interface PayCashInputProps {
 
 export const PayCashInput = ({ isCash, cash, setCash, change, max }: PayCashInputProps) => (
     <div className={`fade-collapse space-y-4 ${isCash ? "is-visible" : "is-hidden"}`}>
+        <p className="text-sm font-medium text-stone-700 mb-1.5 text-left">Efectivo recibido</p>
         <Input
             name="cash"
-            label="Efectivo recibido"
             inputType="number"
             placeholder="0.00"
             min={0}

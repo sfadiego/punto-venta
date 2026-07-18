@@ -61,7 +61,7 @@ class OrderController extends Controller
         );
 
         $isServed = (int) ($params->toArray()['estatus_pedido_id'] ?? 0) === OrderStatusEnum::SERVED->value;
-        $this->broadcast($isServed ? 'served' : 'updated');
+        $this->broadcast($isServed ? 'served' : 'updated', $order->id);
 
         return Response::success($order);
     }
@@ -76,7 +76,7 @@ class OrderController extends Controller
         $data = $request->validate([
             'sistema_id' => 'required|numeric|exists:main_order_report,id',
             'nombre_pedido' => 'required|string',
-            'costo_domicilio' => 'sometimes|numeric|min:0',
+            'costo_domicilio' => 'sometimes|numeric',
             'items' => 'required|array|min:1',
             'items.*.producto_id' => 'required|numeric|exists:product,id',
             'items.*.cantidad' => 'required|numeric|min:0.001',
@@ -120,29 +120,29 @@ class OrderController extends Controller
         $date = $request->query('fecha');
 
         $query = OrderProductModel::query()
-            ->join('order', 'order.id', '=', 'order_product.pedido_id')
+            ->join('order as o', 'o.id', '=', 'order_product.pedido_id')
             ->join('product', 'product.id', '=', 'order_product.producto_id')
             ->join('categories', 'categories.id', '=', 'product.categoria_id')
-            ->where('order.sistema_id', $sistemaId)
-            ->where('order.estatus_pedido_id', OrderStatusEnum::CLOSED->value);
+            ->where('o.sistema_id', $sistemaId)
+            ->where('o.estatus_pedido_id', OrderStatusEnum::CLOSED->value);
 
         if ($date) {
-            $query->whereDate('order.created_at', $date);
+            $query->whereDate('o.created_at', $date);
         }
 
         $results = $query
             ->groupBy('categories.id', 'categories.nombre')
-            ->selectRaw('categories.id, categories.nombre, SUM(order_product.cantidad) as total_cantidad, SUM(order_product.precio * order_product.cantidad) as total_revenue')
+            ->selectRaw('categories.id, categories.nombre, SUM(order_product.cantidad) as total_cantidad, ROUND(SUM(order_product.precio * order_product.cantidad * (1 - COALESCE(order_product.descuento, 0) / 100) * (1 - COALESCE(o.descuento, 0) / 100)), 2) as total_revenue')
             ->orderByDesc('total_revenue')
             ->get();
 
         return Response::success($results);
     }
 
-    private function broadcast(string $type = 'updated'): void
+    private function broadcast(string $type = 'updated', ?int $orderId = null): void
     {
         try {
-            OrdersUpdated::dispatch($type);
+            OrdersUpdated::dispatch($type, $orderId);
         } catch (\Throwable) {
             // Reverb unavailable — order operation must not fail
         }

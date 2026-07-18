@@ -11,11 +11,19 @@ export const useStoreOpenSales = () => usePOST({ url: `${url}/open` });
 export const useCloseSales = (systemId: number) =>
     usePOST({ url: `${url}/${systemId}/close` });
 
+export interface IPaymentMethodTotal {
+    payment_method_id: number | null;
+    name: string;
+    total: number;
+    propina: number;
+}
+
 export interface ITotalCurrentSale {
     bruto: number;
     domicilios: number;
     neto: number;
-    by_payment_method: { payment_method_id: number | null; name: string; total: number }[];
+    propinas: number;
+    by_payment_method: IPaymentMethodTotal[];
 }
 
 export const useCurrentTotalSale = (systemId: number | null) =>

@@ -17,6 +17,8 @@ interface UsersTableProps {
     onLimitChange: (limit: number) => void;
 }
 
+type UserCellRenderer = (u: IUser) => React.ReactNode;
+
 export const UsersTable = ({
     users,
     total,
@@ -30,75 +32,41 @@ export const UsersTable = ({
 }: UsersTableProps) => {
     const { baseColumns } = useUsersTable(onEdit);
 
-    const columns = useMemo<DataTableColumn<IUser>[]>(
-        () =>
-            baseColumns.map((col) => {
-                if (col.accessor === "nombre") {
-                    return {
-                        ...col,
-                        render: (u: IUser) => (
-                            <span className="font-medium text-stone-900 text-sm">
-                                {u.nombre} {u.apellido_paterno}
-                            </span>
-                        ),
-                    };
-                }
-                if (col.accessor === "usuario") {
-                    return {
-                        ...col,
-                        render: (u: IUser) => (
-                            <span className="text-stone-500 text-sm">@{u.usuario}</span>
-                        ),
-                    };
-                }
-                if (col.accessor === "email") {
-                    return {
-                        ...col,
-                        render: (u: IUser) => (
-                            <span className="text-stone-500 text-sm">{u.email}</span>
-                        ),
-                    };
-                }
-                if (col.accessor === "rol_id") {
-                    return {
-                        ...col,
-                        render: (u: IUser) => <RoleBadge rolId={u.rol_id} />,
-                    };
-                }
-                if (col.accessor === "activo") {
-                    return {
-                        ...col,
-                        render: (u: IUser) => (
-                            <span
-                                className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-full ${
-                                    u.activo
-                                        ? "bg-emerald-50 text-emerald-700"
-                                        : "bg-stone-100 text-stone-500"
-                                }`}
-                            >
-                                {u.activo ? "Activo" : "Inactivo"}
-                            </span>
-                        ),
-                    };
-                }
-                if (col.accessor === "_acciones") {
-                    return {
-                        ...col,
-                        render: (u: IUser) => (
-                            <button
-                                onClick={() => onEdit(u)}
-                                className="w-7 h-7 rounded-lg hover:bg-stone-100 flex items-center justify-center transition-colors text-stone-400 hover:text-stone-600"
-                                title="Editar usuario"
-                            >
-                                <Pencil size={14} />
-                            </button>
-                        ),
-                    };
-                }
-                return col;
-            }),
-        [baseColumns, onEdit],
-    );
+    const columns = useMemo<DataTableColumn<IUser>[]>(() => {
+        const renderers: Partial<Record<string, UserCellRenderer>> = {
+            nombre:    (u) => (
+                <span className="font-medium text-stone-900 text-sm">
+                    {u.nombre} {u.apellido_paterno}
+                </span>
+            ),
+            usuario:   (u) => <span className="text-stone-500 text-sm">@{u.usuario}</span>,
+            email:     (u) => <span className="text-stone-500 text-sm">{u.email}</span>,
+            rol_id:    (u) => <RoleBadge rolId={u.rol_id} />,
+            activo:    (u) => (
+                <span
+                    className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-full ${
+                        u.activo ? "bg-emerald-50 text-emerald-700" : "bg-stone-100 text-stone-500"
+                    }`}
+                >
+                    {u.activo ? "Activo" : "Inactivo"}
+                </span>
+            ),
+            _acciones: (u) => (
+                <button
+                    onClick={() => onEdit(u)}
+                    className="w-7 h-7 rounded-lg hover:bg-stone-100 flex items-center justify-center transition-colors text-stone-400 hover:text-stone-600"
+                    title="Editar usuario"
+                >
+                    <Pencil size={14} />
+                </button>
+            ),
+        };
+
+        return baseColumns.map((col) => {
+            const render = renderers[col.accessor as string];
+            return render ? { ...col, render } : col;
+        });
+    }, [baseColumns, onEdit]);
 
     return (
         <DataTable<IUser>

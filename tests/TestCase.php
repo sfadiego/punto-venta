@@ -16,6 +16,19 @@ abstract class TestCase extends BaseTestCase
 
     protected bool $seed = true;
 
+    protected function refreshApplication(): void
+    {
+        parent::refreshApplication();
+
+        // Fuerza SQLite en memoria después de que .env carga pero antes de que
+        // RefreshDatabase corra las migraciones. Esto evita que los tests toquen
+        // la base de datos MySQL de desarrollo/producción sin importar la configuración.
+        config([
+            'database.default' => 'sqlite',
+            'database.connections.sqlite.database' => ':memory:',
+        ]);
+    }
+
     protected function setUp(): void
     {
         parent::setUp();

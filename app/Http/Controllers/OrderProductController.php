@@ -77,8 +77,14 @@ class OrderProductController extends Controller
                         OrderProductModel::CANTIDAD => $newQty,
                         OrderProductModel::PRECIO => $params->precio,
                         OrderProductModel::DESCUENTO => $itemDescuento,
+                        OrderProductModel::IS_READY => false,
                     ]);
                     $newLineSubtotal = round($params->precio * $newQty * (1 - $itemDescuento / 100), 2);
+
+                    try {
+                        OrdersUpdated::dispatch('product_updated', (int) $orderId);
+                    } catch (\Throwable) {
+                    }
 
                     return [$existing->refresh(), $newLineSubtotal - $oldLineSubtotal];
                 }
@@ -133,6 +139,9 @@ class OrderProductController extends Controller
         if (isset($params->descuento)) {
             $data[OrderProductModel::DESCUENTO] = $params->descuento;
         }
+        if (isset($params->precio)) {
+            $data[OrderProductModel::PRECIO] = $params->precio;
+        }
 
         $orderProduct->update($data);
         $orderProduct->refresh();
@@ -169,7 +178,7 @@ class OrderProductController extends Controller
         ]);
 
         try {
-            OrdersUpdated::dispatch('product_updated');
+            OrdersUpdated::dispatch('product_updated', (int) $orderId);
         } catch (\Throwable) {
         }
 
@@ -224,6 +233,8 @@ class OrderProductController extends Controller
             'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
         ]);
 
+        $this->restoreServedIfAllReady($order->fresh());
+
         return Response::success('elemento borrado de la orden');
     }
 
@@ -254,6 +265,8 @@ class OrderProductController extends Controller
             'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
         ]);
 
+        $this->restoreServedIfAllReady($order->fresh());
+
         return Response::success('elemento borrado de la orden');
     }
 
@@ -261,6 +274,38 @@ class OrderProductController extends Controller
     {
         if ($order->estatus_pedido_id === OrderStatusEnum::SERVED->value) {
             $order->update(['estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value]);
+            try {
+                OrdersUpdated::dispatch('updated', $order->id);
+            } catch (\Throwable) {
+            }
+        }
+    }
+
+    /**
+     * After a product is removed, if the order is still InProcess and every
+     * remaining product is ready, auto-promote it back to Served.
+     */
+    private function restoreServedIfAllReady(OrderModel $order): void
+    {
+        if ($order->estatus_pedido_id !== OrderStatusEnum::IN_PROCESS->value) {
+            return;
+        }
+
+        $remaining = OrderProductModel::where('pedido_id', $order->id)->count();
+        if ($remaining === 0) {
+            return;
+        }
+
+        $hasUnready = OrderProductModel::where('pedido_id', $order->id)
+            ->where('is_ready', false)
+            ->exists();
+
+        if (! $hasUnready) {
+            $order->update(['estatus_pedido_id' => OrderStatusEnum::SERVED->value]);
+            try {
+                OrdersUpdated::dispatch('restored_served', $order->id);
+            } catch (\Throwable) {
+            }
         }
     }
 }

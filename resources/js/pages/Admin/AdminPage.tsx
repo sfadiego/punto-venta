@@ -1,10 +1,10 @@
 import { Settings } from "lucide-react";
-import { LogoSection } from "./partials/LogoSection";
-import { ColorsSection } from "./partials/ColorsSection";
-import { BusinessInfoSection } from "./partials/BusinessInfoSection";
-import { PrinterSection } from "./partials/PrinterSection";
-import { DeliverySection } from "./partials/DeliverySection";
-import { MenuSection } from "./partials/MenuSection";
+import { LogoSection } from "./partials/Logo/LogoSection";
+import { ColorsSection } from "./partials/Colors/ColorsSection";
+import { BusinessInfoSection } from "./partials/BusinessInfo/BusinessInfoSection";
+import { PrinterSection } from "./partials/Printer/PrinterSection";
+import { DeliverySection } from "./partials/Delivery/DeliverySection";
+import { MenuSection } from "./partials/Menu/MenuSection";
 import { AdminNav } from "./partials/AdminNav";
 import { SubscriptionInfoSection } from "@/components/Admin/SubscriptionInfoSection";
 import { useAdminPage } from "./useAdminPage";

@@ -2,12 +2,13 @@ import { FormikProps } from "formik";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
-type InputStyleTypes = "default" | "error" | "none";
+type InputStyleTypes = "default" | "error" | "none" | "outlined";
 type InputTypes = "email" | "text" | "password" | "tel" | "number" | "url" | "search";
 
 const inputVariant: Record<InputStyleTypes, string> = {
     error: "border-red-400 bg-red-50",
     default: "border-stone-300",
+    outlined: "border-stone-400 hover:border-stone-600 bg-white",
     none: "",
 };
 
@@ -86,8 +87,9 @@ export const Input = <T = Record<string, string>,>({
                     {...fieldProps}
                     className={`w-full px-4 py-3 border rounded-xl text-sm text-stone-900
                         placeholder-stone-400 focus:outline-none focus:ring-2
-                        focus:ring-amber-500 focus:border-transparent transition-shadow
-                        disabled:bg-stone-100 disabled:cursor-not-allowed
+                        focus:ring-amber-500 focus:border-transparent transition-all
+                        hover:border-stone-400
+                        disabled:bg-stone-100 disabled:cursor-not-allowed disabled:hover:border-stone-300
                         ${isPassword ? "pr-12" : ""}
                         ${styleVariant} ${className}`}
                 />

@@ -7,11 +7,13 @@ import { useIndexCategories } from "@/services/useCategoriesService";
 import { useAxios } from "@/hooks/useAxios";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
-import { getStatusStyle, getStatusLabel } from "@/pages/Dashboard/useDashboard";
-import { useOrderDetailModal } from "./partials/useOrderDetailModal";
+import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
+import { useOrderDetailModal } from "./partials/OrderDetailModal/useOrderDetailModal";
 import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
 
-const today = () => new Date().toISOString().split("T")[0];
+import { localDateString } from "@/utils/dateUtils";
+
+const today = () => localDateString();
 
 const renderersMap: DataTableRenderersMap = {
     total: (o: IOrder) => `$${o.total.toFixed(2)}`,

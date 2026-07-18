@@ -138,8 +138,56 @@ const sellByWeight = features?.sell_by_weight === true;
 - Componentes reutilizables de la página van en subcarpeta `partials/` dentro de la página, o en `components/` si son globales.
 - Todos los componentes deben ser responsivos
 
+### Organización de `partials/`
+Cuando una carpeta `partials/` acumula más de ~6 archivos, agrupa por funcionalidad en subcarpetas:
+
+```
+partials/
+├── <Funcionalidad>/      # PascalCase, agrupa componente + hook + subcomponentes
+│   ├── ComponentePrincipal.tsx
+│   ├── useComponentePrincipal.ts
+│   └── SubComponente.tsx
+└── ComponenteSolitario.tsx  # Archivos sin grupo propio se dejan al nivel de partials/
+```
+
+**Ejemplos ya aplicados:**
+
+`pages/Dashboard/partials/`
+```
+NewSaleModal/    ← modal de venta + carrito + pago (8 archivos)
+OpenSalesModal/  ← apertura de caja (2 archivos)
+RecentOrders/    ← vista restaurante + OrderCard (2 archivos)
+RecentSales/     ← vista sell_by_weight (2 archivos)
+```
+
+`pages/Orders/partials/`
+```
+Cart/            ← CartPanel + items + footer + hooks de pago (9 archivos)
+ProductSelector/ ← ProductGrid + ProductCard + CategoryTabs + hook (4 archivos)
+AddExtraModal/   ← modal de extras + hook (2 archivos)
+OrderFilters.tsx ← solitario, sin carpeta propia
+```
+
+**Reglas al mover archivos:**
+- Los imports internos del grupo no cambian (los archivos se mueven juntos).
+- Actualizar imports en archivos externos (páginas, componentes globales) que apunten al grupo movido.
+- Archivos sin consumidores detectados → eliminar en lugar de mover.
+- Siempre verificar con `npx tsc --noEmit` después de cada reorganización.
+
 ### peticiones http
 no hacer peticiones directamete a axios, utiliza la capa de servicios como esta declarado en services/*.ts cuando se necesita consultar el backend desde la UI
+
+### Funciones utilitarias
+- Nunca definir funciones puras (formateadores, calculadores, helpers de fecha, mapeos de dominio) directamente dentro de un componente o hook.
+- Antes de crear una función nueva, revisar si ya existe en `utils/`. Archivos actuales:
+  - `utils/formatCurrency.ts` — `formatCurrency`
+  - `utils/formatUnits.ts` — `formatTotal`
+  - `utils/dateUtils.ts` — `localDateString`, `parseDateLocal`, `formatOrderTime`, `computeExpiresAt`
+  - `utils/orderStatus.ts` — `getStatusStyle`, `getStatusLabel`
+  - `utils/deliveryCalc.ts` — cálculos de domicilio
+  - `utils/calcWeightFromPrice.ts` — conversión peso/precio
+- Si la función no existe, crearla en el archivo de utils correspondiente (o uno nuevo si no encaja en ninguno) y exportarla desde allí.
+- No exportar funciones utilitarias desde hooks o componentes para ser reutilizadas — eso es señal de que deben vivir en `utils/`.
 
 ### Componentes
 - Crea **componentes** en vez de funciones inline en la page.

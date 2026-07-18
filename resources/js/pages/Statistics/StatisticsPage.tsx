@@ -1,6 +1,7 @@
 import { BarChart2, TrendingUp, ShoppingBag, Award, DollarSign, LockKeyhole } from "lucide-react";
 import { useStatisticsPage } from "./useStatisticsPage";
-import { BestSellerChart, BestSellerRanking, formatTotal } from "./partials/BestSellerChart";
+import { BestSellerChart, BestSellerRanking } from "./partials/BestSellerChart";
+import { formatTotal } from "@/utils/formatUnits";
 import { MonthPicker } from "./partials/MonthPicker";
 
 export default function StatisticsPage() {

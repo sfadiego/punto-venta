@@ -24,8 +24,13 @@ class ProductStoreRequest extends FormRequest
      */
     public function rules(): array
     {
+        $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+
         return [
-            ProductModel::NOMBRE => 'required|string|max:255|unique:product,nombre',
+            ProductModel::NOMBRE => [
+                'required', 'string', 'max:255',
+                Rule::unique('product', 'nombre')->where('tenant_id', $tenantId),
+            ],
             ProductModel::PRECIO => 'required|decimal:0,2',
             ProductModel::DESCRIPCION => 'nullable',
             ProductModel::CATEGORIA_ID => 'required|exists:categories,id',

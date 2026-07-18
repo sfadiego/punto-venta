@@ -9,12 +9,9 @@ class PaymentMethodTest extends TestCase
 {
     private function crearMetodo(string $name = 'Efectivo', bool $active = true): PaymentMethodModel
     {
-        $tenantId = \App\Models\BusinessConfigModel::first()->id;
-
         return PaymentMethodModel::create([
             PaymentMethodModel::NAME => $name,
             PaymentMethodModel::ACTIVE => $active,
-            PaymentMethodModel::TENANT_ID => $tenantId,
         ]);
     }
 
@@ -76,7 +73,6 @@ class PaymentMethodTest extends TestCase
         ], $this->authHeaders())
             ->assertStatus(200);
 
-        // active es boolean y el campo no es requerido → acepta cualquier valor por defecto
         $this->assertDatabaseHas('payment_methods', ['name' => 'Nequi']);
     }
 
