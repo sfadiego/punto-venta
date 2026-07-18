@@ -12,7 +12,10 @@ class OrdersUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public readonly string $type = 'updated') {}
+    public function __construct(
+        public readonly string $type = 'updated',
+        public readonly ?int $orderId = null,
+    ) {}
 
     public function broadcastOn(): array
     {
@@ -26,6 +29,11 @@ class OrdersUpdated implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
-        return ['type' => $this->type];
+        $payload = ['type' => $this->type];
+        if ($this->orderId !== null) {
+            $payload['order_id'] = $this->orderId;
+        }
+
+        return $payload;
     }
 }

@@ -172,7 +172,7 @@ class OrderProductController extends Controller
         ]);
 
         try {
-            OrdersUpdated::dispatch('product_updated');
+            OrdersUpdated::dispatch('product_updated', (int) $orderId);
         } catch (\Throwable) {
         }
 

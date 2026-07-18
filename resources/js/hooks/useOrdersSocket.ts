@@ -7,7 +7,7 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 
 let echoInstance: Echo<"reverb"> | null = null;
 
-const getEcho = (): Echo<"reverb"> => {
+export const getEcho = (): Echo<"reverb"> => {
     if (!echoInstance) {
         const tls = (import.meta.env.VITE_REVERB_SCHEME ?? "http") === "https";
         (window as unknown as { Pusher: typeof Pusher }).Pusher = Pusher;

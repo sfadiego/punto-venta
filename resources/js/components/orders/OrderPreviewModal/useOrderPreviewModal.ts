@@ -1,10 +1,11 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { useShowOrder, useUpdateOrder, useToggleOrderProductReady } from "@/services/useOrderService";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { getEcho } from "@/hooks/useOrdersSocket";
 
 export const useOrderPreviewModal = (orderId: number) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +30,25 @@ export const useOrderPreviewModal = (orderId: number) => {
         queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
         queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
     };
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const channel = getEcho().channel("orders");
+
+        const handler = (data: { type?: string; order_id?: number }) => {
+            if (data.order_id !== orderId) return;
+            if (data.type === "product_updated" || data.type === "served" || data.type === "updated") {
+                queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${orderId}`] });
+            }
+        };
+
+        channel.listen(".orders.updated", handler);
+
+        return () => {
+            channel.stopListening(".orders.updated", handler);
+        };
+    }, [isOpen, orderId, queryClient]);
 
     const markServed = () => {
         updateOrder(

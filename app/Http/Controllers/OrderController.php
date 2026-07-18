@@ -61,7 +61,7 @@ class OrderController extends Controller
         );
 
         $isServed = (int) ($params->toArray()['estatus_pedido_id'] ?? 0) === OrderStatusEnum::SERVED->value;
-        $this->broadcast($isServed ? 'served' : 'updated');
+        $this->broadcast($isServed ? 'served' : 'updated', $order->id);
 
         return Response::success($order);
     }
@@ -139,10 +139,10 @@ class OrderController extends Controller
         return Response::success($results);
     }
 
-    private function broadcast(string $type = 'updated'): void
+    private function broadcast(string $type = 'updated', ?int $orderId = null): void
     {
         try {
-            OrdersUpdated::dispatch($type);
+            OrdersUpdated::dispatch($type, $orderId);
         } catch (\Throwable) {
             // Reverb unavailable — order operation must not fail
         }
