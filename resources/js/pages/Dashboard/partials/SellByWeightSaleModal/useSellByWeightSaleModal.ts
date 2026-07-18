@@ -76,6 +76,14 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     const [editingQtys, setEditingQtys] = useState<Record<number, string>>({});
     const [editingPrices, setEditingPrices] = useState<Record<number, string>>({});
     const [itemModes, setItemModes] = useState<Record<number, 'weight' | 'price'>>({});
+
+    // Refs to always access latest values in async handlers (avoid stale closures)
+    const cartRef = useRef<ModalCartItem[]>([]);
+    const itemModesRef = useRef<Record<number, 'weight' | 'price'>>({});
+    const editingPricesRef = useRef<Record<number, string>>({});
+    cartRef.current = cart;
+    itemModesRef.current = itemModes;
+    editingPricesRef.current = editingPrices;
     const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
     const rawInitialDomicilio = Number(initialOrder?.costo_domicilio ?? 0);
@@ -103,7 +111,19 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
 
     useEffect(() => {
         if (fullOrder?.order_products && initialOrder) {
-            setCart(mapOrderProducts(fullOrder.order_products));
+            const items = mapOrderProducts(fullOrder.order_products);
+            setCart(items);
+            // Infer price mode: weight products where stored price differs from catalog price
+            const modes: Record<number, 'weight' | 'price'> = {};
+            items.forEach((item) => {
+                const isWeightUnit =
+                    item.product.unidad_medida === UnidadMedidaEnum.Kg ||
+                    item.product.unidad_medida === UnidadMedidaEnum.Gr;
+                if (isWeightUnit && item.precioEfectivo !== item.product.precio) {
+                    modes[item.productId] = 'price';
+                }
+            });
+            setItemModes(modes);
         }
     }, [fullOrder, initialOrder]);
 
@@ -175,7 +195,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     const handlePriceBlur = async (productId: number) => {
         const oid = orderIdRef.current;
         if (!oid) return;
-        const priceStr = editingPrices[productId];
+        const priceStr = editingPricesRef.current[productId];
         if (priceStr === undefined) return;
         const price = parseFloat(priceStr) || 0;
         setEditingPrices(prev => { const n = { ...prev }; delete n[productId]; return n; });
@@ -387,13 +407,33 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         }
 
         // No products: delete the empty order silently
-        if (cart.length === 0) {
+        if (cartRef.current.length === 0) {
             try {
                 await axiosDELETE(axiosApi, { url: `${ApiRoutes.Orders}/${oid}` });
             } catch (error) {
                 logUnexpectedError(error, "useSellByWeightSaleModal.handleClose.deleteEmpty");
             }
         } else {
+            // Flush only price-mode items that have an unblurred pending edit.
+            // Items already blurred are saved by handlePriceBlur; flushing them again
+            // risks sending stale state if the ref hasn't updated after the blur yet.
+            const priceModeFlush = cartRef.current
+                .filter((item) => {
+                    const pending = editingPricesRef.current[item.productId];
+                    return itemModesRef.current[item.productId] === 'price' && pending !== undefined;
+                })
+                .map((item) => {
+                    const pending = editingPricesRef.current[item.productId]!;
+                    const price = parseFloat(pending) || (item.precioEfectivo * item.cantidad);
+                    return axiosPUT(axiosApi, {
+                        url: `${ApiRoutes.Orders}/${oid}/product/${item.productId}`,
+                        data: { cantidad: 1, precio: price },
+                    }).catch((err) =>
+                        logUnexpectedError(err, "useSellByWeightSaleModal.handleClose.flushPriceMode"),
+                    );
+                });
+            if (priceModeFlush.length > 0) await Promise.all(priceModeFlush);
+
             // Persist delivery state so it restores correctly on resume
             try {
                 await axiosPUT(axiosApi, {

@@ -133,6 +133,9 @@ class OrderProductController extends Controller
         if (isset($params->descuento)) {
             $data[OrderProductModel::DESCUENTO] = $params->descuento;
         }
+        if (isset($params->precio)) {
+            $data[OrderProductModel::PRECIO] = $params->precio;
+        }
 
         $orderProduct->update($data);
         $orderProduct->refresh();
