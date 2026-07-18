@@ -7,7 +7,7 @@ interface CloseSalesSummaryCardsSellByWeightProps {
     totalEfectivoPagado: number;
     totalDomicilios: number;
     totalTransferenciaPagado: number;
-    efectivoCierre: number;
+    totalNeto: number;
     totalPropinas: number;
     totalPropinasTarjeta: number;
 }
@@ -17,7 +17,7 @@ export const CloseSalesSummaryCardsSellByWeight = ({
     totalEfectivoPagado,
     totalDomicilios,
     totalTransferenciaPagado,
-    efectivoCierre,
+    totalNeto,
     totalPropinas,
     totalPropinasTarjeta,
 }: CloseSalesSummaryCardsSellByWeightProps) => (
@@ -68,8 +68,8 @@ export const CloseSalesSummaryCardsSellByWeight = ({
         <SummaryCard
             icon={<DollarSign size={20} className="text-emerald-600" />}
             iconBg="bg-emerald-100"
-            label="Efectivo en caja"
-            value={formatCurrency(efectivoCierre)}
+            label="Ventas Totales"
+            value={formatCurrency(totalNeto)}
             valueColor="text-emerald-700"
         />
     </div>

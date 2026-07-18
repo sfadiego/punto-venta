@@ -76,7 +76,7 @@ export const SellByWeightPayModal = ({
                     {/* Método de pago */}
                     {activeMethods.length > 0 && (
                         <div>
-                            <p className="text-xs text-stone-500 mb-2">Método de pago</p>
+                            <p className="text-xs text-stone-500 mb-2 text-left">Método de pago</p>
                             <div className="flex gap-2 flex-wrap">
                                 {activeMethods.map((method) => {
                                     const isSelected = method.id === paymentMethodId;
@@ -105,9 +105,9 @@ export const SellByWeightPayModal = ({
 
                     {/* Efectivo + cambio — fade in/out */}
                     <div className={`fade-collapse space-y-3 ${isCashMethod ? "is-visible" : "is-hidden"}`}>
+                        <p className="text-sm font-medium text-stone-700 mb-1.5 text-left">Efectivo recibido</p>
                         <Input
                             name="cash"
-                            label="Efectivo recibido"
                             inputStyle="outlined"
                             inputType="number"
                             placeholder="0.00"

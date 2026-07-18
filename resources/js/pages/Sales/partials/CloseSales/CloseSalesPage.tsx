@@ -18,6 +18,7 @@ export default function CloseSalesPage() {
         efectivoInicio,
         totalBruto,
         totalDomicilios,
+        totalNeto,
         efectivoCierre,
         totalEfectivoPagado,
         totalTransferenciaPagado,
@@ -63,7 +64,7 @@ export default function CloseSalesPage() {
                     efectivoInicio={efectivoInicio}
                     totalEfectivoPagado={totalEfectivoPagado}
                     totalDomicilios={totalDomicilios}
-                    efectivoCierre={efectivoCierre}
+                    totalNeto={totalNeto}
                     totalTransferenciaPagado={totalTransferenciaPagado}
                     totalPropinas={totalPropinas}
                     totalPropinasTarjeta={totalPropinasTarjeta}

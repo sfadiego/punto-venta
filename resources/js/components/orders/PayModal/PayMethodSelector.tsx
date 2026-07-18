@@ -14,7 +14,7 @@ export const PayMethodSelector = ({ paymentMethods, paymentMethodId, onSelect }:
 
     return (
         <div>
-            <p className="text-xs font-medium text-stone-600 mb-2">Método de pago</p>
+            <p className="text-xs text-stone-500 mb-2 text-left">Método de pago</p>
             <div className="flex gap-2 flex-wrap">
                 {activeMethods.map((method) => {
                     const isSelected = method.id === paymentMethodId;
