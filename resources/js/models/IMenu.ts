@@ -5,6 +5,7 @@ export interface IMenuBusiness {
     costo_domicilio_default: number;
     has_active_session: boolean;
     menu_enabled: boolean;
+    sell_by_weight: boolean;
 }
 
 export interface IMenuProduct {
@@ -12,6 +13,7 @@ export interface IMenuProduct {
     nombre: string;
     descripcion: string | null;
     precio: number;
+    unidad_medida: "unidad" | "kg" | "gr" | null;
     image_url: string | null;
 }
 
