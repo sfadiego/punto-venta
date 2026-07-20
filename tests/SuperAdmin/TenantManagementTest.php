@@ -253,7 +253,7 @@ class TenantManagementTest extends TestCase
 
         $tenant = BusinessConfigModel::find($id);
         User::factory()->count(3)->create([
-            'rol_id' => \App\Enums\RoleEnum::EMPLOYE->value,
+            'rol_id' => RoleEnum::EMPLOYE->value,
             'tenant_id' => $tenant->id,
         ]);
 

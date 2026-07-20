@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BusinessTypeEnum;
+use App\Enums\SubscriptionPlanEnum;
 use App\Enums\SubscriptionStatusEnum;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -135,7 +136,7 @@ class BusinessConfigModel extends Model
         }
 
         if ($this->subscription_plan) {
-            $plan = \App\Enums\SubscriptionPlanEnum::tryFrom($this->subscription_plan);
+            $plan = SubscriptionPlanEnum::tryFrom($this->subscription_plan);
             if ($plan) {
                 return $plan->maxUsers();
             }
