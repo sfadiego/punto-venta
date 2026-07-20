@@ -4,6 +4,7 @@ import { PrintTicketButton } from "../PrintTicket/PrintTicketButton";
 import { OrderDetailModal } from "@/pages/Sales/partials/OrderDetailModal/OrderDetailModal";
 import { SellByWeightPayModal } from "@/pages/Dashboard/partials/SellByWeightSaleModal/SellByWeightPayModal";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAxios } from "@/hooks/useAxios";
 import { useOrderActions } from "./useOrderActions";
 import { useSaleQuickPay } from "./useSaleQuickPay";
 import { IOrder } from "@/models/IOrder";
@@ -15,6 +16,8 @@ interface SaleActionsProps {
 
 export const SaleActions = ({ order }: SaleActionsProps) => {
     const { can } = usePermissions();
+    const { features } = useAxios();
+    const sellByWeight = features?.sell_by_weight === true;
     const [detailOpen, setDetailOpen] = useState(false);
     const { handleDelete, isDeleting } = useOrderActions(order);
 
@@ -25,6 +28,7 @@ export const SaleActions = ({ order }: SaleActionsProps) => {
         isOpen: payOpen, totalFinal,
         cash, setCash, cashNum, change, canPay, isPaying,
         paymentMethods, paymentMethodId, setPaymentMethodId, isCashMethod,
+        isCreditMode, setIsCreditMode, customers, selectedCustomerId, setSelectedCustomerId,
         openPayModal, closePayModal, handlePay,
     } = useSaleQuickPay(order);
 
@@ -97,6 +101,12 @@ export const SaleActions = ({ order }: SaleActionsProps) => {
                     paymentMethodId={paymentMethodId}
                     setPaymentMethodId={setPaymentMethodId}
                     isCashMethod={isCashMethod}
+                    creditModeAvailable={sellByWeight}
+                    isCreditMode={isCreditMode}
+                    setIsCreditMode={setIsCreditMode}
+                    customers={customers}
+                    selectedCustomerId={selectedCustomerId}
+                    setSelectedCustomerId={setSelectedCustomerId}
                     onConfirm={handlePay}
                     onClose={closePayModal}
                 />

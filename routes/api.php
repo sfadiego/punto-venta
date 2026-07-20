@@ -23,6 +23,7 @@ require base_path('routes/modules/superadmin.php');
 
 Route::middleware(['auth:sanctum', ResolveTenant::class, 'check.subscription', 'track.activity'])->group(function () {
     require base_path('routes/modules/categories.php');
+    require base_path('routes/modules/customers.php');
     require base_path('routes/modules/orders.php');
     require base_path('routes/modules/products.php');
     require base_path('routes/modules/orderstatus.php');

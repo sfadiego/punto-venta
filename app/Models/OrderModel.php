@@ -50,6 +50,16 @@ class OrderModel extends Model
 
     const PROPINA = 'propina';
 
+    const CUSTOMER_ID = 'customer_id';
+
+    const IS_CREDIT = 'is_credit';
+
+    const CREDIT_APPLIED_AT = 'credit_applied_at';
+
+    protected $casts = [
+        self::IS_CREDIT => 'boolean',
+    ];
+
     public static $ALLOWED_UPDATE = [
         self::DESCUENTO,
         self::NOMBRE_PEDIDO,
@@ -73,11 +83,18 @@ class OrderModel extends Model
         self::DELIVERY_ADDRESS,
         self::DELIVERY_REFERENCE,
         self::PAYMENT_METHOD_ID,
+        self::CUSTOMER_ID,
+        self::IS_CREDIT,
     ];
 
     public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethodModel::class, self::PAYMENT_METHOD_ID);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(CustomerModel::class, self::CUSTOMER_ID);
     }
 
     public function orderProducts(): HasMany

@@ -17,7 +17,8 @@ type Action =
     | "printTicket"
     | "kitchenView"
     | "managePendingOrders"
-    | "viewUsers";
+    | "viewUsers"
+    | "viewCustomers";
 
 const ROLE_PERMISSIONS: Record<number, Set<Action>> = {
     [RoleEnum.Admin]: new Set<Action>([
@@ -37,6 +38,7 @@ const ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "kitchenView",
         "managePendingOrders",
         "viewUsers",
+        "viewCustomers",
     ]),
     [RoleEnum.Employe]: new Set<Action>([
         "viewDashboard",
@@ -68,6 +70,7 @@ export const usePermissions = () => {
 
     const can = (action: Action): boolean => {
         if (action === "kitchenView" && features?.kitchen_view === false) return false;
+        if (action === "viewCustomers" && features?.sell_by_weight !== true) return false;
         return basePermissions.has(action);
     };
 

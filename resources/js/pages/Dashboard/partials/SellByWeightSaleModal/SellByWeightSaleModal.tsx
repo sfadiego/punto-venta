@@ -29,6 +29,7 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
         showPayModal, setShowPayModal,
         cash, setCash, cashNum, change, canPay,
         paymentMethods, paymentMethodId, setPaymentMethodId, isCashMethod,
+        isCreditMode, setIsCreditMode, customers, selectedCustomerId, setSelectedCustomerId,
         isPaying, handlePay,
     } = useSellByWeightSaleModal(onClose, initialOrder);
 
@@ -84,6 +85,8 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
                             clearCart={clearCart}
                             onPay={() => {
                                 const first = paymentMethods.find((m) => m.active);
+                                setIsCreditMode(false);
+                                setSelectedCustomerId(null);
                                 setPaymentMethodId(first?.id ?? null);
                                 setShowPayModal(true);
                             }}
@@ -109,6 +112,12 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
                     paymentMethodId={paymentMethodId}
                     setPaymentMethodId={setPaymentMethodId}
                     isCashMethod={isCashMethod}
+                    creditModeAvailable={sellByWeight}
+                    isCreditMode={isCreditMode}
+                    setIsCreditMode={setIsCreditMode}
+                    customers={customers}
+                    selectedCustomerId={selectedCustomerId}
+                    setSelectedCustomerId={setSelectedCustomerId}
                     onConfirm={handlePay}
                     onClose={() => setShowPayModal(false)}
                 />
