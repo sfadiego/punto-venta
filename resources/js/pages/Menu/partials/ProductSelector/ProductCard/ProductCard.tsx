@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { IMenuProduct } from "@/models/IMenu";
 import { isWeightUnit, formatPricePerUnit } from "@/utils/weightUnits";
-import { WeightControls } from "./WeightControls";
+import { WeightControls } from "../WeightControls/WeightControls";
 import { UnitControls } from "./UnitControls";
 
 interface ProductCardProps {
@@ -11,6 +11,7 @@ interface ProductCardProps {
     primaryColor: string;
     onAdd: (product: IMenuProduct) => void;
     onRemove: (productId: number) => void;
+    onAddWithWeight: (product: IMenuProduct, weight: number) => void;
 }
 
 const Placeholder = () => (
@@ -19,10 +20,11 @@ const Placeholder = () => (
     </div>
 );
 
-export const ProductCard = ({ product, quantity, primaryColor, onAdd, onRemove }: ProductCardProps) => {
+export const ProductCard = ({ product, quantity, primaryColor, onAdd, onRemove, onAddWithWeight }: ProductCardProps) => {
     const unit = product.unidad_medida;
     const byWeight = isWeightUnit(unit);
     const [imgError, setImgError] = useState(false);
+
     return (
         <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden flex flex-col active:scale-[0.98] transition-transform">
             {product.image_url && !imgError ? (
@@ -59,32 +61,17 @@ export const ProductCard = ({ product, quantity, primaryColor, onAdd, onRemove }
                 <div className={`flex gap-2 mt-auto ${byWeight ? "flex-col items-stretch" : "items-center justify-between"}`}>
                     {!byWeight && (
                         <span className="text-sm font-bold text-stone-800 tabular-nums">
-                            {`$${product.precio.toFixed(2)}`}
+                            {`$${Number(product.precio).toFixed(2)}`}
                         </span>
                     )}
 
-                    {byWeight ? (
-                        quantity === 0 ? (
-                            <button
-                                onClick={() => onAdd(product)}
-                                className="w-full py-2 rounded-xl text-white text-xs font-semibold transition-opacity active:opacity-70 flex items-center justify-center gap-1"
-                                style={{ backgroundColor: primaryColor }}
-                                aria-label={`Agregar ${product.nombre}`}
-                            >
-                                <Plus size={14} />
-                                Agregar
-                            </button>
-                        ) : (
-                            <WeightControls
-                                cantidad={quantity}
-                                unit={unit}
-                                precio={product.precio}
-                                primaryColor={primaryColor}
-                                onAdd={() => onAdd(product)}
-                                onRemove={() => onRemove(product.id)}
-                            />
-                        )
-                    ) : (
+                    {byWeight ? (<WeightControls
+                        cantidad={quantity}
+                        unit={unit}
+                        precio={product.precio}
+                        primaryColor={primaryColor}
+                        onChangeWeight={(w) => onAddWithWeight(product, w)}
+                    />) : (
                         quantity === 0 ? (
                             <button
                                 onClick={() => onAdd(product)}

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BusinessTypeEnum;
+use App\Enums\SubscriptionPlanEnum;
 use App\Enums\SubscriptionStatusEnum;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -64,6 +65,8 @@ class BusinessConfigModel extends Model
 
     const SUBSCRIPTION_EXPIRES_AT = 'subscription_expires_at';
 
+    const MAX_USERS = 'max_users';
+
     const GRACE_DAYS = 3;
 
     protected $casts = [
@@ -99,6 +102,7 @@ class BusinessConfigModel extends Model
         self::COSTO_DOMICILIO_DEFAULT,
         self::SUBSCRIPTION_PLAN,
         self::SUBSCRIPTION_EXPIRES_AT,
+        self::MAX_USERS,
     ];
 
     public function getSubscriptionStatusAttribute(): string
@@ -123,6 +127,22 @@ class BusinessConfigModel extends Model
         }
 
         return SubscriptionStatusEnum::Expired->value;
+    }
+
+    public function effectiveMaxUsers(): int
+    {
+        if ($this->max_users !== null) {
+            return (int) $this->max_users;
+        }
+
+        if ($this->subscription_plan) {
+            $plan = SubscriptionPlanEnum::tryFrom($this->subscription_plan);
+            if ($plan) {
+                return $plan->maxUsers();
+            }
+        }
+
+        return 2;
     }
 
     public function users(): HasMany

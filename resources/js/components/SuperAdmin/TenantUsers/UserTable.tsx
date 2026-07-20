@@ -1,17 +1,19 @@
 import { useMemo } from "react";
 import { DataTable, DataTableColumn } from "mantine-datatable";
-import { Pencil, Trash2 } from "lucide-react";
 import { IUser } from "@/models/IUser";
 import RoleBadge from "@/components/Role/RoleBadge";
+import { UserStatusCell } from "./UserStatusCell";
+import { UserRowActions } from "./UserRowActions";
 
 interface UserTableProps {
     users: IUser[];
     isLoading: boolean;
+    tenantId: number;
     onEdit: (user: IUser) => void;
     onDelete: (user: IUser) => void;
 }
 
-export const UserTable = ({ users, isLoading, onEdit, onDelete }: UserTableProps) => {
+export const UserTable = ({ users, isLoading, tenantId, onEdit, onDelete }: UserTableProps) => {
     const columns = useMemo<DataTableColumn<IUser>[]>(
         () => [
             {
@@ -47,41 +49,20 @@ export const UserTable = ({ users, isLoading, onEdit, onDelete }: UserTableProps
             {
                 accessor: "activo",
                 title: "Estado",
-                width: 100,
-                render: (user) => (
-                    <span
-                        className={`inline-flex text-xs font-medium px-2 py-1 rounded-full ${
-                            user.activo ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
-                        }`}
-                    >
-                        {user.activo ? "Activo" : "Inactivo"}
-                    </span>
-                ),
+                width: 140,
+                render: (user) => <UserStatusCell user={user} tenantId={tenantId} />,
             },
             {
                 accessor: "_acciones" as keyof IUser,
                 title: "",
-                width: 80,
+                width: 110,
                 textAlign: "center",
                 render: (user) => (
-                    <div className="flex items-center justify-center gap-1">
-                        <button
-                            onClick={() => onEdit(user)}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors"
-                        >
-                            <Pencil size={20} />
-                        </button>
-                        <button
-                            onClick={() => onDelete(user)}
-                            className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                        >
-                            <Trash2 size={20} />
-                        </button>
-                    </div>
+                    <UserRowActions user={user} tenantId={tenantId} onEdit={onEdit} onDelete={onDelete} />
                 ),
             },
         ],
-        [onEdit, onDelete],
+        [tenantId, onEdit, onDelete],
     );
 
     return (

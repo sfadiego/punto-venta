@@ -16,11 +16,11 @@ class TenantUserTest extends TestCase
         return $this->authHeaders($user);
     }
 
-    private function crearTenant(): BusinessConfigModel
+    private function crearTenant(array $overrides = []): BusinessConfigModel
     {
         $slug = 'tenant-users-'.uniqid();
 
-        return BusinessConfigModel::create([
+        return BusinessConfigModel::create(array_merge([
             BusinessConfigModel::SLUG => $slug,
             BusinessConfigModel::ACTIVO => true,
             BusinessConfigModel::BUSINESS_NAME => 'Tenant Para Usuarios',
@@ -29,7 +29,7 @@ class TenantUserTest extends TestCase
             BusinessConfigModel::FONT_COLOR => '#FFFFFF',
             BusinessConfigModel::LABEL_COLOR => '#1C1917',
             BusinessConfigModel::SUBSCRIPTION_PLAN => 'lifetime',
-        ]);
+        ], $overrides));
     }
 
     private function userPayload(array $overrides = []): array
@@ -289,6 +289,76 @@ class TenantUserTest extends TestCase
         $user = User::where('tenant_id', $tenant->id)->first();
 
         $this->deleteJson("/api/super-admin/tenant/{$tenant->id}/users/{$user->id}")
+            ->assertStatus(401);
+    }
+
+    // ── Login lock (rate limit) ──────────────────────────────────
+
+    public function test_estado_de_bloqueo_sin_intentos_previos(): void
+    {
+        $tenant = $this->crearTenant();
+        $payload = $this->userPayload();
+        $created = $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $payload, $this->superAdminHeaders())
+            ->json('data');
+
+        $this->getJson("/api/super-admin/tenant/{$tenant->id}/users/{$created['id']}/login-lock", $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.blocked', false)
+            ->assertJsonPath('data.ips', []);
+    }
+
+    public function test_estado_de_bloqueo_tras_intentos_fallidos(): void
+    {
+        $tenant = $this->crearTenant();
+        $payload = $this->userPayload();
+        $created = $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $payload, $this->superAdminHeaders())
+            ->json('data');
+
+        // El límite es 5/minuto: se necesita un 6to intento para disparar el bloqueo
+        for ($i = 0; $i < 6; $i++) {
+            $this->postJson('/api/auth/login', [
+                'email' => $payload['email'],
+                'password' => 'password_incorrecta',
+            ]);
+        }
+
+        $this->getJson("/api/super-admin/tenant/{$tenant->id}/users/{$created['id']}/login-lock", $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.blocked', true);
+    }
+
+    public function test_desbloquea_acceso_de_usuario(): void
+    {
+        $tenant = $this->crearTenant();
+        $payload = $this->userPayload();
+        $created = $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $payload, $this->superAdminHeaders())
+            ->json('data');
+
+        for ($i = 0; $i < 6; $i++) {
+            $this->postJson('/api/auth/login', [
+                'email' => $payload['email'],
+                'password' => 'password_incorrecta',
+            ]);
+        }
+
+        $this->deleteJson("/api/super-admin/tenant/{$tenant->id}/users/{$created['id']}/login-lock", [], $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.cleared', 1);
+
+        // Tras desbloquear, el estado ya no debe reportar bloqueo
+        $this->getJson("/api/super-admin/tenant/{$tenant->id}/users/{$created['id']}/login-lock", $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.blocked', false);
+    }
+
+    public function test_login_lock_sin_autenticacion(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $user = User::where('tenant_id', $tenant->id)->first();
+
+        $this->getJson("/api/super-admin/tenant/{$tenant->id}/users/{$user->id}/login-lock")
+            ->assertStatus(401);
+        $this->deleteJson("/api/super-admin/tenant/{$tenant->id}/users/{$user->id}/login-lock")
             ->assertStatus(401);
     }
 }

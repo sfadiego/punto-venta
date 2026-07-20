@@ -45,6 +45,8 @@ class SubscriptionController extends Controller
         $tenant->update([
             BusinessConfigModel::SUBSCRIPTION_PLAN => $plan->value,
             BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => $log->expires_at,
+            // Solo actualiza max_users si no hay un override manual previo
+            BusinessConfigModel::MAX_USERS => $plan->maxUsers(),
         ]);
 
         return Response::success($this->formatTenant($tenant->fresh()));

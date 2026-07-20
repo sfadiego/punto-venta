@@ -75,6 +75,7 @@ function MenuPage() {
                         quantityOf={cart.quantityOf}
                         onAdd={cart.add}
                         onRemove={cart.remove}
+                        onAddWithWeight={cart.addWithWeight}
                     />
                 </div>
             </main>

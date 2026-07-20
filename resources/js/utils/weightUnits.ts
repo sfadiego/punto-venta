@@ -11,6 +11,9 @@ export const weightStep = (unit: WeightUnit): number =>
 export const weightMin = (unit: WeightUnit): number =>
     unit === UnidadMedidaEnum.Kg ? 0.1 : 100;
 
+export const weightMax = (unit: WeightUnit): number =>
+    unit === UnidadMedidaEnum.Kg ? 50 : 50000;
+
 export const formatWeight = (cantidad: number, unit: WeightUnit): string =>
     unit === UnidadMedidaEnum.Kg
         ? `${cantidad.toFixed(1)} kg`

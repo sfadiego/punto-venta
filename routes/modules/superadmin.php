@@ -10,7 +10,7 @@ use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('super-admin')->group(function () {
-    Route::post('auth/login', [SuperAdminAuthController::class, 'login']);
+    Route::post('auth/login', [SuperAdminAuthController::class, 'login'])->middleware('throttle:login');
 
     Route::middleware(['auth:sanctum', SuperAdminMiddleware::class])->group(function () {
         Route::get('error-logs', [ClientErrorController::class, 'index']);
@@ -44,6 +44,8 @@ Route::prefix('super-admin')->group(function () {
                 Route::post('seed', 'seedUsers');
                 Route::put('{user}', 'update');
                 Route::delete('{user}', 'delete');
+                Route::get('{user}/login-lock', 'loginLockStatus');
+                Route::delete('{user}/login-lock', 'unblockLogin');
             });
         });
     });

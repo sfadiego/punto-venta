@@ -29,6 +29,8 @@ interface InputProps<T> {
     maxLength?: number;
     value?: string;
     onChange?: React.ChangeEventHandler<HTMLInputElement>;
+    onBlur?: React.FocusEventHandler<HTMLInputElement>;
+    onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
 }
 
 export const Input = <T = Record<string, string>,>({
@@ -48,6 +50,8 @@ export const Input = <T = Record<string, string>,>({
     maxLength,
     value,
     onChange,
+    onBlur,
+    onKeyDown,
 }: InputProps<T>) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = inputType === "password";
@@ -85,6 +89,8 @@ export const Input = <T = Record<string, string>,>({
                     step={step}
                     maxLength={maxLength}
                     {...fieldProps}
+                    onBlur={onBlur}
+                    onKeyDown={onKeyDown}
                     className={`w-full px-4 py-3 border rounded-xl text-sm text-stone-900
                         placeholder-stone-400 focus:outline-none focus:ring-2
                         focus:ring-amber-500 focus:border-transparent transition-all

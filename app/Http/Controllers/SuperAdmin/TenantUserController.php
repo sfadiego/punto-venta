@@ -8,6 +8,7 @@ use App\Http\Requests\TenantUserStoreRequest;
 use App\Http\Requests\TenantUserUpdateRequest;
 use App\Models\BusinessConfigModel;
 use App\Models\User;
+use App\Services\LoginRateLimitService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
@@ -131,5 +132,30 @@ class TenantUserController extends Controller
         $model->delete();
 
         return Response::success(true);
+    }
+
+    public function loginLockStatus(BusinessConfigModel $tenant, int $user, LoginRateLimitService $service): JsonResponse
+    {
+        $model = User::withoutGlobalScopes()
+            ->where(User::TENANT_ID, $tenant->id)
+            ->findOrFail($user);
+
+        $blockedIps = $service->blockedIpsFor($model->email);
+
+        return Response::success([
+            'blocked' => count($blockedIps) > 0,
+            'ips' => $blockedIps,
+        ]);
+    }
+
+    public function unblockLogin(BusinessConfigModel $tenant, int $user, LoginRateLimitService $service): JsonResponse
+    {
+        $model = User::withoutGlobalScopes()
+            ->where(User::TENANT_ID, $tenant->id)
+            ->findOrFail($user);
+
+        $cleared = $service->unblock($model->email);
+
+        return Response::success(['cleared' => $cleared]);
     }
 }

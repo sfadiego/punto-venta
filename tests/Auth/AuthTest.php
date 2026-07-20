@@ -287,6 +287,133 @@ class AuthTest extends TestCase
         ])->assertStatus(200)->assertJsonPath('status', 'OK');
     }
 
+    public function test_limite_manual_sobreescribe_limite_del_plan_bloqueando_login(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        // Plan Weekly permite 2, pero max_users manual fija 1
+        $tenant->update([
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Weekly->value,
+            BusinessConfigModel::MAX_USERS => 1,
+            'subscription_expires_at' => now()->addDays(7),
+        ]);
+
+        // 1 usuario activo → activeCount (1) >= effectiveMaxUsers (1) → debe bloquear
+        User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::LAST_SEEN_AT => now(),
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ])->assertStatus(403)
+            ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
+    }
+
+    public function test_limite_manual_sobreescribe_limite_del_plan_permitiendo_mas_sesiones(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        // Plan Weekly permite 2, pero max_users manual lo sube a 5
+        $tenant->update([
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Weekly->value,
+            BusinessConfigModel::MAX_USERS => 5,
+            'subscription_expires_at' => now()->addDays(7),
+        ]);
+
+        // 3 usuarios activos → activeCount (3) < effectiveMaxUsers (5) → debe pasar
+        User::factory()->count(3)->create([
+            User::TENANT_ID => $tenant->id,
+            User::LAST_SEEN_AT => now(),
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ])->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+    }
+
+    public function test_limite_default_sin_plan_ni_max_users_es_2(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $tenant->update([
+            BusinessConfigModel::SUBSCRIPTION_PLAN => null,
+            BusinessConfigModel::MAX_USERS => null,
+            'subscription_expires_at' => now()->addDays(7),
+        ]);
+
+        // 2 usuarios activos → activeCount (2) >= effectiveMaxUsers (2 default) → bloquea
+        User::factory()->count(2)->create([
+            User::TENANT_ID => $tenant->id,
+            User::LAST_SEEN_AT => now(),
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ])->assertStatus(403)
+            ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
+    }
+
+    // ── Login bloquea usuarios inactivos ─────────────────────
+
+    public function test_login_bloquea_usuario_inactivo(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $user = User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
+            User::ACTIVO => false,
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'chantico',
+        ])->assertStatus(422)
+          ->assertJsonPath('status', 'error');
+    }
+
+    public function test_login_no_crea_token_para_usuario_inactivo(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $user = User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
+            User::ACTIVO => false,
+        ]);
+
+        $tokensBefore = $user->tokens()->count();
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'chantico',
+        ]);
+
+        $this->assertEquals($tokensBefore, $user->fresh()->tokens()->count());
+    }
+
+    public function test_login_permite_usuario_activo(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $user = User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
+            User::ACTIVO => true,
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'chantico',
+        ])->assertStatus(200)
+          ->assertJsonPath('status', 'OK');
+    }
+
     // ── Login bloquea SuperAdmin ──────────────────────────────
 
     public function test_login_bloquea_superadmin(): void
@@ -304,5 +431,69 @@ class AuthTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonPath('status', 'error');
+    }
+
+    // ── Rate limiting ─────────────────────────────────────────
+
+    public function test_login_bloquea_tras_superar_el_limite_de_intentos(): void
+    {
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->postJson('/api/auth/login', [
+                'email' => $user->email,
+                'password' => 'password_incorrecta',
+            ])->assertStatus(422);
+        }
+
+        // 6to intento en el mismo minuto → bloqueado por el rate limiter
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'password_incorrecta',
+        ])->assertStatus(429);
+    }
+
+    public function test_login_limite_es_independiente_por_email(): void
+    {
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->postJson('/api/auth/login', [
+                'email' => $user->email,
+                'password' => 'password_incorrecta',
+            ]);
+        }
+
+        // Un email distinto desde la misma IP no debe estar bloqueado
+        $this->postJson('/api/auth/login', [
+            'email' => 'otro-usuario-no-existe@test.com',
+            'password' => 'cualquiera',
+        ])->assertStatus(400);
+    }
+
+    public function test_registro_bloquea_tras_superar_el_limite_de_intentos(): void
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $this->postJson('/api/auth/register', [
+                'nombre' => 'Test',
+                'apellido_paterno' => 'User',
+                'email' => 'ratelimit'.$i.'@test.com',
+                'usuario' => 'ratelimit_'.$i,
+                'rol_id' => RoleEnum::EMPLOYE->value,
+                'password' => 'Test1234',
+                'password_confirmation' => 'Test1234',
+            ])->assertStatus(200);
+        }
+
+        // 6to registro en el mismo minuto → bloqueado por el rate limiter
+        $this->postJson('/api/auth/register', [
+            'nombre' => 'Test',
+            'apellido_paterno' => 'User',
+            'email' => 'ratelimit-extra@test.com',
+            'usuario' => 'ratelimit_extra',
+            'rol_id' => RoleEnum::EMPLOYE->value,
+            'password' => 'Test1234',
+            'password_confirmation' => 'Test1234',
+        ])->assertStatus(429);
     }
 }
