@@ -56,6 +56,7 @@ export default function TenantUsersPage() {
                 <UserTable
                     users={users}
                     isLoading={isLoading}
+                    tenantId={tenantId}
                     onEdit={openEdit}
                     onDelete={handleDelete}
                 />

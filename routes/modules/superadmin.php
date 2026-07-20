@@ -44,6 +44,8 @@ Route::prefix('super-admin')->group(function () {
                 Route::post('seed', 'seedUsers');
                 Route::put('{user}', 'update');
                 Route::delete('{user}', 'delete');
+                Route::get('{user}/login-lock', 'loginLockStatus');
+                Route::delete('{user}/login-lock', 'unblockLogin');
             });
         });
     });

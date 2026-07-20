@@ -361,6 +361,59 @@ class AuthTest extends TestCase
             ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
     }
 
+    // ── Login bloquea usuarios inactivos ─────────────────────
+
+    public function test_login_bloquea_usuario_inactivo(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $user = User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
+            User::ACTIVO => false,
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'chantico',
+        ])->assertStatus(422)
+          ->assertJsonPath('status', 'error');
+    }
+
+    public function test_login_no_crea_token_para_usuario_inactivo(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $user = User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
+            User::ACTIVO => false,
+        ]);
+
+        $tokensBefore = $user->tokens()->count();
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'chantico',
+        ]);
+
+        $this->assertEquals($tokensBefore, $user->fresh()->tokens()->count());
+    }
+
+    public function test_login_permite_usuario_activo(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $user = User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
+            User::ACTIVO => true,
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'chantico',
+        ])->assertStatus(200)
+          ->assertJsonPath('status', 'OK');
+    }
+
     // ── Login bloquea SuperAdmin ──────────────────────────────
 
     public function test_login_bloquea_superadmin(): void

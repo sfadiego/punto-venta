@@ -18,6 +18,10 @@ class SuperAdminAuthController extends Controller
             password: $params->password,
         );
 
+        if ($result === User::LOGIN_INACTIVE) {
+            return Response::error(__('Tu cuenta ha sido desactivada. Contacta al administrador.'));
+        }
+
         if (! $result) {
             return Response::error(__('Credenciales no válidas.'));
         }

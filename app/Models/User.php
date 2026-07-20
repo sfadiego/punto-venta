@@ -35,6 +35,8 @@ class User extends Authenticatable
 
     const LAST_SEEN_AT = 'last_seen_at';
 
+    const LOGIN_INACTIVE = 'login_inactive';
+
     protected $fillable = [
         self::NOMBRE,
         self::EMAIL,
@@ -98,6 +100,12 @@ class User extends Authenticatable
         }
 
         $user = User::where('email', $email)->first();
+
+        if (! $user->activo) {
+            Auth::guard()->logout();
+
+            return self::LOGIN_INACTIVE;
+        }
 
         return [
             'user' => $user,
