@@ -29,6 +29,7 @@ class TenantUpdateRequest extends FormRequest
             BusinessConfigModel::LOGO_ICON => 'nullable|string|max:50',
             BusinessConfigModel::TIPO_NEGOCIO => ['nullable', Rule::enum(BusinessTypeEnum::class)],
             BusinessConfigModel::PRINTER_ENABLED => 'boolean',
+            BusinessConfigModel::MAX_USERS => 'nullable|integer|min:1|max:999',
         ];
     }
 }

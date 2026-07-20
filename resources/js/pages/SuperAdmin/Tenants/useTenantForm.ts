@@ -1,10 +1,30 @@
-import { useFormik } from "formik";
+import { useFormik, FormikProps } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useCreateTenant, useUpdateTenant, useListTenants } from "@/services/useSuperAdminService";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
+
+export interface TenantFormValues {
+    slug: string;
+    business_name: string;
+    primary_color: string;
+    sidebar_color: string;
+    font_color: string;
+    label_color: string;
+    logo_icon: string;
+    tipo_negocio: BusinessTypeEnum;
+    printer_enabled: boolean;
+    max_users: number | null;
+    admin_nombre: string;
+    admin_apellido: string;
+    admin_email: string;
+    admin_usuario: string;
+    admin_password: string;
+}
+
+export type TenantFormik = FormikProps<TenantFormValues>;
 
 const COLOR_DEFAULTS = {
     primary_color: "#F59E0B",
@@ -21,6 +41,7 @@ const baseSchema = {
     font_color:    Yup.string().required("Requerido"),
     label_color:   Yup.string().required("Requerido"),
     tipo_negocio:  Yup.string().oneOf(Object.values(BusinessTypeEnum)).required("Requerido"),
+    max_users:     Yup.number().nullable().min(1, "Mínimo 1").max(999, "Máximo 999"),
 };
 
 const createSchema = Yup.object({
@@ -56,6 +77,7 @@ export const useTenantForm = (tenantId?: number) => {
             logo_icon:        tenant?.logo_icon ?? "",
             tipo_negocio:     tenant?.tipo_negocio ?? BusinessTypeEnum.Restaurante,
             printer_enabled:  tenant?.printer_enabled ?? false,
+            max_users:        tenant?.max_users ?? null,
             admin_nombre:     "",
             admin_apellido:   "",
             admin_email:      "",
@@ -72,6 +94,7 @@ export const useTenantForm = (tenantId?: number) => {
                             ...values,
                             logo_icon:       values.logo_icon || null,
                             printer_enabled: values.printer_enabled,
+                            max_users:       values.max_users ? Number(values.max_users) : null,
                         },
                     });
                     toast.success("Cliente actualizado.");

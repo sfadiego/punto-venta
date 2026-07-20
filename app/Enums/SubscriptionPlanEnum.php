@@ -46,9 +46,9 @@ enum SubscriptionPlanEnum: string
             self::Weekly => 2,
             self::Biweekly => 2,
             self::Monthly => 4,
-            self::Biannual => 5,
-            self::Annual => 10,
-            self::Lifetime => PHP_INT_MAX,
+            self::Biannual => 4,
+            self::Annual => 5,
+            self::Lifetime => 10,
         };
     }
 

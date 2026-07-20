@@ -16,6 +16,10 @@ export interface ITenant {
     features?: IBusinessFeatures;
     users_count?: number;
     active_users_count?: number;
+    subscription_plan?: string | null;
+    max_users?: number | null;
+    effective_max_users?: number;
+    plan_default_max_users?: number | null;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
@@ -47,5 +51,6 @@ export interface IUpdateTenantPayload {
     logo_icon: string | null;
     tipo_negocio: BusinessTypeEnum;
     printer_enabled: boolean;
+    max_users?: number | null;
 }
 

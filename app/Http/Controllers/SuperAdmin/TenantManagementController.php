@@ -63,6 +63,7 @@ class TenantManagementController extends Controller
         $tenant->update([
             BusinessConfigModel::SUBSCRIPTION_PLAN => $initialPlan->value,
             BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => $log->expires_at,
+            BusinessConfigModel::MAX_USERS => $initialPlan->maxUsers(),
         ]);
 
         return Response::success($tenant);
@@ -77,6 +78,10 @@ class TenantManagementController extends Controller
             'users as active_users_count' => fn ($q) => $q->where('last_seen_at', '>=', $activeWindow),
         ]);
         $tenant->features = $tenant->tipo_negocio->features();
+        $tenant->effective_max_users = $tenant->effectiveMaxUsers();
+        $tenant->plan_default_max_users = $tenant->subscription_plan
+            ? (SubscriptionPlanEnum::tryFrom($tenant->subscription_plan)?->maxUsers() ?? null)
+            : null;
 
         return Response::success($tenant);
     }
@@ -93,6 +98,7 @@ class TenantManagementController extends Controller
             BusinessConfigModel::LOGO_ICON => $param->logo_icon,
             BusinessConfigModel::TIPO_NEGOCIO => $param->tipo_negocio ?? $tenant->tipo_negocio->value,
             BusinessConfigModel::PRINTER_ENABLED => (bool) $param->printer_enabled,
+            BusinessConfigModel::MAX_USERS => $param->max_users !== null ? (int) $param->max_users : $tenant->max_users,
         ]);
 
         return Response::success($tenant);
