@@ -131,6 +131,44 @@ const sellByWeight = features?.sell_by_weight === true;
 
 ---
 
+## Estructura del backend (`app/`)
+
+```
+app/
+├── Http/
+│   ├── Controllers/           # Delgados: orquestan (validan vía FormRequest, delegan a Services, responden)
+│   │   ├── SuperAdmin/        # Panel SuperAdmin (gestión de tenants, suscripciones, usuarios)
+│   │   └── Admin/             # Endpoints admin-only del tenant (config de negocio, etc.)
+│   ├── Requests/              # FormRequest — toda validación vive aquí, nunca inline en el controller
+│   └── Middleware/            # ResolveTenant, CheckSubscription, TrackActivity, SuperAdminMiddleware...
+├── Services/                  # Lógica de negocio — dos patrones, ver "Backend (Laravel)" abajo
+├── Models/                    # Eloquent models; constantes de columna (self::NOMBRE = 'nombre')
+│   ├── Scopes/                # Global scopes (TenantScope)
+│   └── Traits/                # HasTenant y otros traits compartidos
+├── Enums/                     # PHP enums backed (::value), reflejados 1:1 en resources/js/enums/
+├── Core/
+│   ├── Paginator/DataTable.php    # Clase base de servicios de listado paginado
+│   └── Data/IndexData.php         # DTO de paginación/orden/filtros (page, limit, search, orderParam, order)
+└── Events/                    # Eventos broadcast (Reverb — ej. OrdersUpdated)
+
+database/
+├── migrations/                # Toda modificación de esquema pasa por aquí (ver regla en "migraciones")
+├── factories/                 # {Model}Factory.php — Laravel lo resuelve por convención si el modelo usa HasFactory
+└── seeders/
+
+routes/
+├── api.php                    # Agrupa middleware [auth:sanctum, ResolveTenant, check.subscription, track.activity]
+│                               # y hace require de los módulos de abajo. Rutas públicas van fuera del grupo.
+└── modules/
+    ├── categories.php         # Un archivo por recurso — ver patrón en "Backend (Laravel)" abajo
+    ├── customers.php
+    ├── orders.php
+    ├── superadmin.php         # Su propio grupo: auth:sanctum + SuperAdminMiddleware
+    └── ...
+```
+
+---
+
 ## Reglas del proyecto
 
 ### Estructura
@@ -303,6 +341,61 @@ const toggle = async (id: number) => {
 - todas las nuevas columnas deben ser agregadas por migracion
 - las columnas que se deban borrar, deben ser borradas por migraciones
 - toda modificacion a la base de datos es mediante una migracion
+
+### Backend (Laravel)
+
+**Controladores**
+- Deben ser delgados: reciben el Request/FormRequest ya validado, delegan la lógica a un Service, retornan
+  `Response::success(...)`. Referencia: `CategoriesController`, `CustomersController`.
+- No poner queries complejas, transacciones, o reglas de negocio directamente en el controller — extraerlas a
+  `app/Services/`.
+- No usar `$request->validate([...])` inline en el controller — crear un FormRequest dedicado en
+  `app/Http/Requests/` (patrón: `{Recurso}{Store|Update}Request.php`), incluso si el endpoint no mapea 1:1 a un
+  modelo (ej. `OrderStoreSaleRequest` para `POST /order/sale`).
+
+**Servicios — dos patrones, no mezclarlos en un mismo archivo:**
+1. **Listado paginado** (`extends App\Core\Paginator\DataTable`): un servicio por recurso listable, implementa
+   `tableHeaders()` y `makeQuery()`. Los filtros se leen con `request()->query(...)` dentro de `makeQuery()`
+   (nunca vía constructor). Ejemplos: `CategoryService`, `CustomerService`, `OrderService`, `UserService`,
+   `TenantService`.
+   - Ojo: `DataTable::build()` solo invoca `runCustomQueryFilters()` si `customQueryFilters()` retorna un array
+     no vacío — nadie lo sobrescribe hoy, así que ese hook nunca se ejecuta. Para filtros custom, aplícalos
+     directamente dentro de `makeQuery()` (ver `CustomerService::makeQuery()`), no dependas de
+     `runCustomQueryFilters()`.
+2. **Lógica de negocio plana** (sin heredar de nada): para operaciones que no son "listar con filtros" —
+   transacciones, side-effects, cálculos, reportes. Ejemplos: `OrderCreditService` (aplica balance de crédito al
+   cerrar una venta), `OrderSaleService` (venta directa + reporte por categoría), `LoginRateLimitService`.
+- No agregues métodos de negocio a un servicio `DataTable` (ej. no metas `createDirectSale()` dentro de
+  `OrderService`) — crea un servicio nuevo y enfocado en su lugar.
+
+**Multi-tenancy**
+- Todo modelo tenant-scoped usa el trait `HasTenant` (agrega `TenantScope` como global scope + auto-asigna
+  `tenant_id` en creación desde `app('tenant_id')`).
+- Las reglas de validación `exists:`/`unique:` de Laravel **no respetan global scopes** — para cualquier FK
+  tenant-scoped hay que usar `Rule::exists('tabla', 'id')->where('tenant_id', app('tenant_id'))` o
+  `Rule::unique(...)->where('tenant_id', ...)`.
+- **Importante**: el middleware `ResolveTenant` (que asigna `app('tenant_id')`) debe correr ANTES que
+  `SubstituteBindings` (el middleware de Laravel que resuelve `{modelo}` en las rutas vía route-model-binding
+  implícito) — esto está garantizado por `$middleware->prependToPriorityList(...)` en `bootstrap/app.php`. No
+  toques ese orden sin entender la implicación: si se rompe, el binding implícito de rutas deja de filtrar por
+  tenant y cualquier admin autenticado podría acceder a recursos de otro tenant adivinando el ID (bug real que
+  se encontró y corrigió — ver commit de la feature de clientes fiado).
+- Fuera de una request HTTP (tinker, seeders, algunos tests) no hay `tenant_id` bindeado en el contenedor — hay
+  que pasarlo explícito al crear registros: `Model::create(['tenant_id' => $id, ...])`.
+
+**Rutas**
+- Un archivo por recurso en `routes/modules/`, requerido desde `routes/api.php` dentro del grupo de middleware
+  tenant-scoped (o desde `routes/modules/superadmin.php`, que tiene su propio grupo de middleware).
+- Patrón por recurso (ver `routes/modules/categories.php` o `customers.php`):
+  `Route::prefix('recurso')->controller(Controller::class)->group(...)` con `index`, `list` (versión ligera sin
+  paginar, para dropdowns/pickers), `store`, y `Route::prefix('{recurso}')` anidado para `show/update/delete` +
+  acciones custom (ej. `toggle-credit`, `payment`).
+
+**Factories**
+- Un factory por modelo en `database/factories/{Model}Factory.php` — Laravel lo resuelve automáticamente por
+  convención de nombre si el modelo usa `HasFactory`.
+- `factory()->create($atributos)` — el argumento es un **array de overrides**, no un contador. Para crear
+  varios registros: `factory()->count(N)->create()`.
 ---
 
 ## Decisiones de arquitectura relevantes

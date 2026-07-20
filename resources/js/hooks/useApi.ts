@@ -128,6 +128,22 @@ export function usePUT<Response>({
     });
 }
 
+export function usePATCH<Response>({
+    url,
+    isFile = false,
+    onSuccess = () => {},
+    onError = () => {},
+}: IUsePUTProps): UseMutationResult<AxiosResponse<Response>> {
+    let headers = {};
+    if (isFile) headers = headersImage;
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: (data) => axiosPATCH(axiosApi, { url, data, headers }),
+        onSuccess,
+        onError,
+    });
+}
+
 export function usePOST<Request>({
     url,
     onSuccess = () => {},

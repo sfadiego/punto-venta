@@ -376,7 +376,7 @@ class AuthTest extends TestCase
             'email' => $user->email,
             'password' => 'chantico',
         ])->assertStatus(422)
-          ->assertJsonPath('status', 'error');
+            ->assertJsonPath('status', 'error');
     }
 
     public function test_login_no_crea_token_para_usuario_inactivo(): void
@@ -411,7 +411,7 @@ class AuthTest extends TestCase
             'email' => $user->email,
             'password' => 'chantico',
         ])->assertStatus(200)
-          ->assertJsonPath('status', 'OK');
+            ->assertJsonPath('status', 'OK');
     }
 
     // ── Login bloquea SuperAdmin ──────────────────────────────

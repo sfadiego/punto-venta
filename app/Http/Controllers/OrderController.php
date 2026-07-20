@@ -6,9 +6,11 @@ use App\Core\Data\IndexData;
 use App\Enums\OrderStatusEnum;
 use App\Events\OrdersUpdated;
 use App\Http\Requests\OrderStoreRequest;
+use App\Http\Requests\OrderStoreSaleRequest;
 use App\Http\Requests\OrderUpdateRequest;
 use App\Models\OrderModel;
-use App\Models\OrderProductModel;
+use App\Services\OrderCreditService;
+use App\Services\OrderSaleService;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -50,20 +52,25 @@ class OrderController extends Controller
         return Response::success($order->delete());
     }
 
-    public function update(OrderModel $order, OrderUpdateRequest $params): JsonResponse
+    public function update(OrderModel $order, OrderUpdateRequest $params, OrderCreditService $creditService): JsonResponse
     {
+        $data = $params->toArray();
         $orderDetail = $order->totalAndSubTotalOrder();
-        $order->update(
-            array_merge($params->toArray(), [
+
+        DB::transaction(function () use ($order, $data, $orderDetail, $creditService) {
+            $order->update(array_merge($data, [
                 'total' => $orderDetail['total'],
                 'subtotal' => $orderDetail['subtotal'],
-            ])
-        );
+            ]));
 
-        $isServed = (int) ($params->toArray()['estatus_pedido_id'] ?? 0) === OrderStatusEnum::SERVED->value;
+            $becomingClosed = (int) ($data['estatus_pedido_id'] ?? 0) === OrderStatusEnum::CLOSED->value;
+            $creditService->applyIfClosingAsCredit($order, $becomingClosed);
+        });
+
+        $isServed = (int) ($data['estatus_pedido_id'] ?? 0) === OrderStatusEnum::SERVED->value;
         $this->broadcast($isServed ? 'served' : 'updated', $order->id);
 
-        return Response::success($order);
+        return Response::success($order->fresh(['paymentMethod:id,name', 'customer:id,name,balance']));
     }
 
     public function total(OrderModel $order): JsonResponse
@@ -71,72 +78,19 @@ class OrderController extends Controller
         return Response::success($order->totalOrderProducts());
     }
 
-    public function storeSale(Request $request): JsonResponse
+    public function storeSale(OrderStoreSaleRequest $params, OrderSaleService $saleService): JsonResponse
     {
-        $data = $request->validate([
-            'sistema_id' => 'required|numeric|exists:main_order_report,id',
-            'nombre_pedido' => 'required|string',
-            'costo_domicilio' => 'sometimes|numeric',
-            'items' => 'required|array|min:1',
-            'items.*.producto_id' => 'required|numeric|exists:product,id',
-            'items.*.cantidad' => 'required|numeric|min:0.001',
-            'items.*.precio' => 'required|numeric|min:0',
-        ]);
-
-        $order = DB::transaction(function () use ($data) {
-            $subtotal = collect($data['items'])->sum(fn ($i) => $i['precio'] * $i['cantidad']);
-
-            $order = OrderModel::create([
-                OrderModel::SISTEMA_ID => $data['sistema_id'],
-                OrderModel::NOMBRE_PEDIDO => $data['nombre_pedido'],
-                OrderModel::SUBTOTAL => $subtotal,
-                OrderModel::TOTAL => $subtotal,
-                OrderModel::COSTO_DOMICILIO => $data['costo_domicilio'] ?? 0,
-                OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS->value,
-            ]);
-
-            foreach ($data['items'] as $item) {
-                OrderProductModel::create([
-                    OrderProductModel::PEDIDO_ID => $order->id,
-                    OrderProductModel::PRODUCTO_ID => $item['producto_id'],
-                    OrderProductModel::CANTIDAD => $item['cantidad'],
-                    OrderProductModel::PRECIO => $item['precio'],
-                ]);
-            }
-
-            $order->update([
-                OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
-            ]);
-
-            return $order;
-        });
+        $order = $saleService->createDirectSale($params->validated());
 
         return Response::success($order->load('orderProducts'));
     }
 
-    public function salesByCategory(Request $request): JsonResponse
+    public function salesByCategory(Request $request, OrderSaleService $saleService): JsonResponse
     {
         $sistemaId = (int) $request->query('sistema_id', 0);
         $date = $request->query('fecha');
 
-        $query = OrderProductModel::query()
-            ->join('order as o', 'o.id', '=', 'order_product.pedido_id')
-            ->join('product', 'product.id', '=', 'order_product.producto_id')
-            ->join('categories', 'categories.id', '=', 'product.categoria_id')
-            ->where('o.sistema_id', $sistemaId)
-            ->where('o.estatus_pedido_id', OrderStatusEnum::CLOSED->value);
-
-        if ($date) {
-            $query->whereDate('o.created_at', $date);
-        }
-
-        $results = $query
-            ->groupBy('categories.id', 'categories.nombre')
-            ->selectRaw('categories.id, categories.nombre, SUM(order_product.cantidad) as total_cantidad, ROUND(SUM(order_product.precio * order_product.cantidad * (1 - COALESCE(order_product.descuento, 0) / 100) * (1 - COALESCE(o.descuento, 0) / 100)), 2) as total_revenue')
-            ->orderByDesc('total_revenue')
-            ->get();
-
-        return Response::success($results);
+        return Response::success($saleService->salesByCategory($sistemaId, $date));
     }
 
     private function broadcast(string $type = 'updated', ?int $orderId = null): void

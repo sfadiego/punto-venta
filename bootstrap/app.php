@@ -3,6 +3,7 @@
 use App\Enums\HttpErrors;
 use App\Http\Middleware\CheckSubscription;
 use App\Http\Middleware\ErrorReporting;
+use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\TrackActivity;
 use App\Http\Middleware\TransactionMiddleware;
 use Illuminate\Auth\AuthenticationException;
@@ -10,6 +11,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Validation\ValidationException;
 
@@ -29,6 +31,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.subscription' => CheckSubscription::class,
             'track.activity' => TrackActivity::class,
         ]);
+        // ResolveTenant asigna app('tenant_id'), usado por TenantScope para filtrar modelos
+        // tenant-scoped. Debe correr ANTES de SubstituteBindings — de lo contrario, el binding
+        // implícito de rutas (ej. {category}, {order}, {customer}) resuelve el modelo sin el
+        // scope de tenant aplicado, permitiendo acceso cruzado entre tenants.
+        $middleware->prependToPriorityList(
+            before: SubstituteBindings::class,
+            prepend: ResolveTenant::class,
+        );
         $middleware->trustProxies(headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
             \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |
             \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |

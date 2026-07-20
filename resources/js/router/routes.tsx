@@ -14,6 +14,8 @@ const TakeOrderPage    = lazy(() => import("@/pages/Orders/TakeOrderPage"));
 const OrderListPage    = lazy(() => import("@/pages/Orders/OrderListPage"));
 const ProductsPage     = lazy(() => import("@/pages/Product/ProductsPage"));
 const CategoriesPage   = lazy(() => import("@/pages/Category/CategoriesPage"));
+const CustomersPage       = lazy(() => import("@/pages/Customers/CustomersPage"));
+const CustomerDetailPage  = lazy(() => import("@/pages/Customers/CustomerDetailPage"));
 const CloseSalesPage   = lazy(() => import("@/pages/Sales/partials/CloseSales/CloseSalesPage"));
 const SalesPage        = lazy(() => import("@/pages/Sales/SalesPage"));
 const StatisticsPage   = lazy(() => import("@/pages/Statistics/StatisticsPage"));
@@ -42,6 +44,8 @@ const privateRoutes: IRoute[] = [
     { path: "/orders",         element: <OrderListPage />,  private: true },
     { path: "/products",       element: <ProductsPage />,   private: true, hasPermission: allow(RoleEnum.Admin, RoleEnum.Employe) },
     { path: "/categories",     element: <CategoriesPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
+    { path: "/customers",      element: <CustomersPage />,      private: true, hasPermission: allow(RoleEnum.Admin) },
+    { path: "/customers/:id",  element: <CustomerDetailPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
     { path: "/take-order/:id", element: <TakeOrderPage />,  private: true, hasPermission: allow(RoleEnum.Admin, RoleEnum.Employe) },
     { path: "/close-sales",    element: <CloseSalesPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
     { path: "/sales",          element: <SalesPage />,      private: true, hasPermission: allow(RoleEnum.Admin) },

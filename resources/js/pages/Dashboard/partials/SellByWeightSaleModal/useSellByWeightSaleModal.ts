@@ -10,6 +10,7 @@ import { useIndexCategories } from "@/services/useCategoriesService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useShowOrder } from "@/services/useOrderService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
+import { useCustomerList } from "@/services/useCustomerService";
 import { axiosPOST, axiosPUT, axiosDELETE } from "@/hooks/useApi";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IProduct } from "@/models/IProduct";
@@ -102,8 +103,11 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     const [cash, setCash] = useState("");
     const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
     const [isPaying, setIsPaying] = useState(false);
+    const [isCreditMode, setIsCreditMode] = useState(false);
+    const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
 
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
+    const { data: customers = [] } = useCustomerList();
 
     // Load full order with products only for resume mode
     const { data: fullOrder, isLoading: loadingFullOrder } = useShowOrder(
@@ -156,9 +160,12 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     const selectedPaymentMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
     const isCashMethod = !selectedPaymentMethod || selectedPaymentMethod.name.toLowerCase().includes("efectivo");
     const domicilioExcedeTotal = domicilioActivo && !customerPays && domicilio > total && total > 0;
-    const canPay = !domicilioExcedeTotal && (isCashMethod
-        ? cashNum >= totalFinal && totalFinal > 0
-        : totalFinal > 0);
+    const selectedCustomer = customers.find((c) => c.id === selectedCustomerId) ?? null;
+    const canPay = isCreditMode
+        ? !domicilioExcedeTotal && totalFinal > 0 && !!selectedCustomer && selectedCustomer.allow_credit
+        : !domicilioExcedeTotal && (isCashMethod
+            ? cashNum >= totalFinal && totalFinal > 0
+            : totalFinal > 0);
 
     const defaultCantidad = (product: IProduct) =>
         product.unidad_medida === UnidadMedidaEnum.Kg ? 0.5 : 1;
@@ -463,16 +470,21 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         if (!oid || !canPay) return;
         setIsPaying(true);
         try {
+            const paymentData = isCreditMode
+                ? { is_credit: true, customer_id: selectedCustomerId }
+                : { payment_method_id: paymentMethodId };
+
             await axiosPUT(axiosApi, {
                 url: `${ApiRoutes.Orders}/${oid}`,
                 data: {
                     estatus_pedido_id: OrderStatusEnum.Closed,
                     costo_domicilio: calcCostoDomicilio(domicilio, domicilioActivo, customerPays),
-                    payment_method_id: paymentMethodId,
+                    ...paymentData,
                 },
             });
-            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
-            toast.success("Venta registrada correctamente.");
+            invalidateOrderQueries();
+            queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/list`] });
+            toast.success(isCreditMode ? "Venta a crédito registrada correctamente." : "Venta registrada correctamente.");
             setShowPayModal(false);
             onClose();
 
@@ -517,6 +529,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         showPayModal, setShowPayModal,
         cash, setCash, cashNum, change, canPay,
         paymentMethods, paymentMethodId, setPaymentMethodId, isCashMethod,
+        isCreditMode, setIsCreditMode, customers, selectedCustomerId, setSelectedCustomerId,
         isPaying, handlePay,
     };
 };

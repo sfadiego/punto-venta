@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
+import { useCustomerList } from "@/services/useCustomerService";
 import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
@@ -18,10 +19,13 @@ export const useSaleQuickPay = (order: IOrder) => {
     const [isOpen, setIsOpen] = useState(false);
     const [cash, setCash] = useState("");
     const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
+    const [isCreditMode, setIsCreditMode] = useState(false);
+    const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
 
     const { mutateAsync: updateOrder, isPending: isPaying } = useUpdateOrder(order.id);
     const { data: businessConfig } = useGetBusinessConfig();
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
+    const { data: customers = [] } = useCustomerList();
     const { print } = usePrintTicket(order.id);
 
     const totalFinal = order.total;
@@ -29,12 +33,17 @@ export const useSaleQuickPay = (order: IOrder) => {
     const isCashMethod = !selectedMethod || selectedMethod.name.toLowerCase().includes("efectivo");
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - totalFinal;
-    const canPay = isCashMethod
-        ? cashNum >= totalFinal && totalFinal > 0
-        : totalFinal > 0;
+    const selectedCustomer = customers.find((c) => c.id === selectedCustomerId) ?? null;
+    const canPay = isCreditMode
+        ? totalFinal > 0 && !!selectedCustomer && selectedCustomer.allow_credit
+        : isCashMethod
+            ? cashNum >= totalFinal && totalFinal > 0
+            : totalFinal > 0;
 
     const openPayModal = () => {
         setCash("");
+        setIsCreditMode(false);
+        setSelectedCustomerId(null);
         const firstActive = paymentMethods.find((m) => m.active);
         setPaymentMethodId(firstActive?.id ?? null);
         setIsOpen(true);
@@ -44,18 +53,23 @@ export const useSaleQuickPay = (order: IOrder) => {
 
     const handlePay = async () => {
         try {
+            const paymentData = isCreditMode
+                ? { is_credit: true, customer_id: selectedCustomerId }
+                : { payment_method_id: paymentMethodId };
+
             await updateOrder({
                 estatus_pedido_id: OrderStatusEnum.Closed,
-                payment_method_id: paymentMethodId,
+                ...paymentData,
             });
             queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
             queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
+            queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/list`] });
             if (sistemaId) {
                 queryClient.invalidateQueries({
                     queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`],
                 });
             }
-            toast.success("Orden cerrada exitosamente");
+            toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closePayModal();
 
             if (businessConfig?.printer_host) {
@@ -90,6 +104,11 @@ export const useSaleQuickPay = (order: IOrder) => {
         paymentMethodId,
         setPaymentMethodId,
         isCashMethod,
+        isCreditMode,
+        setIsCreditMode,
+        customers,
+        selectedCustomerId,
+        setSelectedCustomerId,
         openPayModal,
         closePayModal,
         handlePay,
