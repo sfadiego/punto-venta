@@ -43,6 +43,22 @@ class SuperAdminTest extends TestCase
             ->assertStatus(400);
     }
 
+    public function test_login_bloquea_tras_superar_el_limite_de_intentos(): void
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $this->postJson('/api/super-admin/auth/login', [
+                'email' => env('APP_SUPER_ADMIN_EMAIL'),
+                'password' => 'wrong_password',
+            ])->assertStatus(422);
+        }
+
+        // 6to intento en el mismo minuto → bloqueado por el rate limiter
+        $this->postJson('/api/super-admin/auth/login', [
+            'email' => env('APP_SUPER_ADMIN_EMAIL'),
+            'password' => 'wrong_password',
+        ])->assertStatus(429);
+    }
+
     // ── Settings ──────────────────────────────────────────────
 
     public function test_obtiene_settings(): void

@@ -10,7 +10,7 @@ use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('super-admin')->group(function () {
-    Route::post('auth/login', [SuperAdminAuthController::class, 'login']);
+    Route::post('auth/login', [SuperAdminAuthController::class, 'login'])->middleware('throttle:login');
 
     Route::middleware(['auth:sanctum', SuperAdminMiddleware::class])->group(function () {
         Route::get('error-logs', [ClientErrorController::class, 'index']);

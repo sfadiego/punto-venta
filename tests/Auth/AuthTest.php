@@ -379,4 +379,68 @@ class AuthTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonPath('status', 'error');
     }
+
+    // ── Rate limiting ─────────────────────────────────────────
+
+    public function test_login_bloquea_tras_superar_el_limite_de_intentos(): void
+    {
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->postJson('/api/auth/login', [
+                'email' => $user->email,
+                'password' => 'password_incorrecta',
+            ])->assertStatus(422);
+        }
+
+        // 6to intento en el mismo minuto → bloqueado por el rate limiter
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'password_incorrecta',
+        ])->assertStatus(429);
+    }
+
+    public function test_login_limite_es_independiente_por_email(): void
+    {
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->postJson('/api/auth/login', [
+                'email' => $user->email,
+                'password' => 'password_incorrecta',
+            ]);
+        }
+
+        // Un email distinto desde la misma IP no debe estar bloqueado
+        $this->postJson('/api/auth/login', [
+            'email' => 'otro-usuario-no-existe@test.com',
+            'password' => 'cualquiera',
+        ])->assertStatus(400);
+    }
+
+    public function test_registro_bloquea_tras_superar_el_limite_de_intentos(): void
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $this->postJson('/api/auth/register', [
+                'nombre' => 'Test',
+                'apellido_paterno' => 'User',
+                'email' => 'ratelimit'.$i.'@test.com',
+                'usuario' => 'ratelimit_'.$i,
+                'rol_id' => RoleEnum::EMPLOYE->value,
+                'password' => 'Test1234',
+                'password_confirmation' => 'Test1234',
+            ])->assertStatus(200);
+        }
+
+        // 6to registro en el mismo minuto → bloqueado por el rate limiter
+        $this->postJson('/api/auth/register', [
+            'nombre' => 'Test',
+            'apellido_paterno' => 'User',
+            'email' => 'ratelimit-extra@test.com',
+            'usuario' => 'ratelimit_extra',
+            'rol_id' => RoleEnum::EMPLOYE->value,
+            'password' => 'Test1234',
+            'password_confirmation' => 'Test1234',
+        ])->assertStatus(429);
+    }
 }
