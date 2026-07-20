@@ -97,6 +97,7 @@ class TenantUserController extends Controller
 
             if ($exists) {
                 $skipped[] = $roleName;
+
                 continue;
             }
 

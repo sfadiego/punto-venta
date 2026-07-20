@@ -309,7 +309,7 @@ class AuthTest extends TestCase
             'email' => $admin->email,
             'password' => env('APP_ADMIN_PASSWORD'),
         ])->assertStatus(403)
-          ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
+            ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
     }
 
     public function test_limite_manual_sobreescribe_limite_del_plan_permitiendo_mas_sesiones(): void
@@ -334,7 +334,7 @@ class AuthTest extends TestCase
             'email' => $admin->email,
             'password' => env('APP_ADMIN_PASSWORD'),
         ])->assertStatus(200)
-          ->assertJsonPath('status', 'OK');
+            ->assertJsonPath('status', 'OK');
     }
 
     public function test_limite_default_sin_plan_ni_max_users_es_2(): void
@@ -358,7 +358,7 @@ class AuthTest extends TestCase
             'email' => $admin->email,
             'password' => env('APP_ADMIN_PASSWORD'),
         ])->assertStatus(403)
-          ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
+            ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
     }
 
     // ── Login bloquea SuperAdmin ──────────────────────────────
