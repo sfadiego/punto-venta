@@ -16,11 +16,11 @@ class TenantUserTest extends TestCase
         return $this->authHeaders($user);
     }
 
-    private function crearTenant(): BusinessConfigModel
+    private function crearTenant(array $overrides = []): BusinessConfigModel
     {
         $slug = 'tenant-users-'.uniqid();
 
-        return BusinessConfigModel::create([
+        return BusinessConfigModel::create(array_merge([
             BusinessConfigModel::SLUG => $slug,
             BusinessConfigModel::ACTIVO => true,
             BusinessConfigModel::BUSINESS_NAME => 'Tenant Para Usuarios',
@@ -29,7 +29,7 @@ class TenantUserTest extends TestCase
             BusinessConfigModel::FONT_COLOR => '#FFFFFF',
             BusinessConfigModel::LABEL_COLOR => '#1C1917',
             BusinessConfigModel::SUBSCRIPTION_PLAN => 'lifetime',
-        ]);
+        ], $overrides));
     }
 
     private function userPayload(array $overrides = []): array

@@ -27,17 +27,6 @@ class TenantUserController extends Controller
 
     public function store(BusinessConfigModel $tenant, TenantUserStoreRequest $param): JsonResponse
     {
-        $currentCount = User::withoutGlobalScopes()
-            ->where(User::TENANT_ID, $tenant->id)
-            ->where(User::ROL_ID, '!=', RoleEnum::SUPERADMIN->value)
-            ->count();
-
-        if ($currentCount >= $tenant->effectiveMaxUsers()) {
-            return Response::error(
-                "Límite de usuarios alcanzado ({$tenant->effectiveMaxUsers()}). Actualiza el plan o ajusta el límite desde el superadmin."
-            );
-        }
-
         $user = User::create([
             User::NOMBRE => $param->nombre,
             User::APELLIDO_PATERNO => $param->apellido_paterno,
@@ -108,7 +97,6 @@ class TenantUserController extends Controller
 
             if ($exists) {
                 $skipped[] = $roleName;
-
                 continue;
             }
 

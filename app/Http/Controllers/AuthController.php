@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
-use App\Enums\SubscriptionPlanEnum;
 use App\Enums\SubscriptionStatusEnum;
 use App\Http\Middleware\TrackActivity;
 use App\Http\Requests\LoginRequest;
@@ -86,23 +85,19 @@ class AuthController extends Controller
         }
 
         if ($tenant) {
-            $plan = SubscriptionPlanEnum::tryFrom($tenant->subscription_plan ?? '');
+            $activeCount = User::where(User::TENANT_ID, $tenant->id)
+                ->where('id', '!=', $result['user']->id)
+                ->where(User::LAST_SEEN_AT, '>=', now()->subMinutes(TrackActivity::activeWindowMinutes()))
+                ->count();
 
-            if ($plan) {
-                $activeCount = User::where(User::TENANT_ID, $tenant->id)
-                    ->where('id', '!=', $result['user']->id)
-                    ->where(User::LAST_SEEN_AT, '>=', now()->subMinutes(TrackActivity::activeWindowMinutes()))
-                    ->count();
+            if ($activeCount >= $tenant->effectiveMaxUsers()) {
+                $result['user']->tokens()->latest()->first()?->delete();
 
-                if ($activeCount >= $plan->maxUsers()) {
-                    $result['user']->tokens()->latest()->first()?->delete();
-
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Se alcanzó el límite de usuarios simultáneos para tu plan. Intenta más tarde.',
-                        'code' => 'CONCURRENT_USERS_LIMIT',
-                    ], 403);
-                }
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Se alcanzó el límite de usuarios simultáneos. Intenta más tarde.',
+                    'code' => 'CONCURRENT_USERS_LIMIT',
+                ], 403);
             }
         }
 

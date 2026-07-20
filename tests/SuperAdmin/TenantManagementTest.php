@@ -82,6 +82,20 @@ class TenantManagementTest extends TestCase
         ]);
     }
 
+    public function test_crea_tenant_asigna_max_users_del_plan_inicial(): void
+    {
+        $payload = $this->tenantPayload();
+
+        $response = $this->postJson('/api/super-admin/tenant', $payload, $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        // Plan inicial es monthly → max_users = 4
+        $this->assertDatabaseHas('business_config', [
+            'id' => $response->json('data.id'),
+            'max_users' => 4,
+        ]);
+    }
+
     public function test_no_crea_tenant_sin_slug(): void
     {
         $this->postJson('/api/super-admin/tenant', $this->tenantPayload(['slug' => '']), $this->superAdminHeaders())
@@ -210,6 +224,52 @@ class TenantManagementTest extends TestCase
             'label_color' => '#1C1917',
         ], $this->superAdminHeaders())
             ->assertStatus(200);
+    }
+
+    public function test_actualiza_max_users_del_tenant(): void
+    {
+        $payload = $this->tenantPayload();
+        $id = $this->postJson('/api/super-admin/tenant', $payload, $this->superAdminHeaders())->json('data.id');
+
+        $this->putJson("/api/super-admin/tenant/{$id}", [
+            'slug' => $payload['slug'],
+            'business_name' => 'Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'max_users' => 5,
+        ], $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertDatabaseHas('business_config', ['id' => $id, 'max_users' => 5]);
+    }
+
+    public function test_actualiza_max_users_a_cualquier_valor_incluso_menor_al_conteo(): void
+    {
+        // El límite controla sesiones concurrentes, no cuentas — puede ser menor al número de cuentas
+        $payload = $this->tenantPayload();
+        $id = $this->postJson('/api/super-admin/tenant', $payload, $this->superAdminHeaders())->json('data.id');
+
+        $tenant = BusinessConfigModel::find($id);
+        User::factory()->count(3)->create([
+            'rol_id' => \App\Enums\RoleEnum::EMPLOYE->value,
+            'tenant_id' => $tenant->id,
+        ]);
+
+        // 4 cuentas en total, límite fijado en 1 → debe aceptarse (controla sesiones, no cuentas)
+        $this->putJson("/api/super-admin/tenant/{$id}", [
+            'slug' => $payload['slug'],
+            'business_name' => 'Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'max_users' => 1,
+        ], $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertDatabaseHas('business_config', ['id' => $id, 'max_users' => 1]);
     }
 
     public function test_no_actualiza_sin_autenticacion(): void
