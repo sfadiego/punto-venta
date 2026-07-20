@@ -1,5 +1,6 @@
 import { Eraser } from "lucide-react";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
+import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
 import { ModalCartItem } from "./useSellByWeightSaleModal";
 import { NewSaleCartItem } from "./NewSaleCartItem";
 import { NewSaleCartFooter } from "./NewSaleCartFooter";
@@ -21,7 +22,7 @@ interface NewSaleCartPanelProps {
     getDisplayQty: (productId: number, cantidad: number) => string;
     handleQtyChange: (productId: number, value: string) => void;
     handleQtyBlur: (productId: number) => void;
-    getItemMode: (productId: number, product: IProduct) => 'weight' | 'price';
+    getItemMode: (productId: number, product: IProduct) => WeightInputModeEnum;
     toggleItemMode: (productId: number, product: IProduct) => void;
     getDisplayPrice: (productId: number, item: ModalCartItem) => string;
     handlePriceChange: (productId: number, value: string) => void;

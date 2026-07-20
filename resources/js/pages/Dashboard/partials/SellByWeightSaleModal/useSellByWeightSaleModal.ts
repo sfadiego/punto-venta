@@ -16,6 +16,7 @@ import { IProduct } from "@/models/IProduct";
 import { IOrder } from "@/models/IOrder";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
+import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { calcDeliveryTotal, calcCostoDomicilio } from "@/utils/deliveryCalc";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
@@ -75,11 +76,11 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     const [cart, setCart] = useState<ModalCartItem[]>([]);
     const [editingQtys, setEditingQtys] = useState<Record<number, string>>({});
     const [editingPrices, setEditingPrices] = useState<Record<number, string>>({});
-    const [itemModes, setItemModes] = useState<Record<number, 'weight' | 'price'>>({});
+    const [itemModes, setItemModes] = useState<Record<number, WeightInputModeEnum>>({});
 
     // Refs to always access latest values in async handlers (avoid stale closures)
     const cartRef = useRef<ModalCartItem[]>([]);
-    const itemModesRef = useRef<Record<number, 'weight' | 'price'>>({});
+    const itemModesRef = useRef<Record<number, WeightInputModeEnum>>({});
     const editingPricesRef = useRef<Record<number, string>>({});
     cartRef.current = cart;
     itemModesRef.current = itemModes;
@@ -114,13 +115,13 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             const items = mapOrderProducts(fullOrder.order_products);
             setCart(items);
             // Infer price mode: weight products where stored price differs from catalog price
-            const modes: Record<number, 'weight' | 'price'> = {};
+            const modes: Record<number, WeightInputModeEnum> = {};
             items.forEach((item) => {
                 const isWeightUnit =
                     item.product.unidad_medida === UnidadMedidaEnum.Kg ||
                     item.product.unidad_medida === UnidadMedidaEnum.Gr;
                 if (isWeightUnit && item.precioEfectivo !== item.product.precio) {
-                    modes[item.productId] = 'price';
+                    modes[item.productId] = WeightInputModeEnum.Price;
                 }
             });
             setItemModes(modes);
@@ -165,13 +166,16 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     const isPesoProduct = (product: IProduct) =>
         product.unidad_medida === UnidadMedidaEnum.Kg || product.unidad_medida === UnidadMedidaEnum.Gr;
 
-    const getItemMode = (productId: number, product: IProduct): 'weight' | 'price' =>
-        isPesoProduct(product) ? (itemModes[productId] ?? 'weight') : 'weight';
+    const getItemMode = (productId: number, product: IProduct): WeightInputModeEnum =>
+        isPesoProduct(product) ? (itemModes[productId] ?? WeightInputModeEnum.Weight) : WeightInputModeEnum.Weight;
 
     const toggleItemMode = (productId: number, product: IProduct) => {
         if (!isPesoProduct(product)) return;
         const current = getItemMode(productId, product);
-        setItemModes(prev => ({ ...prev, [productId]: current === 'weight' ? 'price' : 'weight' }));
+        setItemModes(prev => ({
+            ...prev,
+            [productId]: current === WeightInputModeEnum.Weight ? WeightInputModeEnum.Price : WeightInputModeEnum.Weight,
+        }));
         setEditingQtys(prev => { const n = { ...prev }; delete n[productId]; return n; });
         setEditingPrices(prev => { const n = { ...prev }; delete n[productId]; return n; });
     };
@@ -420,7 +424,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             const priceModeFlush = cartRef.current
                 .filter((item) => {
                     const pending = editingPricesRef.current[item.productId];
-                    return itemModesRef.current[item.productId] === 'price' && pending !== undefined;
+                    return itemModesRef.current[item.productId] === WeightInputModeEnum.Price && pending !== undefined;
                 })
                 .map((item) => {
                     const pending = editingPricesRef.current[item.productId]!;

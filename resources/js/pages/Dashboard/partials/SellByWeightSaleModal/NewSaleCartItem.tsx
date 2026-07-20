@@ -1,7 +1,9 @@
 import { Trash2 } from "lucide-react";
 import { ModalCartItem } from "./useSellByWeightSaleModal";
 import { UNIDAD_LABELS, UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
+import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
 import { calcWeightFromPrice } from "@/utils/calcWeightFromPrice";
+import { WeightModeToggle } from "@/components/ui/WeightModeToggle";
 
 const isPeso = (item: ModalCartItem) =>
     item.product.unidad_medida === UnidadMedidaEnum.Kg ||
@@ -9,7 +11,7 @@ const isPeso = (item: ModalCartItem) =>
 
 interface NewSaleCartItemProps {
     item: ModalCartItem;
-    mode: 'weight' | 'price';
+    mode: WeightInputModeEnum;
     displayQty: string;
     displayPrice: string;
     onModeToggle: () => void;
@@ -43,35 +45,19 @@ export const NewSaleCartItem = ({
                 </p>
 
                 {canToggle && (
-                    <div className="flex rounded border border-stone-200 text-[10px] font-semibold overflow-hidden shrink-0">
-                        <button
-                            type="button"
-                            onClick={onModeToggle}
-                            className={`px-1.5 py-0.5 transition-colors ${
-                                mode === 'weight'
-                                    ? 'bg-amber-500 text-white'
-                                    : 'bg-white text-stone-400 hover:bg-stone-50'
-                            }`}
-                        >
-                            {unitLabel}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onModeToggle}
-                            className={`px-1.5 py-0.5 border-l border-stone-200 transition-colors ${
-                                mode === 'price'
-                                    ? 'bg-amber-500 text-white'
-                                    : 'bg-white text-stone-400 hover:bg-stone-50'
-                            }`}
-                        >
-                            $
-                        </button>
-                    </div>
+                    <WeightModeToggle
+                        mode={mode}
+                        weightLabel={unitLabel}
+                        onSelectWeight={onModeToggle}
+                        onSelectPrice={onModeToggle}
+                        color="amber"
+                        size="sm"
+                    />
                 )}
             </div>
 
             <div className="flex items-center gap-1.5 shrink-0">
-                {mode === 'weight' ? (
+                {mode === WeightInputModeEnum.Weight ? (
                     <>
                         <input
                             type="number"

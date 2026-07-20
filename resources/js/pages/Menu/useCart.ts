@@ -67,6 +67,18 @@ export const useCart = () => {
         );
     };
 
+    const addWithWeight = (product: IMenuProduct, weight: number) => {
+        setItems((prev) => {
+            const existing = prev.find((i) => i.product.id === product.id);
+            if (existing) {
+                return prev.map((i) =>
+                    i.product.id === product.id ? { ...i, cantidad: round3(weight) } : i
+                );
+            }
+            return [...prev, { product, cantidad: round3(weight), observacion: null }];
+        });
+    };
+
     const deleteItem = (productId: number) =>
         setItems((prev) => prev.filter((i) => i.product.id !== productId));
 
@@ -81,5 +93,5 @@ export const useCart = () => {
         return isWeightUnit(i.product.unidad_medida) ? sum + 1 : sum + i.cantidad;
     }, 0);
 
-    return { items, add, remove, deleteItem, setWeight, clear, quantityOf, total, count, setNote };
+    return { items, add, addWithWeight, remove, deleteItem, setWeight, clear, quantityOf, total, count, setNote };
 };
