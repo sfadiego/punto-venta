@@ -11,7 +11,6 @@ use App\Models\CustomerModel;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
-use App\Models\OrderStatusModel;
 use App\Models\ProductModel;
 use App\Models\User;
 use Tests\TestCase;
