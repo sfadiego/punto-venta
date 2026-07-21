@@ -1,6 +1,6 @@
 import { DataTable } from "mantine-datatable";
 import type { DataTableColumn } from "mantine-datatable";
-import { Building2, CreditCard, Clock, CheckCircle, XCircle, MinusCircle } from "lucide-react";
+import { Building2, CreditCard, Clock, CheckCircle, XCircle, MinusCircle, Receipt } from "lucide-react";
 import { ITenantWithSubscription } from "@/models/ISubscription";
 import { SubscriptionStatusEnum } from "@/enums/SubscriptionStatusEnum";
 import { PLAN_LABELS } from "@/enums/SubscriptionPlanEnum";
@@ -16,9 +16,10 @@ interface SubscriptionTableProps {
     records: ITenantWithSubscription[];
     isLoading: boolean;
     onRegisterPayment: (tenant: ITenantWithSubscription) => void;
+    onViewHistory: (tenant: ITenantWithSubscription) => void;
 }
 
-export const SubscriptionTable = ({ records, isLoading, onRegisterPayment }: SubscriptionTableProps) => {
+export const SubscriptionTable = ({ records, isLoading, onRegisterPayment, onViewHistory }: SubscriptionTableProps) => {
     const columns: DataTableColumn<ITenantWithSubscription>[] = [
         {
             accessor: "business_name",
@@ -88,13 +89,23 @@ export const SubscriptionTable = ({ records, isLoading, onRegisterPayment }: Sub
             accessor: "_acciones",
             title: "",
             render: (row) => (
-                <button
-                    onClick={() => onRegisterPayment(row)}
-                    className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 px-2.5 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors whitespace-nowrap"
-                >
-                    <CreditCard size={13} />
-                    Registrar pago
-                </button>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => onRegisterPayment(row)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 px-2.5 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors whitespace-nowrap"
+                    >
+                        <CreditCard size={13} />
+                        Registrar pago
+                    </button>
+                    <button
+                        onClick={() => onViewHistory(row)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors whitespace-nowrap"
+                        title="Ver historial de pagos"
+                    >
+                        <Receipt size={13} />
+                        Historial
+                    </button>
+                </div>
             ),
         },
     ];

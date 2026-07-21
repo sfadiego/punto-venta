@@ -4,6 +4,7 @@ import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { useTenantForm } from "./useTenantForm";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { UserLimitSection } from "@/components/SuperAdmin/Tenants/UserLimitSection";
+import { SubscriptionAmountSection } from "@/components/SuperAdmin/Tenants/SubscriptionAmountSection";
 import { ActiveUsersDetail } from "@/components/SuperAdmin/Tenants/ActiveUsersBadge";
 import { TenantBusinessSection } from "@/components/SuperAdmin/Tenants/TenantBusinessSection";
 import { TenantColorsSection } from "@/components/SuperAdmin/Tenants/TenantColorsSection";
@@ -76,6 +77,13 @@ export default function TenantFormPage() {
                             subscriptionPlan={tenantDetail.subscription_plan}
                             usersCount={tenantDetail.users_count ?? 0}
                             planDefaultMaxUsers={tenantDetail.plan_default_max_users}
+                        />
+                    )}
+
+                    {isEdit && tenantDetail && (
+                        <SubscriptionAmountSection
+                            amount={formik.values.subscription_amount}
+                            onAmountChange={(v) => formik.setFieldValue("subscription_amount", v)}
                         />
                     )}
 

@@ -35,7 +35,9 @@ function SubscriptionPage() {
                         isLifetime={data.plan === "lifetime"}
                     />
 
-                    {data.payment_info && <PaymentInfoCard info={data.payment_info} />}
+                    {data.payment_info && (
+                        <PaymentInfoCard info={data.payment_info} amountDue={data.amount_due} />
+                    )}
 
                     <RenewalCard whatsappUrl={whatsappUrl} />
                 </div>

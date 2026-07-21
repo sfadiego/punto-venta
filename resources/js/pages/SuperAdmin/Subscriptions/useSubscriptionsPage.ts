@@ -6,6 +6,7 @@ import { useListSubscriptions } from "@/services/useSubscriptionService";
 export const useSubscriptionsPage = () => {
     const [statusFilter, setStatusFilter] = useState<SubscriptionStatusEnum | "">("");
     const [selectedTenant, setSelectedTenant] = useState<ITenantWithSubscription | null>(null);
+    const [historyTenant, setHistoryTenant] = useState<ITenantWithSubscription | null>(null);
 
     const { data = [], isLoading } = useListSubscriptions(
         statusFilter ? (statusFilter as SubscriptionStatusEnum) : undefined,
@@ -18,6 +19,9 @@ export const useSubscriptionsPage = () => {
     const openModal  = (tenant: ITenantWithSubscription) => setSelectedTenant(tenant);
     const closeModal = () => setSelectedTenant(null);
 
+    const openHistory  = (tenant: ITenantWithSubscription) => setHistoryTenant(tenant);
+    const closeHistory = () => setHistoryTenant(null);
+
     const summary = {
         total:   data.length,
         active:  data.filter((t) => t.subscription_status === SubscriptionStatusEnum.Active).length,
@@ -26,5 +30,10 @@ export const useSubscriptionsPage = () => {
         grace:   data.filter((t) => t.subscription_status === SubscriptionStatusEnum.Grace).length,
     };
 
-    return { filtered, isLoading, statusFilter, setStatusFilter, selectedTenant, openModal, closeModal, summary };
+    return {
+        filtered, isLoading, statusFilter, setStatusFilter,
+        selectedTenant, openModal, closeModal,
+        historyTenant, openHistory, closeHistory,
+        summary,
+    };
 };
