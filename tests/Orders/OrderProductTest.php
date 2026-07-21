@@ -93,6 +93,80 @@ class OrderProductTest extends TestCase
             ->assertStatus(400);
     }
 
+    // ── Totales de orden ─────────────────────────────────────
+
+    public function test_agrega_producto_actualiza_total_de_orden(): void
+    {
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto(); // precio = 45
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD    => 2,
+            OrderProductModel::PRECIO      => 45,
+            OrderProductModel::DESCUENTO   => 0,
+        ], $this->authHeaders())->assertStatus(200);
+
+        $orden->refresh();
+        $this->assertEquals(90.0, (float) $orden->subtotal);
+        $this->assertEquals(90.0, (float) $orden->total);
+    }
+
+    public function test_agregar_mismo_producto_acumula_total(): void
+    {
+        $orden   = $this->crearOrden();
+        $product = $this->crearProducto(); // precio = 45
+
+        $payload = [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD    => 1,
+            OrderProductModel::PRECIO      => 45,
+            OrderProductModel::DESCUENTO   => 0,
+        ];
+
+        $this->postJson("/api/order/{$orden->id}/product", $payload, $this->authHeaders())->assertStatus(200);
+        $this->postJson("/api/order/{$orden->id}/product", $payload, $this->authHeaders())->assertStatus(200);
+
+        $orden->refresh();
+        $this->assertEquals(90.0, (float) $orden->subtotal);
+        $this->assertEquals(90.0, (float) $orden->total);
+        $this->assertDatabaseHas('order_product', ['pedido_id' => $orden->id, 'cantidad' => 2]);
+    }
+
+    public function test_agrega_extra_actualiza_total_de_orden(): void
+    {
+        $orden = $this->crearOrden();
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::NOMBRE_EXTRA => 'Salsa extra',
+            OrderProductModel::CANTIDAD     => 1,
+            OrderProductModel::PRECIO       => 15,
+            OrderProductModel::DESCUENTO    => 0,
+        ], $this->authHeaders())->assertStatus(200);
+
+        $orden->refresh();
+        $this->assertEquals(15.0, (float) $orden->subtotal);
+        $this->assertEquals(15.0, (float) $orden->total);
+    }
+
+    public function test_agrega_producto_con_descuento_de_orden_aplica_correctamente(): void
+    {
+        $orden = $this->crearOrden();
+        $orden->update([OrderModel::DESCUENTO => 10]); // 10% descuento en toda la orden
+        $product = $this->crearProducto(); // precio = 45
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD    => 2,
+            OrderProductModel::PRECIO      => 45,
+            OrderProductModel::DESCUENTO   => 0,
+        ], $this->authHeaders())->assertStatus(200);
+
+        $orden->refresh();
+        $this->assertEquals(90.0, (float) $orden->subtotal);
+        $this->assertEquals(81.0, (float) $orden->total); // 90 - 10%
+    }
+
     // ── Show ─────────────────────────────────────────────────
 
     public function test_muestra_producto_en_orden(): void

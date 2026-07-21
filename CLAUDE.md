@@ -437,3 +437,7 @@ const printerVisible = import.meta.env.VITE_APP_ENV === "local" || config?.print
 ### Testing
 - Los test se van a crear para probar las apis existentes en `php artisan route:list`
 - no crear funciones nuevas para crear archivos, utiza factory en los metodos que lo requieran
+
+### PHP — imports y referencias de clases
+- Nunca referenciar clases con el namespace completo inline (ej. `\App\Models\ErrorReporting::where(...)`). Siempre declarar el `use` al inicio del archivo y usar solo el nombre corto (ej. `use App\Models\ErrorReporting;` → `ErrorReporting::where(...)`).
+- Esto aplica en controladores, servicios, tests y cualquier archivo PHP.
