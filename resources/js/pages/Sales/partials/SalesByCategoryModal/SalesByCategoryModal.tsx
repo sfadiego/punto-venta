@@ -56,7 +56,7 @@ export const SalesByCategoryModal = ({
                         </div>
                     ) : data.length === 0 ? (
                         <p className="text-sm text-stone-400 text-center py-8">
-                            Sin ventas en esta sesión
+                            Sin ventas registradas
                         </p>
                     ) : (
                         <div className="space-y-3">

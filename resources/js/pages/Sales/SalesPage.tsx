@@ -38,7 +38,7 @@ export default function SalesPage() {
                     categoriaId={categoriaId}
                     categories={categories}
                     sellByWeight={sellByWeight}
-                    showCategoryReport={sellByWeight && !!categoryModal.sistemaId}
+                    showCategoryReport={sellByWeight}
                     onFechaChange={handleFechaChange}
                     onCategoriaChange={handleCategoriaChange}
                     onCategoryReport={categoryModal.open}

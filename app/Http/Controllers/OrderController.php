@@ -87,8 +87,12 @@ class OrderController extends Controller
 
     public function salesByCategory(Request $request, OrderSaleService $saleService): JsonResponse
     {
-        $sistemaId = (int) $request->query('sistema_id', 0);
+        $sistemaId = $request->query('sistema_id') ? (int) $request->query('sistema_id') : null;
         $date = $request->query('fecha');
+
+        if (! $sistemaId && ! $date) {
+            return Response::error('Se requiere sistema_id o fecha.');
+        }
 
         return Response::success($saleService->salesByCategory($sistemaId, $date));
     }

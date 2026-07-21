@@ -3,6 +3,7 @@ import { useAxios } from "@/hooks/useAxios";
 import { useBestSeller } from "@/services/useStatisticsService";
 import { useCurrentTotalSale } from "@/services/useOpenSalesService";
 import { formatCurrency } from "@/utils/formatCurrency";
+import { formatTotal } from "@/utils/formatUnits";
 
 const currentMonth = () => {
     const now = new Date();
@@ -19,12 +20,17 @@ const formatMonth = (month: string) =>
 
 export const useStatisticsPage = () => {
     const [month, setMonth] = useState<string>(currentMonth());
-    const { sistemaId } = useAxios();
+    const { sistemaId, features } = useAxios();
 
     const { data: bestSellers = [], isLoading } = useBestSeller(month);
     const { data: totalVentasRaw } = useCurrentTotalSale(sistemaId);
 
     const totalVentas = formatCurrency(totalVentasRaw?.neto ?? 0);
+
+    const topProduct = bestSellers[0];
+    const allSameUnit = bestSellers.length > 0 && bestSellers.every((i) => i.unidad_medida === bestSellers[0].unidad_medida);
+    const totalUnits = bestSellers.reduce((sum, item) => sum + item.total, 0);
+    const totalLabel = allSameUnit ? formatTotal(totalUnits, bestSellers[0].unidad_medida) : `${totalUnits}`;
 
     return {
         month,
@@ -34,5 +40,8 @@ export const useStatisticsPage = () => {
         totalVentas,
         cajaAbierta: !!sistemaId,
         handleMonthChange: (value: string) => setMonth(value),
+        topProduct,
+        totalLabel,
+        sellByWeight: features?.sell_by_weight === true,
     };
 };
