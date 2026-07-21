@@ -17,12 +17,15 @@ interface CartPanelProps {
     isLoading: boolean;
     isReadOnly?: boolean;
     pendingProductIds?: Set<number>;
-    onUpdate: (productId: number, delta: number) => void;
+    onUpdate: (orderProductId: number, delta: number) => void;
     onRemove: (orderProductId: number) => void;
     onNote: (orderProductId: number, note: string) => Promise<void>;
     onClear: () => void;
     onUpdateDiscount: (descuento: number) => Promise<void>;
-    onUpdateProductDiscount: (productId: number, descuento: number) => Promise<void>;
+    onUpdateProductDiscount: (
+        orderProductId: number,
+        descuento: number,
+    ) => Promise<void>;
 }
 
 export const CartPanel = ({
@@ -106,11 +109,17 @@ export const CartPanel = ({
                                     key={item.orderProductId}
                                     item={item}
                                     isReadOnly={isReadOnly}
-                                    isPending={item.id !== null && (pendingProductIds?.has(item.id) ?? false)}
+                                    isPending={
+                                        pendingProductIds?.has(
+                                            item.orderProductId,
+                                        ) ?? false
+                                    }
                                     onUpdate={onUpdate}
                                     onRemove={onRemove}
                                     onNote={onNote}
-                                    onUpdateProductDiscount={onUpdateProductDiscount}
+                                    onUpdateProductDiscount={
+                                        onUpdateProductDiscount
+                                    }
                                 />
                             ))}
                         </div>

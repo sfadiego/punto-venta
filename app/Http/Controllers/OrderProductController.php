@@ -54,10 +54,9 @@ class OrderProductController extends Controller
         $orderDiscount = $order->descuento ?? 0;
         $itemDescuento = $params->descuento ?? 0;
 
+        // Retry up to 3 times on deadlock (InnoDB 1213). The order total update
+        // is a single atomic SQL increment so no lock on the order row is needed.
         [$data, $deltaSubtotal] = DB::transaction(function () use ($orderId, $params, $itemDescuento, $orderDiscount) {
-            // Lock the order row first to prevent concurrent updates from causing deadlocks
-            DB::table('order')->where('id', $orderId)->lockForUpdate()->first();
-
             if ($params->nombre_extra) {
                 $created = OrderProductModel::create([
                     OrderProductModel::PEDIDO_ID => $orderId,
@@ -66,41 +65,17 @@ class OrderProductController extends Controller
                     OrderProductModel::PRECIO => $params->precio,
                     OrderProductModel::DESCUENTO => $itemDescuento,
                 ]);
-                $delta = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
             } else {
-                $existing = OrderProductModel::where('pedido_id', $orderId)
-                    ->where('producto_id', $params->producto_id)
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($existing) {
-                    $oldLineSubtotal = round($existing->precio * $existing->cantidad * (1 - $existing->descuento / 100), 2);
-                    $newQty = $existing->cantidad + $params->cantidad;
-                    $existing->update([
-                        OrderProductModel::CANTIDAD => $newQty,
-                        OrderProductModel::PRECIO => $params->precio,
-                        OrderProductModel::DESCUENTO => $itemDescuento,
-                        OrderProductModel::IS_READY => false,
-                    ]);
-                    $newLineSubtotal = round($params->precio * $newQty * (1 - $itemDescuento / 100), 2);
-                    $delta = $newLineSubtotal - $oldLineSubtotal;
-                    $created = $existing->refresh();
-
-                    try {
-                        OrdersUpdated::dispatch('product_updated', (int) $orderId);
-                    } catch (\Throwable) {
-                    }
-                } else {
-                    $created = OrderProductModel::create([
-                        OrderProductModel::PRODUCTO_ID => $params->producto_id,
-                        OrderProductModel::PEDIDO_ID => $orderId,
-                        OrderProductModel::CANTIDAD => $params->cantidad,
-                        OrderProductModel::PRECIO => $params->precio,
-                        OrderProductModel::DESCUENTO => $itemDescuento,
-                    ]);
-                    $delta = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
-                }
+                $created = OrderProductModel::create([
+                    OrderProductModel::PRODUCTO_ID => $params->producto_id,
+                    OrderProductModel::PEDIDO_ID => $orderId,
+                    OrderProductModel::CANTIDAD => $params->cantidad,
+                    OrderProductModel::PRECIO => $params->precio,
+                    OrderProductModel::DESCUENTO => $itemDescuento,
+                    OrderProductModel::IS_READY => false,
+                ]);
             }
+            $delta = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
 
             $deltaTotal = round($delta * (1 - $orderDiscount / 100), 2);
 
@@ -110,7 +85,7 @@ class OrderProductController extends Controller
             ]);
 
             return [$created, $delta];
-        });
+        }, 3);
 
         $this->resetStatusIfReady($order->fresh());
 
@@ -124,7 +99,7 @@ class OrderProductController extends Controller
     public function update(string $orderId, string $productId, OrderProductUpdateRequest $params): JsonResponse
     {
         $orderProduct = OrderProductModel::where('pedido_id', $orderId)
-            ->where('producto_id', $productId)
+            ->where('id', $productId)
             ->first();
 
         if (! $orderProduct) {

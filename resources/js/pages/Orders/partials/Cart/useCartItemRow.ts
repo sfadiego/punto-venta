@@ -3,7 +3,10 @@ import { CartItem } from "../../useTakeOrder";
 
 export const useCartItemRow = (
     item: CartItem,
-    onUpdateProductDiscount: (productId: number, descuento: number) => Promise<void>,
+    onUpdateProductDiscount: (
+        orderProductId: number,
+        descuento: number,
+    ) => Promise<void>,
 ) => {
     const [editingDiscount, setEditingDiscount] = useState(false);
     const [discountInput, setDiscountInput] = useState("");
@@ -23,7 +26,8 @@ export const useCartItemRow = (
     const applyProductDiscount = async () => {
         const val = Math.min(99, Math.max(0, parseInt(discountInput) || 0));
         setEditingDiscount(false);
-        if (val !== item.descuento && item.id !== null) await onUpdateProductDiscount(item.id, val);
+        if (val !== item.descuento && !item.isExtra)
+            await onUpdateProductDiscount(item.orderProductId, val);
     };
 
     const handleDiscountKeyDown = (e: React.KeyboardEvent) => {
@@ -33,7 +37,8 @@ export const useCartItemRow = (
 
     const clearProductDiscount = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (item.id !== null) await onUpdateProductDiscount(item.id, 0);
+        if (!item.isExtra)
+            await onUpdateProductDiscount(item.orderProductId, 0);
     };
 
     return {

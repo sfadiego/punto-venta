@@ -7,10 +7,13 @@ interface CartItemRowProps {
     item: CartItem;
     isReadOnly?: boolean;
     isPending?: boolean;
-    onUpdate: (productId: number, delta: number) => void;
+    onUpdate: (orderProductId: number, delta: number) => void;
     onRemove: (orderProductId: number) => void;
     onNote: (orderProductId: number, note: string) => Promise<void>;
-    onUpdateProductDiscount: (productId: number, descuento: number) => Promise<void>;
+    onUpdateProductDiscount: (
+        orderProductId: number,
+        descuento: number,
+    ) => Promise<void>;
 }
 
 export const CartItemRow = ({
@@ -40,7 +43,9 @@ export const CartItemRow = ({
             <div className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                        <p className="text-stone-900 text-sm font-medium truncate">{item.name}</p>
+                        <p className="text-stone-900 text-sm font-medium truncate">
+                            {item.name}
+                        </p>
                         {item.isExtra && (
                             <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-600">
                                 Extra
@@ -48,16 +53,24 @@ export const CartItemRow = ({
                         )}
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                        <p className={`text-xs tabular-nums ${item.descuento > 0 ? "line-through text-stone-300" : "text-stone-400"}`}>
+                        <p
+                            className={`text-xs tabular-nums ${item.descuento > 0 ? "line-through text-stone-300" : "text-stone-400"}`}
+                        >
                             ${item.price.toFixed(2)} c/u
                         </p>
                         {item.descuento > 0 && (
                             <p className="text-xs text-emerald-600 tabular-nums">
-                                ${(item.price * (1 - item.descuento / 100)).toFixed(2)} c/u
+                                $
+                                {(
+                                    item.price *
+                                    (1 - item.descuento / 100)
+                                ).toFixed(2)}{" "}
+                                c/u
                             </p>
                         )}
-                        {canDiscount && !isReadOnly && (
-                            editingDiscount ? (
+                        {canDiscount &&
+                            !isReadOnly &&
+                            (editingDiscount ? (
                                 <div className="flex items-center gap-0.5">
                                     <input
                                         ref={discountInputRef}
@@ -65,13 +78,17 @@ export const CartItemRow = ({
                                         min={0}
                                         max={99}
                                         value={discountInput}
-                                        onChange={(e) => setDiscountInput(e.target.value)}
+                                        onChange={(e) =>
+                                            setDiscountInput(e.target.value)
+                                        }
                                         onBlur={applyProductDiscount}
                                         onKeyDown={handleDiscountKeyDown}
                                         placeholder="0"
                                         className="w-10 text-right text-xs border border-amber-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-amber-400 bg-white tabular-nums"
                                     />
-                                    <span className="text-stone-400 text-xs">%</span>
+                                    <span className="text-stone-400 text-xs">
+                                        %
+                                    </span>
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-0.5">
@@ -83,7 +100,11 @@ export const CartItemRow = ({
                                                 : "text-stone-300 hover:text-stone-500"
                                         }`}
                                     >
-                                        {item.descuento > 0 ? `${item.descuento}%` : <Tag size={10} />}
+                                        {item.descuento > 0 ? (
+                                            `${item.descuento}%`
+                                        ) : (
+                                            <Tag size={10} />
+                                        )}
                                     </button>
                                     {item.descuento > 0 && (
                                         <button
@@ -94,8 +115,7 @@ export const CartItemRow = ({
                                         </button>
                                     )}
                                 </div>
-                            )
-                        )}
+                            ))}
                         {canDiscount && isReadOnly && item.descuento > 0 && (
                             <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-medium">
                                 {item.descuento}%
@@ -105,17 +125,28 @@ export const CartItemRow = ({
                 </div>
                 <div className="flex items-center gap-1">
                     <button
-                        onClick={() => !item.isExtra && item.id !== null && onUpdate(item.id, -1)}
+                        onClick={() =>
+                            !item.isExtra && onUpdate(item.orderProductId, -1)
+                        }
                         disabled={isReadOnly || item.isExtra || isPending}
                         className="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                     >
                         <Minus size={12} className="text-stone-600" />
                     </button>
                     <span className="w-6 text-center text-sm font-bold text-stone-900 tabular-nums">
-                        {isPending ? <Loader size={12} className="animate-spin text-amber-500 mx-auto" /> : item.quantity}
+                        {isPending ? (
+                            <Loader
+                                size={12}
+                                className="animate-spin text-amber-500 mx-auto"
+                            />
+                        ) : (
+                            item.quantity
+                        )}
                     </span>
                     <button
-                        onClick={() => !item.isExtra && item.id !== null && onUpdate(item.id, 1)}
+                        onClick={() =>
+                            !item.isExtra && onUpdate(item.orderProductId, 1)
+                        }
                         disabled={isReadOnly || item.isExtra || isPending}
                         className="w-7 h-7 rounded-lg bg-amber-100 hover:bg-amber-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                     >

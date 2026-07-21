@@ -17,7 +17,7 @@ import {
 
 export type CartItem = {
     orderProductId: number; // order_product.id — key for remove/update
-    id: number | null;      // producto_id (null for extras)
+    id: number | null; // producto_id (null for extras)
     name: string;
     price: number;
     quantity: number;
@@ -32,7 +32,9 @@ export const useTakeOrder = () => {
     const orderId = Number(id);
     const queryClient = useQueryClient();
     const pendingRef = useRef(new Set<number>());
-    const [pendingProductIds, setPendingProductIds] = useState<Set<number>>(new Set());
+    const [pendingProductIds, setPendingProductIds] = useState<Set<number>>(
+        new Set(),
+    );
 
     const orderQueryKey = `${ApiRoutes.Orders}/${orderId}`;
     const invalidateOrder = () =>
@@ -40,8 +42,12 @@ export const useTakeOrder = () => {
 
     const { data: order, isLoading: loadingOrder } = useShowOrder(orderId);
 
-    const editableStatuses = [OrderStatusEnum.InProcess, OrderStatusEnum.Served];
-    const isReadOnly = !!order && !editableStatuses.includes(order.estatus_pedido_id);
+    const editableStatuses = [
+        OrderStatusEnum.InProcess,
+        OrderStatusEnum.Served,
+    ];
+    const isReadOnly =
+        !!order && !editableStatuses.includes(order.estatus_pedido_id);
 
     const cart: CartItem[] = (order?.order_products ?? []).map((op) => ({
         orderProductId: op.id!,
@@ -61,13 +67,22 @@ export const useTakeOrder = () => {
     const { mutateAsync: deleteItem } = useDeleteItemFromOrder(orderId);
     const { mutateAsync: updateOrder } = useUpdateOrder(orderId);
     // Add regular product (click on ProductCard)
-    const addToCart = async (productId: number, _name: string, price: number) => {
+    const addToCart = async (
+        productId: number,
+        _name: string,
+        price: number,
+    ) => {
         if (isReadOnly || pendingRef.current.has(productId)) return;
         pendingRef.current.add(productId);
         setPendingProductIds(new Set(pendingRef.current));
         try {
             await addProduct(
-                { producto_id: productId, cantidad: 1, precio: price, descuento: 0 },
+                {
+                    producto_id: productId,
+                    cantidad: 1,
+                    precio: price,
+                    descuento: 0,
+                },
                 { onSuccess: invalidateOrder },
             );
         } catch (error) {
@@ -80,7 +95,11 @@ export const useTakeOrder = () => {
     };
 
     // Add custom extra (no producto_id)
-    const addExtra = async (nombre: string, precio: number, cantidad: number) => {
+    const addExtra = async (
+        nombre: string,
+        precio: number,
+        cantidad: number,
+    ) => {
         if (isReadOnly) return;
         try {
             await addProduct(
@@ -94,19 +113,23 @@ export const useTakeOrder = () => {
     };
 
     // Update quantity — only valid for regular products
-    const updateQuantity = async (productId: number, delta: number) => {
-        if (isReadOnly || pendingRef.current.has(productId)) return;
-        const existing = cart.find((item) => item.id === productId);
+    const updateQuantity = async (orderProductId: number, delta: number) => {
+        if (isReadOnly || pendingRef.current.has(orderProductId)) return;
+        const existing = cart.find(
+            (item) => item.orderProductId === orderProductId,
+        );
         if (!existing) return;
         const newQty = existing.quantity + delta;
-        pendingRef.current.add(productId);
+        pendingRef.current.add(orderProductId);
         setPendingProductIds(new Set(pendingRef.current));
         try {
             if (newQty <= 0) {
-                await deleteItem(existing.orderProductId, { onSuccess: invalidateOrder });
+                await deleteItem(existing.orderProductId, {
+                    onSuccess: invalidateOrder,
+                });
             } else {
                 await updateProduct(
-                    { productId, data: { cantidad: newQty } },
+                    { orderProductId, data: { cantidad: newQty } },
                     { onSuccess: invalidateOrder },
                 );
             }
@@ -114,13 +137,16 @@ export const useTakeOrder = () => {
             logUnexpectedError(error, "useTakeOrder.updateQuantity");
             toast.error("Error al actualizar producto");
         } finally {
-            pendingRef.current.delete(productId);
+            pendingRef.current.delete(orderProductId);
             setPendingProductIds(new Set(pendingRef.current));
         }
     };
 
     // Save observation on any item (product or extra) by orderProductId
-    const saveObservacion = async (orderProductId: number, observacion: string) => {
+    const saveObservacion = async (
+        orderProductId: number,
+        observacion: string,
+    ) => {
         if (isReadOnly) return;
         try {
             await updateNote(
@@ -159,9 +185,9 @@ export const useTakeOrder = () => {
         });
         if (!result.isConfirmed) return;
         cart.forEach((item) => {
-            deleteItem(item.orderProductId, { onSuccess: invalidateOrder }).catch(() =>
-                toast.error("Error al limpiar pedido"),
-            );
+            deleteItem(item.orderProductId, {
+                onSuccess: invalidateOrder,
+            }).catch(() => toast.error("Error al limpiar pedido"));
         });
     };
 
@@ -175,11 +201,14 @@ export const useTakeOrder = () => {
         }
     };
 
-    const updateProductDiscount = async (productId: number, descuento: number) => {
+    const updateProductDiscount = async (
+        orderProductId: number,
+        descuento: number,
+    ) => {
         if (isReadOnly) return;
         try {
             await updateProduct(
-                { productId, data: { descuento } },
+                { orderProductId, data: { descuento } },
                 { onSuccess: invalidateOrder },
             );
         } catch (error) {
@@ -190,7 +219,8 @@ export const useTakeOrder = () => {
 
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     const subtotal = cart.reduce(
-        (sum, item) => sum + item.price * item.quantity * (1 - item.descuento / 100),
+        (sum, item) =>
+            sum + item.price * item.quantity * (1 - item.descuento / 100),
         0,
     );
     const orderDiscount = order?.descuento ?? 0;
