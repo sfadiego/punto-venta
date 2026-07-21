@@ -54,17 +54,20 @@ class OrderProductController extends Controller
         $orderDiscount = $order->descuento ?? 0;
         $itemDescuento = $params->descuento ?? 0;
 
-        if ($params->nombre_extra) {
-            $data = OrderProductModel::create([
-                OrderProductModel::PEDIDO_ID => $orderId,
-                OrderProductModel::NOMBRE_EXTRA => $params->nombre_extra,
-                OrderProductModel::CANTIDAD => $params->cantidad,
-                OrderProductModel::PRECIO => $params->precio,
-                OrderProductModel::DESCUENTO => $itemDescuento,
-            ]);
-            $deltaSubtotal = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
-        } else {
-            [$data, $deltaSubtotal] = DB::transaction(function () use ($orderId, $params, $itemDescuento) {
+        [$data, $deltaSubtotal] = DB::transaction(function () use ($orderId, $params, $itemDescuento, $orderDiscount) {
+            // Lock the order row first to prevent concurrent updates from causing deadlocks
+            DB::table('order')->where('id', $orderId)->lockForUpdate()->first();
+
+            if ($params->nombre_extra) {
+                $created = OrderProductModel::create([
+                    OrderProductModel::PEDIDO_ID => $orderId,
+                    OrderProductModel::NOMBRE_EXTRA => $params->nombre_extra,
+                    OrderProductModel::CANTIDAD => $params->cantidad,
+                    OrderProductModel::PRECIO => $params->precio,
+                    OrderProductModel::DESCUENTO => $itemDescuento,
+                ]);
+                $delta = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
+            } else {
                 $existing = OrderProductModel::where('pedido_id', $orderId)
                     ->where('producto_id', $params->producto_id)
                     ->lockForUpdate()
@@ -80,33 +83,34 @@ class OrderProductController extends Controller
                         OrderProductModel::IS_READY => false,
                     ]);
                     $newLineSubtotal = round($params->precio * $newQty * (1 - $itemDescuento / 100), 2);
+                    $delta = $newLineSubtotal - $oldLineSubtotal;
+                    $created = $existing->refresh();
 
                     try {
                         OrdersUpdated::dispatch('product_updated', (int) $orderId);
                     } catch (\Throwable) {
                     }
-
-                    return [$existing->refresh(), $newLineSubtotal - $oldLineSubtotal];
+                } else {
+                    $created = OrderProductModel::create([
+                        OrderProductModel::PRODUCTO_ID => $params->producto_id,
+                        OrderProductModel::PEDIDO_ID => $orderId,
+                        OrderProductModel::CANTIDAD => $params->cantidad,
+                        OrderProductModel::PRECIO => $params->precio,
+                        OrderProductModel::DESCUENTO => $itemDescuento,
+                    ]);
+                    $delta = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
                 }
+            }
 
-                $created = OrderProductModel::create([
-                    OrderProductModel::PRODUCTO_ID => $params->producto_id,
-                    OrderProductModel::PEDIDO_ID => $orderId,
-                    OrderProductModel::CANTIDAD => $params->cantidad,
-                    OrderProductModel::PRECIO => $params->precio,
-                    OrderProductModel::DESCUENTO => $itemDescuento,
-                ]);
+            $deltaTotal = round($delta * (1 - $orderDiscount / 100), 2);
 
-                return [$created, round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2)];
-            });
-        }
+            DB::table('order')->where('id', $orderId)->update([
+                'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$delta}"),
+                'total' => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
+            ]);
 
-        $deltaTotal = round($deltaSubtotal * (1 - $orderDiscount / 100), 2);
-
-        DB::table('order')->where('id', $orderId)->update([
-            'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$deltaSubtotal}"),
-            'total' => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
-        ]);
+            return [$created, $delta];
+        });
 
         $this->resetStatusIfReady($order->fresh());
 
