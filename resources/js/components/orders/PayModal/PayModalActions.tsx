@@ -5,9 +5,10 @@ interface PayModalActionsProps {
     isPending: boolean;
     onPay: () => void;
     onClose: () => void;
+    confirmLabel?: string;
 }
 
-export const PayModalActions = ({ canPay, isPending, onPay, onClose }: PayModalActionsProps) => (
+export const PayModalActions = ({ canPay, isPending, onPay, onClose, confirmLabel = "Pagar y cerrar" }: PayModalActionsProps) => (
     <div className="flex gap-2 pt-1">
         <button
             type="button"
@@ -30,7 +31,7 @@ export const PayModalActions = ({ canPay, isPending, onPay, onClose }: PayModalA
             ) : (
                 <>
                     <CheckCircle size={15} />
-                    Pagar y cerrar
+                    {confirmLabel}
                 </>
             )}
         </button>

@@ -1,5 +1,6 @@
 import { useQuery, useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import { isValidPhone } from "@/utils/phoneUtils";
 import type {
     IMenuBusiness,
     IMenuProductsPage,
@@ -33,6 +34,23 @@ export const useInfiniteMenuProducts = (slug: string) =>
             lastPage.current_page < lastPage.last_page
                 ? lastPage.current_page + 1
                 : undefined,
+    });
+
+export interface IMenuCustomerLookup {
+    customer_name: string;
+    delivery_address: string | null;
+    delivery_reference: string | null;
+}
+
+export const useGetMenuCustomerByPhone = (slug: string, phone: string) =>
+    useQuery<IMenuCustomerLookup | null>({
+        queryKey: ["menu-customer", slug, phone],
+        queryFn: async () => {
+            const res = await axios.get(`${base(slug)}/customer`, { params: { phone } });
+            return res.data.data ?? null;
+        },
+        enabled: isValidPhone(phone),
+        staleTime: 30_000,
     });
 
 export const useCreatePublicOrder = (slug: string) =>

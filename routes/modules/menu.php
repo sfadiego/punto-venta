@@ -7,5 +7,6 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('menu/{slug}')->controller(MenuController::class)->group(function () {
     Route::get('', 'show');
     Route::get('products', 'products');
+    Route::get('customer', 'customerLookup');
     Route::post('order', 'store');
 });

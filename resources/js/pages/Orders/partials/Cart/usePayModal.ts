@@ -7,6 +7,7 @@ import { useModal } from "@/hooks/useModal";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
+import { useCustomerList } from "@/services/useCustomerService";
 import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
@@ -21,44 +22,65 @@ export const usePayModal = (orderId: number, subtotal: number) => {
     const [cash, setCash] = useState("");
     const [propina, setPropina] = useState("");
     const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
+    const [isCreditMode, setIsCreditMode] = useState(false);
+    const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
 
     const { mutateAsync: updateOrder, isPending } = useUpdateOrder(orderId);
     const { data: businessConfig } = useGetBusinessConfig();
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
+    const { data: customers = [] } = useCustomerList();
     const { print } = usePrintTicket(orderId);
 
     const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
     const isCash = !selectedMethod || selectedMethod.name.toLowerCase().includes("efectivo");
+    const selectedCustomer = customers.find((c) => c.id === selectedCustomerId) ?? null;
 
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - subtotal;
-    const canPay = isCash
-        ? cashNum >= subtotal && subtotal > 0
-        : subtotal > 0;
+    const canPay = isCreditMode
+        ? subtotal > 0 && !!selectedCustomer && selectedCustomer.allow_credit
+        : isCash
+            ? cashNum >= subtotal && subtotal > 0
+            : subtotal > 0;
 
     const handleOpen = () => {
         setCash("");
         setPropina("");
+        setIsCreditMode(false);
+        setSelectedCustomerId(null);
         const firstMethod = paymentMethods.find((m) => m.active);
         setPaymentMethodId(firstMethod?.id ?? null);
         openModal();
     };
 
+    const handleSelectCredit = () => {
+        setIsCreditMode(true);
+        setPaymentMethodId(null);
+    };
+
+    const handleSelectMethod = (id: number) => {
+        setIsCreditMode(false);
+        setPaymentMethodId(id);
+    };
+
     const handlePay = async () => {
         const propinaNum = parseFloat(propina) || 0;
+        const paymentData = isCreditMode
+            ? { is_credit: true, customer_id: selectedCustomerId }
+            : { payment_method_id: paymentMethodId, propina: propinaNum > 0 ? propinaNum : 0 };
         try {
             await updateOrder({
                 estatus_pedido_id: OrderStatusEnum.Closed,
-                payment_method_id: paymentMethodId,
-                propina: propinaNum > 0 ? propinaNum : 0,
+                ...paymentData,
             });
             queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
+            queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/list`] });
             if (sistemaId) {
                 queryClient.invalidateQueries({
                     queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`],
                 });
             }
-            toast.success("Orden cerrada exitosamente");
+            toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closeModal();
 
             if (businessConfig?.printer_host) {
@@ -94,10 +116,15 @@ export const usePayModal = (orderId: number, subtotal: number) => {
         setPropina,
         paymentMethods,
         paymentMethodId,
-        setPaymentMethodId,
         isCash,
+        isCreditMode,
+        selectedCustomerId,
+        setSelectedCustomerId,
+        customers,
         handleOpen,
         handleClose: closeModal,
         handlePay,
+        handleSelectCredit,
+        handleSelectMethod,
     };
 };

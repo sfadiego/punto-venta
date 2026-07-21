@@ -8,12 +8,14 @@ use App\Enums\OrderStatusEnum;
 use App\Events\OrdersUpdated;
 use App\Http\Requests\PublicOrderStoreRequest;
 use App\Models\BusinessConfigModel;
+use App\Models\CustomerModel;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
 use App\Services\MenuService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 
@@ -53,6 +55,38 @@ class MenuController extends Controller
         return $service->run($data);
     }
 
+    public function customerLookup(Request $request, string $slug): JsonResponse
+    {
+        $phone = $request->query('phone', '');
+
+        if (strlen((string) $phone) < 10) {
+            return Response::success(null);
+        }
+
+        $tenant = BusinessConfigModel::where(BusinessConfigModel::SLUG, $slug)
+            ->where('activo', true)
+            ->firstOrFail();
+
+        $customer = CustomerModel::withoutGlobalScopes()
+            ->where(CustomerModel::TENANT_ID, $tenant->id)
+            ->where(CustomerModel::PHONE, $phone)
+            ->first([
+                CustomerModel::NAME,
+                CustomerModel::ADDRESS,
+                CustomerModel::DELIVERY_REFERENCE,
+            ]);
+
+        if (! $customer) {
+            return Response::success(null);
+        }
+
+        return Response::success([
+            'customer_name' => $customer->name,
+            'delivery_address' => $customer->address,
+            'delivery_reference' => $customer->delivery_reference,
+        ]);
+    }
+
     public function store(PublicOrderStoreRequest $request, string $slug): JsonResponse
     {
         $tenant = BusinessConfigModel::where(BusinessConfigModel::SLUG, $slug)
@@ -75,13 +109,38 @@ class MenuController extends Controller
         }
 
         $order = DB::transaction(function () use ($request, $tenant, $activeSale) {
+            $isDelivery = $request->boolean('is_delivery');
+
+            $customer = CustomerModel::withoutGlobalScopes()
+                ->where(CustomerModel::TENANT_ID, $tenant->id)
+                ->where(CustomerModel::PHONE, $request->customer_phone)
+                ->first();
+
+            if ($customer) {
+                $updates = [CustomerModel::NAME => $request->customer_name];
+                if ($isDelivery && $request->delivery_address) {
+                    $updates[CustomerModel::ADDRESS] = $request->delivery_address;
+                    $updates[CustomerModel::DELIVERY_REFERENCE] = $request->delivery_reference;
+                }
+                $customer->update($updates);
+            } else {
+                $customer = CustomerModel::create([
+                    CustomerModel::TENANT_ID => $tenant->id,
+                    CustomerModel::NAME => $request->customer_name,
+                    CustomerModel::PHONE => $request->customer_phone,
+                    CustomerModel::ADDRESS => $isDelivery ? $request->delivery_address : null,
+                    CustomerModel::DELIVERY_REFERENCE => $isDelivery ? $request->delivery_reference : null,
+                    CustomerModel::ALLOW_CREDIT => false,
+                ]);
+            }
+
             $order = OrderModel::create([
                 OrderModel::TENANT_ID => $tenant->id,
                 OrderModel::SISTEMA_ID => $activeSale->id,
                 OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::PENDING_CONFIRMATION->value,
                 OrderModel::NOMBRE_PEDIDO => $request->customer_name,
-                OrderModel::CUSTOMER_PHONE => $request->customer_phone,
-                OrderModel::IS_DELIVERY => $request->boolean('is_delivery'),
+                OrderModel::CUSTOMER_ID => $customer->id,
+                OrderModel::IS_DELIVERY => $isDelivery,
                 OrderModel::DELIVERY_ADDRESS => $request->delivery_address,
                 OrderModel::DELIVERY_REFERENCE => $request->delivery_reference,
                 OrderModel::TOTAL => 0,

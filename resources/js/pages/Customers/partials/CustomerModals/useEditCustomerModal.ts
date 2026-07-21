@@ -10,6 +10,8 @@ const schema = Yup.object({
     name: Yup.string().trim().required("El nombre es requerido").max(255, "Máximo 255 caracteres"),
     phone: Yup.string().max(20, "Máximo 20 caracteres"),
     notes: Yup.string().max(1000, "Máximo 1000 caracteres"),
+    address: Yup.string().max(500, "Máximo 500 caracteres"),
+    delivery_reference: Yup.string().max(500, "Máximo 500 caracteres"),
 });
 
 export const useEditCustomerModal = (
@@ -25,6 +27,8 @@ export const useEditCustomerModal = (
             name: customer?.name ?? "",
             phone: customer?.phone ?? "",
             notes: customer?.notes ?? "",
+            address: customer?.address ?? "",
+            delivery_reference: customer?.delivery_reference ?? "",
             allow_credit: customer?.allow_credit ?? true,
         },
         validationSchema: schema,
@@ -34,6 +38,8 @@ export const useEditCustomerModal = (
                     name: values.name.trim(),
                     phone: values.phone.trim() || null,
                     notes: values.notes.trim() || null,
+                    address: values.address.trim() || null,
+                    delivery_reference: values.delivery_reference.trim() || null,
                 });
                 toast.success("Cliente actualizado");
                 onSuccess();

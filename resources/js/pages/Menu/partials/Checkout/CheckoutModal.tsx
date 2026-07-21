@@ -53,20 +53,21 @@ export const CheckoutModal = ({ open, slug, items, deliveryCost, primaryColor, o
                         <div className="px-5 py-5 flex flex-col gap-4 flex-1 overflow-y-auto">
                             <Input
                                 formik={formik}
-                                name="customer_name"
-                                label="Tu nombre"
-                                placeholder="Nombre completo"
-                                inputType="text"
-                                autoComplete="name"
-                            />
-                            <Input
-                                formik={formik}
                                 name="customer_phone"
                                 label="Tu teléfono"
                                 placeholder="Para confirmar tu pedido"
                                 inputType="tel"
                                 autoComplete="tel"
                                 maxLength={12}
+                            />
+
+                            <Input
+                                formik={formik}
+                                name="customer_name"
+                                label="Tu nombre"
+                                placeholder="Nombre completo"
+                                inputType="text"
+                                autoComplete="name"
                             />
 
                             <div>

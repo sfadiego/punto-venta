@@ -7,6 +7,7 @@ use App\Core\Paginator\DataTable;
 use App\Enums\OrderStatusEnum;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 
 class OrderService extends DataTable
@@ -30,9 +31,9 @@ class OrderService extends DataTable
         ];
     }
 
-    public function makeQuery(): \Illuminate\Database\Eloquent\Builder
+    public function makeQuery(): Builder
     {
-        $query = $this->model->newQuery()->with(['status', 'paymentMethod:id,name']);
+        $query = $this->model->newQuery()->with(['status', 'paymentMethod:id,name', 'customer:id,name,phone']);
         $rawEstatus = request()->query('estatus_pedido_id');
         $sistemaId = request()->query('sistema_id');
 

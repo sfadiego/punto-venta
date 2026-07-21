@@ -20,6 +20,10 @@ class CustomerModel extends Model
 
     const NOTES = 'notes';
 
+    const ADDRESS = 'address';
+
+    const DELIVERY_REFERENCE = 'delivery_reference';
+
     const ALLOW_CREDIT = 'allow_credit';
 
     const BALANCE = 'balance';
@@ -30,6 +34,8 @@ class CustomerModel extends Model
         self::NAME,
         self::PHONE,
         self::NOTES,
+        self::ADDRESS,
+        self::DELIVERY_REFERENCE,
         self::ALLOW_CREDIT,
         self::BALANCE,
         self::TENANT_ID,

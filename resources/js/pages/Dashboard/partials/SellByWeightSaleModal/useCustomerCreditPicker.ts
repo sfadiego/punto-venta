@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { isValidPhone, phoneValidationMessage, normalizePhone } from "@/utils/phoneUtils";
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import { ICustomer } from "@/models/ICustomer";
@@ -29,9 +30,31 @@ export const useCustomerCreditPicker = ({ customers, onSelect }: UseCustomerCred
     const openNewForm = () => setShowNewForm(true);
     const closeNewForm = () => setShowNewForm(false);
 
+    const phoneRaw = newPhone.trim();
+    const phoneValid = phoneRaw === "" || isValidPhone(phoneRaw);
+    const phoneError = phoneRaw !== "" && !phoneValid ? phoneValidationMessage : null;
+
+    const existingByPhone = phoneValid && phoneRaw
+        ? customers.find((c) => c.phone && normalizePhone(c.phone) === normalizePhone(phoneRaw)) ?? null
+        : null;
+
+    useEffect(() => {
+        if (existingByPhone) setNewName(existingByPhone.name);
+    }, [existingByPhone]);
+
     const handleCreate = async () => {
         if (!newName.trim()) {
             toast.error("Ingresa el nombre del cliente");
+            return;
+        }
+        if (phoneError) return;
+        if (existingByPhone) {
+            onSelect(existingByPhone.id);
+            setShowNewForm(false);
+            setSearch("");
+            setNewName("");
+            setNewPhone("");
+            toast.info(`Cliente "${existingByPhone.name}" seleccionado`);
             return;
         }
         try {
@@ -65,6 +88,8 @@ export const useCustomerCreditPicker = ({ customers, onSelect }: UseCustomerCred
         newName, setNewName,
         newPhone, setNewPhone,
         isCreating,
+        existingByPhone,
+        phoneError,
         handleCreate,
     };
 };
