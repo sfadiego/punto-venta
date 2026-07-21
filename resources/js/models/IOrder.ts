@@ -16,7 +16,6 @@ export interface IOrder {
     updated_at: string;
     status: IOrderStatus;
     order_products?: IOrderProduct[];
-    customer_phone: string | null;
     is_delivery: boolean;
     delivery_address: string | null;
     delivery_reference: string | null;
@@ -26,5 +25,5 @@ export interface IOrder {
     customer_id: number | null;
     is_credit: boolean;
     credit_applied_at: string | null;
-    customer?: Pick<ICustomer, "id" | "name" | "balance"> | null;
+    customer?: Pick<ICustomer, "id" | "name" | "balance" | "phone"> | null;
 }

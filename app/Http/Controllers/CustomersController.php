@@ -35,6 +35,8 @@ class CustomersController extends Controller
             CustomerModel::NAME => $params->name,
             CustomerModel::PHONE => $params->phone,
             CustomerModel::NOTES => $params->notes,
+            CustomerModel::ADDRESS => $params->address,
+            CustomerModel::DELIVERY_REFERENCE => $params->delivery_reference,
             CustomerModel::ALLOW_CREDIT => $params->boolean('allow_credit', true),
         ]);
 
@@ -52,6 +54,8 @@ class CustomersController extends Controller
             CustomerModel::NAME => $params->name,
             CustomerModel::PHONE => $params->phone,
             CustomerModel::NOTES => $params->notes,
+            CustomerModel::ADDRESS => $params->address,
+            CustomerModel::DELIVERY_REFERENCE => $params->delivery_reference,
         ]);
 
         return Response::success($customer);

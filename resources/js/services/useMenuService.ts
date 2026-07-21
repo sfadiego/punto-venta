@@ -35,6 +35,23 @@ export const useInfiniteMenuProducts = (slug: string) =>
                 : undefined,
     });
 
+export interface IMenuCustomerLookup {
+    customer_name: string;
+    delivery_address: string | null;
+    delivery_reference: string | null;
+}
+
+export const useGetMenuCustomerByPhone = (slug: string, phone: string) =>
+    useQuery<IMenuCustomerLookup | null>({
+        queryKey: ["menu-customer", slug, phone],
+        queryFn: async () => {
+            const res = await axios.get(`${base(slug)}/customer`, { params: { phone } });
+            return res.data.data ?? null;
+        },
+        enabled: /^\+?[\d]{10,12}$/.test(phone),
+        staleTime: 30_000,
+    });
+
 export const useCreatePublicOrder = (slug: string) =>
     useMutation({
         mutationFn: (payload: IPublicOrderPayload) =>

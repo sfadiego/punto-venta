@@ -25,6 +25,8 @@ class CustomerUpdateRequest extends FormRequest
             ],
             CustomerModel::PHONE => 'nullable|string|max:20',
             CustomerModel::NOTES => 'nullable|string|max:1000',
+            CustomerModel::ADDRESS => 'nullable|string|max:500',
+            CustomerModel::DELIVERY_REFERENCE => 'nullable|string|max:500',
         ];
     }
 }

@@ -19,14 +19,14 @@ export const PendingOrderCard = ({ order, isPending, onAccept, onReject }: Pendi
                 <div className="flex items-start justify-between gap-2">
                     <div>
                         <p className="font-semibold text-stone-800 text-sm">{order.nombre_pedido ?? "—"}</p>
-                        {order.customer_phone && (
+                        {order.customer?.phone && (
                             <a
-                                href={`tel:${order.customer_phone}`}
+                                href={`tel:${order.customer.phone}`}
                                 className="flex items-center gap-1 text-xs text-amber-600 hover:underline mt-0.5"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <Phone size={11} />
-                                {order.customer_phone}
+                                {order.customer.phone}
                             </a>
                         )}
                     </div>

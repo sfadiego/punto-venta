@@ -38,8 +38,6 @@ class OrderModel extends Model
 
     const TENANT_ID = 'tenant_id';
 
-    const CUSTOMER_PHONE = 'customer_phone';
-
     const IS_DELIVERY = 'is_delivery';
 
     const DELIVERY_ADDRESS = 'delivery_address';
@@ -78,7 +76,6 @@ class OrderModel extends Model
         self::ESTATUS_PEDIDO_ID,
         self::SISTEMA_ID,
         self::TENANT_ID,
-        self::CUSTOMER_PHONE,
         self::IS_DELIVERY,
         self::DELIVERY_ADDRESS,
         self::DELIVERY_REFERENCE,

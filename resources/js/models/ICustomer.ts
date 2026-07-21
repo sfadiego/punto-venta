@@ -5,6 +5,8 @@ export interface ICustomer {
     name: string;
     phone: string | null;
     notes: string | null;
+    address: string | null;
+    delivery_reference: string | null;
     allow_credit: boolean;
     balance: number;
     created_at?: string;
@@ -29,5 +31,7 @@ export interface ICustomerFormPayload {
     name: string;
     phone?: string | null;
     notes?: string | null;
+    address?: string | null;
+    delivery_reference?: string | null;
     allow_credit?: boolean;
 }
