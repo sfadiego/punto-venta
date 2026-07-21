@@ -1,7 +1,8 @@
-import { Globe, Loader, Copy, Check } from "lucide-react";
+import { Globe, Loader, Copy, Check, QrCode } from "lucide-react";
 import { useState } from "react";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { useMenuSection } from "./useMenuSection";
+import { useQrDownload } from "./useQrDownload";
 
 interface MenuSectionProps {
     config: IBusinessConfig | undefined;
@@ -14,6 +15,8 @@ export const MenuSection = ({ config }: MenuSectionProps) => {
     const menuUrl = config?.slug
         ? `${window.location.origin}/${config.slug}/menu`
         : null;
+
+    const { downloadQr, isGenerating } = useQrDownload(menuUrl, config?.business_name ?? "Menu");
 
     const handleCopy = () => {
         if (!menuUrl) return;
@@ -62,15 +65,30 @@ export const MenuSection = ({ config }: MenuSectionProps) => {
             </div>
 
             {menuUrl && (
-                <div className="flex items-center gap-2 bg-stone-50 rounded-xl px-3 py-2.5">
-                    <p className="flex-1 text-xs text-stone-500 truncate">{menuUrl}</p>
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 bg-stone-50 rounded-xl px-3 py-2.5">
+                        <p className="flex-1 text-xs text-stone-500 truncate">{menuUrl}</p>
+                        <button
+                            type="button"
+                            onClick={handleCopy}
+                            className="shrink-0 text-stone-400 hover:text-amber-500 transition-colors"
+                            title="Copiar enlace"
+                        >
+                            {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                        </button>
+                    </div>
+
                     <button
                         type="button"
-                        onClick={handleCopy}
-                        className="shrink-0 text-stone-400 hover:text-amber-500 transition-colors"
-                        title="Copiar enlace"
+                        onClick={downloadQr}
+                        disabled={isGenerating}
+                        className="flex items-center gap-2 w-full justify-center px-3 py-2 rounded-xl border border-stone-200 text-xs font-medium text-stone-600 hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                        {isGenerating
+                            ? <Loader size={13} className="animate-spin" />
+                            : <QrCode size={13} />
+                        }
+                        {isGenerating ? "Generando..." : "Descargar código QR"}
                     </button>
                 </div>
             )}
