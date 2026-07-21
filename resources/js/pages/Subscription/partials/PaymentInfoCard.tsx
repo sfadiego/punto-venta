@@ -1,4 +1,5 @@
 import { Building2, Hash, User, FileText, Banknote } from "lucide-react";
+import { toast } from "react-toastify";
 import { IPaymentInfo } from "@/models/ISubscription";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { Row, Divider } from "./SubscriptionRow";
@@ -31,7 +32,10 @@ export const PaymentInfoCard = ({ info, amountDue }: PaymentInfoCardProps) => (
                 Número de cuenta
             </div>
             <button
-                onClick={() => navigator.clipboard.writeText(info.account)}
+                onClick={() => {
+                    navigator.clipboard.writeText(info.account);
+                    toast.success("Número de cuenta copiado");
+                }}
                 title="Copiar número de cuenta"
                 className="text-sm font-mono font-medium text-stone-800 hover:text-amber-600 transition-colors"
             >
