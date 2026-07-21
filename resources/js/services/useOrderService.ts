@@ -1,6 +1,15 @@
 import { IPaginate } from "@/intefaces/IPaginate";
 import { IPaginateServiceProps } from "@/intefaces/IPaginateServiceProps";
-import { axiosGET, axiosPATCH, axiosPUT, axiosDELETE, useDELETE, useGET, usePOST, usePUT } from "../hooks/useApi";
+import {
+    axiosGET,
+    axiosPATCH,
+    axiosPUT,
+    axiosDELETE,
+    useDELETE,
+    useGET,
+    usePOST,
+    usePUT,
+} from "../hooks/useApi";
 import { IOrder } from "@/models/IOrder";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -41,7 +50,12 @@ export const useInfiniteIndexOrder = (sistemaId: number | null) => {
         queryFn: async ({ pageParam }) =>
             axiosGET(axiosApi, {
                 url,
-                params: { page: pageParam, limit: 5, order: "desc", sistema_id: sistemaId },
+                params: {
+                    page: pageParam,
+                    limit: 5,
+                    order: "desc",
+                    sistema_id: sistemaId,
+                },
             }),
         initialPageParam: 1,
         getNextPageParam: (lastPage) =>
@@ -58,7 +72,10 @@ export const useShowOrder = (orderId: number) =>
     useGET<IOrder>({ url: `${url}/${orderId}`, enable: !!orderId });
 
 export const useIndexOrderProducts = (orderId: number) =>
-    useGET<IOrderProduct[]>({ url: `${url}/${orderId}/product`, enable: !!orderId });
+    useGET<IOrderProduct[]>({
+        url: `${url}/${orderId}/product`,
+        enable: !!orderId,
+    });
 
 export const useGetProductInOrder = (orderId: number, productId: number) =>
     useGET({ url: `${url}/${orderId}/product/${productId}` });
@@ -79,8 +96,17 @@ export const useIndexPrintOrder = (orderId: number) =>
 export const useUpdateProductInOrder = (orderId: number) => {
     const { axiosApi } = useAxios();
     return useMutation({
-        mutationFn: ({ productId, data }: { productId: number; data: Record<string, unknown> }) =>
-            axiosPUT(axiosApi, { url: `${url}/${orderId}/product/${productId}`, data }),
+        mutationFn: ({
+            orderProductId,
+            data,
+        }: {
+            orderProductId: number;
+            data: Record<string, unknown>;
+        }) =>
+            axiosPUT(axiosApi, {
+                url: `${url}/${orderId}/product/${orderProductId}`,
+                data,
+            }),
     });
 };
 
@@ -88,7 +114,9 @@ export const useDeleteProductInOrder = (orderId: number) => {
     const { axiosApi } = useAxios();
     return useMutation({
         mutationFn: (productId: number) =>
-            axiosDELETE(axiosApi, { url: `${url}/${orderId}/product/${productId}` }),
+            axiosDELETE(axiosApi, {
+                url: `${url}/${orderId}/product/${productId}`,
+            }),
     });
 };
 
@@ -97,7 +125,9 @@ export const useDeleteItemFromOrder = (orderId: number) => {
     const { axiosApi } = useAxios();
     return useMutation({
         mutationFn: (orderProductId: number) =>
-            axiosDELETE(axiosApi, { url: `${url}/${orderId}/extra/${orderProductId}` }),
+            axiosDELETE(axiosApi, {
+                url: `${url}/${orderId}/extra/${orderProductId}`,
+            }),
     });
 };
 
@@ -105,8 +135,17 @@ export const useDeleteItemFromOrder = (orderId: number) => {
 export const useUpdateOrderProductNote = (orderId: number) => {
     const { axiosApi } = useAxios();
     return useMutation({
-        mutationFn: ({ orderProductId, observacion }: { orderProductId: number; observacion: string }) =>
-            axiosPUT(axiosApi, { url: `${url}/${orderId}/product/${orderProductId}/note`, data: { observacion } }),
+        mutationFn: ({
+            orderProductId,
+            observacion,
+        }: {
+            orderProductId: number;
+            observacion: string;
+        }) =>
+            axiosPUT(axiosApi, {
+                url: `${url}/${orderId}/product/${orderProductId}/note`,
+                data: { observacion },
+            }),
     });
 };
 
@@ -115,7 +154,10 @@ export const useToggleOrderProductReady = (orderId: number) => {
     const { axiosApi } = useAxios();
     return useMutation({
         mutationFn: (orderProductId: number) =>
-            axiosPATCH(axiosApi, { url: `${url}/${orderId}/product/${orderProductId}/ready`, data: {} }),
+            axiosPATCH(axiosApi, {
+                url: `${url}/${orderId}/product/${orderProductId}/ready`,
+                data: {},
+            }),
     });
 };
 
@@ -135,7 +177,18 @@ export const useIndexPendingOrders = (sistemaId: number | null) =>
 export const useUpdateOrderStatus = () => {
     const { axiosApi } = useAxios();
     return useMutation({
-        mutationFn: ({ orderId, statusId, extra }: { orderId: number; statusId: number; extra?: Record<string, unknown> }) =>
-            axiosPUT(axiosApi, { url: `${url}/${orderId}`, data: { estatus_pedido_id: statusId, ...extra } }),
+        mutationFn: ({
+            orderId,
+            statusId,
+            extra,
+        }: {
+            orderId: number;
+            statusId: number;
+            extra?: Record<string, unknown>;
+        }) =>
+            axiosPUT(axiosApi, {
+                url: `${url}/${orderId}`,
+                data: { estatus_pedido_id: statusId, ...extra },
+            }),
     });
 };
