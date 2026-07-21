@@ -20,28 +20,28 @@ class ErrorReporting
         if ($status === 500) {
             Log::error('Fatal Error', [
                 'endpoint' => $request->path(),
-                'method'   => $request->method(),
+                'method' => $request->method(),
                 'error_message' => $exception?->getMessage() ?? 'Unknown error',
-                'stack_trace'   => $exception?->getTraceAsString(),
-                'user_id'       => $request->user()?->id,
+                'stack_trace' => $exception?->getTraceAsString(),
+                'user_id' => $request->user()?->id,
             ]);
         }
 
         if ($status > 400) {
             try {
                 ModelsErrorReporting::create([
-                    'source'          => 'backend',
-                    'endpoint'        => $request->path(),
-                    'method'          => $request->method(),
-                    'status_code'     => $status,
-                    'error_message'   => $exception?->getMessage() ?? 'Unknown error',
-                    'stack_trace'     => $exception?->getTraceAsString(),
-                    'user_id'         => $request->user()?->id,
-                    'tenant_slug'     => $request->user()?->tenant?->slug,
+                    'source' => 'backend',
+                    'endpoint' => $request->path(),
+                    'method' => $request->method(),
+                    'status_code' => $status,
+                    'error_message' => $exception?->getMessage() ?? 'Unknown error',
+                    'stack_trace' => $exception?->getTraceAsString(),
+                    'user_id' => $request->user()?->id,
+                    'tenant_slug' => $request->user()?->tenant?->slug,
                     'request_payload' => $request->except(['password', 'password_confirmation']),
-                    'response_body'   => $response->getContent(),
-                    'user_agent'      => $request->userAgent(),
-                    'url'             => $request->fullUrl(),
+                    'response_body' => $response->getContent(),
+                    'user_agent' => $request->userAgent(),
+                    'url' => $request->fullUrl(),
                 ]);
             } catch (\Throwable) {
                 // Never let error reporting itself crash the response
