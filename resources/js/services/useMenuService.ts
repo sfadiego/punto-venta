@@ -1,5 +1,6 @@
 import { useQuery, useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import { isValidPhone } from "@/utils/phoneUtils";
 import type {
     IMenuBusiness,
     IMenuProductsPage,
@@ -48,7 +49,7 @@ export const useGetMenuCustomerByPhone = (slug: string, phone: string) =>
             const res = await axios.get(`${base(slug)}/customer`, { params: { phone } });
             return res.data.data ?? null;
         },
-        enabled: /^\+?[\d]{10,12}$/.test(phone),
+        enabled: isValidPhone(phone),
         staleTime: 30_000,
     });
 

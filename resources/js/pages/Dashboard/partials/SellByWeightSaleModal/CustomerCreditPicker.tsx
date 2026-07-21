@@ -17,6 +17,8 @@ export const CustomerCreditPicker = ({ customers, selectedCustomerId, onSelect }
         newName, setNewName,
         newPhone, setNewPhone,
         isCreating,
+        existingByPhone,
+        phoneError,
         handleCreate,
     } = useCustomerCreditPicker({ customers, onSelect });
 
@@ -31,6 +33,8 @@ export const CustomerCreditPicker = ({ customers, selectedCustomerId, onSelect }
                     newPhone={newPhone}
                     setNewPhone={setNewPhone}
                     isCreating={isCreating}
+                    existingByPhone={existingByPhone}
+                    phoneError={phoneError}
                     onCancel={closeNewForm}
                     onCreate={handleCreate}
                 />

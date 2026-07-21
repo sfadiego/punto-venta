@@ -1,6 +1,6 @@
 import { Modal } from "@mantine/core";
 import { IOrder } from "@/models/IOrder";
-import { Receipt } from "lucide-react";
+import { Receipt, Landmark } from "lucide-react";
 import { OrderDeliveryBadge } from "@/components/orders/OrderDeliveryBadge";
 import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
 import { formatCurrency } from "@/utils/formatCurrency";
@@ -56,9 +56,22 @@ export const OrderDetailModal = ({ isOpen, order, onClose }: OrderDetailModalPro
                             <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusStyle(order.estatus_pedido_id)}`}>
                                 {getStatusLabel(order.estatus_pedido_id)}
                             </span>
-                            <PaymentMethodBadge name={order.payment_method?.name} />
+                            {order.is_credit ? (
+                                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                                    <Landmark size={11} />
+                                    Crédito
+                                </span>
+                            ) : (
+                                <PaymentMethodBadge name={order.payment_method?.name} />
+                            )}
                             <PrintTicketButton orderId={order.id} showLabel />
                         </div>
+                        {order.is_credit && order.customer && (
+                            <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 w-fit">
+                                <Landmark size={11} />
+                                <span>Cliente: <strong>{order.customer.name}</strong></span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Domicilio badge — solo negocios de venta por peso */}

@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useCreatePublicOrder, useGetMenuCustomerByPhone } from "@/services/useMenuService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { ICartItem } from "@/models/IMenu";
+import { isValidPhone, phoneValidationMessage } from "@/utils/phoneUtils";
 
 interface CheckoutModalParams {
     slug: string;
@@ -17,8 +18,8 @@ const schema = Yup.object({
     customer_name: Yup.string().required("Tu nombre es requerido"),
     customer_phone: Yup.string()
         .required("Tu teléfono es requerido")
-        .max(12, "El teléfono no puede tener más de 12 dígitos")
-        .matches(/^\+?[\d]{10,12}$/, "Ingresa un número de teléfono válido (10-12 dígitos)"),
+        .max(13, "El teléfono no puede tener más de 12 dígitos")
+        .test("phone-valid", phoneValidationMessage, (v) => !v || isValidPhone(v)),
     is_delivery: Yup.boolean().required(),
     delivery_address: Yup.string().when("is_delivery", {
         is: true,
@@ -87,7 +88,7 @@ export const useCheckoutModal = ({ slug, items, deliveryCost, onSuccess }: Check
     }, [customerData]);
 
     useEffect(() => {
-        if (!/^\+?[\d]{10,12}$/.test(phone)) {
+        if (!isValidPhone(phone)) {
             prefillApplied.current = false;
         }
     }, [phone]);
