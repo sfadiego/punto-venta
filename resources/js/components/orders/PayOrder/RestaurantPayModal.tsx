@@ -1,4 +1,5 @@
 import { IPaymentMethod } from "@/models/IPaymentMethod";
+import { ICustomer } from "@/models/ICustomer";
 import { PayModalHeader } from "../PayModal/PayModalHeader";
 import { PayModalTotal } from "../PayModal/PayModalTotal";
 import { PayMethodSelector } from "../PayModal/PayMethodSelector";
@@ -6,6 +7,7 @@ import { PayTransferAlert } from "../PayModal/PayTransferAlert";
 import { PayCashInput } from "../PayModal/PayCashInput";
 import { PayPropinaInput } from "../PayModal/PayPropinaInput";
 import { PayModalActions } from "../PayModal/PayModalActions";
+import { CustomerCreditPicker } from "@/pages/Dashboard/partials/SellByWeightSaleModal/CustomerCreditPicker";
 
 interface RestaurantPayModalProps {
     isOpen: boolean;
@@ -19,10 +21,15 @@ interface RestaurantPayModalProps {
     setPropina: (v: string) => void;
     paymentMethods: IPaymentMethod[];
     paymentMethodId: number | null;
-    setPaymentMethodId: (id: number | null) => void;
     isCash: boolean;
+    isCreditMode?: boolean;
+    selectedCustomerId?: number | null;
+    customers?: ICustomer[];
     onPay: () => void;
     onClose: () => void;
+    onSelectMethod: (id: number) => void;
+    onSelectCredit?: () => void;
+    onSelectCustomer?: (id: number) => void;
 }
 
 export const RestaurantPayModal = ({
@@ -37,10 +44,15 @@ export const RestaurantPayModal = ({
     setPropina,
     paymentMethods,
     paymentMethodId,
-    setPaymentMethodId,
     isCash,
+    isCreditMode = false,
+    selectedCustomerId = null,
+    customers = [],
     onPay,
     onClose,
+    onSelectMethod,
+    onSelectCredit,
+    onSelectCustomer = () => {},
 }: RestaurantPayModalProps) => {
     if (!isOpen) return null;
 
@@ -57,31 +69,45 @@ export const RestaurantPayModal = ({
                     <PayMethodSelector
                         paymentMethods={paymentMethods}
                         paymentMethodId={paymentMethodId}
-                        onSelect={setPaymentMethodId}
+                        onSelect={onSelectMethod}
+                        creditModeAvailable={!!onSelectCredit}
+                        isCreditMode={isCreditMode}
+                        onSelectCredit={onSelectCredit}
                     />
 
-                    <PayTransferAlert isCash={isCash} />
+                    {isCreditMode ? (
+                        <CustomerCreditPicker
+                            customers={customers}
+                            selectedCustomerId={selectedCustomerId}
+                            onSelect={onSelectCustomer}
+                        />
+                    ) : (
+                        <>
+                            <PayTransferAlert isCash={isCash} />
 
-                    <PayPropinaInput
-                        isCash={isCash}
-                        subtotal={subtotal}
-                        propina={propina}
-                        setPropina={setPropina}
-                    />
+                            <PayPropinaInput
+                                isCash={isCash}
+                                subtotal={subtotal}
+                                propina={propina}
+                                setPropina={setPropina}
+                            />
 
-                    <PayCashInput
-                        isCash={isCash}
-                        cash={cash}
-                        setCash={setCash}
-                        change={change}
-                        max={Math.ceil(subtotal * 10)}
-                    />
+                            <PayCashInput
+                                isCash={isCash}
+                                cash={cash}
+                                setCash={setCash}
+                                change={change}
+                                max={Math.ceil(subtotal * 10)}
+                            />
+                        </>
+                    )}
 
                     <PayModalActions
                         canPay={canPay}
                         isPending={isPending}
                         onPay={onPay}
                         onClose={onClose}
+                        confirmLabel={isCreditMode ? "Registrar venta a crédito" : "Pagar y cerrar"}
                     />
                 </div>
             </div>

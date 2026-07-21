@@ -54,11 +54,16 @@ export const CartPanel = ({
         setPropina,
         paymentMethods,
         paymentMethodId,
-        setPaymentMethodId,
         isCash,
+        isCreditMode,
+        selectedCustomerId,
+        setSelectedCustomerId,
+        customers,
         handleOpen: openPay,
         handleClose: closePay,
         handlePay,
+        handleSelectCredit,
+        handleSelectMethod,
     } = usePayModal(order?.id ?? 0, total);
 
     return (
@@ -137,10 +142,15 @@ export const CartPanel = ({
                 setPropina={setPropina}
                 paymentMethods={paymentMethods}
                 paymentMethodId={paymentMethodId}
-                setPaymentMethodId={setPaymentMethodId}
                 isCash={isCash}
+                isCreditMode={isCreditMode}
+                selectedCustomerId={selectedCustomerId}
+                customers={customers}
                 onPay={handlePay}
                 onClose={closePay}
+                onSelectMethod={handleSelectMethod}
+                onSelectCredit={handleSelectCredit}
+                onSelectCustomer={setSelectedCustomerId}
             />
         </>
     );

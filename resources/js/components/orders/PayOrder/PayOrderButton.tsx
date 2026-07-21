@@ -28,11 +28,16 @@ export const PayOrderButton = ({
         setPropina,
         paymentMethods,
         paymentMethodId,
-        setPaymentMethodId,
         isCash,
+        isCreditMode,
+        selectedCustomerId,
+        setSelectedCustomerId,
+        customers,
         handleOpen,
         handleClose,
         handlePay,
+        handleSelectCredit,
+        handleSelectMethod,
     } = usePayOrder(order, onSuccess);
 
     const isPayable =
@@ -71,10 +76,15 @@ export const PayOrderButton = ({
                 setPropina={setPropina}
                 paymentMethods={paymentMethods}
                 paymentMethodId={paymentMethodId}
-                setPaymentMethodId={setPaymentMethodId}
                 isCash={isCash}
+                isCreditMode={isCreditMode}
+                selectedCustomerId={selectedCustomerId}
+                customers={customers}
                 onPay={handlePay}
                 onClose={handleClose}
+                onSelectMethod={handleSelectMethod}
+                onSelectCredit={handleSelectCredit}
+                onSelectCustomer={setSelectedCustomerId}
             />
         </>
     );
