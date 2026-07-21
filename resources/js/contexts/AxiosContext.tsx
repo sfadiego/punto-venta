@@ -65,10 +65,16 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
     };
 
     const logout = useCallback(() => {
-        configureAxiosHeaders(null);
-        configUser(null);
-        configFeatures(null);
-        setSistema(null);
+        // Limpia localStorage directamente (sin pasar por los setState de configUser/
+        // configFeatures/etc.) para no disparar un re-render de PrivateRoute mientras
+        // la navegación de abajo está en curso — ese re-render con isAuth=false competía
+        // con este replace() y a veces ganaba, mandando al publicFallback de "/" en vez
+        // del login. La página está a punto de recargarse por completo de todos modos.
+        delete axiosApi.defaults.headers.common["Authorization"];
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
+        localStorage.removeItem("features");
+        localStorage.setItem("sistemaId", "");
         const slug = localStorage.getItem("tenantSlug");
         window.location.replace(slug ? `/${slug}/login` : "/login");
     }, []);
