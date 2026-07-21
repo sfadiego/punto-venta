@@ -13,6 +13,11 @@ const PrivateRoute = ({
     const { isAuth, user } = useAxios();
 
     if (!isAuth) {
+        if (route.publicFallback) {
+            window.location.replace(route.publicFallback);
+            return null;
+        }
+
         return <Navigate to="/login" replace />;
     }
 

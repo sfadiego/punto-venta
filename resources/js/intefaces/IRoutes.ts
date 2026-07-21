@@ -7,4 +7,5 @@ export default interface IRoute {
     private?: boolean;
     hasPermission?: (props: IUser) => boolean;
     layout?: string;
+    publicFallback?: string;
 }

@@ -40,7 +40,7 @@ const allow = (...roles: RoleEnum[]) =>
     (u: { rol_id: number }) => roles.includes(u.rol_id as RoleEnum);
 
 const privateRoutes: IRoute[] = [
-    { path: "/",               element: <DashboardPage />,  private: true },
+    { path: "/",               element: <DashboardPage />,  private: true, publicFallback: "/landing/" },
     { path: "/orders",         element: <OrderListPage />,  private: true },
     { path: "/products",       element: <ProductsPage />,   private: true, hasPermission: allow(RoleEnum.Admin, RoleEnum.Employe) },
     { path: "/categories",     element: <CategoriesPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
