@@ -16,7 +16,7 @@ const renderersMap: DataTableRenderersMap = {
     total: (o: IOrder) => `$${o.total.toFixed(2)}`,
     subtotal: (o: IOrder) => `$${o.subtotal.toFixed(2)}`,
     descuento: (o: IOrder) => (o.descuento > 0 ? `${o.descuento}%` : "—"),
-    payment_method: (o: IOrder) => <PaymentMethodBadge name={o.payment_method?.name} />,
+    payment_method: (o: IOrder) => <PaymentMethodBadge name={o.payment_method?.name ?? "Efectivo"} />,
     created_at: (o: IOrder) => formatOrderTime(o.created_at),
     estatus_pedido_id: (o: IOrder) => (
         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(o.estatus_pedido_id)}`}>
