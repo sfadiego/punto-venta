@@ -1,6 +1,6 @@
 import { IOrder } from "@/models/IOrder";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { formatOrderTime } from "@/utils/dateUtils";
+import { formatOrderDateTime } from "@/utils/dateUtils";
 
 interface CustomerCreditOrdersListProps {
     orders?: IOrder[];
@@ -17,7 +17,7 @@ export const CustomerCreditOrdersList = ({ orders }: CustomerCreditOrdersListPro
                     <div key={order.id} className="flex items-center justify-between text-sm py-1.5 border-b border-stone-50 last:border-0">
                         <div className="min-w-0">
                             <p className="text-stone-700 truncate">{order.nombre_pedido}</p>
-                            <p className="text-xs text-stone-400">{formatOrderTime(order.created_at)}</p>
+                            <p className="text-xs text-stone-400">{formatOrderDateTime(order.created_at)}</p>
                         </div>
                         <span className="font-semibold text-stone-800 tabular-nums shrink-0 ml-2">
                             {formatCurrency(order.total)}

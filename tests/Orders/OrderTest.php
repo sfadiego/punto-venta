@@ -238,7 +238,7 @@ class OrderTest extends TestCase
         $this->getJson("/api/order/sales-by-category?sistema_id={$report->id}", $this->authHeaders())
             ->assertStatus(200)
             ->assertJsonPath('status', 'OK')
-            ->assertJsonStructure(['status', 'data']);
+            ->assertJsonStructure(['status', 'data' => ['categories', 'domicilios']]);
     }
 
     public function test_ventas_por_categoria_con_fecha(): void
@@ -251,12 +251,65 @@ class OrderTest extends TestCase
             ->assertJsonPath('status', 'OK');
     }
 
-    public function test_ventas_por_categoria_sin_sistema_retorna_vacio(): void
+    public function test_ventas_por_categoria_sin_sistema_ni_fecha_falla(): void
     {
-        $response = $this->getJson('/api/order/sales-by-category?sistema_id=0', $this->authHeaders())
+        $this->getJson('/api/order/sales-by-category?sistema_id=0', $this->authHeaders())
+            ->assertStatus(422);
+    }
+
+    private function venderConProducto(int $sistemaId, string $nombreProducto, float $precio, int $cantidad = 1): void
+    {
+        $product = ProductModel::create([
+            ProductModel::NOMBRE => $nombreProducto,
+            ProductModel::PRECIO => $precio,
+            ProductModel::CATEGORIA_ID => CategoryModel::first()->id,
+            ProductModel::ACTIVO => true,
+        ]);
+
+        $this->postJson('/api/order/sale', [
+            'sistema_id' => $sistemaId,
+            'nombre_pedido' => $nombreProducto,
+            'items' => [
+                ['producto_id' => $product->id, 'cantidad' => $cantidad, 'precio' => $precio],
+            ],
+        ], $this->authHeaders())->assertStatus(200);
+    }
+
+    public function test_ventas_por_categoria_por_fecha_agrega_todas_las_sesiones_del_dia(): void
+    {
+        // Bug real: el reporte por fecha (usado en SalesPage) no debe quedar atado a
+        // una sola sesión — debe agregar TODAS las sesiones cerradas ese día.
+        $sesionA = $this->crearReporte();
+        $sesionB = $this->crearReporte();
+
+        $this->venderConProducto($sesionA->id, 'Producto sesión A', 100);
+        $this->venderConProducto($sesionB->id, 'Producto sesión B', 50);
+
+        $response = $this->getJson('/api/order/sales-by-category?fecha='.now()->toDateString(), $this->authHeaders())
             ->assertStatus(200);
 
-        $this->assertIsArray($response->json('data'));
+        $categories = $response->json('data.categories');
+        $totalRevenue = collect($categories)->sum('total_revenue');
+
+        // Ambas sesiones caen en la misma categoría (CategoryModel::first()), así que se agregan en una sola fila
+        $this->assertEquals(150.0, $totalRevenue);
+    }
+
+    public function test_ventas_por_categoria_con_sistema_solo_esa_sesion(): void
+    {
+        $sesionA = $this->crearReporte();
+        $sesionB = $this->crearReporte();
+
+        $this->venderConProducto($sesionA->id, 'Producto solo A', 100);
+        $this->venderConProducto($sesionB->id, 'Producto solo B', 999);
+
+        $response = $this->getJson("/api/order/sales-by-category?sistema_id={$sesionA->id}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $categories = $response->json('data.categories');
+        $totalRevenue = collect($categories)->sum('total_revenue');
+
+        $this->assertEquals(100.0, $totalRevenue);
     }
 
     // ── Auth ─────────────────────────────────────────────────

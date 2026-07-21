@@ -18,6 +18,16 @@ export const parseDateLocal = (dateStr: string): Date | null => {
 export const formatOrderTime = (dateStr: string): string =>
     new Date(dateStr).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
 
+/** Formatea una fecha ISO a fecha + hora local, ej. "20 jul 2026, 14:35" (es-MX). */
+export const formatOrderDateTime = (dateStr: string): string =>
+    new Date(dateStr).toLocaleString("es-MX", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+
 type DateMutator = (d: Date) => void;
 
 // null = plan sin vencimiento (Lifetime). undefined = plan desconocido → también retorna null.
