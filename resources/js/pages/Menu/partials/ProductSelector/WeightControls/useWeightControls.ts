@@ -41,7 +41,14 @@ export const useWeightControls = ({ cantidad, unit, precio, onChangeWeight }: Us
 
     const handleWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const allowed = unit === UnidadMedidaEnum.Kg ? /[^0-9.]/g : /[^0-9]/g;
-        setWeightInput(e.target.value.replace(allowed, ""));
+        const cleaned = e.target.value.replace(allowed, "");
+        const parsed = parseFloat(cleaned);
+        if (!isNaN(parsed) && parsed > weightMax(unit)) {
+            setWeightInput(String(weightMax(unit)));
+            setError(`Máximo ${formatWeight(weightMax(unit), unit)}`);
+            return;
+        }
+        setWeightInput(cleaned);
         setError("");
     };
 
@@ -59,7 +66,15 @@ export const useWeightControls = ({ cantidad, unit, precio, onChangeWeight }: Us
 
     const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const digits = e.target.value.replace(/[^0-9]/g, "");
-        setPriceInput(digits === "" ? "" : String(parseInt(digits, 10)));
+        if (digits === "") { setPriceInput(""); setError(""); return; }
+        const num = parseInt(digits, 10);
+        const maxPrice = Math.ceil(weightMax(unit) * Number(precio));
+        if (num > maxPrice) {
+            setPriceInput(String(maxPrice));
+            setError(`Máximo $${maxPrice.toLocaleString()}`);
+            return;
+        }
+        setPriceInput(String(num));
         setError("");
     };
 
