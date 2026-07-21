@@ -165,6 +165,38 @@ class SuperAdminTest extends TestCase
             ->assertJsonStructure(['data']);
     }
 
+    public function test_historial_suscripciones_incluye_monto_del_pago(): void
+    {
+        $tenant = BusinessConfigModel::first();
+
+        $this->postJson("/api/super-admin/subscription/{$tenant->id}", [
+            'plan' => 'monthly',
+            'starts_at' => now()->toDateString(),
+            'amount' => 275.50,
+        ], $this->superAdminHeaders());
+
+        $this->getJson("/api/super-admin/subscription/{$tenant->id}/history", $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonFragment(['amount' => 275.5]);
+    }
+
+    public function test_registrar_pago_no_modifica_el_monto_configurado_del_tenant(): void
+    {
+        // El monto configurado (business_config.subscription_amount) es independiente
+        // del monto histórico de cada pago registrado en subscriptions.
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::SUBSCRIPTION_AMOUNT => 350.00]);
+
+        $this->postJson("/api/super-admin/subscription/{$tenant->id}", [
+            'plan' => 'monthly',
+            'starts_at' => now()->toDateString(),
+            'amount' => 999.99,
+        ], $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertDatabaseHas('business_config', ['id' => $tenant->id, 'subscription_amount' => 350.00]);
+    }
+
     public function test_historial_sin_autenticacion(): void
     {
         $tenant = BusinessConfigModel::first();

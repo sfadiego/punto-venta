@@ -2,6 +2,9 @@
 
 namespace Tests\Admin;
 
+use App\Enums\RoleEnum;
+use App\Models\BusinessConfigModel;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -202,5 +205,44 @@ class BusinessConfigTest extends TestCase
     public function test_estado_suscripcion_sin_autenticacion(): void
     {
         $this->getJson('/api/admin/config/subscription-status')->assertStatus(401);
+    }
+
+    public function test_amount_due_refleja_el_monto_configurado_en_el_tenant(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::SUBSCRIPTION_AMOUNT => 399.99]);
+
+        $this->getJson('/api/admin/config/subscription-status', $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.amount_due', 399.99);
+    }
+
+    public function test_amount_due_es_null_si_no_hay_monto_configurado(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::SUBSCRIPTION_AMOUNT => null]);
+
+        $this->getJson('/api/admin/config/subscription-status', $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.amount_due', null);
+    }
+
+    public function test_amount_due_no_se_ve_afectado_por_pagos_historicos(): void
+    {
+        // El monto a depositar viene de business_config.subscription_amount, no del
+        // último pago registrado en subscriptions — son responsabilidades separadas.
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::SUBSCRIPTION_AMOUNT => 200.25]);
+
+        $superAdmin = User::where('rol_id', RoleEnum::SUPERADMIN->value)->first();
+        $this->postJson("/api/super-admin/subscription/{$tenant->id}", [
+            'plan' => 'monthly',
+            'starts_at' => now()->toDateString(),
+            'amount' => 999.99,
+        ], $this->authHeaders($superAdmin));
+
+        $this->getJson('/api/admin/config/subscription-status', $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.amount_due', 200.25);
     }
 }

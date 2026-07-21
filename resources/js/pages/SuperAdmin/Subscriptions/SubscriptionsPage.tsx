@@ -2,6 +2,7 @@ import { CreditCard, CheckCircle, XCircle, Clock, MinusCircle } from "lucide-rea
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { SubscriptionTable } from "@/components/SuperAdmin/Subscriptions/SubscriptionTable";
 import { RegisterPaymentModal } from "@/components/SuperAdmin/Subscriptions/RegisterPaymentModal";
+import { PaymentHistoryModal } from "@/components/SuperAdmin/Subscriptions/PaymentHistoryModal";
 import { useSubscriptionsPage } from "./useSubscriptionsPage";
 import { SubscriptionStatusEnum } from "@/enums/SubscriptionStatusEnum";
 
@@ -22,6 +23,9 @@ export default function SubscriptionsPage() {
         selectedTenant,
         openModal,
         closeModal,
+        historyTenant,
+        openHistory,
+        closeHistory,
         summary,
     } = useSubscriptionsPage();
 
@@ -80,10 +84,12 @@ export default function SubscriptionsPage() {
                     records={filtered}
                     isLoading={isLoading}
                     onRegisterPayment={openModal}
+                    onViewHistory={openHistory}
                 />
             </div>
 
             <RegisterPaymentModal tenant={selectedTenant} onClose={closeModal} />
+            <PaymentHistoryModal tenant={historyTenant} onClose={closeHistory} />
         </SuperAdminLayout>
     );
 }

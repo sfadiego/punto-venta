@@ -272,6 +272,99 @@ class TenantManagementTest extends TestCase
         $this->assertDatabaseHas('business_config', ['id' => $id, 'max_users' => 1]);
     }
 
+    public function test_actualiza_monto_de_suscripcion_del_tenant(): void
+    {
+        $payload = $this->tenantPayload();
+        $id = $this->postJson('/api/super-admin/tenant', $payload, $this->superAdminHeaders())->json('data.id');
+
+        $this->putJson("/api/super-admin/tenant/{$id}", [
+            'slug' => $payload['slug'],
+            'business_name' => 'Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'subscription_amount' => 450.00,
+        ], $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertDatabaseHas('business_config', ['id' => $id, 'subscription_amount' => 450.00]);
+    }
+
+    public function test_actualiza_monto_de_suscripcion_a_null(): void
+    {
+        $payload = $this->tenantPayload();
+        $id = $this->postJson('/api/super-admin/tenant', $payload, $this->superAdminHeaders())->json('data.id');
+
+        $this->putJson("/api/super-admin/tenant/{$id}", [
+            'slug' => $payload['slug'],
+            'business_name' => 'Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'subscription_amount' => 450.00,
+        ], $this->superAdminHeaders());
+
+        $this->putJson("/api/super-admin/tenant/{$id}", [
+            'slug' => $payload['slug'],
+            'business_name' => 'Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'subscription_amount' => null,
+        ], $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertDatabaseHas('business_config', ['id' => $id, 'subscription_amount' => null]);
+    }
+
+    public function test_actualiza_tenant_sin_enviar_monto_no_lo_borra(): void
+    {
+        $payload = $this->tenantPayload();
+        $id = $this->postJson('/api/super-admin/tenant', $payload, $this->superAdminHeaders())->json('data.id');
+
+        $this->putJson("/api/super-admin/tenant/{$id}", [
+            'slug' => $payload['slug'],
+            'business_name' => 'Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'subscription_amount' => 450.00,
+        ], $this->superAdminHeaders());
+
+        // Actualiza otro campo sin incluir subscription_amount en el body
+        $this->putJson("/api/super-admin/tenant/{$id}", [
+            'slug' => $payload['slug'],
+            'business_name' => 'Otro nombre',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+        ], $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertDatabaseHas('business_config', ['id' => $id, 'subscription_amount' => 450.00]);
+    }
+
+    public function test_no_actualiza_monto_de_suscripcion_negativo(): void
+    {
+        $tenant = BusinessConfigModel::first();
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", [
+            'slug' => $tenant->slug,
+            'business_name' => 'Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'subscription_amount' => -10,
+        ], $this->superAdminHeaders())
+            ->assertStatus(400);
+    }
+
     public function test_no_actualiza_sin_autenticacion(): void
     {
         $tenant = BusinessConfigModel::first();

@@ -65,6 +65,8 @@ class BusinessConfigModel extends Model
 
     const SUBSCRIPTION_EXPIRES_AT = 'subscription_expires_at';
 
+    const SUBSCRIPTION_AMOUNT = 'subscription_amount';
+
     const MAX_USERS = 'max_users';
 
     const GRACE_DAYS = 3;
@@ -75,6 +77,7 @@ class BusinessConfigModel extends Model
         self::MENU_ENABLED => 'boolean',
         self::TIPO_NEGOCIO => BusinessTypeEnum::class,
         self::SUBSCRIPTION_EXPIRES_AT => 'date',
+        self::SUBSCRIPTION_AMOUNT => 'float',
     ];
 
     protected $fillable = [
@@ -102,6 +105,7 @@ class BusinessConfigModel extends Model
         self::COSTO_DOMICILIO_DEFAULT,
         self::SUBSCRIPTION_PLAN,
         self::SUBSCRIPTION_EXPIRES_AT,
+        self::SUBSCRIPTION_AMOUNT,
         self::MAX_USERS,
     ];
 

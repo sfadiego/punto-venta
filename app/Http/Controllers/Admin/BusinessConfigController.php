@@ -89,6 +89,7 @@ class BusinessConfigController extends Controller
             'business_name' => $tenant->business_name,
             'payment_whatsapp' => env('PAYMENT_WHATSAPP'),
             'payment_info' => json_decode(AppSettingModel::getValue('payment_info', 'null'), true),
+            'amount_due' => $tenant->subscription_amount,
         ]);
     }
 }

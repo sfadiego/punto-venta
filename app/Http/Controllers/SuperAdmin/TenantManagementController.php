@@ -99,6 +99,7 @@ class TenantManagementController extends Controller
             BusinessConfigModel::TIPO_NEGOCIO => $param->tipo_negocio ?? $tenant->tipo_negocio->value,
             BusinessConfigModel::PRINTER_ENABLED => (bool) $param->printer_enabled,
             BusinessConfigModel::MAX_USERS => $param->max_users !== null ? (int) $param->max_users : $tenant->max_users,
+            BusinessConfigModel::SUBSCRIPTION_AMOUNT => $param->has('subscription_amount') ? $param->subscription_amount : $tenant->subscription_amount,
         ]);
 
         return Response::success($tenant);

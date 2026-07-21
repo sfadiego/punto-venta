@@ -17,6 +17,7 @@ export interface TenantFormValues {
     tipo_negocio: BusinessTypeEnum;
     printer_enabled: boolean;
     max_users: number | null;
+    subscription_amount: number | null;
     admin_nombre: string;
     admin_apellido: string;
     admin_email: string;
@@ -42,6 +43,7 @@ const baseSchema = {
     label_color:   Yup.string().required("Requerido"),
     tipo_negocio:  Yup.string().oneOf(Object.values(BusinessTypeEnum)).required("Requerido"),
     max_users:     Yup.number().nullable().min(1, "Mínimo 1").max(999, "Máximo 999"),
+    subscription_amount: Yup.number().nullable().min(0, "No puede ser negativo"),
 };
 
 const createSchema = Yup.object({
@@ -78,6 +80,7 @@ export const useTenantForm = (tenantId?: number) => {
             tipo_negocio:     tenant?.tipo_negocio ?? BusinessTypeEnum.Restaurante,
             printer_enabled:  tenant?.printer_enabled ?? false,
             max_users:        tenant?.max_users ?? null,
+            subscription_amount: tenant?.subscription_amount ?? null,
             admin_nombre:     "",
             admin_apellido:   "",
             admin_email:      "",
@@ -95,6 +98,7 @@ export const useTenantForm = (tenantId?: number) => {
                             logo_icon:       values.logo_icon || null,
                             printer_enabled: values.printer_enabled,
                             max_users:       values.max_users ? Number(values.max_users) : null,
+                            subscription_amount: values.subscription_amount !== null ? Number(values.subscription_amount) : null,
                         },
                     });
                     toast.success("Cliente actualizado.");

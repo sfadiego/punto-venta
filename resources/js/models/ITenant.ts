@@ -17,6 +17,7 @@ export interface ITenant {
     users_count?: number;
     active_users_count?: number;
     subscription_plan?: string | null;
+    subscription_amount?: number | null;
     max_users?: number | null;
     effective_max_users?: number;
     plan_default_max_users?: number | null;
@@ -52,5 +53,6 @@ export interface IUpdateTenantPayload {
     tipo_negocio: BusinessTypeEnum;
     printer_enabled: boolean;
     max_users?: number | null;
+    subscription_amount?: number | null;
 }
 

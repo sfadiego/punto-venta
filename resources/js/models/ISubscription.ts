@@ -16,6 +16,7 @@ export interface ISubscriptionDetail {
     business_name: string;
     payment_whatsapp: string | null;
     payment_info: IPaymentInfo | null;
+    amount_due: number | null;
 }
 
 export interface ISubscription {
