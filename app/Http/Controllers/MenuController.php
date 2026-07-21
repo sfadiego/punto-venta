@@ -81,8 +81,8 @@ class MenuController extends Controller
         }
 
         return Response::success([
-            'customer_name'      => $customer->name,
-            'delivery_address'   => $customer->address,
+            'customer_name' => $customer->name,
+            'delivery_address' => $customer->address,
             'delivery_reference' => $customer->delivery_reference,
         ]);
     }

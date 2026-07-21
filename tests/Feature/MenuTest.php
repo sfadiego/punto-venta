@@ -139,18 +139,18 @@ class MenuTest extends TestCase
         $slug = $this->getSlug();
 
         $this->postJson("/api/menu/{$slug}/order", [
-            'customer_name'      => 'María López',
-            'customer_phone'     => '3119876543',
-            'is_delivery'        => true,
-            'delivery_address'   => 'Calle 5 #12-34',
+            'customer_name' => 'María López',
+            'customer_phone' => '3119876543',
+            'is_delivery' => true,
+            'delivery_address' => 'Calle 5 #12-34',
             'delivery_reference' => 'Casa azul',
             'items' => [['product_id' => $product->id, 'cantidad' => 1]],
         ])->assertStatus(201);
 
         $this->assertDatabaseHas('customers', [
-            'phone'             => '3119876543',
-            'address'           => 'Calle 5 #12-34',
-            'delivery_reference'=> 'Casa azul',
+            'phone' => '3119876543',
+            'address' => 'Calle 5 #12-34',
+            'delivery_reference' => 'Casa azul',
         ]);
     }
 
@@ -164,10 +164,10 @@ class MenuTest extends TestCase
 
         $slug = $this->getSlug();
         $payload = [
-            'customer_name'  => 'Pedro Test',
+            'customer_name' => 'Pedro Test',
             'customer_phone' => '3200000001',
-            'is_delivery'    => true,
-            'items'          => [['product_id' => $product->id, 'cantidad' => 1]],
+            'is_delivery' => true,
+            'items' => [['product_id' => $product->id, 'cantidad' => 1]],
         ];
 
         $this->postJson("/api/menu/{$slug}/order", array_merge($payload, [
@@ -187,15 +187,15 @@ class MenuTest extends TestCase
     public function test_lookup_cliente_por_telefono_existente(): void
     {
         $tenant = BusinessConfigModel::first();
-        $slug   = $this->getSlug();
+        $slug = $this->getSlug();
 
         CustomerModel::create([
-            CustomerModel::TENANT_ID          => $tenant->id,
-            CustomerModel::NAME               => 'Cliente Test',
-            CustomerModel::PHONE              => '3101112222',
-            CustomerModel::ADDRESS            => 'Av. Principal 100',
+            CustomerModel::TENANT_ID => $tenant->id,
+            CustomerModel::NAME => 'Cliente Test',
+            CustomerModel::PHONE => '3101112222',
+            CustomerModel::ADDRESS => 'Av. Principal 100',
             CustomerModel::DELIVERY_REFERENCE => 'Portón negro',
-            CustomerModel::ALLOW_CREDIT       => false,
+            CustomerModel::ALLOW_CREDIT => false,
         ]);
 
         $this->getJson("/api/menu/{$slug}/customer?phone=3101112222")
