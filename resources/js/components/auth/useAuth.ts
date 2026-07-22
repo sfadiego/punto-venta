@@ -4,6 +4,7 @@ import { ISignInForm } from "@/intefaces/IAuth";
 import { useServiceLogin } from "@/services/auth/useServiceAuth";
 import { useFormik } from "formik";
 import { isAxiosError } from "@/utils/axiosError";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { toast } from "react-toastify";
 
 const validationSchema = Yup.object<ISignInForm>({
@@ -36,6 +37,7 @@ export const useAuth = () => {
                         error.response?.data?.message ?? "Credenciales incorrectas";
                     toast.error(msg);
                 } else {
+                    logUnexpectedError(error, "useAuth.login");
                     toast.error("Error al iniciar sesion");
                 }
             }

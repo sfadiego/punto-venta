@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useCreateTenant, useUpdateTenant, useListTenants } from "@/services/useSuperAdminService";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 
 export interface TenantFormValues {
     slug: string;
@@ -109,6 +110,7 @@ export const useTenantForm = (tenantId?: number) => {
                 }
                 navigate(SuperAdminRoutes.Tenants);
             } catch (err: unknown) {
+                logUnexpectedError(err, "useTenantForm.onSubmit");
                 const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Error al guardar.";
                 toast.error(msg);
                 helpers.setSubmitting(false);

@@ -1,6 +1,7 @@
 import { Settings2, Upload, CreditCard, Loader } from "lucide-react";
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { useSettingsPage } from "./useSettingsPage";
+import { PrinterAgentSection } from "./PrinterAgentSection";
 
 export default function SettingsPage() {
     const { settings, isLoading, saving, toggleLogoUpload, paymentFormik } = useSettingsPage();
@@ -55,6 +56,8 @@ export default function SettingsPage() {
                                 </button>
                             </div>
                         </section>
+
+                        <PrinterAgentSection />
 
                         <form onSubmit={paymentFormik.handleSubmit}>
                             <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
