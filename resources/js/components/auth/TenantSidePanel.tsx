@@ -45,12 +45,12 @@ export const TenantSidePanel = ({ tenant, isLoading }: Props) => {
                             logoIcon={logoIcon}
                             size={56}
                             imgClassName="w-14 h-14 object-contain rounded-xl cursor-pointer"
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate('/auth')}
                         />
                     )}
                 </div>
 
-                <h1 onClick={() => navigate('/')} className="text-white text-4xl font-bold tracking-tight mb-3 cursor-pointer">
+                <h1 onClick={() => navigate('/auth')} className="text-white text-4xl font-bold tracking-tight mb-3 cursor-pointer">
                     {isLoading ? (
                         <span className="inline-block w-36 h-9 bg-white/30 rounded-lg animate-pulse" />
                     ) : (

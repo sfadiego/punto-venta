@@ -1074,8 +1074,8 @@ footer {
       <li><a href="#precios">Precios</a></li>
     </ul>
     <div class="nav-cta-wrap">
-      <a class="btn btn-ghost btn-sm nav-links-mobile-hide" href="/login">Iniciar sesión</a>
-      <a class="btn btn-primary btn-sm nav-demo-btn" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">Solicitar demo</a>
+      <a class="btn btn-ghost btn-sm nav-links-mobile-hide js-login-btn" href="/auth">Iniciar sesión</a>
+      <a class="btn btn-primary btn-sm nav-demo-btn js-demo-btn" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">Solicitar demo</a>
       <button class="nav-hamburger" id="navHamburger" aria-label="Abrir menú" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -1089,8 +1089,8 @@ footer {
     <li><a href="#precios">Precios</a></li>
   </ul>
   <div class="nav-drawer-ctas">
-    <a class="btn btn-ghost" href="/login">Iniciar sesión</a>
-    <a class="btn btn-primary" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">Solicitar demo</a>
+    <a class="btn btn-ghost js-login-btn" href="/auth">Iniciar sesión</a>
+    <a class="btn btn-primary js-demo-btn" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">Solicitar demo</a>
   </div>
 </div>
 
@@ -1602,6 +1602,21 @@ footer {
   } else {
     document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('is-visible'); });
   }
+</script>
+
+<script>
+  (function () {
+    var token = localStorage.getItem('authToken');
+    if (token) {
+      document.querySelectorAll('.js-login-btn').forEach(function (el) {
+        el.textContent = 'Ir al dashboard';
+        el.href = '/';
+      });
+      document.querySelectorAll('.js-demo-btn').forEach(function (el) {
+        el.style.display = 'none';
+      });
+    }
+  })();
 </script>
 
 <a class="wa-float" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">

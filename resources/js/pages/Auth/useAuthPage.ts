@@ -13,7 +13,10 @@ export const useAuthPage = () => {
     }, []);
 
     useEffect(() => {
-        if (isAuth) return;
+        if (isAuth) {
+            navigate("/", { replace: true });
+            return;
+        }
         const cached = localStorage.getItem("tenantSlug");
         if (cached) {
             navigate(`/${cached}/auth`, { replace: true });

@@ -1,6 +1,5 @@
 import { ShoppingCart, ArrowRight, CheckCircle, BarChart2, ShoppingBag, Zap } from "lucide-react";
 import { useAuthPage } from "./useAuthPage";
-import { useNavigate } from "react-router-dom";
 
 const FEATURES = [
     { icon: ShoppingCart, label: "Punto de venta", desc: "Gestión rápida de pedidos y cobros" },
@@ -12,7 +11,6 @@ const FEATURES = [
 export default function AuthPage() {
     const appName = import.meta.env.VITE_APP_NAME;
     const { slug, setSlug, goToClientAuth, handleDemoRequest, submitted } = useAuthPage();
-    const navigate = useNavigate();
 
     return (
         <div className="min-h-screen flex flex-col lg:flex-row">
@@ -26,7 +24,7 @@ export default function AuthPage() {
 
                 <div className="relative z-10 flex flex-col items-start max-w-sm w-full">
                     <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-5 mb-8 shadow-xl">
-                        <ShoppingCart onClick={() => navigate('/')} size={48} className="text-white cursor-pointer" />
+                        <ShoppingCart onClick={() => window.location.href = '/landing/'} size={48} className="text-white cursor-pointer" />
                     </div>
                     <h1 className="text-white text-4xl font-bold tracking-tight mb-3">{appName}</h1>
                     <p className="text-amber-100 text-base leading-relaxed mb-10">
