@@ -31,7 +31,7 @@ function AdminPage() {
                 </div>
             ) : (
                 <div className="flex gap-8 items-start">
-                    <AdminNav sellByWeight={sellByWeight} />
+                    <AdminNav sellByWeight={sellByWeight} printerVisible={printerVisible} />
                     <div className="flex-1 flex flex-col gap-5 min-w-0">
                         <div id="logo"><LogoSection config={config} /></div>
                         <div id="colores"><ColorsSection config={config} /></div>

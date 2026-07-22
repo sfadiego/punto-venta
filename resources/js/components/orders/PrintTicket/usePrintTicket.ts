@@ -45,8 +45,11 @@ export const usePrintTicket = (orderId: number) => {
             return;
         }
 
+        // Config aún cargando — esperar
+        if (!businessConfig) return;
+
         // Fallback local: impresión vía servidor (CUPS / red)
-        if (!businessConfig?.printer_name?.trim()) {
+        if (!businessConfig.printer_name?.trim()) {
             toast.warning("Impresora no configurada. Ve a Configuración → Impresora para agregarla.");
             return;
         }
@@ -54,9 +57,10 @@ export const usePrintTicket = (orderId: number) => {
         sendPrintServer();
     };
 
-    // En modo agente solo mostramos el botón si el agente está conectado.
-    // En modo servidor (printer_enabled=false) siempre mostramos el botón.
-    const isVisible = businessConfig?.printer_enabled ? agentConnected : true;
+    // Visible cuando: config cargando, printer_enabled activo (agente), o printer_name configurado (servidor).
+    const isVisible = !businessConfig
+        || !!businessConfig.printer_enabled
+        || !!businessConfig.printer_name?.trim();
 
     return { print, isPending: isPendingAgent || isPendingServer, isVisible };
 };
