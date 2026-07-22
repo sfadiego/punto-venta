@@ -13,7 +13,7 @@ const isLocal = import.meta.env.VITE_APP_ENV === "local";
 export const PrinterSection = ({ config }: PrinterSectionProps) => {
     const { formik } = usePrinterSection(config);
     const { isConnected } = usePrintAgent();
-    const { testPrint, isPending: isTestPending } = useTestPrint(config?.business_name);
+    const { testPrint, isPending: isTestPending } = useTestPrint();
 
     if (!isLocal) {
         return (

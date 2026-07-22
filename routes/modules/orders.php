@@ -10,6 +10,7 @@ Route::prefix('order')->group(function () {
         Route::post('/', 'store');
         Route::post('/sale', 'storeSale');
         Route::get('/sales-by-category', 'salesByCategory');
+        Route::get('/print/test-bytes', [\App\Http\Controllers\PrintController::class, 'testBytes']);
         Route::prefix('{order}')->group(function () {
             Route::get('', 'show');
             Route::get('total', 'total');
