@@ -9,6 +9,7 @@ interface SalesFiltersProps {
     categories?: ICategory[];
     sellByWeight?: boolean;
     showCategoryReport?: boolean;
+    categoryReportLabel?: string;
     onFechaChange: (value: string | null) => void;
     onCategoriaChange?: (id: number | null) => void;
     onCategoryReport?: () => void;
@@ -21,6 +22,7 @@ export const SalesFilters = ({
     categories = [],
     sellByWeight = false,
     showCategoryReport = false,
+    categoryReportLabel,
     onFechaChange,
     onCategoriaChange,
     onCategoryReport,
@@ -100,7 +102,7 @@ export const SalesFilters = ({
 
                 {showCategoryReport && onCategoryReport && (
                     <div className="ml-auto self-end">
-                        <SalesByCategoryButton onClick={onCategoryReport} />
+                        <SalesByCategoryButton onClick={onCategoryReport} label={categoryReportLabel} />
                     </div>
                 )}
             </div>

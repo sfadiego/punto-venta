@@ -5,6 +5,7 @@ import { SalesFilters } from "./partials/SalesFilters";
 import { OrderDetailModal } from "./partials/OrderDetailModal/OrderDetailModal";
 import { SalesByCategoryModal } from "./partials/SalesByCategoryModal/SalesByCategoryModal";
 import { useSalesByCategoryModal } from "./partials/SalesByCategoryModal/useSalesByCategoryModal";
+import { RestaurantSalesModal } from "./partials/RestaurantSalesModal/RestaurantSalesModal";
 
 export default function SalesPage() {
     const { dataTableProps, isLoading, refetch, fecha, categoriaId, categories, sellByWeight, handleFechaChange, handleCategoriaChange, handleClear, modal } =
@@ -39,6 +40,7 @@ export default function SalesPage() {
                     categories={categories}
                     sellByWeight={sellByWeight}
                     showCategoryReport={true}
+                    categoryReportLabel={sellByWeight ? "Reporte por categoría" : "Resumen de ventas"}
                     onFechaChange={handleFechaChange}
                     onCategoriaChange={handleCategoriaChange}
                     onCategoryReport={categoryModal.open}
@@ -63,18 +65,31 @@ export default function SalesPage() {
                 onClose={modal.close}
             />
 
-            <SalesByCategoryModal
-                isOpen={categoryModal.isOpen}
-                onClose={categoryModal.close}
-                data={categoryModal.data}
-                isLoading={categoryModal.isLoading}
-                isError={categoryModal.isError}
-                totalBruto={categoryModal.totalBruto}
-                totalDomicilios={categoryModal.totalDomicilios}
-                totalNeto={categoryModal.totalNeto}
-                sistemaId={categoryModal.sistemaId}
-                fecha={categoryModal.fecha}
-            />
+            {sellByWeight ? (
+                <SalesByCategoryModal
+                    isOpen={categoryModal.isOpen}
+                    onClose={categoryModal.close}
+                    data={categoryModal.data}
+                    isLoading={categoryModal.isLoading}
+                    isError={categoryModal.isError}
+                    totalBruto={categoryModal.totalBruto}
+                    totalDomicilios={categoryModal.totalDomicilios}
+                    totalNeto={categoryModal.totalNeto}
+                    sistemaId={categoryModal.sistemaId}
+                    fecha={categoryModal.fecha}
+                />
+            ) : (
+                <RestaurantSalesModal
+                    isOpen={categoryModal.isOpen}
+                    onClose={categoryModal.close}
+                    isLoading={categoryModal.isLoading}
+                    isError={categoryModal.isError}
+                    totalBruto={categoryModal.totalBruto}
+                    totalDomicilios={categoryModal.totalDomicilios}
+                    totalNeto={categoryModal.totalNeto}
+                    fecha={categoryModal.fecha}
+                />
+            )}
         </div>
     );
 }

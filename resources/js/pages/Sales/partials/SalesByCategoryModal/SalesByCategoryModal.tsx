@@ -133,18 +133,19 @@ export const SalesByCategoryModal = ({
 
 interface SalesByCategoryButtonProps {
     onClick: () => void;
+    label?: string;
 }
 
-export const SalesByCategoryButton = ({ onClick }: SalesByCategoryButtonProps) => (
+export const SalesByCategoryButton = ({ onClick, label = "Reporte por categoría" }: SalesByCategoryButtonProps) => (
     <button
         onClick={onClick}
-        title="Reporte por categoría"
+        title={label}
         className="h-9 flex items-center gap-2 px-3 rounded-xl border border-amber-200
             bg-amber-50 text-amber-700 text-xs font-semibold hover:bg-amber-100
             hover:border-amber-300 transition-all self-end"
     >
         <FileArchive size={13} />
-        Reporte por categoría
+        {label}
     </button>
 );
 
