@@ -8,6 +8,7 @@ import { PayCashInput } from "../PayModal/PayCashInput";
 import { PayPropinaInput } from "../PayModal/PayPropinaInput";
 import { PayModalActions } from "../PayModal/PayModalActions";
 import { CustomerCreditPicker } from "@/pages/Dashboard/partials/SellByWeightSaleModal/CustomerCreditPicker";
+import { useAxios } from "@/hooks/useAxios";
 
 interface RestaurantPayModalProps {
     isOpen: boolean;
@@ -54,6 +55,9 @@ export const RestaurantPayModal = ({
     onSelectCredit,
     onSelectCustomer = () => {},
 }: RestaurantPayModalProps) => {
+    const { features } = useAxios();
+    const sellByWeight = features?.sell_by_weight === true;
+
     if (!isOpen) return null;
 
     return (
@@ -70,12 +74,12 @@ export const RestaurantPayModal = ({
                         paymentMethods={paymentMethods}
                         paymentMethodId={paymentMethodId}
                         onSelect={onSelectMethod}
-                        creditModeAvailable={!!onSelectCredit}
-                        isCreditMode={isCreditMode}
-                        onSelectCredit={onSelectCredit}
+                        creditModeAvailable={sellByWeight && !!onSelectCredit}
+                        isCreditMode={sellByWeight && isCreditMode}
+                        onSelectCredit={sellByWeight ? onSelectCredit : undefined}
                     />
 
-                    {isCreditMode ? (
+                    {sellByWeight && isCreditMode ? (
                         <CustomerCreditPicker
                             customers={customers}
                             selectedCustomerId={selectedCustomerId}

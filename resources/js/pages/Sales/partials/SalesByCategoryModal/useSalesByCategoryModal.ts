@@ -11,7 +11,7 @@ export const useSalesByCategoryModal = (fecha?: string | null) => {
     // se acota a la sesión actual.
     const scopedSistemaId = fecha ? null : sistemaId;
 
-    const { data, isLoading } = useSalesByCategory(isOpen ? scopedSistemaId : null, isOpen ? fecha : null);
+    const { data, isLoading, isError } = useSalesByCategory(isOpen ? scopedSistemaId : null, isOpen ? fecha : null);
 
     const categories = data?.categories ?? [];
     const totalBruto = categories.reduce((sum, cat) => sum + cat.total_revenue, 0);
@@ -24,9 +24,11 @@ export const useSalesByCategoryModal = (fecha?: string | null) => {
         close: () => setIsOpen(false),
         data:  categories,
         isLoading,
+        isError,
         totalBruto,
         totalDomicilios,
         totalNeto,
         sistemaId: scopedSistemaId,
+        fecha: isOpen ? fecha : null,
     };
 };
