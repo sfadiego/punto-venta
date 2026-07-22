@@ -18,14 +18,14 @@ const PrivateRoute = ({
             return null;
         }
 
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/auth" replace />;
     }
 
     if (route.hasPermission !== undefined && !route.hasPermission(user!)) {
         return <Navigate to="/forbidden" replace />;
     }
 
-    return React.isValidElement(element) ? element : <Navigate to="/login" replace />;
+    return React.isValidElement(element) ? element : <Navigate to="/auth" replace />;
 };
 
 export default PrivateRoute;

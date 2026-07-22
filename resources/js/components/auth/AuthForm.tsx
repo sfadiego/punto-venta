@@ -1,8 +1,8 @@
-import { useLogin } from "./useLogin";
+import { useAuth } from "./useAuth";
 import { Input } from "../ui/form/Input";
 
-export const LoginForm = () => {
-    const { formik, loginMutation } = useLogin();
+export const AuthForm = () => {
+    const { formik, loginMutation } = useAuth();
 
     return (
         <form onSubmit={formik.handleSubmit} noValidate className="space-y-5">

@@ -17,7 +17,7 @@ const validationSchema = Yup.object<ISignInForm>({
 
 const initialValues: ISignInForm = { email: "", password: "" };
 
-export const useLogin = () => {
+export const useAuth = () => {
     const { saveAuth } = useAxios();
     const loginMutation = useServiceLogin();
 

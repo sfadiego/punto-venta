@@ -146,7 +146,7 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
                     <ActiveUsersBadge count={tenant.active_users_count ?? 0} />
                 </div>
                 <a
-                    href={`${import.meta.env.VITE_APP_URL}/${tenant.slug}/login`}
+                    href={`${import.meta.env.VITE_APP_URL}/${tenant.slug}/auth`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 text-xs text-indigo-400 font-mono mt-0.5 hover:text-indigo-600 transition-colors w-fit"
