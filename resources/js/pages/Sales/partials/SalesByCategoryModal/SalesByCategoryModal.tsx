@@ -6,10 +6,12 @@ interface SalesByCategoryModalProps {
     onClose: () => void;
     data: ISalesByCategory[];
     isLoading: boolean;
+    isError?: boolean;
     totalBruto: number;
     totalDomicilios: number;
     totalNeto: number;
     sistemaId: number | null;
+    fecha?: string | null;
 }
 
 export const SalesByCategoryModal = ({
@@ -17,10 +19,12 @@ export const SalesByCategoryModal = ({
     onClose,
     data,
     isLoading,
+    isError = false,
     totalBruto,
     totalDomicilios,
     totalNeto,
     sistemaId,
+    fecha,
 }: SalesByCategoryModalProps) => {
     if (!isOpen) return null;
 
@@ -38,6 +42,11 @@ export const SalesByCategoryModal = ({
                             {sistemaId && (
                                 <p className="text-xs text-stone-400">Sesión #{sistemaId}</p>
                             )}
+                            {fecha && !sistemaId && (
+                                <p className="text-xs text-stone-400">
+                                    {new Date(fecha + "T00:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })}
+                                </p>
+                            )}
                         </div>
                     </div>
                     <button
@@ -54,9 +63,13 @@ export const SalesByCategoryModal = ({
                         <div className="flex justify-center py-8">
                             <Loader size={20} className="animate-spin text-stone-400" />
                         </div>
+                    ) : isError ? (
+                        <p className="text-sm text-red-400 text-center py-8">
+                            Error al cargar el reporte. Intenta de nuevo.
+                        </p>
                     ) : data.length === 0 ? (
                         <p className="text-sm text-stone-400 text-center py-8">
-                            Sin ventas registradas
+                            Sin ventas cerradas registradas
                         </p>
                     ) : (
                         <div className="space-y-3">

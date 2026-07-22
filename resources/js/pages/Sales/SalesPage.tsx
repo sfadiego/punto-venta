@@ -38,7 +38,7 @@ export default function SalesPage() {
                     categoriaId={categoriaId}
                     categories={categories}
                     sellByWeight={sellByWeight}
-                    showCategoryReport={sellByWeight}
+                    showCategoryReport={true}
                     onFechaChange={handleFechaChange}
                     onCategoriaChange={handleCategoriaChange}
                     onCategoryReport={categoryModal.open}
@@ -68,10 +68,12 @@ export default function SalesPage() {
                 onClose={categoryModal.close}
                 data={categoryModal.data}
                 isLoading={categoryModal.isLoading}
+                isError={categoryModal.isError}
                 totalBruto={categoryModal.totalBruto}
                 totalDomicilios={categoryModal.totalDomicilios}
                 totalNeto={categoryModal.totalNeto}
                 sistemaId={categoryModal.sistemaId}
+                fecha={categoryModal.fecha}
             />
         </div>
     );
