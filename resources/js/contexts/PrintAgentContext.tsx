@@ -1,6 +1,6 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 
-const AGENT_URL       = "ws://localhost:8765";
+const AGENT_URLS      = ["ws://localhost:8765", "ws://127.0.0.1:8765"];
 const RECONNECT_DELAY = 5000;
 
 interface PrintAgentContextType {
@@ -22,6 +22,8 @@ export const PrintAgentProvider = ({ children, enabled = false }: PrintAgentProv
     const ws              = useRef<WebSocket | null>(null);
     const reconnectTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
     const pendingResolvers= useRef<Array<{ resolve: () => void; reject: (e: Error) => void }>>([]);
+    const urlIndexRef     = useRef(0);
+    const didOpenRef      = useRef(false);
     const [isConnected, setIsConnected] = useState(false);
 
     const disconnect = useCallback(() => {
@@ -33,11 +35,14 @@ export const PrintAgentProvider = ({ children, enabled = false }: PrintAgentProv
     const connect = useCallback(() => {
         if (ws.current?.readyState === WebSocket.OPEN) return;
 
-        const socket = new WebSocket(AGENT_URL);
+        const url = AGENT_URLS[urlIndexRef.current % AGENT_URLS.length];
+        const socket = new WebSocket(url);
         ws.current = socket;
+        didOpenRef.current = false;
 
         socket.onopen = () => {
             setIsConnected(true);
+            didOpenRef.current = true;
         };
 
         socket.onmessage = (event) => {
@@ -61,6 +66,10 @@ export const PrintAgentProvider = ({ children, enabled = false }: PrintAgentProv
                 reject(new Error("Agente desconectado"))
             );
             pendingResolvers.current = [];
+            // Si nunca abrió, rotar a la siguiente URL (fix para Windows localhost vs 127.0.0.1)
+            if (!didOpenRef.current) {
+                urlIndexRef.current = (urlIndexRef.current + 1) % AGENT_URLS.length;
+            }
             reconnectTimer.current = setTimeout(connect, RECONNECT_DELAY);
         };
 
