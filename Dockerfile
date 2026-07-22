@@ -32,6 +32,12 @@ RUN printf "VITE_APP_URL=%s\nVITE_APP_NAME=%s\nVITE_APP_ENV=%s\nVITE_REVERB_APP_
 
 RUN pnpm run build
 
+# Compilar el agente de impresión directamente en storage/app/printer-agent/
+RUN mkdir -p storage/app/printer-agent \
+    && cd printer-agent \
+    && npm install \
+    && npx pkg index.js --targets node18-win-x64,node18-macos-x64 --output ../storage/app/printer-agent/print-agent
+
 # ── Stage 2: PHP / Laravel ────────────────────────────────────────────────────
 FROM php:8.4-fpm AS php
 
@@ -72,6 +78,9 @@ COPY --chown=www-data:www-data . .
 
 # Copiar assets compilados del stage frontend
 COPY --from=frontend --chown=www-data:www-data /app/public/build ./public/build
+
+# Copiar binarios del agente de impresión compilados en el stage frontend
+COPY --from=frontend --chown=www-data:www-data /app/storage/app/printer-agent ./storage/app/printer-agent
 
 # Instalar dependencias PHP de producción
 RUN composer install --no-dev --optimize-autoloader --no-interaction

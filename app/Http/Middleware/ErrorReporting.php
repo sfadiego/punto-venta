@@ -14,7 +14,7 @@ class ErrorReporting
     {
         $response = $next($request);
 
-        $status    = $response->getStatusCode();
+        $status = $response->getStatusCode();
         $exception = $response instanceof \Illuminate\Http\Response || $response instanceof \Illuminate\Http\JsonResponse
             ? $response->exception
             : null;
@@ -41,7 +41,7 @@ class ErrorReporting
                     'user_id' => $request->user()?->id,
                     'tenant_slug' => $request->user()?->tenant?->slug,
                     'request_payload' => $request->except(['password', 'password_confirmation']),
-                    'response_body' => method_exists($response, 'getContent') && !$response instanceof \Symfony\Component\HttpFoundation\BinaryFileResponse
+                    'response_body' => method_exists($response, 'getContent') && ! $response instanceof \Symfony\Component\HttpFoundation\BinaryFileResponse
                         ? $response->getContent()
                         : null,
                     'user_agent' => $request->userAgent(),
