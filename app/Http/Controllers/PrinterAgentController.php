@@ -14,11 +14,11 @@ class PrinterAgentController extends Controller
     {
         $request->validate([
             'printer' => 'required|string|max:100',
-            'port'     => 'nullable|integer|min:1024|max:65535',
+            'port' => 'nullable|integer|min:1024|max:65535',
             'platform' => 'required|in:win,mac',
         ]);
 
-        $platform   = $request->input('platform');
+        $platform = $request->input('platform');
         $binaryName = $platform === 'win' ? 'print-agent-win.exe' : 'print-agent-macos';
         $binaryPath = storage_path("app/printer-agent/{$binaryName}");
 
@@ -28,11 +28,11 @@ class PrinterAgentController extends Controller
 
         $config = json_encode([
             'printer' => $request->input('printer'),
-            'port'    => $request->input('port', 8765),
+            'port' => $request->input('port', 8765),
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
         $zipPath = sys_get_temp_dir().'/print-agent-'.uniqid().'.zip';
-        $zip     = new ZipArchive();
+        $zip = new ZipArchive;
         $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
         $executableName = $platform === 'win' ? 'print-agent.exe' : 'print-agent';
