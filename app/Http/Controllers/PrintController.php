@@ -32,16 +32,16 @@ class PrintController extends Controller
     public function testBytes(Request $request)
     {
         try {
-            $tenant    = $request->user()->tenant;
+            $tenant = $request->user()->tenant;
             $connector = new BufferConnector($tenant);
 
             $connector->init();
             $p = $connector->getPrinter();
             $p->initialize();
 
-            $line  = str_repeat('=', 32);
+            $line = str_repeat('=', 32);
             $dline = str_repeat('-', 32);
-            $now   = now()->setTimezone(config('app.timezone'));
+            $now = now()->setTimezone(config('app.timezone'));
 
             $p->setJustification(\Mike42\Escpos\Printer::JUSTIFY_CENTER);
             $p->setEmphasis(true);
@@ -70,7 +70,7 @@ class PrintController extends Controller
             $bytes = $connector->getBytes();
 
             return response($bytes, 200, [
-                'Content-Type'   => 'application/octet-stream',
+                'Content-Type' => 'application/octet-stream',
                 'Content-Length' => strlen($bytes),
             ]);
         } catch (\Throwable $th) {

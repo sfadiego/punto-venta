@@ -7,6 +7,7 @@ interface BusinessLogoProps {
     size?: number;
     iconClassName?: string;
     imgClassName?: string;
+    onClick?: () => void;
 }
 
 export function BusinessLogo({
@@ -15,6 +16,7 @@ export function BusinessLogo({
     size = 20,
     iconClassName = "text-white",
     imgClassName = "w-full h-full object-cover",
+    onClick,
 }: BusinessLogoProps) {
     if (logoUrl) {
         return <img src={logoUrl} alt="" className={imgClassName} />;
@@ -24,9 +26,9 @@ export function BusinessLogo({
         const def = BUSINESS_ICONS.find((i) => i.name === logoIcon);
         if (def) {
             const Icon = def.component;
-            return <Icon size={size} className={iconClassName} />;
+            return <Icon className={`${iconClassName} cursor-pointer`} size={size} onClick={() => onClick && onClick()} />;
         }
     }
 
-    return <ShoppingCart size={size} className={iconClassName} />;
+    return <ShoppingCart className={`${iconClassName} cursor-pointer`} size={size} onClick={() => onClick && onClick()} />;
 }

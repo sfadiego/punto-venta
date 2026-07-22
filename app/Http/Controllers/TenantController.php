@@ -14,7 +14,7 @@ class TenantController extends Controller
         $tenant = BusinessConfigModel::where(BusinessConfigModel::SLUG, $slug)->first();
 
         if (! $tenant) {
-            abort(404);
+            return Response::json(['message' => 'Negocio no encontrado.'], 404);
         }
 
         if (! $tenant->activo) {

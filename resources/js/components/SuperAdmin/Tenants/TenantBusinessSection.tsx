@@ -14,7 +14,7 @@ export const TenantBusinessSection = ({ formik }: TenantBusinessSectionProps) =>
         <Input name="business_name" label="Nombre del negocio" placeholder="Ej: Café Luna" maxLength={100} formik={formik} />
         <Input name="slug" label="Slug (URL de acceso)" placeholder="ej: cafe-luna" maxLength={255} formik={formik} />
         <p className="text-xs text-slate-400">
-            El cliente accederá desde: <span className="font-mono">/{formik.values.slug || "slug"}/login</span>
+            El cliente accederá desde: <span className="font-mono">/{formik.values.slug || "slug"}/auth</span>
         </p>
         <SelectBusinessType name="tipo_negocio" formik={formik} />
     </section>

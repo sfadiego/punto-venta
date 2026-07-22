@@ -1,15 +1,15 @@
 import { useParams, Navigate } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
-import { LoginForm } from "@/components/auth/LoginForm";
+import { AuthForm } from "@/components/auth/AuthForm";
 import { TenantSidePanel } from "@/components/auth/TenantSidePanel";
 import { BusinessLogo } from "@/components/BusinessLogo/BusinessLogo";
-import { useTenantLoginPage } from "./useTenantLoginPage";
+import { useTenantAuthPage } from "./useTenantAuthPage";
 import { ApisEnum } from "@/configs/apisEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 
-export default function TenantLoginPage() {
+export default function TenantAuthPage() {
     const { slug } = useParams<{ slug: string }>();
-    const { tenant, isLoading, isError, isInactive } = useTenantLoginPage(slug ?? "");
+    const { tenant, isLoading, isError, isInactive } = useTenantAuthPage(slug ?? "");
 
     if (isLoading) {
         return (
@@ -20,7 +20,7 @@ export default function TenantLoginPage() {
     }
 
     if (isError && !isInactive) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/auth" replace />;
     }
 
     if (isInactive) {
@@ -84,7 +84,7 @@ export default function TenantLoginPage() {
                         </p>
                     </div>
 
-                    <LoginForm />
+                    <AuthForm />
 
                     <p className="text-center text-stone-400 text-xs mt-10">
                         {tenant?.business_name} &copy;{" "}

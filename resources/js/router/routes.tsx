@@ -6,8 +6,8 @@ import PrivateRoute from "@/components/PrivateRoute/PrivateRoute";
 import IRoute from "@/intefaces/IRoutes";
 import { RoleEnum } from "@/enums/RoleEnum";
 
-const LoginPage        = lazy(() => import("@/pages/Auth/LoginPage"));
-const TenantLoginPage  = lazy(() => import("@/pages/Auth/TenantLoginPage"));
+const AuthPage         = lazy(() => import("@/pages/Auth/AuthPage"));
+const TenantAuthPage   = lazy(() => import("@/pages/Auth/TenantAuthPage"));
 const ForbiddenPage    = lazy(() => import("@/pages/OtherPage/Forbidden"));
 const DashboardPage    = lazy(() => import("@/pages/Dashboard/DashboardPage"));
 const TakeOrderPage    = lazy(() => import("@/pages/Orders/TakeOrderPage"));
@@ -57,18 +57,18 @@ const privateRoutes: IRoute[] = [
 
 export const router = createBrowserRouter([
     {
-        path: "/login",
+        path: "/auth",
         element: (
             <Suspense fallback={<FullPageLoader />}>
-                <LoginPage />
+                <AuthPage />
             </Suspense>
         ),
     },
     {
-        path: "/:slug/login",
+        path: "/:slug/auth",
         element: (
             <Suspense fallback={<FullPageLoader />}>
-                <TenantLoginPage />
+                <TenantAuthPage />
             </Suspense>
         ),
     },

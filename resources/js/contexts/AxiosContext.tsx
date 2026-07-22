@@ -71,12 +71,13 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         // con este replace() y a veces ganaba, mandando al publicFallback de "/" en vez
         // del login. La página está a punto de recargarse por completo de todos modos.
         delete axiosApi.defaults.headers.common["Authorization"];
+        const slug = localStorage.getItem("tenantSlug");
         localStorage.removeItem("authToken");
         localStorage.removeItem("user");
         localStorage.removeItem("features");
-        localStorage.setItem("sistemaId", "");
-        const slug = localStorage.getItem("tenantSlug");
-        window.location.replace(slug ? `/${slug}/login` : "/login");
+        localStorage.removeItem("sistemaId");
+        localStorage.removeItem("tenantSlug");
+        window.location.replace(slug ? `/${slug}/auth` : "/auth");
     }, []);
 
     const saveAuth = useCallback((accessToken: string, user: IUser, features: IBusinessFeatures, tenantSlug?: string | null) => {

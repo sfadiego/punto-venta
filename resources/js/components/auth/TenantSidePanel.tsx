@@ -3,6 +3,7 @@ import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { ApisEnum } from "@/configs/apisEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { BusinessLogo } from "@/components/BusinessLogo/BusinessLogo";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
     tenant: IBusinessConfig | undefined;
@@ -20,7 +21,7 @@ export const TenantSidePanel = ({ tenant, isLoading }: Props) => {
         ? `${ApisEnum.BaseUrl}${ApiRoutes.Files}/${tenant.logo_path}`
         : null;
     const logoIcon = tenant?.logo_icon ?? null;
-
+    const navigate = useNavigate();
     return (
         <div
             className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 relative overflow-hidden"
@@ -43,12 +44,13 @@ export const TenantSidePanel = ({ tenant, isLoading }: Props) => {
                             logoUrl={logoUrl}
                             logoIcon={logoIcon}
                             size={56}
-                            imgClassName="w-14 h-14 object-contain rounded-xl"
+                            imgClassName="w-14 h-14 object-contain rounded-xl cursor-pointer"
+                            onClick={() => navigate('/')}
                         />
                     )}
                 </div>
 
-                <h1 className="text-white text-4xl font-bold tracking-tight mb-3">
+                <h1 onClick={() => navigate('/')} className="text-white text-4xl font-bold tracking-tight mb-3 cursor-pointer">
                     {isLoading ? (
                         <span className="inline-block w-36 h-9 bg-white/30 rounded-lg animate-pulse" />
                     ) : (

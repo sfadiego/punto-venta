@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { searchAddress, INominatimResult } from "@/libs/nominatim";
 
 export type { INominatimResult };
@@ -30,7 +31,7 @@ export const useAddressAutocomplete = (value: string) => {
                 setOpen(data.length > 0);
             } catch (error) {
                 if (error instanceof Error && error.name !== "AbortError") {
-                    console.error("[useAddressAutocomplete]", error);
+                    logUnexpectedError(error, "useAddressAutocomplete");
                 }
             } finally {
                 setIsLoading(false);

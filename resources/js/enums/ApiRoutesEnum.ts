@@ -20,5 +20,6 @@ export enum ApiRoutes {
     SuperAdminSubscription = "/api/super-admin/subscription",
     SuperAdminSettings     = "/api/super-admin/settings",
     SuperAdminErrorLogs    = "/api/super-admin/error-logs",
+    SuperAdminPrinterAgent = "/api/super-admin/printer-agent/download",
     ClientErrorLog         = "/api/client-error",
 }

@@ -29,7 +29,7 @@ const readCachedColors = (slug: string): CachedColors | null => {
     }
 };
 
-export const useTenantLoginPage = (slug: string) => {
+export const useTenantAuthPage = (slug: string) => {
     const { data: tenant, isLoading, isError, error } = useGetTenantBranding(slug);
 
     const isInactive =
@@ -40,13 +40,6 @@ export const useTenantLoginPage = (slug: string) => {
 
     const hasCachedColors = !!readCachedColors(slug);
 
-    // Persiste el slug para que el logout redirija a esta URL de login
-    useEffect(() => {
-        if (slug) {
-            localStorage.setItem("tenantSlug", slug);
-        }
-    }, [slug]);
-
     // Aplica colores cacheados antes del primer paint (sin flash)
     useLayoutEffect(() => {
         if (!slug) return;
@@ -54,9 +47,12 @@ export const useTenantLoginPage = (slug: string) => {
         if (cached) applyColors(cached);
     }, [slug]);
 
-    // Cuando llegan datos frescos: aplica colores y actualiza caché
+    // Cuando llegan datos frescos: persiste slug, aplica colores y actualiza caché.
+    // Solo se ejecuta con tenant válido — evita guardar un slug inexistente en localStorage
+    // que causaría un loop de redirección en /auth.
     useEffect(() => {
         if (!tenant) return;
+        localStorage.setItem("tenantSlug", slug);
         const colors: CachedColors = {
             primary_color: tenant.primary_color,
             sidebar_color: tenant.sidebar_color,

@@ -12,7 +12,7 @@ export enum AdminRoutes {
     Users        = "/users",
     Admin        = "/admin",
     Subscription = "/subscription",
-    TenantLogin  = "/:slug/login",
+    TenantAuth   = "/:slug/auth",
     PublicMenu   = "/:slug/menu",
 }
 

@@ -15,7 +15,7 @@ export default function RegisterPage() {
                     El registro de usuarios lo gestiona el administrador del sistema.
                 </p>
                 <button
-                    onClick={() => navigate("/login")}
+                    onClick={() => navigate("/auth")}
                     className="text-amber-600 hover:text-amber-700 font-medium text-sm transition-colors"
                 >
                     Volver al inicio de sesión
