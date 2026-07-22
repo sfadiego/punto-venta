@@ -22,17 +22,17 @@ a { color: inherit; }
 
 /* ============ TOKENS ============ */
 :root {
-  --paper: #FBF3E6;
-  --paper-dim: #F3E7D3;
-  --ink: #241A14;
-  --ink-soft: #5B4E42;
-  --ember: #D8622C;
-  --ember-ink: #A8461B;
-  --marigold: #E8A93B;
-  --sage: #5C6E4F;
+  --paper: #FFFFFF;
+  --paper-dim: #F0FAFA;
+  --ink: #111827;
+  --ink-soft: #6B7280;
+  --ember: #008991;
+  --ember-ink: #006D74;
+  --marigold: #00A4AE;
+  --sage: #5C943E;
   --card: #FFFFFF;
-  --card-line: #E7D8C2;
-  --shadow: 0 1px 2px rgba(36,26,20,0.06), 0 8px 24px -8px rgba(36,26,20,0.16);
+  --card-line: #E5E7EB;
+  --shadow: 0 1px 3px rgba(17,24,39,0.06), 0 8px 24px -8px rgba(17,24,39,0.12);
 
   --font-display: 'Fraunces Display', ui-serif, Georgia, serif;
   --font-body: 'Manrope', ui-sans-serif, system-ui, sans-serif;
@@ -40,31 +40,31 @@ a { color: inherit; }
 }
 
 :root[data-theme="dark"] {
-  --paper: #1C1510;
-  --paper-dim: #221A14;
-  --ink: #F5E9D8;
-  --ink-soft: #C4B29B;
-  --ember: #F0824C;
-  --ember-ink: #FFAB7A;
-  --marigold: #F0BE5C;
-  --sage: #8CA478;
-  --card: #261D16;
-  --card-line: #3C2E22;
+  --paper: #0C1A1B;
+  --paper-dim: #112224;
+  --ink: #F9FAFB;
+  --ink-soft: #9CA3AF;
+  --ember: #00A4AE;
+  --ember-ink: #5ECED4;
+  --marigold: #00BFC9;
+  --sage: #86EFAC;
+  --card: #112224;
+  --card-line: #1E3A3C;
   --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px -8px rgba(0,0,0,0.55);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #1C1510;
-    --paper-dim: #221A14;
-    --ink: #F5E9D8;
-    --ink-soft: #C4B29B;
-    --ember: #F0824C;
-    --ember-ink: #FFAB7A;
-    --marigold: #F0BE5C;
-    --sage: #8CA478;
-    --card: #261D16;
-    --card-line: #3C2E22;
+    --paper: #0C1A1B;
+    --paper-dim: #112224;
+    --ink: #F9FAFB;
+    --ink-soft: #9CA3AF;
+    --ember: #00A4AE;
+    --ember-ink: #5ECED4;
+    --marigold: #00BFC9;
+    --sage: #86EFAC;
+    --card: #112224;
+    --card-line: #1E3A3C;
     --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px -8px rgba(0,0,0,0.55);
   }
 }
@@ -122,7 +122,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; text-wrap: bala
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
+  height: 64px;
 }
 .brand {
   display: flex;
@@ -148,18 +148,107 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; text-wrap: bala
 }
 .nav-links {
   display: flex;
+  align-items: center;
   gap: 32px;
   list-style: none;
+  margin: 0;
+  padding: 0;
   font-size: 14.5px;
   font-weight: 600;
 }
 .nav-links a { text-decoration: none; color: var(--ink-soft); transition: color .15s; }
-.nav-links a:hover { color: var(--ember-ink); }
-.nav-cta-wrap { display: flex; align-items: center; gap: 18px; }
-.nav-links-mobile-hide { display: flex; }
+.nav-links a:hover { color: var(--ember); }
+.nav-cta-wrap { display: flex; align-items: center; gap: 12px; }
 
+/* Hamburger button */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: 1px solid var(--card-line);
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+.nav-hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  transition: transform .25s ease, opacity .2s ease;
+}
+.nav-hamburger[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav-hamburger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Mobile drawer */
+.nav-drawer {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  z-index: 49;
+  background: var(--paper);
+  border-bottom: 1px solid var(--card-line);
+  padding: 20px 24px 24px;
+  box-shadow: 0 8px 24px -4px rgba(15,23,42,0.1);
+  animation: drawerSlide .2s ease;
+}
+.nav-drawer.open { display: flex; }
+@keyframes drawerSlide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.nav-drawer-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.nav-drawer-links a {
+  display: block;
+  padding: 13px 0;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 16px;
+  border-bottom: 1px solid var(--card-line);
+}
+.nav-drawer-links li:last-child a { border-bottom: none; }
+.nav-drawer-links a:hover { color: var(--ember); }
+.nav-drawer-ctas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+.nav-drawer-ctas .btn { width: 100%; justify-content: center; }
+
+/* Responsive breakpoints */
+@media (max-width: 1024px) {
+  .nav-links { gap: 24px; font-size: 14px; }
+}
+@media (max-width: 860px) {
+  .nav-links { gap: 16px; font-size: 13px; }
+  .nav-cta-wrap { gap: 8px; }
+}
 @media (max-width: 760px) {
   .nav-links-mobile-hide { display: none; }
+  .nav-demo-btn { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-drawer { display: none; }
+  .nav-drawer.open { display: flex; }
 }
 
 /* ============ BUTTONS ============ */
@@ -181,7 +270,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; text-wrap: bala
 .btn-primary {
   background: var(--ember);
   color: #fff;
-  box-shadow: 0 1px 2px rgba(36,26,20,0.1), 0 10px 20px -8px color-mix(in srgb, var(--ember) 55%, transparent);
+  box-shadow: 0 1px 2px rgba(17,24,39,0.08), 0 10px 20px -8px color-mix(in srgb, var(--ember) 45%, transparent);
 }
 .btn-primary:hover { background: var(--ember-ink); }
 .btn-ghost {
@@ -194,44 +283,134 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; text-wrap: bala
 
 /* ============ HERO ============ */
 .hero {
-  padding: 84px 0 60px;
+  padding: 48px 0 0;
   position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 140% 80% at 50% 0%, #C8ECEE 0%, #DFF4F5 25%, #EEF9F9 50%, #F7FDFD 70%, transparent 90%),
+    var(--paper);
 }
 .hero-grid {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: 999px;
+  padding: 6px 16px 6px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 28px;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.06);
+}
+.hero-badge-avatars {
+  display: flex;
   align-items: center;
 }
-@media (max-width: 900px) {
-  .hero-grid { grid-template-columns: 1fr; }
+.hero-badge-avatars span {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--card);
+  background: linear-gradient(135deg, var(--ember), var(--marigold));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  margin-left: -6px;
+}
+.hero-badge-avatars span:first-child { margin-left: 0; }
+.hero-badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ember);
+  flex-shrink: 0;
 }
 .hero h1 {
-  font-size: clamp(2.3rem, 4.6vw, 3.6rem);
-  line-height: 1.06;
-  margin: 18px 0 20px;
+  font-size: clamp(2.8rem, 5.8vw, 4.4rem);
+  line-height: 1.05;
+  margin: 0 0 22px;
+  max-width: 22ch;
 }
 .hero h1 em {
   font-style: italic;
-  color: var(--ember-ink);
+  color: var(--ember);
 }
 .hero p.lead {
-  font-size: 18px;
+  font-size: 19px;
   color: var(--ink-soft);
-  max-width: 46ch;
-  margin-bottom: 30px;
+  max-width: 64ch;
+  margin: 0 auto 32px;
+  line-height: 1.7;
 }
-.hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 34px; }
+.hero-ctas {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.btn-pill {
+  border-radius: 999px;
+  padding: 15px 32px;
+  font-size: 16px;
+}
 .hero-trust {
   display: flex;
-  gap: 22px;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   font-size: 13px;
   color: var(--ink-soft);
   font-weight: 600;
+  margin-bottom: 40px;
 }
-.hero-trust span { display: flex; align-items: center; gap: 7px; }
-.hero-trust svg { width: 15px; height: 15px; color: var(--sage); flex-shrink: 0; }
+.hero-trust-stars { display: flex; gap: 2px; }
+.hero-trust-stars svg { width: 14px; height: 14px; fill: #F59E0B; color: #F59E0B; }
+.hero-mock-wrap {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+  padding: 0 24px;
+}
+.hero-app-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px 16px 0 0;
+  border: 1px solid rgba(0, 137, 145, 0.15);
+  border-bottom: none;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.8) inset,
+    0 -2px 0 0 rgba(0,137,145,0.08),
+    0 32px 80px -16px rgba(0, 82, 87, 0.18),
+    0 8px 24px -8px rgba(17,24,39,0.10);
+}
+.receipt-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  perspective: 1400px;
+  padding-bottom: 0;
+}
+@media (max-width: 640px) {
+  .hero { padding: 56px 0 0; }
+  .hero h1 { font-size: clamp(2rem, 8vw, 2.8rem); }
+  .hero p.lead { font-size: 16px; }
+  .btn-pill { padding: 13px 24px; font-size: 15px; }
+  .hero-mock-bg { padding: 20px 16px 0; }
+}
 
 /* ---- Receipt mock ---- */
 .receipt-stage {
@@ -348,40 +527,170 @@ section { padding: 92px 0; }
 }
 
 /* ============ HOW IT WORKS ============ */
-.steps {
+/* ============ ZIGZAG CÓMO FUNCIONA ============ */
+.zz-section { padding: 96px 0; }
+.zz-head { text-align: center; margin-bottom: 80px; }
+.zz-head h2 { font-size: clamp(1.8rem, 3vw, 2.6rem); margin: 12px 0 10px; }
+.zz-head p { color: var(--ink-soft); font-size: 17px; max-width: 52ch; margin: 0 auto; }
+.zz-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  margin-bottom: 80px;
 }
-@media (max-width: 820px) { .steps { grid-template-columns: 1fr; } }
-.step-card {
-  background: var(--card);
-  border: 1px solid var(--card-line);
-  border-radius: 18px;
-  padding: 30px 26px;
-  position: relative;
-  box-shadow: var(--shadow);
-}
-.step-num {
+.zz-row:last-child { margin-bottom: 0; }
+.zz-row.reverse .zz-visual { order: -1; }
+.zz-text { display: flex; flex-direction: column; gap: 16px; }
+.zz-num {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--ember-ink);
-  background: color-mix(in srgb, var(--ember) 12%, transparent);
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 6px;
-  margin-bottom: 18px;
+  letter-spacing: .1em;
+  color: var(--ember);
+  background: color-mix(in srgb, var(--ember) 10%, transparent);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  width: fit-content;
 }
-.step-card h3 { font-size: 19px; margin-bottom: 8px; }
-.step-card p { color: var(--ink-soft); font-size: 14.5px; }
-.step-arrow {
+.zz-num::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ember);
+}
+.zz-text h3 { font-size: clamp(1.4rem, 2.2vw, 1.9rem); line-height: 1.2; margin: 0; }
+.zz-text p { color: var(--ink-soft); font-size: 16px; line-height: 1.7; margin: 0; }
+.zz-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.zz-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--paper-dim);
+  border: 1px solid var(--card-line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px; font-weight: 600; color: var(--ink-soft);
+}
+.zz-chip svg { width: 13px; height: 13px; color: var(--ember); flex-shrink: 0; }
+
+/* Visuales CSS */
+.zz-visual {
+  background: var(--paper-dim);
+  border: 1px solid var(--card-line);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: var(--shadow);
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.zz-visual::before {
+  content: "";
   position: absolute;
-  top: 30px; right: -30px;
-  color: var(--card-line);
-  z-index: 2;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--ember) 6%, transparent), transparent 70%);
+  pointer-events: none;
 }
-@media (max-width: 820px) { .step-arrow { display: none; } }
+/* Mockup Vender */
+.mock-products { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+.mock-product-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--card); border: 1px solid var(--card-line);
+  border-radius: 12px; padding: 12px 16px;
+  font-size: 13.5px; font-weight: 600;
+  box-shadow: 0 1px 4px rgba(17,24,39,0.05);
+}
+.mock-product-row .mock-tag {
+  font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+  background: color-mix(in srgb, var(--ember) 12%, transparent); color: var(--ember);
+}
+.mock-product-row .mock-price { color: var(--ember); font-weight: 800; }
+.mock-total {
+  background: var(--ember); color: #fff; border-radius: 12px;
+  padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;
+  font-weight: 700; font-size: 15px; margin-top: 4px;
+}
+/* Mockup Cobrar */
+.mock-pay { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+.mock-pay-opt {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 2px solid var(--card-line);
+  border-radius: 12px; padding: 14px 16px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: border-color .15s;
+}
+.mock-pay-opt.selected { border-color: var(--ember); background: color-mix(in srgb, var(--ember) 5%, var(--card)); }
+.mock-pay-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: color-mix(in srgb, var(--ember) 12%, transparent);
+  display: flex; align-items: center; justify-content: center;
+}
+.mock-pay-icon svg { width: 18px; height: 18px; color: var(--ember); }
+.mock-pay-check {
+  margin-left: auto; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--ember); display: flex; align-items: center; justify-content: center;
+}
+.mock-pay-check svg { width: 11px; height: 11px; color: #fff; }
+/* Mockup Controlar */
+.mock-stats { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; }
+.mock-stat-card {
+  background: var(--card); border: 1px solid var(--card-line);
+  border-radius: 12px; padding: 14px 16px;
+  box-shadow: 0 1px 4px rgba(17,24,39,0.05);
+}
+.mock-stat-label { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.mock-stat-val { font-size: 22px; font-weight: 800; color: var(--ink); }
+.mock-stat-sub { font-size: 12px; color: var(--ember); font-weight: 600; margin-top: 2px; }
+.mock-bar-wrap { margin-top: 8px; }
+.mock-bar-bg { background: var(--paper-dim); border-radius: 999px; height: 6px; overflow: hidden; }
+.mock-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--ember), var(--marigold)); }
+
+/* Mockup Cocina */
+.mock-kitchen { display: flex; gap: 12px; width: 100%; max-width: 340px; }
+.mock-kitchen-card {
+  flex: 1;
+  background: var(--card); border: 1px solid var(--card-line);
+  border-radius: 14px; padding: 14px 12px;
+  box-shadow: 0 1px 4px rgba(17,24,39,0.05);
+  display: flex; flex-direction: column;
+}
+.mock-kitchen-card.done { opacity: 0.55; }
+.mock-kitchen-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.mock-kitchen-table { font-weight: 800; font-size: 13px; color: var(--ink); }
+.mock-kitchen-time { font-size: 11px; font-weight: 600; color: var(--ink-soft); }
+.mock-kitchen-item { font-size: 12px; color: var(--ink-soft); padding: 4px 0; border-bottom: 1px solid var(--card-line); line-height: 1.4; }
+.mock-kitchen-item:last-of-type { border-bottom: none; }
+.mock-kitchen-badge {
+  display: inline-block; margin-top: 10px;
+  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; width: fit-content;
+}
+.mock-kitchen-badge.new { background: color-mix(in srgb, #F59E0B 15%, transparent); color: #92400E; }
+.mock-kitchen-badge.ready { background: color-mix(in srgb, var(--ember) 12%, transparent); color: var(--ember-ink); }
+
+/* Mockup orden cafetería */
+.mock-order-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 10px; border-bottom: 1px solid var(--card-line); margin-bottom: 10px;
+  font-size: 12.5px; font-weight: 700; color: var(--ink-soft);
+}
+.mock-order-header strong { color: var(--ink); font-size: 13.5px; }
+
+/* Selector de giro */
+.zz-tab-selector {
+  display: flex; justify-content: center; margin: 28px 0 0;
+}
+
+@media (max-width: 820px) {
+  .zz-row { grid-template-columns: 1fr; gap: 32px; }
+  .zz-row.reverse .zz-visual { order: 0; }
+  .zz-section { padding: 64px 0; }
+  .zz-head { margin-bottom: 48px; }
+}
 
 /* ============ FEATURE TOGGLE ============ */
 .toggle-bar {
@@ -451,7 +760,7 @@ section { padding: 92px 0; }
   position: relative;
   overflow: hidden;
 }
-:root[data-theme="dark"] .strip, @media (prefers-color-scheme: dark) { }
+
 .strip::before {
   content: "";
   position: absolute;
@@ -494,6 +803,78 @@ section { padding: 92px 0; }
 .cta-block p { color: var(--ink-soft); font-size: 16.5px; margin-bottom: 34px; }
 .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 
+/* ============ GIROS CAROUSEL ============ */
+.giros-section {
+  padding: 88px 0 72px;
+  overflow: hidden;
+}
+.giros-head {
+  text-align: center;
+  margin-bottom: 52px;
+}
+.giros-head h2 {
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  margin: 12px 0 14px;
+}
+.giros-head p {
+  color: var(--ink-soft);
+  font-size: 16.5px;
+  max-width: 54ch;
+  margin: 0 auto;
+}
+.giro-marquee {
+  position: relative;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+.giro-track {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+  animation: giro-scroll 28s linear infinite;
+}
+.giro-track:hover { animation-play-state: paused; }
+@keyframes giro-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.giro-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: 20px;
+  padding: 28px 32px 22px;
+  min-width: 148px;
+  text-align: center;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+  cursor: default;
+  flex-shrink: 0;
+}
+.giro-card:hover {
+  border-color: var(--ember);
+  box-shadow: 0 4px 20px -4px color-mix(in srgb, var(--ember) 18%, transparent);
+  transform: translateY(-3px);
+}
+.giro-icon-wrap {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--ember) 10%, transparent);
+  color: var(--ember);
+}
+.giro-icon-wrap svg { width: 26px; height: 26px; }
+.giro-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: .01em;
+  line-height: 1.3;
+}
+
 /* ============ FOOTER ============ */
 footer {
   border-top: 1px solid var(--card-line);
@@ -517,6 +898,166 @@ footer {
 
 /* ============ SCROLLBAR-SAFE WIDE CONTENT ============ */
 .scroll-x { overflow-x: auto; }
+
+/* ============ WHATSAPP FLOTANTE ============ */
+.wa-float {
+  position: fixed;
+  bottom: 80px;
+  right: 28px;
+  z-index: 999;
+  width: 56px;
+  height: 56px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(37,211,102,0.4), 0 2px 6px rgba(0,0,0,0.15);
+  text-decoration: none;
+  transition: transform .2s ease, box-shadow .2s ease;
+  animation: waPulse 2.5s ease-in-out infinite;
+}
+.wa-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(37,211,102,0.5), 0 2px 8px rgba(0,0,0,0.18);
+  animation: none;
+}
+.wa-float svg { width: 30px; height: 30px; fill: #fff; }
+@keyframes waPulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(37,211,102,0.4), 0 2px 6px rgba(0,0,0,0.15); }
+  50%       { box-shadow: 0 4px 24px rgba(37,211,102,0.65), 0 2px 6px rgba(0,0,0,0.15); }
+}
+@media (max-width: 640px) {
+  .wa-float { bottom: 72px; right: 20px; width: 50px; height: 50px; }
+  .wa-float svg { width: 26px; height: 26px; }
+}
+
+/* ============ PRECIOS ============ */
+.pricing-section { background: var(--paper-dim); padding: 96px 0; }
+.pricing-head { text-align: center; margin-bottom: 52px; }
+.pricing-head h2 { font-size: clamp(1.8rem, 3vw, 2.5rem); margin: 12px 0 14px; }
+.pricing-head p { color: var(--ink-soft); font-size: 16.5px; max-width: 50ch; margin: 0 auto; }
+
+.period-selector {
+  display: flex; justify-content: center; margin-bottom: 48px;
+}
+.period-bar {
+  display: inline-flex; gap: 4px; padding: 5px;
+  background: var(--card); border: 1px solid var(--card-line);
+  border-radius: 14px; box-shadow: var(--shadow);
+}
+.period-btn {
+  border: none; background: transparent; cursor: pointer;
+  padding: 9px 18px; border-radius: 10px;
+  font-family: var(--font-body); font-weight: 700; font-size: 13.5px;
+  color: var(--ink-soft); transition: all .18s ease; white-space: nowrap;
+}
+.period-btn.active {
+  background: var(--ember); color: #fff;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ember) 35%, transparent);
+}
+
+.pricing-card-wrap { display: flex; justify-content: center; }
+.pricing-card {
+  background: var(--card); border: 1px solid var(--card-line);
+  border-radius: 24px; padding: 48px 52px;
+  box-shadow: 0 4px 32px -8px rgba(17,24,39,0.12);
+  text-align: center; width: 100%; max-width: 420px;
+  position: relative; overflow: hidden;
+}
+.pricing-card::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--ember), var(--marigold));
+}
+.pricing-plan-name {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ember); margin-bottom: 28px;
+}
+.pricing-amount-wrap {
+  display: flex; align-items: flex-start; justify-content: center;
+  gap: 4px; margin-bottom: 6px;
+  transition: opacity .2s ease;
+}
+.pricing-currency { font-size: 28px; font-weight: 800; color: var(--ink); margin-top: 10px; }
+.pricing-amount { font-size: 72px; font-weight: 900; color: var(--ink); line-height: 1; }
+.pricing-period-label {
+  font-size: 15px; font-weight: 600; color: var(--ink-soft);
+  align-self: flex-end; margin-bottom: 10px;
+}
+.pricing-note { font-size: 13px; color: var(--ink-soft); margin-bottom: 32px; min-height: 20px; }
+
+.pricing-feats { list-style: none; text-align: left; margin-bottom: 36px; display: flex; flex-direction: column; gap: 11px; }
+.pricing-feats li { display: flex; align-items: center; gap: 10px; font-size: 14.5px; font-weight: 500; color: var(--ink); }
+.pricing-feats li svg { width: 16px; height: 16px; color: var(--ember); flex-shrink: 0; }
+
+.pricing-cta-block { text-align: center; margin-top: 72px; }
+.pricing-cta-block h3 { font-size: clamp(1.4rem, 2.5vw, 2rem); margin-bottom: 12px; }
+.pricing-cta-block p { color: var(--ink-soft); margin-bottom: 28px; font-size: 15.5px; }
+.pricing-cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+@media (max-width: 600px) {
+  .period-bar { flex-wrap: wrap; border-radius: 16px; }
+  .pricing-card { padding: 36px 28px; }
+  .pricing-amount { font-size: 56px; }
+}
+
+/* ============ RITMO VISUAL ENTRE SECCIONES ============ */
+
+/* Cómo funciona: sutil continuación del hero */
+.zz-section {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--ember) 5%, var(--paper)) 0%,
+    var(--paper) 28%
+  );
+}
+
+/* Giros: momento oscuro — rompe la monotonía */
+#giros.giros-section {
+  background: var(--ink);
+  padding-top: 108px;
+  padding-bottom: 108px;
+  position: relative;
+  overflow: hidden;
+}
+#giros.giros-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--marigold) 40%, transparent) 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: 0.055;
+  pointer-events: none;
+}
+#giros .giros-head h2 { color: var(--paper); }
+#giros .giros-head p  { color: color-mix(in srgb, var(--paper) 60%, transparent); }
+#giros .eyebrow       { color: var(--marigold); }
+#giros .eyebrow::before { background: var(--marigold); }
+#giros .giro-card {
+  background: color-mix(in srgb, #fff 6%, transparent);
+  border-color: color-mix(in srgb, #fff 10%, transparent);
+}
+#giros .giro-card:hover {
+  border-color: var(--ember);
+  background: color-mix(in srgb, var(--ember) 10%, transparent);
+  box-shadow: 0 4px 20px -4px color-mix(in srgb, var(--ember) 30%, transparent);
+}
+#giros .giro-name { color: var(--paper); }
+#giros .giro-icon-wrap {
+  background: color-mix(in srgb, var(--ember) 18%, transparent);
+  color: var(--marigold);
+}
+
+/* Funciones strip: fondo tintado suave */
+.funciones-section { background: var(--paper-dim); }
+
+/* Más funciones: mismo tint para unificar el bloque */
+.features-section { background: var(--paper-dim); }
+
+.cta-section {
+  background: var(--paper);
+}
 </style>
 
 <body>
@@ -529,235 +1070,457 @@ footer {
     </a>
     <ul class="nav-links nav-links-mobile-hide">
       <li><a href="#como-funciona">Cómo funciona</a></li>
-      <li><a href="#funciones">Funciones</a></li>
-      <li><a href="#negocio">Tu negocio</a></li>
+      <li><a href="#giros">Giros</a></li>
+      <li><a href="#precios">Precios</a></li>
     </ul>
     <div class="nav-cta-wrap">
-      <a class="btn btn-ghost btn-sm nav-links-mobile-hide" href="/auth">Iniciar sesión</a>
-      <a class="btn btn-primary btn-sm" href="mailto:sfadiego@gmail.com?subject=Quiero%20una%20demo">Solicitar demo</a>
+      <a class="btn btn-ghost btn-sm nav-links-mobile-hide" href="/login">Iniciar sesión</a>
+      <a class="btn btn-primary btn-sm nav-demo-btn" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">Solicitar demo</a>
+      <button class="nav-hamburger" id="navHamburger" aria-label="Abrir menú" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </div>
 </nav>
+<div class="nav-drawer" id="navDrawer" aria-hidden="true">
+  <ul class="nav-drawer-links">
+    <li><a href="#como-funciona">Cómo funciona</a></li>
+    <li><a href="#giros">Giros</a></li>
+    <li><a href="#precios">Precios</a></li>
+  </ul>
+  <div class="nav-drawer-ctas">
+    <a class="btn btn-ghost" href="/login">Iniciar sesión</a>
+    <a class="btn btn-primary" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">Solicitar demo</a>
+  </div>
+</div>
 
 <header class="hero">
   <div class="wrap hero-grid">
-    <div>
-      <span class="eyebrow">Punto de venta para restaurantes y venta por peso</span>
-      <h1>Cobra en segundos. <em>Controla</em> todo tu negocio.</h1>
-      <p class="lead">
-        Vende por pieza o por peso, abre y cierra caja, atiende cocina en tiempo real
-        y fía a tus clientes de confianza — todo desde un solo sistema, sin fricción
-        en el mostrador.
-      </p>
-      <div class="hero-ctas">
-        <a class="btn btn-primary" href="mailto:sfadiego@gmail.com?subject=Quiero%20una%20demo">Solicitar una demo</a>
-        <a class="btn btn-ghost" href="#como-funciona">Ver cómo funciona</a>
+
+    <div class="hero-badge">
+      <div class="hero-badge-avatars">
+        <span>JM</span><span>KL</span><span>AR</span>
       </div>
-      <div class="hero-trust">
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Venta por pieza y por peso</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Cocina y caja en tiempo real</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Clientes fiado con saldo</span>
-      </div>
+      <span class="hero-badge-dot"></span>
+      Más de 50 negocios activos
     </div>
 
-    <div class="receipt-stage">
-      <div class="float-chip chip-a">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12h20"/></svg>
-        Caja abierta
-      </div>
-      <div class="receipt">
-        <div class="receipt-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M20 6 9 17l-5-5"/></svg>
-          Cobrado
-        </div>
-        <div class="receipt-head">
-          <b>Venta Rápida</b>
-          <small>Ticket #0842 · Mostrador 1</small>
-        </div>
-        <div class="receipt-line" style="animation-delay:.1s"><span class="qty">2×</span><span class="name">Bistec de res</span><span class="price">$180.00</span></div>
-        <div class="receipt-line" style="animation-delay:.35s"><span class="qty">0.85kg</span><span class="name">Chuleta ahumada</span><span class="price">$153.00</span></div>
-        <div class="receipt-line" style="animation-delay:.6s"><span class="qty">1×</span><span class="name">Chorizo artesanal</span><span class="price">$65.00</span></div>
-        <div class="receipt-line" style="animation-delay:.85s"><span class="qty">·</span><span class="name">Fiado — Carnitas Don Beto</span><span class="price">Saldo</span></div>
-        <div class="receipt-total"><span>Total</span><span class="amt">$398.00</span></div>
-      </div>
-      <div class="float-chip chip-b">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Multi-negocio aislado
-      </div>
+    <h1>Cobra en segundos.<br><em>Controla</em> todo tu negocio.</h1>
+
+    <p class="lead">
+      Vende por pieza o por peso, abre y cierra caja, atiende cocina en tiempo real
+      y fía a tus clientes de confianza — todo desde un solo sistema.
+    </p>
+
+    <div class="hero-ctas">
+      <a class="btn btn-primary btn-pill" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">Solicitar una demo</a>
+      <a class="btn btn-ghost btn-pill" href="#como-funciona">Ver cómo funciona</a>
     </div>
+
+    <div class="hero-trust">
+      <div class="hero-trust-stars">
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </div>
+      <span>Negocios que ya confían en Venta Rápida</span>
+    </div>
+
+    <div class="hero-mock-wrap">
+      <img
+        src="/landing/app-screenshot.png"
+        alt="Panel de Venta Rápida"
+        class="hero-app-img"
+      />
+    </div>
+
   </div>
 </header>
 
-<section id="como-funciona">
+<section id="como-funciona" class="zz-section">
   <div class="wrap">
-    <div class="section-head reveal">
+
+    <div class="zz-head reveal">
       <span class="eyebrow">Cómo funciona</span>
       <h2>Del mostrador al reporte, en tres pasos.</h2>
-      <p>Sin flujos raros ni pantallas de más — lo que un cajero necesita, cuando lo necesita.</p>
-    </div>
-    <div class="steps">
-      <div class="step-card reveal">
-        <span class="step-num">01</span>
-        <h3>Vender</h3>
-        <p>Agrega productos por pieza o convierte peso a precio al instante para venta por peso — carnicerías, loncherías, lo que vendas a granel.</p>
-        <svg class="step-arrow" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      <p>Elige tu giro y ve cómo Venta Rápida se adapta a tu negocio.</p>
+      <div class="zz-tab-selector">
+        <div class="toggle-bar">
+          <button class="toggle-btn" aria-pressed="true" data-target="panel-carniceria">🥩 Carnicería</button>
+          <button class="toggle-btn" aria-pressed="false" data-target="panel-cafeteria">☕ Cafetería / Restaurante</button>
+        </div>
       </div>
-      <div class="step-card reveal" style="transition-delay:.08s">
-        <span class="step-num">02</span>
-        <h3>Cobrar</h3>
-        <p>Efectivo, transferencia, o credito por cliente — con abonos parciales y bloqueo de crédito cuando hace falta.</p>
-        <svg class="step-arrow" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      </div>
-      <div class="step-card reveal" style="transition-delay:.16s">
-        <span class="step-num">03</span>
-        <h3>Controlar</h3>
-        <p>Caja, cocina, reportes por categoría y estadísticas de lo más vendido — actualizado en vivo para todo tu equipo.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="wrap"><div class="divider"></div></div>
-
-<section id="negocio">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="eyebrow">Hecho a tu medida</span>
-      <h2>Un sistema, dos formas de vender.</h2>
-      <p>El panel se adapta al tipo de negocio — sin módulos que no vas a usar.</p>
-    </div>
-
-    <div class="toggle-bar" role="tablist" aria-label="Tipo de negocio">
-      <button class="toggle-btn" role="tab" aria-pressed="true" data-target="panel-restaurante">Restaurante / cafetería</button>
-      <button class="toggle-btn" role="tab" aria-pressed="false" data-target="panel-peso">Venta por peso</button>
     </div>
 
     <div class="biz-panels">
-      <div class="biz-panel" id="panel-restaurante" data-active="true">
-        <div class="feature-grid">
-          <div class="feature-card">
-            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V8a2 2 0 0 1 2-2h1V3M9 3v3M15 3v3M20 21V9a2 2 0 0 0-2-2h-1"/></svg></div>
-            <h3>Vista de cocina en vivo</h3>
-            <p>Los pedidos llegan a cocina al instante y se marcan como servidos sin ir y venir al mostrador.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
-            <h3>Toma de pedidos por mesa</h3>
-            <p>Abre, edita y cierra pedidos por mesa o para llevar, con extras y notas por producto.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></div>
-            <h3>Estado del pedido en tiempo real</h3>
-            <p>De "en cocina" a "servido" — el equipo entero ve el mismo estado al mismo tiempo, sin recargar.</p>
-          </div>
-        </div>
-      </div>
 
-      <div class="biz-panel" id="panel-peso" data-active="false">
-        <div class="feature-grid">
-          <div class="feature-card">
-            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2M12 19v2M5 12H3M21 12h-2"/><circle cx="12" cy="12" r="7"/><path d="M12 9v3l2 2"/></svg></div>
-            <h3>Conversión peso ↔ precio</h3>
-            <p>Ingresa el peso o el monto a cobrar y el sistema calcula el otro al instante — sin báscula conectada ni cálculo manual.</p>
+      <!-- ─── PANEL A: Carnicería ─── -->
+      <div class="biz-panel" id="panel-carniceria" data-active="true">
+
+        <div class="zz-row">
+          <div class="zz-text">
+            <span class="zz-num">01 — Pesar y vender</span>
+            <h3>Busca el corte, ingresa el peso — el precio sale solo.</h3>
+            <p>Sin calculadora aparte, sin error humano. Ingresa los gramos y el sistema cobra exacto al centavo.</p>
+            <div class="zz-chips">
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Precio por kg</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Cálculo automático</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Extras y notas</span>
+            </div>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-            <h3>Clientes fiado, con saldo</h3>
-            <p>Da crédito a tus clientes de confianza, registra abonos parciales y bloquea el crédito de quien no paga sin perder el historial.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
-            <h3>Ventas recientes al vuelo</h3>
-            <p>Retoma una venta en curso desde el panel, cóbrala y sigue — pensado para mostradores de mucho movimiento.</p>
+          <div class="zz-visual">
+            <div class="mock-products">
+              <div class="mock-product-row">
+                <span>Bistec de res <span class="mock-tag">0.85 kg</span></span>
+                <span class="mock-price">$153</span>
+              </div>
+              <div class="mock-product-row">
+                <span>Carne molida <span class="mock-tag">0.5 kg</span></span>
+                <span class="mock-price">$87</span>
+              </div>
+              <div class="mock-product-row">
+                <span>Chuleta <span class="mock-tag">1.2 kg</span></span>
+                <span class="mock-price">$216</span>
+              </div>
+              <div class="mock-total"><span>Total</span><span>$456.00</span></div>
+            </div>
           </div>
         </div>
+
+        <div class="zz-row reverse">
+          <div class="zz-text">
+            <span class="zz-num">02 — Cobrar</span>
+            <h3>Efectivo, transferencia o fiado — tú decides cómo cobra.</h3>
+            <p>Da crédito a tus clientes de confianza, registra abonos y bloquea cuando el saldo se pasa.</p>
+            <div class="zz-chips">
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Efectivo</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Transferencia</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Crédito </span>
+            </div>
+          </div>
+          <div class="zz-visual">
+            <div class="mock-pay">
+              <div class="mock-pay-opt selected">
+                <div class="mock-pay-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                <span>Efectivo</span>
+                <div class="mock-pay-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></div>
+              </div>
+              <div class="mock-pay-opt">
+                <div class="mock-pay-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+                <span>Transferencia</span>
+              </div>
+              <div class="mock-pay-opt">
+                <div class="mock-pay-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+                <span>Crédito — Carnitas Don Beto</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="zz-row">
+          <div class="zz-text">
+            <span class="zz-num">03 — Cerrar caja</span>
+            <h3>Al final del día, ve exactamente qué vendiste y cuánto entra.</h3>
+            <p>Cierra la caja, revisa los cortes más vendidos por kg y compara contra el efectivo del cajón.</p>
+            <div class="zz-chips">
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Apertura y cierre de caja</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Top de cortes vendidos</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Ventas por categoría</span>
+            </div>
+          </div>
+          <div class="zz-visual">
+            <div class="mock-stats">
+              <div class="mock-stat-card">
+                <div class="mock-stat-label">Ventas del día</div>
+                <div class="mock-stat-val">$4,280</div>
+                <div class="mock-stat-sub">↑ 12% vs ayer</div>
+              </div>
+              <div class="mock-stat-card">
+                <div class="mock-stat-label">Más vendido</div>
+                <div class="mock-stat-val">Bistec de res</div>
+                <div class="mock-bar-wrap"><div class="mock-bar-bg"><div class="mock-bar-fill" style="width:78%"></div></div></div>
+              </div>
+              <div class="mock-stat-card">
+                <div class="mock-stat-label">Estado de caja</div>
+                <div class="mock-stat-val" style="color:var(--ember)">Abierta</div>
+                <div class="mock-stat-sub">Desde las 8:00 am</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /panel-carniceria -->
+
+      <!-- ─── PANEL B: Cafetería / Restaurante ─── -->
+      <div class="biz-panel" id="panel-cafeteria" data-active="false">
+
+        <div class="zz-row">
+          <div class="zz-text">
+            <span class="zz-num">01 — Tomar la orden</span>
+            <h3>Selecciona mesa o para llevar, agrega productos y manda a cocina.</h3>
+            <p>El mesero o cajero arma la orden en segundos — sin papel, sin confusiones. La cocina la recibe al instante.</p>
+            <div class="zz-chips">
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Orden por mesa</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Para llevar</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Extras y notas</span>
+            </div>
+          </div>
+          <div class="zz-visual">
+            <div class="mock-products">
+              <div class="mock-order-header">
+                <strong>Mesa 5</strong>
+                <span>Para servir · 3 productos</span>
+              </div>
+              <div class="mock-product-row">
+                <span>Americano <span class="mock-tag">x2</span></span>
+                <span class="mock-price">$90</span>
+              </div>
+              <div class="mock-product-row">
+                <span>Tisana <span class="mock-tag">x1</span></span>
+                <span class="mock-price">$55</span>
+              </div>
+              <div class="mock-product-row">
+                <span>Jugo de naranja <span class="mock-tag">x1</span></span>
+                <span class="mock-price">$35</span>
+              </div>
+              <div class="mock-total"><span>Total</span><span>$180.00</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="zz-row reverse">
+          <div class="zz-text">
+            <span class="zz-num">02 — Cocina en vivo</span>
+            <h3>El chef ve los pedidos en pantalla. Sin papel, sin gritos.</h3>
+            <p>Cada orden llega automáticamente a la vista de cocina. El cocinero marca qué ya está listo y el cajero lo ve al instante.</p>
+            <div class="zz-chips">
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Vista de cocina</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Sin papel</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Tiempo real</span>
+            </div>
+          </div>
+          <div class="zz-visual">
+            <div class="mock-kitchen">
+              <div class="mock-kitchen-card">
+                <div class="mock-kitchen-header">
+                  <span class="mock-kitchen-table">Mesa 3</span>
+                  <span class="mock-kitchen-time">8 min</span>
+                </div>
+                <div class="mock-kitchen-item">Americano x2</div>
+                <div class="mock-kitchen-item">Croissant x1</div>
+                <div class="mock-kitchen-badge new">Nuevo</div>
+              </div>
+              <div class="mock-kitchen-card done">
+                <div class="mock-kitchen-header">
+                  <span class="mock-kitchen-table">Mesa 1</span>
+                  <span class="mock-kitchen-time">✓</span>
+                </div>
+                <div class="mock-kitchen-item">Jugo natural x1</div>
+                <div class="mock-kitchen-item">Hotcakes x2</div>
+                <div class="mock-kitchen-badge ready">Listo</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="zz-row">
+          <div class="zz-text">
+            <span class="zz-num">03 — Cobrar y cerrar</span>
+            <h3>Cobra cuando la orden está lista. Cierra la caja sin sorpresas.</h3>
+            <p>Efectivo, transferencia o fiado. Al final del día revisa cuánto vendiste por categoría y compara contra la caja.</p>
+            <div class="zz-chips">
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Efectivo y transferencia</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Crédito a clientes</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Cierre de caja</span>
+            </div>
+          </div>
+          <div class="zz-visual">
+            <div class="mock-stats">
+              <div class="mock-stat-card">
+                <div class="mock-stat-label">Ventas del día</div>
+                <div class="mock-stat-val">$3,840</div>
+                <div class="mock-stat-sub">↑ 8% vs ayer</div>
+              </div>
+              <div class="mock-stat-card">
+                <div class="mock-stat-label">Más vendido</div>
+                <div class="mock-stat-val">Americano</div>
+                <div class="mock-bar-wrap"><div class="mock-bar-bg"><div class="mock-bar-fill" style="width:85%"></div></div></div>
+              </div>
+              <div class="mock-stat-card">
+                <div class="mock-stat-label">Estado de caja</div>
+                <div class="mock-stat-val" style="color:var(--ember)">Abierta</div>
+                <div class="mock-stat-sub">Desde las 7:00 am</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /panel-cafeteria -->
+
+    </div><!-- /biz-panels -->
+
+  </div>
+</section>
+
+<section id="giros" class="giros-section">
+  <div class="giros-head reveal">
+    <span class="eyebrow" style="justify-content:center; width:100%;">Giros</span>
+    <h2>Para cualquier negocio de mostrador.</h2>
+    <p>Si cobras en el mostrador y no necesitas manejar inventario, Venta Rápida es para ti.</p>
+  </div>
+  <div class="giro-marquee">
+    <div class="giro-track">
+      <!-- Set 1 -->
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></div>
+        <span class="giro-name">Cafetería</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" x2="18" y1="17" y2="17"/></svg></div>
+        <span class="giro-name">Restaurante</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-1.5 0-3 .5-4 1.5L3 8l1 1 2-1v11a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8l2 1 1-1-5-4.5C15 2.5 13.5 2 12 2z"/><path d="M10 14v3m4-3v3"/></svg></div>
+        <span class="giro-name">Carnicería</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></div>
+        <span class="giro-name">Taquería</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+        <span class="giro-name">Abarrotes</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
+        <span class="giro-name">Frutería</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg></div>
+        <span class="giro-name">Lonchería</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/><path d="M12 12v5"/></svg></div>
+        <span class="giro-name">Tortillería</span>
+      </div>
+      <!-- Set 2 (duplicado para loop infinito) -->
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></div>
+        <span class="giro-name">Cafetería</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" x2="18" y1="17" y2="17"/></svg></div>
+        <span class="giro-name">Restaurante</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-1.5 0-3 .5-4 1.5L3 8l1 1 2-1v11a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8l2 1 1-1-5-4.5C15 2.5 13.5 2 12 2z"/><path d="M10 14v3m4-3v3"/></svg></div>
+        <span class="giro-name">Carnicería</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></div>
+        <span class="giro-name">Taquería</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
+        <span class="giro-name">Frutería</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg></div>
+        <span class="giro-name">Lonchería</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/><path d="M12 12v5"/></svg></div>
+        <span class="giro-name">Tortillería</span>
+      </div>
+      <div class="giro-card">
+        <div class="giro-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></div>
+        <span class="giro-name">Papelería</span>
       </div>
     </div>
   </div>
 </section>
 
-<section id="funciones">
-  <div class="wrap">
-    <div class="strip reveal">
-      <div class="strip-head">
-        <span class="eyebrow">Lo que trae de fábrica</span>
-        <h2>Para todo negocio, sin importar cómo vendas.</h2>
-        <p>Lo que necesitas correr el mostrador ya viene incluido, no como módulos extra.</p>
-      </div>
-      <div class="stat-grid">
-        <div class="stat">
-          <b>2 modos</b>
-          <span>Venta por pieza y por peso, en el mismo catálogo</span>
-        </div>
-        <div class="stat">
-          <b>Tiempo real</b>
-          <span>Caja, cocina y pedidos sincronizados por WebSocket</span>
-        </div>
-        <div class="stat">
-          <b>Roles</b>
-          <span>Administrador y empleado, con permisos distintos</span>
-        </div>
-        <div class="stat">
-          <b>Aislado</b>
-          <span>Cada negocio ve solo su propia información</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+<section id="precios" class="cta-section pricing-section">
+  <div class="wrap reveal">
 
-<div class="wrap"><div class="divider"></div></div>
+    <!-- Cabecera -->
+    <div class="pricing-head">
+      <span class="eyebrow" style="justify-content:center;width:100%;">Precios</span>
+      <h2>Un solo plan, todo incluido</h2>
+      <p>Sin letra chica ni funciones bloqueadas. Escoge el período que más te convenga.</p>
+    </div>
 
-<section>
-  <div class="wrap">
-    <div class="section-head reveal" style="margin: 0 auto 52px; text-align:center;">
-      <span class="eyebrow" style="justify-content:center; width:100%;">Más funciones</span>
-      <h2>Todo lo demás que un negocio necesita.</h2>
-    </div>
-    <div class="feature-grid reveal">
-      <div class="feature-card">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
-        <h3>Apertura y cierre de caja</h3>
-        <p>Registra el efectivo inicial, cierra el turno y compara contra lo vendido, sin hojas sueltas.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg></div>
-        <h3>Reportes y estadísticas</h3>
-        <p>Ventas por categoría, productos más vendidos, y el estado de la caja del día en un vistazo.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18h12v4H6zM6 14h12"/><rect x="4" y="9" width="16" height="9" rx="2"/></svg></div>
-        <h3>Impresión de tickets</h3>
-        <p>Conecta tu impresora térmica y manda el ticket directo desde el mostrador.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-        <h3>Acceso protegido</h3>
-        <p>Límite de intentos de acceso y cuentas separadas por negocio, sin cruces de información entre clientes.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M17 11l2 2 4-4"/><path d="M1 21v-2a4 4 0 0 1 4-4h5"/></svg></div>
-        <h3>Múltiples usuarios</h3>
-        <p>Da acceso a tu equipo con roles de administrador o empleado, cada quien con lo que le toca ver.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h.01M15 9h.01M9 15h6"/></svg></div>
-        <h3>Catálogo por categorías</h3>
-        <p>Organiza tus productos por categoría con precios, imágenes y disponibilidad al día.</p>
+    <!-- Selector de período -->
+    <div class="period-selector">
+      <div class="period-bar" role="group" aria-label="Período de facturación">
+        <button class="period-btn" data-period="semanal"    data-amount="100"  data-unit="/sem"  data-note="100">Semanal</button>
+        <button class="period-btn" data-period="quincenal" data-amount="150"  data-unit="/qna"  data-note="150">Quincenal</button>
+        <button class="period-btn active" data-period="mensual" data-amount="399" data-unit="/mes"  data-note="399">Mensual</button>
+        <button class="period-btn" data-period="semestral" data-amount="2,000" data-unit="/sem" data-note="Son $2000/mes · ahorras $0">Semestral</button>
+        <button class="period-btn" data-period="anual"     data-amount="4,000" data-unit="/año" data-note="Son $4000/mes · pagas todo el año">Anual</button>
       </div>
     </div>
-  </div>
-</section>
 
-<section>
-  <div class="wrap cta-block reveal">
-    <span class="eyebrow" style="justify-content:center; width:100%;">Empieza hoy</span>
-    <h2>¿Listo para dejar de perder tiempo en el mostrador?</h2>
-    <p>Cuéntanos cómo vende tu negocio y te mostramos el sistema funcionando con tus propios productos.</p>
-    <div class="cta-actions">
-      <a class="btn btn-primary" href="mailto:sfadiego@gmail.com?subject=Quiero%20una%20demo">Solicitar una demo</a>
-      <a class="btn btn-ghost" href="#como-funciona">Ver cómo funciona</a>
+    <!-- Tarjeta de precio -->
+    <div class="pricing-card-wrap">
+      <div class="pricing-card">
+        <p class="pricing-plan-name">Venta Rápida POS</p>
+
+        <div class="pricing-amount-wrap">
+          <span class="pricing-currency">$</span>
+          <span class="pricing-amount" id="price-display">399</span>
+          <span class="pricing-period-label" id="period-display">/mes</span>
+        </div>
+        <p class="pricing-note" id="price-note"></p>
+
+        <ul class="pricing-feats">
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Ventas por peso y por unidad
+          </li>
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Cocina en vivo para restaurantes
+          </li>
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Apertura y cierre de caja
+          </li>
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Estadísticas y resumen de ventas
+          </li>
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Impresión de tickets ESC/POS
+          </li>
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Usuarios y roles
+          </li>
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Soporte vía WhatsApp
+          </li>
+        </ul>
+
+        <a target="_blank" class="btn btn-primary" style="width:100%;justify-content:center;" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">
+          Solicitar una demo
+        </a>
+      </div>
     </div>
+
+    <!-- CTA secundario -->
+    <div class="pricing-cta-block">
+      <h3>¿Tienes dudas?</h3>
+      <p>Cuéntanos cómo vende tu negocio y te mostramos el sistema funcionando con tus propios productos.</p>
+      <div class="pricing-cta-actions">
+        <a class="btn btn-ghost" href="#como-funciona">Ver cómo funciona</a>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -791,6 +1554,40 @@ footer {
     });
   });
 
+  // Hamburger menu
+  var hamburger = document.getElementById('navHamburger');
+  var drawer = document.getElementById('navDrawer');
+  if (hamburger && drawer) {
+    hamburger.addEventListener('click', function () {
+      var isOpen = drawer.classList.contains('open');
+      drawer.classList.toggle('open');
+      hamburger.setAttribute('aria-expanded', !isOpen);
+      drawer.setAttribute('aria-hidden', isOpen);
+    });
+    drawer.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        drawer.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        drawer.setAttribute('aria-hidden', 'true');
+      });
+    });
+  }
+
+  // Period selector
+  var periodBtns = document.querySelectorAll('.period-btn');
+  var priceDisplay = document.getElementById('price-display');
+  var periodDisplay = document.getElementById('period-display');
+  var priceNote = document.getElementById('price-note');
+  periodBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      periodBtns.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      if (priceDisplay) priceDisplay.textContent = btn.getAttribute('data-amount');
+      if (periodDisplay) periodDisplay.textContent = btn.getAttribute('data-unit');
+      if (priceNote) priceNote.textContent = btn.getAttribute('data-note') || '';
+    });
+  });
+
   // Scroll reveal
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
@@ -806,3 +1603,9 @@ footer {
     document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('is-visible'); });
   }
 </script>
+
+<a class="wa-float" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+</a>
