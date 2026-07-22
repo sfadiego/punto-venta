@@ -4,6 +4,7 @@ import { useAxios } from "@/hooks/useAxios";
 import { usePrintAgent } from "@/hooks/usePrintAgent";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
+import { reportClientError } from "@/utils/reportClientError";
 import { toast } from "react-toastify";
 
 export const usePrintTicket = (orderId: number) => {
@@ -30,7 +31,10 @@ export const usePrintTicket = (orderId: number) => {
             await agentPrint(new Uint8Array(res.data as ArrayBuffer));
         },
         onSuccess: () => toast.success("Ticket impreso"),
-        onError: (err: Error) => toast.error(`Error: ${err.message}`),
+        onError: (err: Error) => {
+            toast.error(`Error: ${err.message}`);
+            reportClientError({ message: err.message, stack: err.stack, context: "print-agent" });
+        },
     });
 
     const print = () => {

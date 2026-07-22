@@ -1,14 +1,9 @@
 import { useEffect } from "react";
 import axios from "axios";
+import { reportClientError } from "@/utils/reportClientError";
 
 const sendError = (message: string, stack?: string) => {
-    const payload = {
-        message: message.slice(0, 1000),
-        stack: stack?.slice(0, 5000),
-        url: window.location.href,
-    };
-    // sendBeacon para no bloquear y funcionar incluso si la página se está cerrando
-    navigator.sendBeacon("/api/client-error", JSON.stringify(payload));
+    reportClientError({ message, stack });
 };
 
 export const useErrorReporting = () => {

@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { useAxios } from "@/hooks/useAxios";
 import { usePrintAgent } from "@/hooks/usePrintAgent";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { reportClientError } from "@/utils/reportClientError";
 
 export const useTestPrint = () => {
     const { axiosApi } = useAxios();
@@ -20,7 +21,9 @@ export const useTestPrint = () => {
             toast.success("Impresión de prueba enviada");
         } catch (err) {
             const msg = err instanceof Error ? err.message : "Error al imprimir";
+            const stack = err instanceof Error ? err.stack : undefined;
             toast.error("Error: " + msg);
+            reportClientError({ message: msg, stack, context: "print-agent-test" });
         } finally {
             setIsPending(false);
         }
