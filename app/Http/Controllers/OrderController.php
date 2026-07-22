@@ -14,7 +14,6 @@ use App\Services\OrderSaleService;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 
 class OrderController extends Controller
@@ -57,15 +56,13 @@ class OrderController extends Controller
         $data = $params->toArray();
         $orderDetail = $order->totalAndSubTotalOrder();
 
-        DB::transaction(function () use ($order, $data, $orderDetail, $creditService) {
-            $order->update(array_merge($data, [
-                'total' => $orderDetail['total'],
-                'subtotal' => $orderDetail['subtotal'],
-            ]));
+        $order->update(array_merge($data, [
+            'total' => $orderDetail['total'],
+            'subtotal' => $orderDetail['subtotal'],
+        ]));
 
-            $becomingClosed = (int) ($data['estatus_pedido_id'] ?? 0) === OrderStatusEnum::CLOSED->value;
-            $creditService->applyIfClosingAsCredit($order, $becomingClosed);
-        });
+        $becomingClosed = (int) ($data['estatus_pedido_id'] ?? 0) === OrderStatusEnum::CLOSED->value;
+        $creditService->applyIfClosingAsCredit($order, $becomingClosed);
 
         $isServed = (int) ($data['estatus_pedido_id'] ?? 0) === OrderStatusEnum::SERVED->value;
         $this->broadcast($isServed ? 'served' : 'updated', $order->id);

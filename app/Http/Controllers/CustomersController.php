@@ -10,7 +10,6 @@ use App\Models\CustomerModel;
 use App\Models\CustomerPaymentModel;
 use App\Services\CustomerService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 
 class CustomersController extends Controller
@@ -77,20 +76,16 @@ class CustomersController extends Controller
 
     public function registerPayment(CustomerModel $customer, CustomerPaymentStoreRequest $params): JsonResponse
     {
-        $payment = DB::transaction(function () use ($customer, $params) {
-            $locked = CustomerModel::where('id', $customer->id)->lockForUpdate()->first();
+        $locked = CustomerModel::where('id', $customer->id)->lockForUpdate()->first();
 
-            $payment = CustomerPaymentModel::create([
-                CustomerPaymentModel::CUSTOMER_ID => $locked->id,
-                CustomerPaymentModel::AMOUNT => $params->amount,
-                CustomerPaymentModel::CREATED_BY => auth()->id(),
-                CustomerPaymentModel::NOTE => $params->note,
-            ]);
+        $payment = CustomerPaymentModel::create([
+            CustomerPaymentModel::CUSTOMER_ID => $locked->id,
+            CustomerPaymentModel::AMOUNT => $params->amount,
+            CustomerPaymentModel::CREATED_BY => auth()->id(),
+            CustomerPaymentModel::NOTE => $params->note,
+        ]);
 
-            $locked->decrement('balance', $params->amount);
-
-            return $payment;
-        });
+        $locked->decrement('balance', $params->amount);
 
         return Response::success($payment->load('customer'));
     }

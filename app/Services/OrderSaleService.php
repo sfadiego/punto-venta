@@ -5,8 +5,6 @@ namespace App\Services;
 use App\Enums\OrderStatusEnum;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
-use Illuminate\Support\Facades\DB;
-
 class OrderSaleService
 {
     /**
@@ -16,33 +14,31 @@ class OrderSaleService
      */
     public function createDirectSale(array $data): OrderModel
     {
-        return DB::transaction(function () use ($data) {
-            $subtotal = collect($data['items'])->sum(fn ($i) => $i['precio'] * $i['cantidad']);
+        $subtotal = collect($data['items'])->sum(fn ($i) => $i['precio'] * $i['cantidad']);
 
-            $order = OrderModel::create([
-                OrderModel::SISTEMA_ID => $data['sistema_id'],
-                OrderModel::NOMBRE_PEDIDO => $data['nombre_pedido'],
-                OrderModel::SUBTOTAL => $subtotal,
-                OrderModel::TOTAL => $subtotal,
-                OrderModel::COSTO_DOMICILIO => $data['costo_domicilio'] ?? 0,
-                OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS->value,
+        $order = OrderModel::create([
+            OrderModel::SISTEMA_ID => $data['sistema_id'],
+            OrderModel::NOMBRE_PEDIDO => $data['nombre_pedido'],
+            OrderModel::SUBTOTAL => $subtotal,
+            OrderModel::TOTAL => $subtotal,
+            OrderModel::COSTO_DOMICILIO => $data['costo_domicilio'] ?? 0,
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS->value,
+        ]);
+
+        foreach ($data['items'] as $item) {
+            OrderProductModel::create([
+                OrderProductModel::PEDIDO_ID => $order->id,
+                OrderProductModel::PRODUCTO_ID => $item['producto_id'],
+                OrderProductModel::CANTIDAD => $item['cantidad'],
+                OrderProductModel::PRECIO => $item['precio'],
             ]);
+        }
 
-            foreach ($data['items'] as $item) {
-                OrderProductModel::create([
-                    OrderProductModel::PEDIDO_ID => $order->id,
-                    OrderProductModel::PRODUCTO_ID => $item['producto_id'],
-                    OrderProductModel::CANTIDAD => $item['cantidad'],
-                    OrderProductModel::PRECIO => $item['precio'],
-                ]);
-            }
+        $order->update([
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
+        ]);
 
-            $order->update([
-                OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
-            ]);
-
-            return $order;
-        });
+        return $order;
     }
 
     /**
