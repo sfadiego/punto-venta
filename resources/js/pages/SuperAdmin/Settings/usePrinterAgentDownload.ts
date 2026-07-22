@@ -2,9 +2,25 @@ import { useState } from "react";
 import { superAdminAxios } from "@/contexts/SuperAdminContext";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { isAxiosError } from "@/utils/axiosError";
 import { toast } from "react-toastify";
 
 type Platform = "win" | "mac";
+
+const parseErrorMessage = async (error: unknown): Promise<string> => {
+    if (!isAxiosError(error)) return "Error inesperado al descargar";
+    const data = error.response?.data;
+    if (data instanceof Blob) {
+        try {
+            const text = await data.text();
+            const json = JSON.parse(text) as { message?: string };
+            return json.message ?? "Error del servidor";
+        } catch {
+            return "Error del servidor";
+        }
+    }
+    return (data as { message?: string })?.message ?? "Error del servidor";
+};
 
 export const usePrinterAgentDownload = () => {
     const [printer, setPrinter] = useState("");
@@ -32,7 +48,8 @@ export const usePrinterAgentDownload = () => {
             URL.revokeObjectURL(url);
         } catch (error) {
             logUnexpectedError(error, "usePrinterAgentDownload.download");
-            toast.error("No se pudo descargar el agente. Verifica que el binario esté disponible en el servidor.");
+            const msg = await parseErrorMessage(error);
+            toast.error(msg);
         } finally {
             setIsDownloading(false);
         }
