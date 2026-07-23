@@ -47,7 +47,7 @@ export const useTakeOrder = () => {
         OrderStatusEnum.Served,
     ];
     const isReadOnly =
-        !!order && !editableStatuses.includes(order.estatus_pedido_id);
+        !order || !editableStatuses.includes(order.estatus_pedido_id);
 
     const cart: CartItem[] = (order?.order_products ?? []).map((op) => ({
         orderProductId: op.id!,
@@ -66,30 +66,56 @@ export const useTakeOrder = () => {
     const { mutateAsync: updateNote } = useUpdateOrderProductNote(orderId);
     const { mutateAsync: deleteItem } = useDeleteItemFromOrder(orderId);
     const { mutateAsync: updateOrder } = useUpdateOrder(orderId);
-    // Add regular product (click on ProductCard)
+    // Add regular product (click on ProductCard).
+    // If the product already exists in the cart, increment its quantity instead
+    // of creating a duplicate entry.
     const addToCart = async (
         productId: number,
         _name: string,
         price: number,
     ) => {
         if (isReadOnly || pendingRef.current.has(productId)) return;
+
+        // Merge only if the existing entry is still pending (not ready).
+        // A ready item means it was already prepared by the kitchen — new clicks
+        // must create a separate entry so staff can distinguish new from served.
+        const existingItem = cart.find(
+            (item) => item.id === productId && !item.isReady,
+        );
+
+        if (existingItem && pendingRef.current.has(existingItem.orderProductId))
+            return;
+
         pendingRef.current.add(productId);
+        if (existingItem) pendingRef.current.add(existingItem.orderProductId);
         setPendingProductIds(new Set(pendingRef.current));
+
         try {
-            await addProduct(
-                {
-                    producto_id: productId,
-                    cantidad: 1,
-                    precio: price,
-                    descuento: 0,
-                },
-                { onSuccess: invalidateOrder },
-            );
+            if (existingItem) {
+                await updateProduct(
+                    {
+                        orderProductId: existingItem.orderProductId,
+                        data: { cantidad: existingItem.quantity + 1 },
+                    },
+                    { onSuccess: invalidateOrder },
+                );
+            } else {
+                await addProduct(
+                    {
+                        producto_id: productId,
+                        cantidad: 1,
+                        precio: price,
+                        descuento: 0,
+                    },
+                    { onSuccess: invalidateOrder },
+                );
+            }
         } catch (error) {
             logUnexpectedError(error, "useTakeOrder.addToCart");
             toast.error("Error al agregar producto");
         } finally {
             pendingRef.current.delete(productId);
+            if (existingItem) pendingRef.current.delete(existingItem.orderProductId);
             setPendingProductIds(new Set(pendingRef.current));
         }
     };
@@ -161,12 +187,17 @@ export const useTakeOrder = () => {
 
     // Remove any item (product or extra) by orderProductId
     const removeFromCart = async (orderProductId: number) => {
-        if (isReadOnly) return;
+        if (isReadOnly || pendingRef.current.has(orderProductId)) return;
+        pendingRef.current.add(orderProductId);
+        setPendingProductIds(new Set(pendingRef.current));
         try {
             await deleteItem(orderProductId, { onSuccess: invalidateOrder });
         } catch (error) {
             logUnexpectedError(error, "useTakeOrder.removeFromCart");
             toast.error("Error al eliminar producto");
+        } finally {
+            pendingRef.current.delete(orderProductId);
+            setPendingProductIds(new Set(pendingRef.current));
         }
     };
 

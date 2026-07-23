@@ -160,9 +160,14 @@ export const CartItemRow = ({
                     {!isReadOnly && (
                         <button
                             onClick={() => onRemove(item.orderProductId)}
-                            className="text-stone-300 hover:text-red-400 transition-colors"
+                            disabled={isPending}
+                            className="text-stone-300 hover:text-red-400 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                            <Trash2 size={14} />
+                            {isPending ? (
+                                <Loader size={14} className="animate-spin" />
+                            ) : (
+                                <Trash2 size={14} />
+                            )}
                         </button>
                     )}
                     {isReadOnly && <div className="w-[14px]" />}

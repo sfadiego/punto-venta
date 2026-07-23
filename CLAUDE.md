@@ -349,6 +349,14 @@ const toggle = async (id: number) => {
   `Response::success(...)`. Referencia: `CategoriesController`, `CustomersController`.
 - No poner queries complejas, transacciones, o reglas de negocio directamente en el controller — extraerlas a
   `app/Services/`.
+- **No usar `DB::transaction()` en controladores ni en servicios.** Las transacciones las maneja `TransactionMiddleware`
+  (registrado en `bootstrap/app.php` via `$middleware->appendToGroup('api', TransactionMiddleware::class)`), que
+  envuelve automáticamente toda request no-GET en una transacción con reintentos en caso de deadlock (errores MySQL
+  1213/1205). Agregar un `DB::transaction()` adicional solo crea un savepoint anidado innecesario y puede
+  interferir con la lógica de retry del middleware.
+- La única excepción permitida es `->lockForUpdate()` dentro de la request cuando se requiere serializar acceso
+  concurrente a una fila (ej. decrementar balance de un cliente). El lock debe ir sin wrapper de transacción
+  propio — ya está dentro de la transacción del middleware.
 - No usar `$request->validate([...])` inline en el controller — crear un FormRequest dedicado en
   `app/Http/Requests/` (patrón: `{Recurso}{Store|Update}Request.php`), incluso si el endpoint no mapea 1:1 a un
   modelo (ej. `OrderStoreSaleRequest` para `POST /order/sale`).
