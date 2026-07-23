@@ -13,8 +13,14 @@ const schema = Yup.object({
     precio: Yup.number()
         .typeError("Ingresa un precio válido")
         .positive("El precio debe ser mayor a 0")
+        .max(99999, "Máximo $99,999")
         .required("El precio es requerido"),
-    cantidad: Yup.number().min(1, "Mínimo 1").max(99).required(),
+    cantidad: Yup.number()
+        .typeError("Ingresa una cantidad válida")
+        .integer("La cantidad debe ser un número entero")
+        .min(1, "Mínimo 1")
+        .max(99, "Máximo 99")
+        .required(),
 });
 
 export const useAddExtraModal = (onAdd: (nombre: string, precio: number, cantidad: number) => Promise<void>) => {

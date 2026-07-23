@@ -25,9 +25,11 @@ class OrderProductStoreRequest extends FormRequest
     {
         return [
             OrderProductModel::DESCUENTO => 'nullable|numeric|min:0|max:99',
-            OrderProductModel::CANTIDAD => 'required|numeric|min:0.001',
+            OrderProductModel::CANTIDAD => $this->nombre_extra
+                ? 'required|integer|min:1|max:99'
+                : 'required|numeric|min:0.001|max:99',
             OrderProductModel::PRODUCTO_ID => 'nullable|exists:product,id',
-            OrderProductModel::PRECIO => 'required|numeric|min:0',
+            OrderProductModel::PRECIO => 'required|numeric|min:0|max:99999',
             OrderProductModel::NOMBRE_EXTRA => 'nullable|string|max:255',
             OrderProductModel::OBSERVACION => 'nullable|string|max:200',
         ];
