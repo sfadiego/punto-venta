@@ -8,10 +8,19 @@ import { usePrintAgent } from "@/hooks/usePrintAgent";
 import { useIndexProducts } from "@/services/useProductService";
 import { useIndexCategories } from "@/services/useCategoriesService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
-import { useShowOrder } from "@/services/useOrderService";
+import {
+    useShowOrder,
+    useStoreOrder,
+    useUpdateOrderData,
+    useDeleteOrderById,
+    useCreateOrderProduct,
+    useUpdateOrderProduct,
+    useDeleteOrderItem,
+    usePrintOrder,
+    useFetchPrintBytes,
+} from "@/services/useOrderService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
 import { useCustomerList } from "@/services/useCustomerService";
-import { axiosPOST, axiosPUT, axiosDELETE } from "@/hooks/useApi";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IProduct } from "@/models/IProduct";
 import { IOrder } from "@/models/IOrder";
@@ -44,11 +53,20 @@ function mapOrderProducts(orderProducts: IOrderProduct[]): ModalCartItem[] {
 }
 
 export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
-    const { sistemaId, axiosApi, features } = useAxios();
+    const { sistemaId, features } = useAxios();
     const queryClient = useQueryClient();
     const sellByWeight = features?.sell_by_weight === true;
     const { data: businessConfig } = useGetBusinessConfig();
     const { isConnected: agentConnected, print: agentPrint } = usePrintAgent();
+
+    const { mutateAsync: storeOrder } = useStoreOrder();
+    const { mutateAsync: updateOrderData } = useUpdateOrderData();
+    const { mutateAsync: deleteOrderById } = useDeleteOrderById();
+    const { mutateAsync: createOrderProduct } = useCreateOrderProduct();
+    const { mutateAsync: updateOrderProduct } = useUpdateOrderProduct();
+    const { mutateAsync: deleteOrderItem } = useDeleteOrderItem();
+    const { mutateAsync: printOrder } = usePrintOrder();
+    const fetchPrintBytes = useFetchPrintBytes();
 
     // Use a ref for orderId so async callbacks always have the latest value
     const orderIdRef = useRef<number | null>(initialOrder?.id ?? null);
@@ -64,10 +82,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         const oid = orderIdRef.current;
         if (!oid || !nombrePedido.trim()) return;
         try {
-            await axiosPUT(axiosApi, {
-                url: `${ApiRoutes.Orders}/${oid}`,
-                data: { nombre_pedido: nombrePedido.trim() },
-            });
+            await updateOrderData({ orderId: oid, data: { nombre_pedido: nombrePedido.trim() } });
         } catch (error) {
             logUnexpectedError(error, "useSellByWeightSaleModal.handleNombreBlur");
         }
@@ -227,8 +242,9 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         ));
 
         try {
-            await axiosPUT(axiosApi, {
-                url: `${ApiRoutes.Orders}/${oid}/product/${item.orderProductId}`,
+            await updateOrderProduct({
+                orderId: oid,
+                orderProductId: item.orderProductId,
                 data: { cantidad: 1, precio: price },
             });
         } catch (error) {
@@ -246,16 +262,13 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             const now = new Date();
             const pad = (n: number) => String(n).padStart(2, "0");
             const fallback = `VTA-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
-            const res = await axiosPOST(axiosApi, {
-                url: ApiRoutes.Orders,
-                data: {
-                    nombre_pedido: nombrePedido.trim() || fallback,
-                    total: 0,
-                    subtotal: 0,
-                    descuento: 0,
-                    sistema_id: sistemaId,
-                    estatus_pedido_id: OrderStatusEnum.InProcess,
-                },
+            const res = await storeOrder({
+                nombre_pedido: nombrePedido.trim() || fallback,
+                total: 0,
+                subtotal: 0,
+                descuento: 0,
+                sistema_id: sistemaId,
+                estatus_pedido_id: OrderStatusEnum.InProcess,
             });
             const newId = (res as { data: { data: IOrder } }).data.data.id;
             setOrderId(newId);
@@ -275,8 +288,9 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
 
             if (existing) {
                 const newQty = existing.cantidad + defaultCantidad(product);
-                await axiosPUT(axiosApi, {
-                    url: `${ApiRoutes.Orders}/${oid}/product/${existing.orderProductId}`,
+                await updateOrderProduct({
+                    orderId: oid,
+                    orderProductId: existing.orderProductId,
                     data: { cantidad: newQty, precio: existing.precioEfectivo },
                 });
                 setCart((prev) =>
@@ -287,8 +301,8 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
                 return;
             }
 
-            const res = await axiosPOST(axiosApi, {
-                url: `${ApiRoutes.Orders}/${oid}/product`,
+            const res = await createOrderProduct({
+                orderId: oid,
                 data: {
                     producto_id: product.id,
                     cantidad: defaultCantidad(product),
@@ -319,9 +333,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         if (!item) return;
         removingRef.current.add(orderProductId);
         try {
-            await axiosDELETE(axiosApi, {
-                url: `${ApiRoutes.Orders}/${oid}/extra/${item.orderProductId}`,
-            });
+            await deleteOrderItem({ orderId: oid, orderProductId: item.orderProductId });
             setCart((prev) => prev.filter((i) => i.orderProductId !== orderProductId));
         } catch (error) {
             logUnexpectedError(error, "useSellByWeightSaleModal.removeFromCart");
@@ -338,7 +350,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         const toDelete = cart.filter((item) => !removingRef.current.has(item.orderProductId));
         const results = await Promise.allSettled(
             toDelete.map((item) =>
-                axiosDELETE(axiosApi, { url: `${ApiRoutes.Orders}/${oid}/extra/${item.orderProductId}` }),
+                deleteOrderItem({ orderId: oid, orderProductId: item.orderProductId }),
             ),
         );
         results.forEach((result) => {
@@ -381,8 +393,9 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             i.orderProductId === orderProductId ? { ...i, cantidad: qty, precioEfectivo: catalogPrice } : i
         ));
         try {
-            await axiosPUT(axiosApi, {
-                url: `${ApiRoutes.Orders}/${oid}/product/${item.orderProductId}`,
+            await updateOrderProduct({
+                orderId: oid,
+                orderProductId: item.orderProductId,
                 data: { cantidad: qty, precio: catalogPrice },
             });
         } catch (error) {
@@ -405,11 +418,10 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     const printTicket = async (oid: number) => {
         try {
             if (agentConnected) {
-                const url = ApiRoutes.PrintBytes.replace(":id", String(oid));
-                const res = await axiosApi.get(url, { responseType: "arraybuffer" });
-                await agentPrint(new Uint8Array(res.data as ArrayBuffer));
+                const bytes = await fetchPrintBytes(oid);
+                await agentPrint(new Uint8Array(bytes as ArrayBuffer));
             } else {
-                await axiosPOST(axiosApi, { url: `${ApiRoutes.Orders}/${oid}/print`, data: {} });
+                await printOrder(oid);
             }
             toast.success("Ticket impreso");
         } catch (error) {
@@ -440,7 +452,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         // No products: delete the empty order silently
         if (cartRef.current.length === 0) {
             try {
-                await axiosDELETE(axiosApi, { url: `${ApiRoutes.Orders}/${oid}` });
+                await deleteOrderById(oid);
             } catch (error) {
                 logUnexpectedError(error, "useSellByWeightSaleModal.handleClose.deleteEmpty");
             }
@@ -456,8 +468,9 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
                 .map((item) => {
                     const pending = editingPricesRef.current[item.orderProductId]!;
                     const price = parseFloat(pending) || (item.precioEfectivo * item.cantidad);
-                    return axiosPUT(axiosApi, {
-                        url: `${ApiRoutes.Orders}/${oid}/product/${item.orderProductId}`,
+                    return updateOrderProduct({
+                        orderId: oid,
+                        orderProductId: item.orderProductId,
                         data: { cantidad: 1, precio: price },
                     }).catch((err) =>
                         logUnexpectedError(err, "useSellByWeightSaleModal.handleClose.flushPriceMode"),
@@ -467,8 +480,8 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
 
             // Persist delivery state so it restores correctly on resume
             try {
-                await axiosPUT(axiosApi, {
-                    url: `${ApiRoutes.Orders}/${oid}`,
+                await updateOrderData({
+                    orderId: oid,
                     data: {
                         costo_domicilio: domicilioActivo
                             ? calcCostoDomicilio(domicilio, domicilioActivo, customerPays)
@@ -494,8 +507,8 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
                 ? { is_credit: true, customer_id: selectedCustomerId }
                 : { payment_method_id: paymentMethodId };
 
-            await axiosPUT(axiosApi, {
-                url: `${ApiRoutes.Orders}/${oid}`,
+            await updateOrderData({
+                orderId: oid,
                 data: {
                     estatus_pedido_id: OrderStatusEnum.Closed,
                     costo_domicilio: calcCostoDomicilio(domicilio, domicilioActivo, customerPays),

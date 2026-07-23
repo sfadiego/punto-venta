@@ -1,23 +1,20 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { useAxios } from "@/hooks/useAxios";
 import { usePrintAgent } from "@/hooks/usePrintAgent";
-import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { useFetchPrintTestBytes } from "@/services/useOrderService";
 import { reportClientError } from "@/utils/reportClientError";
 
 export const useTestPrint = () => {
-    const { axiosApi } = useAxios();
     const { print } = usePrintAgent();
+    const fetchPrintTestBytes = useFetchPrintTestBytes();
     const [isPending, setIsPending] = useState(false);
 
     const testPrint = async () => {
         if (isPending) return;
         setIsPending(true);
         try {
-            const res = await axiosApi.get(ApiRoutes.PrintTestBytes, {
-                responseType: "arraybuffer",
-            });
-            await print(new Uint8Array(res.data as ArrayBuffer));
+            const bytes = await fetchPrintTestBytes();
+            await print(new Uint8Array(bytes as ArrayBuffer));
             toast.success("Impresión de prueba enviada");
         } catch (err) {
             const msg = err instanceof Error ? err.message : "Error al imprimir";
