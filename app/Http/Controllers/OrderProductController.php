@@ -193,6 +193,11 @@ class OrderProductController extends Controller
      */
     public function deleteExtra(int $orderId, int $extra): JsonResponse
     {
+        $order = OrderModel::lockForUpdate()->find($orderId);
+        if ($error = $this->assertOrderEditable($order)) {
+            return $error;
+        }
+
         $item = OrderProductModel::where('pedido_id', $orderId)
             ->where('id', $extra)
             ->first();
@@ -201,10 +206,6 @@ class OrderProductController extends Controller
             return Response::error('elemento no encontrado');
         }
 
-        $order = OrderModel::lockForUpdate()->find($orderId);
-        if ($error = $this->assertOrderEditable($order)) {
-            return $error;
-        }
         $orderDiscount = $order->descuento ?? 0;
         $lineSubtotal = round($item->precio * $item->cantidad * (1 - $item->descuento / 100), 2);
         $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
@@ -226,6 +227,11 @@ class OrderProductController extends Controller
      */
     public function delete(int $orderId, int $product): JsonResponse
     {
+        $order = OrderModel::lockForUpdate()->find($orderId);
+        if ($error = $this->assertOrderEditable($order)) {
+            return $error;
+        }
+
         $delete = OrderProductModel::where('pedido_id', $orderId)
             ->where('producto_id', $product)
             ->first();
@@ -236,10 +242,6 @@ class OrderProductController extends Controller
             return Response::error('producto no encontrado');
         }
 
-        $order = OrderModel::lockForUpdate()->find($orderId);
-        if ($error = $this->assertOrderEditable($order)) {
-            return $error;
-        }
         $orderDiscount = $order->descuento ?? 0;
         $lineSubtotal = round($delete->precio * $delete->cantidad * (1 - $delete->descuento / 100), 2);
         $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
