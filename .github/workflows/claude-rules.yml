@@ -147,3 +147,28 @@ jobs:
           else
             echo "✅ Sin inline styles detectados"
           fi
+
+      - name: Verificar tamaño de componentes de página
+        run: |
+          echo "── Verificando tamaño de <FeaturePage>.tsx ──"
+          MAX_LINES=150
+          FOUND=0
+
+          # Solo el componente principal de cada página (pages/<Feature>/<Page>.tsx,
+          # incluyendo pages/SuperAdmin/<Feature>/<Page>.tsx). Excluye partials/ (se
+          # espera que sean piezas pequeñas) y hooks use*.tsx.
+          while IFS= read -r file; do
+            lines=$(wc -l < "$file" | tr -d ' ')
+            if [ "$lines" -gt "$MAX_LINES" ]; then
+              echo "⚠️  $file tiene $lines líneas (límite sugerido: $MAX_LINES)"
+              FOUND=$((FOUND + 1))
+            fi
+          done < <(find resources/js/pages -name "*.tsx" ! -iname "use*" | grep -v "/partials/")
+
+          if [ "$FOUND" -gt 0 ]; then
+            echo ""
+            echo "Considera dividir en partials/ (CLAUDE.md: 'Cuándo dividir un componente de página en partials/')."
+            # Warning, no bloquea el PR — es una señal, no todos los casos ameritan split inmediato.
+          else
+            echo "✅ Todas las páginas dentro del límite sugerido"
+          fi

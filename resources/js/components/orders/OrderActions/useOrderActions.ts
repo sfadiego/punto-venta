@@ -17,6 +17,10 @@ export const useOrderActions = (order: IOrder, onSuccess?: () => void) => {
     const invalidate = () => {
         queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
         queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
+        // El detalle individual (usado por useShowOrder en TakeOrderPage) se cachea
+        // bajo su propia key ("/api/order/{id}") — sin esto, TakeOrderPage sigue
+        // mostrando el nombre viejo hasta un reload completo.
+        queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${order.id}`] });
         onSuccess?.();
     };
 
