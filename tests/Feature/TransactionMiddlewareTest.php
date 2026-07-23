@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Enums\MainOrderStatusEnum;
+use App\Enums\RoleEnum;
 use App\Http\Middleware\TransactionMiddleware;
 use App\Models\BusinessConfigModel;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
 use App\Models\OrderStatusModel;
-use App\Enums\MainOrderStatusEnum;
-use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -36,7 +36,7 @@ class TransactionMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new TransactionMiddleware();
+        $this->middleware = new TransactionMiddleware;
     }
 
     // ─── Helpers ────────────────────────────────────────────────────────────
@@ -71,6 +71,7 @@ class TransactionMiddlewareTest extends TestCase
             $this->makeRequest('GET'),
             function () use (&$called) {
                 $called = true;
+
                 return new JsonResponse(['status' => 'ok']);
             }
         );
@@ -165,6 +166,7 @@ class TransactionMiddlewareTest extends TestCase
                 if ($attempts === 1) {
                     throw $e;
                 }
+
                 return new JsonResponse(['status' => 'OK', 'attempts' => $attempts]);
             }
         );
@@ -193,6 +195,7 @@ class TransactionMiddlewareTest extends TestCase
                 if ($attempts === 1) {
                     throw $e;
                 }
+
                 return new JsonResponse(['status' => 'OK', 'attempts' => $attempts]);
             }
         );
@@ -245,6 +248,7 @@ class TransactionMiddlewareTest extends TestCase
                 if ($attempts === 1) {
                     throw new \RuntimeException('Deadlock found when trying to get lock');
                 }
+
                 return new JsonResponse(['status' => 'OK']);
             }
         );

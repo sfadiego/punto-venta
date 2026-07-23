@@ -58,29 +58,29 @@ class OrderProductController extends Controller
 
         if ($params->nombre_extra) {
             $data = OrderProductModel::create([
-                OrderProductModel::PEDIDO_ID   => $orderId,
+                OrderProductModel::PEDIDO_ID => $orderId,
                 OrderProductModel::NOMBRE_EXTRA => $params->nombre_extra,
-                OrderProductModel::CANTIDAD     => $params->cantidad,
-                OrderProductModel::PRECIO       => $params->precio,
-                OrderProductModel::DESCUENTO    => $itemDescuento,
+                OrderProductModel::CANTIDAD => $params->cantidad,
+                OrderProductModel::PRECIO => $params->precio,
+                OrderProductModel::DESCUENTO => $itemDescuento,
             ]);
         } else {
             $data = OrderProductModel::create([
                 OrderProductModel::PRODUCTO_ID => $params->producto_id,
-                OrderProductModel::PEDIDO_ID   => $orderId,
-                OrderProductModel::CANTIDAD    => $params->cantidad,
-                OrderProductModel::PRECIO      => $params->precio,
-                OrderProductModel::DESCUENTO   => $itemDescuento,
-                OrderProductModel::IS_READY    => false,
+                OrderProductModel::PEDIDO_ID => $orderId,
+                OrderProductModel::CANTIDAD => $params->cantidad,
+                OrderProductModel::PRECIO => $params->precio,
+                OrderProductModel::DESCUENTO => $itemDescuento,
+                OrderProductModel::IS_READY => false,
             ]);
         }
 
-        $delta      = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
+        $delta = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
         $deltaTotal = round($delta * (1 - $orderDiscount / 100), 2);
 
         DB::table('order')->where('id', $orderId)->update([
             'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$delta}"),
-            'total'    => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
+            'total' => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
         ]);
 
         $this->resetStatusIfReady($order->fresh());
@@ -124,12 +124,12 @@ class OrderProductController extends Controller
         $orderProduct->refresh();
 
         $newLineSubtotal = round($orderProduct->precio * $orderProduct->cantidad * (1 - $orderProduct->descuento / 100), 2);
-        $deltaSubtotal   = $newLineSubtotal - $oldLineSubtotal;
-        $deltaTotal      = round($deltaSubtotal * (1 - $orderDiscount / 100), 2);
+        $deltaSubtotal = $newLineSubtotal - $oldLineSubtotal;
+        $deltaTotal = round($deltaSubtotal * (1 - $orderDiscount / 100), 2);
 
         DB::table('order')->where('id', $orderId)->update([
             'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$deltaSubtotal}"),
-            'total'    => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
+            'total' => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
         ]);
 
         $this->resetStatusIfReady($order->fresh());
@@ -198,16 +198,16 @@ class OrderProductController extends Controller
             return Response::error('elemento no encontrado');
         }
 
-        $order         = OrderModel::lockForUpdate()->find($orderId);
+        $order = OrderModel::lockForUpdate()->find($orderId);
         $orderDiscount = $order->descuento ?? 0;
-        $lineSubtotal  = round($item->precio * $item->cantidad * (1 - $item->descuento / 100), 2);
-        $lineTotal     = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
+        $lineSubtotal = round($item->precio * $item->cantidad * (1 - $item->descuento / 100), 2);
+        $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
 
         $item->delete();
 
         DB::table('order')->where('id', $orderId)->update([
             'subtotal' => max(0, round(($order->subtotal ?? 0) - $lineSubtotal, 2)),
-            'total'    => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
+            'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
         ]);
 
         $this->restoreServedIfAllReady($order->fresh());
@@ -230,16 +230,16 @@ class OrderProductController extends Controller
             return Response::error('producto no encontrado');
         }
 
-        $order         = OrderModel::lockForUpdate()->find($orderId);
+        $order = OrderModel::lockForUpdate()->find($orderId);
         $orderDiscount = $order->descuento ?? 0;
-        $lineSubtotal  = round($delete->precio * $delete->cantidad * (1 - $delete->descuento / 100), 2);
-        $lineTotal     = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
+        $lineSubtotal = round($delete->precio * $delete->cantidad * (1 - $delete->descuento / 100), 2);
+        $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
 
         $delete->delete();
 
         DB::table('order')->where('id', $orderId)->update([
             'subtotal' => max(0, round(($order->subtotal ?? 0) - $lineSubtotal, 2)),
-            'total'    => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
+            'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
         ]);
 
         $this->restoreServedIfAllReady($order->fresh());

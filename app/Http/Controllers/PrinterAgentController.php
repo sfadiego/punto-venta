@@ -41,21 +41,21 @@ class PrinterAgentController extends Controller
 
         if ($platform === 'mac') {
             $readme = "# Agente de impresión — macOS\n\n"
-                . "## Instalación\n\n"
-                . "1. Coloca `print-agent` y `config.json` en la misma carpeta.\n"
-                . "2. Abre **Terminal** en esa carpeta y ejecuta los siguientes comandos:\n\n"
-                . "   ```bash\n"
-                . "   # Quitar bloqueo de Gatekeeper (se ejecuta una sola vez)\n"
-                . "   xattr -rd com.apple.quarantine ./print-agent\n"
-                . "   chmod +x ./print-agent\n\n"
-                . "   # Iniciar el agente\n"
-                . "   ./print-agent\n"
-                . "   ```\n\n"
-                . "3. El agente quedará escuchando en el puerto indicado en `config.json`.\n\n"
-                . "## ¿Por qué macOS bloquea el archivo?\n\n"
-                . "macOS Gatekeeper bloquea ejecutables que no están firmados con un certificado de Apple.\n"
-                . "El comando `xattr -rd com.apple.quarantine` elimina esa restricción de forma segura.\n\n"
-                . "> **Nota:** los ejecutables macOS no llevan extensión `.exe`. El ícono \"exec\" indica que el archivo es correcto.\n";
+                ."## Instalación\n\n"
+                ."1. Coloca `print-agent` y `config.json` en la misma carpeta.\n"
+                ."2. Abre **Terminal** en esa carpeta y ejecuta los siguientes comandos:\n\n"
+                ."   ```bash\n"
+                ."   # Quitar bloqueo de Gatekeeper (se ejecuta una sola vez)\n"
+                ."   xattr -rd com.apple.quarantine ./print-agent\n"
+                ."   chmod +x ./print-agent\n\n"
+                ."   # Iniciar el agente\n"
+                ."   ./print-agent\n"
+                ."   ```\n\n"
+                ."3. El agente quedará escuchando en el puerto indicado en `config.json`.\n\n"
+                ."## ¿Por qué macOS bloquea el archivo?\n\n"
+                ."macOS Gatekeeper bloquea ejecutables que no están firmados con un certificado de Apple.\n"
+                ."El comando `xattr -rd com.apple.quarantine` elimina esa restricción de forma segura.\n\n"
+                ."> **Nota:** los ejecutables macOS no llevan extensión `.exe`. El ícono \"exec\" indica que el archivo es correcto.\n";
             $zip->addFromString('README.md', $readme);
         }
 
