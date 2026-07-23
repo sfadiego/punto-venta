@@ -698,7 +698,7 @@ section { padding: 92px 0; }
   gap: 4px;
 }
 .toggle-btn {
-  border: none;
+  border: 1.5px solid transparent;
   background: transparent;
   padding: 10px 18px;
   border-radius: 9px;
@@ -710,7 +710,26 @@ section { padding: 92px 0; }
 .toggle-btn[aria-pressed="true"] {
   background: var(--card);
   color: var(--ink);
-  box-shadow: var(--shadow);
+  border-color: var(--marigold);
+  box-shadow:
+    0 0 4px var(--marigold),
+    0 0 12px color-mix(in srgb, var(--marigold) 65%, transparent),
+    inset 0 0 6px color-mix(in srgb, var(--marigold) 22%, transparent);
+  animation: neonPulse 1.8s ease-in-out infinite;
+}
+@keyframes neonPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 4px var(--marigold),
+      0 0 12px color-mix(in srgb, var(--marigold) 65%, transparent),
+      inset 0 0 6px color-mix(in srgb, var(--marigold) 22%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 7px var(--marigold),
+      0 0 20px color-mix(in srgb, var(--marigold) 80%, transparent),
+      inset 0 0 9px color-mix(in srgb, var(--marigold) 30%, transparent);
+  }
 }
 
 .biz-panels { position: relative; }
