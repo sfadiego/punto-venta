@@ -69,6 +69,35 @@ php artisan reverb:start
 
 ---
 
+## Impresión de tickets
+
+El sistema soporta dos formas de imprimir, independientes entre sí — un tenant puede tener una, la otra, o ninguna:
+
+| Método | Requiere | Dónde se configura |
+|---|---|---|
+| **Agente local (`.exe`/binario)** | Una computadora (Windows/macOS/Linux) corriendo `printer-agent`, impresora USB conectada a ella | SuperAdmin → Clientes → editar tenant → switch "Agente de impresión" |
+| **Bluetooth (tablets)** | Un navegador Chrome/Edge en Android, impresora térmica BLE | SuperAdmin → Clientes → editar tenant → switch "Impresión por Bluetooth (tablets)" |
+
+### Impresión por Bluetooth — configurar una impresora
+
+1. **Habilitar el feature para el cliente** (una sola vez, por SuperAdmin): Clientes → editar el tenant → activar "Impresión por Bluetooth (tablets)". Sin esto, la sección no aparece en el panel de administración del negocio.
+2. **Emparejar desde la tablet**: con la impresora encendida, entrar a **Configuración → Impresora** en el panel del negocio (con sesión iniciada en ese tenant) y presionar **"Emparejar"**. Chrome muestra el selector nativo de dispositivos Bluetooth — elegir la impresora de la lista.
+3. El emparejamiento se guarda en el propio navegador/dispositivo (no en el servidor) y se reconecta solo en sesiones futuras — no hay que repetir el paso cada vez que se abre la app, salvo que se use "Olvidar" o se cambie de tablet.
+4. Probar con el botón **"Imprimir prueba"** antes de usarla en producción.
+
+**Requisito ineludible: HTTPS.** Web Bluetooth (la API del navegador que se usa) solo funciona en un contexto seguro — la URL real de producción con su certificado ya cumple esto sin configuración adicional. Para probar en local hace falta un túnel HTTPS (ver sección de Docker/deploy) o `mkcert`; una IP de LAN por `http://` **no** sirve para esta feature específica, aunque el resto de la app sí cargue.
+
+### Impresoras compatibles
+
+La impresora debe ser una **térmica ESC/POS con Bluetooth Low Energy (BLE)** — no cualquier "impresora Bluetooth" sirve:
+
+- ✅ **Compatible**: la inmensa mayoría de impresoras térmicas genéricas de 58mm/80mm que se venden para POS móvil (ej. modelos tipo `POS-58`/`POS-5890xx`, y marcas blancas equivalentes) — usan internamente un módulo BLE de referencia (HM-10, Microchip transparent UART, o similar) que ya está soportado. Probado y confirmado con **POS-5890U-I**.
+- ❌ **No compatible**: impresoras que solo hablan **Bluetooth clásico (SPP)** en vez de BLE. Web Bluetooth (la API del navegador) únicamente puede hablar con dispositivos BLE — no hay forma de sortear esto desde el navegador. Muchas impresoras económicas usan SPP; no hay manera de saberlo con certeza solo por la ficha técnica, hay que probarlo.
+
+**¿Cómo saber si una impresora nueva es compatible?** Simplemente intentar el flujo de emparejamiento (arriba). Si la impresora aparece en el selector de Chrome y el emparejamiento termina exitosamente, es compatible. Si el emparejamiento falla con "No se encontró un canal de escritura conocido en esta impresora", es porque su módulo BLE usa un UUID de servicio distinto a los conocidos — hay que agregarlo a `BLE_PRINTER_CANDIDATE_SERVICES` en `resources/js/utils/blePrinter.ts` (se puede descubrir el UUID con cualquier app/herramienta de escaneo BLE genérica).
+
+---
+
 ## Docker
 
 El contenedor incluye nginx + php-fpm + **Reverb** gestionados por Supervisor. No se necesita un proceso externo para WebSocket en producción.
