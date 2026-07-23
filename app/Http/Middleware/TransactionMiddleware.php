@@ -11,49 +11,73 @@ use Throwable;
 
 class TransactionMiddleware
 {
+    private const MAX_ATTEMPTS = 3;
+
     /**
      * @throws Throwable
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->isMethod('get')) {
+        if ($request->isMethod('get') || app()->runningUnitTests()) {
             return $next($request);
         }
 
-        if (app()->runningUnitTests()) {
-            return $next($request);
-        }
+        $attempts = 0;
 
-        DB::beginTransaction();
-        try {
-            /** @var JsonResponse $response */
-            $response = $next($request);
-            if (! ($response instanceof JsonResponse)) {
+        while (true) {
+            $attempts++;
+            DB::beginTransaction();
+
+            try {
+                /** @var Response $response */
+                $response = $next($request);
+
+                if ($response instanceof JsonResponse) {
+                    if ($response->getStatusCode() === 500) {
+                        DB::rollBack();
+
+                        return $response;
+                    }
+
+                    $data = $response->getData(true);
+                    if (isset($data['status']) && $data['status'] === 'error') {
+                        DB::rollBack();
+
+                        return $response;
+                    }
+                }
+
                 DB::commit();
 
                 return $response;
-            }
-
-            if ($response->getStatusCode() == 500) {
+            } catch (Throwable $e) {
                 DB::rollBack();
 
-                return $response;
+                if ($attempts < self::MAX_ATTEMPTS && $this->isDeadlock($e)) {
+                    continue;
+                }
+
+                throw $e;
             }
+        }
+    }
 
-            $data = $response->getData(true);
-            if (isset($data['status']) && $data['status'] === 'error') {
-                DB::rollBack();
+    private function isDeadlock(Throwable $e): bool
+    {
+        $codes = [
+            1213, // Deadlock found when trying to get lock
+            1205, // Lock wait timeout exceeded
+        ];
 
-                return $response;
-            }
-
-            DB::commit();
-        } catch (\Exception|Throwable $e) {
-            DB::rollBack();
-            logger('rollback error');
-            throw $e;
+        $prev = $e->getPrevious();
+        if ($prev instanceof \PDOException && in_array($prev->errorInfo[1] ?? null, $codes)) {
+            return true;
         }
 
-        return $response;
+        if ($e instanceof \PDOException && in_array($e->errorInfo[1] ?? null, $codes)) {
+            return true;
+        }
+
+        return str_contains($e->getMessage(), 'Deadlock') || str_contains($e->getMessage(), '1213');
     }
 }

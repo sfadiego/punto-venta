@@ -16,7 +16,6 @@ use App\Models\ProductModel;
 use App\Services\MenuService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 
 class MenuController extends Controller
@@ -108,70 +107,66 @@ class MenuController extends Controller
             );
         }
 
-        $order = DB::transaction(function () use ($request, $tenant, $activeSale) {
-            $isDelivery = $request->boolean('is_delivery');
+        $isDelivery = $request->boolean('is_delivery');
 
-            $customer = CustomerModel::withoutGlobalScopes()
-                ->where(CustomerModel::TENANT_ID, $tenant->id)
-                ->where(CustomerModel::PHONE, $request->customer_phone)
-                ->first();
+        $customer = CustomerModel::withoutGlobalScopes()
+            ->where(CustomerModel::TENANT_ID, $tenant->id)
+            ->where(CustomerModel::PHONE, $request->customer_phone)
+            ->first();
 
-            if ($customer) {
-                $updates = [CustomerModel::NAME => $request->customer_name];
-                if ($isDelivery && $request->delivery_address) {
-                    $updates[CustomerModel::ADDRESS] = $request->delivery_address;
-                    $updates[CustomerModel::DELIVERY_REFERENCE] = $request->delivery_reference;
-                }
-                $customer->update($updates);
-            } else {
-                $customer = CustomerModel::create([
-                    CustomerModel::TENANT_ID => $tenant->id,
-                    CustomerModel::NAME => $request->customer_name,
-                    CustomerModel::PHONE => $request->customer_phone,
-                    CustomerModel::ADDRESS => $isDelivery ? $request->delivery_address : null,
-                    CustomerModel::DELIVERY_REFERENCE => $isDelivery ? $request->delivery_reference : null,
-                    CustomerModel::ALLOW_CREDIT => false,
-                ]);
+        if ($customer) {
+            $updates = [CustomerModel::NAME => $request->customer_name];
+            if ($isDelivery && $request->delivery_address) {
+                $updates[CustomerModel::ADDRESS] = $request->delivery_address;
+                $updates[CustomerModel::DELIVERY_REFERENCE] = $request->delivery_reference;
             }
-
-            $order = OrderModel::create([
-                OrderModel::TENANT_ID => $tenant->id,
-                OrderModel::SISTEMA_ID => $activeSale->id,
-                OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::PENDING_CONFIRMATION->value,
-                OrderModel::NOMBRE_PEDIDO => $request->customer_name,
-                OrderModel::CUSTOMER_ID => $customer->id,
-                OrderModel::IS_DELIVERY => $isDelivery,
-                OrderModel::DELIVERY_ADDRESS => $request->delivery_address,
-                OrderModel::DELIVERY_REFERENCE => $request->delivery_reference,
-                OrderModel::TOTAL => 0,
-                OrderModel::SUBTOTAL => 0,
+            $customer->update($updates);
+        } else {
+            $customer = CustomerModel::create([
+                CustomerModel::TENANT_ID => $tenant->id,
+                CustomerModel::NAME => $request->customer_name,
+                CustomerModel::PHONE => $request->customer_phone,
+                CustomerModel::ADDRESS => $isDelivery ? $request->delivery_address : null,
+                CustomerModel::DELIVERY_REFERENCE => $isDelivery ? $request->delivery_reference : null,
+                CustomerModel::ALLOW_CREDIT => false,
             ]);
+        }
 
-            foreach ($request->items as $item) {
-                $product = ProductModel::withoutGlobalScopes()
-                    ->where('id', $item['product_id'])
-                    ->where('tenant_id', $tenant->id)
-                    ->where(ProductModel::ACTIVO, true)
-                    ->firstOrFail();
+        $order = OrderModel::create([
+            OrderModel::TENANT_ID => $tenant->id,
+            OrderModel::SISTEMA_ID => $activeSale->id,
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::PENDING_CONFIRMATION->value,
+            OrderModel::NOMBRE_PEDIDO => $request->customer_name,
+            OrderModel::CUSTOMER_ID => $customer->id,
+            OrderModel::IS_DELIVERY => $isDelivery,
+            OrderModel::DELIVERY_ADDRESS => $request->delivery_address,
+            OrderModel::DELIVERY_REFERENCE => $request->delivery_reference,
+            OrderModel::TOTAL => 0,
+            OrderModel::SUBTOTAL => 0,
+        ]);
 
-                OrderProductModel::create([
-                    'pedido_id' => $order->id,
-                    'producto_id' => $product->id,
-                    'cantidad' => $item['cantidad'],
-                    'precio' => $product->precio,
-                    'descuento' => 0,
-                    OrderProductModel::OBSERVACION => $item['observacion'] ?? null,
-                ]);
-            }
+        foreach ($request->items as $item) {
+            $product = ProductModel::withoutGlobalScopes()
+                ->where('id', $item['product_id'])
+                ->where('tenant_id', $tenant->id)
+                ->where(ProductModel::ACTIVO, true)
+                ->firstOrFail();
 
-            $totals = $order->totalAndSubTotalOrder();
-            $order->update([
-                OrderModel::TOTAL => $totals['total'],
-                OrderModel::SUBTOTAL => $totals['subtotal'],
+            OrderProductModel::create([
+                'pedido_id' => $order->id,
+                'producto_id' => $product->id,
+                'cantidad' => $item['cantidad'],
+                'precio' => $product->precio,
+                'descuento' => 0,
+                OrderProductModel::OBSERVACION => $item['observacion'] ?? null,
             ]);
+        }
 
-            return $order;
-        });
+        $totals = $order->totalAndSubTotalOrder();
+        $order->update([
+            OrderModel::TOTAL => $totals['total'],
+            OrderModel::SUBTOTAL => $totals['subtotal'],
+        ]);
 
         try {
             broadcast(new OrdersUpdated('new_public_order'));

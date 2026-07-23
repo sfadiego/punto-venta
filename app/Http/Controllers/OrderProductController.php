@@ -54,38 +54,34 @@ class OrderProductController extends Controller
         $orderDiscount = $order->descuento ?? 0;
         $itemDescuento = $params->descuento ?? 0;
 
-        // Retry up to 3 times on deadlock (InnoDB 1213). The order total update
-        // is a single atomic SQL increment so no lock on the order row is needed.
-        [$data, $deltaSubtotal] = DB::transaction(function () use ($orderId, $params, $itemDescuento, $orderDiscount) {
-            if ($params->nombre_extra) {
-                $created = OrderProductModel::create([
-                    OrderProductModel::PEDIDO_ID => $orderId,
-                    OrderProductModel::NOMBRE_EXTRA => $params->nombre_extra,
-                    OrderProductModel::CANTIDAD => $params->cantidad,
-                    OrderProductModel::PRECIO => $params->precio,
-                    OrderProductModel::DESCUENTO => $itemDescuento,
-                ]);
-            } else {
-                $created = OrderProductModel::create([
-                    OrderProductModel::PRODUCTO_ID => $params->producto_id,
-                    OrderProductModel::PEDIDO_ID => $orderId,
-                    OrderProductModel::CANTIDAD => $params->cantidad,
-                    OrderProductModel::PRECIO => $params->precio,
-                    OrderProductModel::DESCUENTO => $itemDescuento,
-                    OrderProductModel::IS_READY => false,
-                ]);
-            }
-            $delta = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
+        OrderModel::lockForUpdate()->find($orderId);
 
-            $deltaTotal = round($delta * (1 - $orderDiscount / 100), 2);
-
-            DB::table('order')->where('id', $orderId)->update([
-                'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$delta}"),
-                'total' => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
+        if ($params->nombre_extra) {
+            $data = OrderProductModel::create([
+                OrderProductModel::PEDIDO_ID => $orderId,
+                OrderProductModel::NOMBRE_EXTRA => $params->nombre_extra,
+                OrderProductModel::CANTIDAD => $params->cantidad,
+                OrderProductModel::PRECIO => $params->precio,
+                OrderProductModel::DESCUENTO => $itemDescuento,
             ]);
+        } else {
+            $data = OrderProductModel::create([
+                OrderProductModel::PRODUCTO_ID => $params->producto_id,
+                OrderProductModel::PEDIDO_ID => $orderId,
+                OrderProductModel::CANTIDAD => $params->cantidad,
+                OrderProductModel::PRECIO => $params->precio,
+                OrderProductModel::DESCUENTO => $itemDescuento,
+                OrderProductModel::IS_READY => false,
+            ]);
+        }
 
-            return [$created, $delta];
-        }, 3);
+        $delta = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
+        $deltaTotal = round($delta * (1 - $orderDiscount / 100), 2);
+
+        DB::table('order')->where('id', $orderId)->update([
+            'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$delta}"),
+            'total' => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
+        ]);
 
         $this->resetStatusIfReady($order->fresh());
 
@@ -122,6 +118,8 @@ class OrderProductController extends Controller
             $data[OrderProductModel::PRECIO] = $params->precio;
         }
 
+        OrderModel::lockForUpdate()->find($orderId);
+
         $orderProduct->update($data);
         $orderProduct->refresh();
 
@@ -136,7 +134,7 @@ class OrderProductController extends Controller
 
         $this->resetStatusIfReady($order->fresh());
 
-        return Response::success($orderProduct);
+        return Response::success($orderProduct->refresh());
     }
 
     /**
@@ -200,7 +198,7 @@ class OrderProductController extends Controller
             return Response::error('elemento no encontrado');
         }
 
-        $order = OrderModel::find($orderId);
+        $order = OrderModel::lockForUpdate()->find($orderId);
         $orderDiscount = $order->descuento ?? 0;
         $lineSubtotal = round($item->precio * $item->cantidad * (1 - $item->descuento / 100), 2);
         $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
@@ -232,7 +230,7 @@ class OrderProductController extends Controller
             return Response::error('producto no encontrado');
         }
 
-        $order = OrderModel::find($orderId);
+        $order = OrderModel::lockForUpdate()->find($orderId);
         $orderDiscount = $order->descuento ?? 0;
         $lineSubtotal = round($delete->precio * $delete->cantidad * (1 - $delete->descuento / 100), 2);
         $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);

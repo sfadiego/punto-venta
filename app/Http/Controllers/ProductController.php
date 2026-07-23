@@ -55,10 +55,6 @@ class ProductController extends Controller
 
     public function delete(ProductModel $product): JsonResponse
     {
-        if (! $product->count()) {
-            return Response::error('Producto invalido');
-        }
-
         $picture = $product->picture;
         $product->delete();
 

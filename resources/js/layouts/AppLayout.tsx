@@ -12,7 +12,7 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-    const { features } = useAxios();
+    const { isAuth, features } = useAxios();
     useOrdersSocket({ showToast: true, suppressCreated: features?.sell_by_weight === true });
 
     const {
@@ -29,6 +29,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
         userRole,
         config,
     } = useAppLayout();
+
+    if (!isAuth) return <Outlet />;
 
     return (
         <PrintAgentProvider enabled={import.meta.env.VITE_APP_ENV === "local" || !!config?.printer_enabled}>
