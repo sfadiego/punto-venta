@@ -213,7 +213,31 @@ OrderFilters.tsx ← solitario, sin carpeta propia
 - Siempre verificar con `npx tsc --noEmit` después de cada reorganización.
 
 ### peticiones http
-no hacer peticiones directamete a axios, utiliza la capa de servicios como esta declarado en services/*.ts cuando se necesita consultar el backend desde la UI
+- No hacer peticiones directamente a axios, utiliza la capa de servicios como esta declarado en `services/*.ts` cuando se necesita consultar el backend desde la UI.
+- Esto aplica también a los hooks de lógica dentro de `pages/**` (ej. `usePageName.ts`, `use<Feature>Modal.ts`): nunca llamar `axiosPOST`, `axiosPUT`, `axiosDELETE`, `axiosGET` ni el `axiosApi` crudo de `useAxios()` directamente ahí. Si el servicio que necesitas no existe, créalo en `services/useXxxService.ts` siguiendo el patrón existente en vez de hacer la petición inline.
+- Ejemplo — en vez de:
+  ```ts
+  await axiosPUT(axiosApi, {
+      url: `${ApiRoutes.Orders}/${oid}/product/${item.orderProductId}`,
+      data: { cantidad: 1, precio: price },
+  });
+  ```
+  crear/usar un hook de servicio:
+  ```ts
+  // services/useOrderService.ts
+  export const useUpdateOrderProduct = () => {
+      const { axiosApi } = useAxios();
+      return useMutation({
+          mutationFn: ({ orderId, orderProductId, data }: { orderId: number; orderProductId: number; data: Record<string, unknown> }) =>
+              axiosPUT(axiosApi, { url: `${url}/${orderId}/product/${orderProductId}`, data }),
+      });
+  };
+
+  // en el hook de la page
+  const { mutateAsync: updateOrderProduct } = useUpdateOrderProduct();
+  await updateOrderProduct({ orderId: oid, orderProductId: item.orderProductId, data: { cantidad: 1, precio: price } });
+  ```
+- Si el ID va fijo en la URL y se conoce al montar el componente, usar directamente `usePUT`/`usePOST`/`useDELETE` de `hooks/useApi.ts` (ver ejemplo de `useUpdateCategory` en "Servicios y estado del servidor"). Si el ID es dinámico o se crea de forma lazy en medio del flujo (la orden no existe hasta el primer producto agregado, por ejemplo), seguir el patrón de `useMutation` + `axiosPOST`/`axiosPUT`/`axiosDELETE` dentro del service, pasando el ID en las variables del `mutate`/`mutateAsync` (ver `useUpdateOrderData`, `useCreateOrderProduct`, `useUpdateOrderProduct`, `useDeleteOrderItem` en `useOrderService.ts`).
 
 ### Funciones utilitarias
 - Nunca definir funciones puras (formateadores, calculadores, helpers de fecha, mapeos de dominio) directamente dentro de un componente o hook.

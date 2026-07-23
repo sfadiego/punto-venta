@@ -19,15 +19,15 @@ interface NewSaleCartPanelProps {
     domicilio: number;
     total: number;
     totalFinal: number;
-    getDisplayQty: (productId: number, cantidad: number) => string;
-    handleQtyChange: (productId: number, value: string) => void;
-    handleQtyBlur: (productId: number) => void;
+    getDisplayQty: (orderProductId: number, cantidad: number) => string;
+    handleQtyChange: (orderProductId: number, value: string) => void;
+    handleQtyBlur: (orderProductId: number) => void;
     getItemMode: (productId: number, product: IProduct) => WeightInputModeEnum;
-    toggleItemMode: (productId: number, product: IProduct) => void;
-    getDisplayPrice: (productId: number, item: ModalCartItem) => string;
-    handlePriceChange: (productId: number, value: string) => void;
-    handlePriceBlur: (productId: number) => void;
-    removeFromCart: (productId: number) => void;
+    toggleItemMode: (productId: number, orderProductId: number, product: IProduct) => void;
+    getDisplayPrice: (orderProductId: number, item: ModalCartItem) => string;
+    handlePriceChange: (orderProductId: number, value: string) => void;
+    handlePriceBlur: (orderProductId: number) => void;
+    removeFromCart: (orderProductId: number) => Promise<void>;
     clearCart: () => void;
     onPay: () => void;
 }
@@ -68,17 +68,17 @@ export const NewSaleCartPanel = ({
                         const mode = getItemMode(item.productId, item.product);
                         return (
                             <NewSaleCartItem
-                                key={item.productId}
+                                key={item.orderProductId}
                                 item={item}
                                 mode={mode}
-                                displayQty={getDisplayQty(item.productId, item.cantidad)}
-                                displayPrice={getDisplayPrice(item.productId, item)}
-                                onModeToggle={() => toggleItemMode(item.productId, item.product)}
-                                onQtyChange={(v) => handleQtyChange(item.productId, v)}
-                                onQtyBlur={() => handleQtyBlur(item.productId)}
-                                onPriceChange={(v) => handlePriceChange(item.productId, v)}
-                                onPriceBlur={() => handlePriceBlur(item.productId)}
-                                onRemove={() => removeFromCart(item.productId)}
+                                displayQty={getDisplayQty(item.orderProductId, item.cantidad)}
+                                displayPrice={getDisplayPrice(item.orderProductId, item)}
+                                onModeToggle={() => toggleItemMode(item.productId, item.orderProductId, item.product)}
+                                onQtyChange={(v) => handleQtyChange(item.orderProductId, v)}
+                                onQtyBlur={() => handleQtyBlur(item.orderProductId)}
+                                onPriceChange={(v) => handlePriceChange(item.orderProductId, v)}
+                                onPriceBlur={() => handlePriceBlur(item.orderProductId)}
+                                onRemove={() => removeFromCart(item.orderProductId)}
                             />
                         );
                     })}

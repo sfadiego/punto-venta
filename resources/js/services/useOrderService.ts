@@ -3,6 +3,7 @@ import { IPaginateServiceProps } from "@/intefaces/IPaginateServiceProps";
 import {
     axiosGET,
     axiosPATCH,
+    axiosPOST,
     axiosPUT,
     axiosDELETE,
     useDELETE,
@@ -191,4 +192,83 @@ export const useUpdateOrderStatus = () => {
                 data: { estatus_pedido_id: statusId, ...extra },
             }),
     });
+};
+
+// Variantes con orderId dinámico (pasado en cada llamada, no fijado al crear el hook).
+// Usar cuando la orden se crea de forma lazy en medio del flujo (ver useSellByWeightSaleModal),
+// donde el id recién creado debe usarse en la misma función async sin esperar un re-render.
+
+export const useUpdateOrderData = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({ orderId, data }: { orderId: number; data: Record<string, unknown> }) =>
+            axiosPUT(axiosApi, { url: `${url}/${orderId}`, data }),
+    });
+};
+
+export const useDeleteOrderById = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: (orderId: number) => axiosDELETE(axiosApi, { url: `${url}/${orderId}` }),
+    });
+};
+
+export const useCreateOrderProduct = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({ orderId, data }: { orderId: number; data: Record<string, unknown> }) =>
+            axiosPOST(axiosApi, { url: `${url}/${orderId}/product`, data }),
+    });
+};
+
+export const useUpdateOrderProduct = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({
+            orderId,
+            orderProductId,
+            data,
+        }: {
+            orderId: number;
+            orderProductId: number;
+            data: Record<string, unknown>;
+        }) =>
+            axiosPUT(axiosApi, {
+                url: `${url}/${orderId}/product/${orderProductId}`,
+                data,
+            }),
+    });
+};
+
+export const useDeleteOrderItem = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({ orderId, orderProductId }: { orderId: number; orderProductId: number }) =>
+            axiosDELETE(axiosApi, { url: `${url}/${orderId}/extra/${orderProductId}` }),
+    });
+};
+
+export const usePrintOrder = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: (orderId: number) => axiosPOST(axiosApi, { url: `${url}/${orderId}/print`, data: {} }),
+    });
+};
+
+export const useFetchPrintBytes = () => {
+    const { axiosApi } = useAxios();
+    return (orderId: number) =>
+        axiosGET<ArrayBuffer>(axiosApi, {
+            url: ApiRoutes.PrintBytes.replace(":id", String(orderId)),
+            responseType: "arraybuffer",
+        });
+};
+
+export const useFetchPrintTestBytes = () => {
+    const { axiosApi } = useAxios();
+    return () =>
+        axiosGET<ArrayBuffer>(axiosApi, {
+            url: ApiRoutes.PrintTestBytes,
+            responseType: "arraybuffer",
+        });
 };

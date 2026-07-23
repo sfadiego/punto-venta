@@ -31,12 +31,19 @@ class ErrorReporting
 
         if ($status > 400) {
             try {
+                $errorMessage = $exception?->getMessage();
+                if ($errorMessage === null && method_exists($response, 'getContent')) {
+                    $body = json_decode((string) $response->getContent(), true);
+                    $errorMessage = $body['message'] ?? null;
+                }
+                $errorMessage = $errorMessage ?? 'Unknown error';
+
                 ModelsErrorReporting::create([
                     'source' => 'backend',
                     'endpoint' => $request->path(),
                     'method' => $request->method(),
                     'status_code' => $status,
-                    'error_message' => $exception?->getMessage() ?? 'Unknown error',
+                    'error_message' => $errorMessage,
                     'stack_trace' => $exception?->getTraceAsString(),
                     'user_id' => $request->user()?->id,
                     'tenant_slug' => $request->user()?->tenant?->slug,
