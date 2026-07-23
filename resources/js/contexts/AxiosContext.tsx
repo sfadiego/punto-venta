@@ -136,6 +136,7 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         sistemaId,
         logout,
         setSistema,
+        setCurrentUser: configUser,
     };
 
     return (
