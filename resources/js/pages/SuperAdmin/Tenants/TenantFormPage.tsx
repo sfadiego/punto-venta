@@ -91,6 +91,10 @@ export default function TenantFormPage() {
                         <TenantPrinterSection
                             enabled={formik.values.printer_enabled}
                             onToggle={() => formik.setFieldValue("printer_enabled", !formik.values.printer_enabled)}
+                            bluetoothEnabled={formik.values.bluetooth_printing_enabled}
+                            onToggleBluetooth={() =>
+                                formik.setFieldValue("bluetooth_printing_enabled", !formik.values.bluetooth_printing_enabled)
+                            }
                         />
                     )}
 

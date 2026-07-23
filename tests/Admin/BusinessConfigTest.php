@@ -76,6 +76,28 @@ class BusinessConfigTest extends TestCase
             ->assertJsonPath('data.menu_enabled', true);
     }
 
+    public function test_bluetooth_printing_enabled_no_se_puede_modificar_desde_el_tenant(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::BLUETOOTH_PRINTING_ENABLED => false]);
+
+        $this->putJson('/api/admin/config', [
+            'business_name' => 'Cafe Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'bluetooth_printing_enabled' => true,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.bluetooth_printing_enabled', false);
+
+        $this->assertDatabaseHas('business_config', [
+            'id' => $tenant->id,
+            'bluetooth_printing_enabled' => false,
+        ]);
+    }
+
     public function test_no_actualiza_sin_business_name(): void
     {
         $this->putJson('/api/admin/config', [

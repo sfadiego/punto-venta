@@ -23,8 +23,10 @@ export default defineConfig({
                     "vendor-mantine": ["@mantine/core", "mantine-datatable"],
                     // Formularios + notificaciones
                     "vendor-app": ["formik", "yup", "sweetalert2", "react-toastify"],
-                    // Iconos (grande pero estático)
-                    "vendor-icons": ["lucide-react"],
+                    // lucide-react NO va aquí a propósito: forzar todo el paquete a un
+                    // chunk fijo rompe el code-splitting de DynamicIcon.tsx (que carga
+                    // íconos individuales vía import() dinámico) — Rollup ya agrupa por
+                    // su cuenta los íconos importados de forma estática.
                 },
             },
         },

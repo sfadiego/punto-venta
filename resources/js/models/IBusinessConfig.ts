@@ -17,6 +17,7 @@ export interface IBusinessConfig {
     printer_name: string | null;
     printer_host: string | null;
     printer_enabled: boolean;
+    bluetooth_printing_enabled: boolean;
     menu_enabled: boolean;
     costo_domicilio_default: number;
     logo_icon: string | null;

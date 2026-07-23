@@ -19,6 +19,6 @@ class DemoRequestController extends Controller
             DemoRequestModel::BUSINESS_NICHE => $request->business_niche,
         ]);
 
-        return Response::success($demoRequest, status: Http::Created);
+        return Response::success($demoRequest->fresh(), status: Http::Created);
     }
 }

@@ -13,6 +13,7 @@ export interface ITenant {
     logo_icon: string | null;
     tipo_negocio: BusinessTypeEnum;
     printer_enabled: boolean;
+    bluetooth_printing_enabled: boolean;
     features?: IBusinessFeatures;
     users_count?: number;
     active_users_count?: number;
@@ -52,6 +53,7 @@ export interface IUpdateTenantPayload {
     logo_icon: string | null;
     tipo_negocio: BusinessTypeEnum;
     printer_enabled: boolean;
+    bluetooth_printing_enabled: boolean;
     max_users?: number | null;
     subscription_amount?: number | null;
 }
