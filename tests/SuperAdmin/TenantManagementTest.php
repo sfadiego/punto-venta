@@ -191,6 +191,29 @@ class TenantManagementTest extends TestCase
         $this->assertDatabaseHas('business_config', ['id' => $tenant->id, 'business_name' => 'Nombre Actualizado']);
     }
 
+    public function test_activa_impresion_bluetooth_del_tenant(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::BLUETOOTH_PRINTING_ENABLED => false]);
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", [
+            'slug' => $tenant->slug,
+            'business_name' => $tenant->business_name,
+            'primary_color' => '#FF5733',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#000000',
+            'bluetooth_printing_enabled' => true,
+        ], $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.bluetooth_printing_enabled', true);
+
+        $this->assertDatabaseHas('business_config', [
+            'id' => $tenant->id,
+            'bluetooth_printing_enabled' => true,
+        ]);
+    }
+
     public function test_no_actualiza_tenant_con_slug_duplicado(): void
     {
         // Crear un segundo tenant para poder duplicar slug

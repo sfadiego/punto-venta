@@ -11,7 +11,9 @@ import { useAdminPage } from "./useAdminPage";
 
 function AdminPage() {
     const { config, isLoading, sellByWeight } = useAdminPage();
-    const printerVisible = import.meta.env.VITE_APP_ENV === "local" || config?.printer_enabled === true;
+    const printerVisible = import.meta.env.VITE_APP_ENV === "local"
+        || config?.printer_enabled === true
+        || config?.bluetooth_printing_enabled === true;
 
     return (
         <div className="p-4 md:p-6 max-w-4xl mx-auto">

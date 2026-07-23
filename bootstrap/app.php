@@ -39,11 +39,18 @@ return Application::configure(basePath: dirname(__DIR__))
             before: SubstituteBindings::class,
             prepend: ResolveTenant::class,
         );
-        $middleware->trustProxies(headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO |
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB);
+        $middleware->trustProxies(
+            // '*' solo en local: permite probar con túneles (ngrok) que terminan TLS y
+            // reenvían por HTTP plano — sin esto, Request::isSecure() da false y Laravel
+            // genera URLs de assets en http://, causando "mixed content" en el navegador.
+            // En producción no se especifica (null = ningún proxy confiado por defecto).
+            at: env('APP_ENV') === 'local' ? '*' : null,
+            headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
+                \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |
+                \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
+                \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO |
+                \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB,
+        );
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (AuthenticationException $e, Request $request) {

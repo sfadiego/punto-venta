@@ -53,6 +53,8 @@ class BusinessConfigModel extends Model
 
     const PRINTER_ENABLED = 'printer_enabled';
 
+    const BLUETOOTH_PRINTING_ENABLED = 'bluetooth_printing_enabled';
+
     const MENU_ENABLED = 'menu_enabled';
 
     const LOGO_ICON = 'logo_icon';
@@ -74,6 +76,7 @@ class BusinessConfigModel extends Model
     protected $casts = [
         self::ACTIVO => 'boolean',
         self::PRINTER_ENABLED => 'boolean',
+        self::BLUETOOTH_PRINTING_ENABLED => 'boolean',
         self::MENU_ENABLED => 'boolean',
         self::TIPO_NEGOCIO => BusinessTypeEnum::class,
         self::SUBSCRIPTION_EXPIRES_AT => 'date',
@@ -99,6 +102,7 @@ class BusinessConfigModel extends Model
         self::PRINTER_NAME,
         self::PRINTER_HOST,
         self::PRINTER_ENABLED,
+        self::BLUETOOTH_PRINTING_ENABLED,
         self::MENU_ENABLED,
         self::LOGO_ICON,
         self::TIPO_NEGOCIO,

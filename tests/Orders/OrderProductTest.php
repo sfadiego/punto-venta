@@ -305,6 +305,25 @@ class OrderProductTest extends TestCase
         ]);
     }
 
+    public function test_agregar_extra_a_orden_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::NOMBRE_EXTRA => 'Envío a domicilio',
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 30,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseMissing('order_product', [
+            'pedido_id' => $orden->id,
+            'nombre_extra' => 'Envío a domicilio',
+        ]);
+    }
+
     public function test_actualizar_producto_en_orden_cerrada_falla(): void
     {
         $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
