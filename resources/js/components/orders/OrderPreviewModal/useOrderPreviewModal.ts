@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
@@ -10,16 +10,8 @@ import {
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { getEcho } from "@/hooks/useOrdersSocket";
-import { IOrderProduct } from "@/models/IOrderProduct";
-
-export type ProductGroup = {
-    key: string;
-    name: string;
-    items: IOrderProduct[];
-    readyCount: number;
-    totalCount: number;
-    allReady: boolean;
-};
+import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
+import { groupOrderProducts } from "@/utils/groupOrderProducts";
 
 export const useOrderPreviewModal = (orderId: number) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -27,10 +19,8 @@ export const useOrderPreviewModal = (orderId: number) => {
         new Set(),
     );
     const queryClient = useQueryClient();
-    const pendingRef = useRef(new Set<number>());
-    const [pendingProductIds, setPendingProductIds] = useState<Set<number>>(
-        new Set(),
-    );
+    const { pendingIds: pendingProductIds, isPending, withPending } =
+        useOptimisticPendingSet<number>();
 
     const { data: order, isLoading } = useShowOrder(isOpen ? orderId : 0);
     const { mutate: updateOrder, isPending: isUpdatingStatus } =
@@ -95,16 +85,15 @@ export const useOrderPreviewModal = (orderId: number) => {
     };
 
     const toggleProductReady = async (orderProductId: number) => {
-        if (pendingRef.current.has(orderProductId)) return;
+        if (isPending(orderProductId)) return;
 
         const item = products.find((p) => p.id === orderProductId);
         const willBeReady = !item?.is_ready;
 
-        pendingRef.current.add(orderProductId);
-        setPendingProductIds(new Set(pendingRef.current));
-
         try {
-            await toggleReady(orderProductId, { onSuccess: invalidateOrder });
+            await withPending([orderProductId], () =>
+                toggleReady(orderProductId, { onSuccess: invalidateOrder }),
+            );
 
             // Auto-trigger Served when the last pending item gets marked ready
             if (willBeReady && !isServed) {
@@ -119,29 +108,13 @@ export const useOrderPreviewModal = (orderId: number) => {
                 "useOrderPreviewModal.toggleProductReady",
             );
             toast.error("Error al actualizar el platillo");
-        } finally {
-            pendingRef.current.delete(orderProductId);
-            setPendingProductIds(new Set(pendingRef.current));
         }
     };
 
-    const productGroups = useMemo<ProductGroup[]>(() => {
-        const map = new Map<string, IOrderProduct[]>();
-        for (const item of order?.order_products ?? []) {
-            const key =
-                item.nombre_extra ?? item.product?.nombre ?? `id-${item.id}`;
-            const existing = map.get(key) ?? [];
-            map.set(key, [...existing, item]);
-        }
-        return Array.from(map.entries()).map(([key, items]) => ({
-            key,
-            name: key,
-            items,
-            readyCount: items.filter((i) => i.is_ready).length,
-            totalCount: items.length,
-            allReady: items.every((i) => i.is_ready),
-        }));
-    }, [order?.order_products]);
+    const productGroups = useMemo(
+        () => groupOrderProducts(order?.order_products),
+        [order?.order_products],
+    );
 
     const toggleGroupExpand = (key: string) => {
         setExpandedGroups((prev) => {
