@@ -17,7 +17,7 @@ use Tests\TestCase;
 
 class OrderProductTest extends TestCase
 {
-    private function crearOrden(): OrderModel
+    private function crearOrden(?int $estatusPedidoId = null): OrderModel
     {
         $report = MainOrderReportModel::create([
             MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN,
@@ -31,7 +31,7 @@ class OrderProductTest extends TestCase
             OrderModel::SUBTOTAL => 0,
             OrderModel::DESCUENTO => 0,
             OrderModel::NOMBRE_PEDIDO => 'Test Orden',
-            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusModel::first()->id,
+            OrderModel::ESTATUS_PEDIDO_ID => $estatusPedidoId ?? OrderStatusModel::first()->id,
             OrderModel::SISTEMA_ID => $report->id,
             OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
         ]);
@@ -281,6 +281,96 @@ class OrderProductTest extends TestCase
             ->assertJsonPath('status', 'OK');
 
         $this->assertDatabaseMissing('order_product', ['id' => $item->id]);
+    }
+
+    // ── Orden cerrada — no se puede modificar ─────────────────
+
+    public function test_agregar_producto_a_orden_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
+        $product = $this->crearProducto();
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => $product->precio,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseMissing('order_product', [
+            'pedido_id' => $orden->id,
+            'producto_id' => $product->id,
+        ]);
+    }
+
+    public function test_actualizar_producto_en_orden_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
+        $product = $this->crearProducto();
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->putJson("/api/order/{$orden->id}/product/{$item->id}", [
+            OrderProductModel::CANTIDAD => 5,
+        ], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseHas('order_product', [
+            'id' => $item->id,
+            'cantidad' => 1,
+        ]);
+    }
+
+    public function test_eliminar_producto_de_orden_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
+        $product = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->deleteJson("/api/order/{$orden->id}/product/{$product->id}", [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseHas('order_product', [
+            'pedido_id' => $orden->id,
+            'producto_id' => $product->id,
+        ]);
+    }
+
+    public function test_eliminar_item_de_orden_cerrada_por_id_falla(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
+        $product = $this->crearProducto();
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 20,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->deleteJson("/api/order/{$orden->id}/extra/{$item->id}", [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseHas('order_product', ['id' => $item->id]);
     }
 
     // ── ToggleReady ──────────────────────────────────────────
