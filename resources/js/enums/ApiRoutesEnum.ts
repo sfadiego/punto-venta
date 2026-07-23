@@ -15,11 +15,13 @@ export enum ApiRoutes {
     PrintBytes     = "/api/order/:id/print/bytes",
     PrintTestBytes = "/api/order/print/test-bytes",
     Tenant = "/api/tenant",
+    DemoRequest = "/api/demo-request",
     SuperAdminAuth         = "/api/super-admin/auth",
     SuperAdminTenant       = "/api/super-admin/tenant",
     SuperAdminSubscription = "/api/super-admin/subscription",
     SuperAdminSettings     = "/api/super-admin/settings",
     SuperAdminErrorLogs    = "/api/super-admin/error-logs",
     SuperAdminPrinterAgent = "/api/super-admin/printer-agent/download",
+    SuperAdminDemoRequests = "/api/super-admin/demo-requests",
     ClientErrorLog         = "/api/client-error",
 }

@@ -1,12 +1,13 @@
-import { LayoutDashboard, CreditCard, Settings2, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, CreditCard, Settings2, AlertTriangle, PhoneCall } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 
 const NAV_ITEMS = [
-    { to: SuperAdminRoutes.Tenants,       label: "Clientes",        icon: <LayoutDashboard size={16} /> },
-    { to: SuperAdminRoutes.Subscriptions, label: "Suscripciones",   icon: <CreditCard size={16} /> },
-    { to: SuperAdminRoutes.ErrorLogs,     label: "Logs de errores", icon: <AlertTriangle size={16} /> },
-    { to: SuperAdminRoutes.Settings,      label: "Configuración",   icon: <Settings2 size={16} /> },
+    { to: SuperAdminRoutes.Tenants,       label: "Clientes",           icon: <LayoutDashboard size={16} /> },
+    { to: SuperAdminRoutes.DemoRequests,  label: "Solicitudes de demo", icon: <PhoneCall size={16} /> },
+    { to: SuperAdminRoutes.Subscriptions, label: "Suscripciones",      icon: <CreditCard size={16} /> },
+    { to: SuperAdminRoutes.ErrorLogs,     label: "Logs de errores",    icon: <AlertTriangle size={16} /> },
+    { to: SuperAdminRoutes.Settings,      label: "Configuración",      icon: <Settings2 size={16} /> },
 ];
 
 interface SuperAdminSidebarNavProps {

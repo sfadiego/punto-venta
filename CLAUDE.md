@@ -262,6 +262,29 @@ OrderFilters.tsx ← solitario, sin carpeta propia
 - en la carpeta pages solo debe existir un componente el cual debe llamar componenes reutilizables ubicados en la carpeta Components/{module}/component.tsx
 - crea hooks si es necesario en la carpeta de pages donde contendra la logica solo de esta pagina en especifico
 
+### Cuándo dividir un componente de página en `partials/`
+Señales de que un `<FeaturePage>.tsx` ya debe partirse (no esperar a que "se sienta grande"):
+- Supera ~120-150 líneas de JSX.
+- Mezcla 2+ secciones visuales independientes (ej. panel de branding + formulario A + formulario B + estado de éxito), cada una con su propio bloque de JSX que podría leerse sin ver el resto.
+- Tiene un estado condicional (`submitted ? ... : ...`) donde cada rama es un bloque grande — cada rama es candidata a su propio componente.
+
+Al dividir:
+- Cada sección independiente pasa a `partials/<NombreSeccion>.tsx`, recibiendo sus datos/callbacks por props (nunca importando el hook de la página directamente, para mantenerla reutilizable/testeable sola).
+- Si una sección tiene su propio tipo de formulario (Formik), exportar el tipo de valores desde el hook de la página (`export type <Nombre>Form = {...}`) e importarlo en el partial para tipar `FormikProps<...>` — no redefinir el shape en el componente.
+- Constantes puramente locales a una sección (ej. `FEATURES`, `NICHE_OPTIONS`) se quedan en el archivo del partial que las usa, no en la page.
+- La page resultante solo debe: llamar al hook, y renderizar los partials pasando props — sin lógica ni JSX de detalle propio.
+
+**Ejemplo aplicado — `pages/Auth/`:**
+```
+AuthPage.tsx              ← orquestador: llama useAuthPage() y arma el layout
+useAuthPage.ts             ← lógica + exporta el tipo DemoRequestForm
+partials/
+├── BrandingPanel.tsx      ← columna izquierda de marca (estático)
+├── ClientAccessForm.tsx   ← form de slug para clientes existentes
+├── DemoRequestForm.tsx    ← form de solicitud de demo (Formik + Select de giro)
+└── DemoRequestSuccess.tsx ← estado de confirmación tras enviar
+```
+
 ### Tipos
 - Definir tipos de dominio en `models/` (interfaces `IXxx`).
 - Interfaces genéricas en `intefaces/` (typo original del proyecto — mantenerlo para consistencia).
