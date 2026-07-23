@@ -93,10 +93,19 @@ jobs:
             fi
           done < <(find resources/js/pages resources/js/components -name "*.ts" -o -name "*.tsx" 2>/dev/null)
 
+          # Buscar llamadas crudas a axiosPOST/axiosPUT/axiosDELETE/axiosGET/axiosApi.<metodo>
+          # directamente en hooks de pages/ o components/ — deben vivir en services/*.ts
+          while IFS= read -r file; do
+            if grep -qE "axios(POST|PUT|DELETE|GET|PATCH)\(|axiosApi\.(get|post|put|delete|patch)\(" "$file" 2>/dev/null; then
+              echo "❌ $file llama axios*() o axiosApi crudo directamente. Muévelo a un hook en services/*.ts (CLAUDE.md: peticiones http)"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done < <(find resources/js/pages resources/js/components -name "*.ts" -o -name "*.tsx" 2>/dev/null)
+
           if [ $ERRORS -gt 0 ]; then
             exit 1
           else
-            echo "✅ Sin importaciones directas de axios"
+            echo "✅ Sin peticiones HTTP directas"
           fi
 
       - name: Verificar que no hay modelos definidos en pages/ o components/
