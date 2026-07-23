@@ -47,7 +47,7 @@ const sendToApi = (payload: ApiLogPayload): void => {
     });
 };
 
-const SKIPPED_STATUSES = new Set([401, 403, 422]);
+const SKIPPED_STATUSES = new Set([401, 403]);
 
 const isHandledError = (error: unknown): boolean => {
     if (!axios.isAxiosError(error)) return false;

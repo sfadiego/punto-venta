@@ -1,4 +1,5 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader } from "lucide-react";
+import { useState } from "react";
 import { ModalCartItem } from "./useSellByWeightSaleModal";
 import { UNIDAD_LABELS, UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
@@ -19,7 +20,7 @@ interface NewSaleCartItemProps {
     onQtyBlur: () => void;
     onPriceChange: (value: string) => void;
     onPriceBlur: () => void;
-    onRemove: () => void;
+    onRemove: () => Promise<void>;
 }
 
 export const NewSaleCartItem = ({
@@ -30,6 +31,19 @@ export const NewSaleCartItem = ({
     onPriceChange, onPriceBlur,
     onRemove,
 }: NewSaleCartItemProps) => {
+    const [isRemoving, setIsRemoving] = useState(false);
+
+    const handleRemove = async () => {
+        if (isRemoving) return;
+        setIsRemoving(true);
+        try {
+            await onRemove();
+        } catch {
+            // error already handled and toasted in removeFromCart
+        } finally {
+            setIsRemoving(false);
+        }
+    };
     const canToggle = isPeso(item);
     const unitLabel = UNIDAD_LABELS[item.product.unidad_medida];
     const lineTotal = (item.precioEfectivo * item.cantidad).toFixed(2);
@@ -96,12 +110,17 @@ export const NewSaleCartItem = ({
                 )}
 
                 <button
-                    onClick={onRemove}
+                    onClick={handleRemove}
+                    disabled={isRemoving}
                     className="flex items-center justify-center w-6 h-6 rounded-md
                         text-red-300 bg-red-50 hover:text-red-500 hover:bg-red-100
-                        transition-colors shrink-0"
+                        transition-colors shrink-0 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                    <Trash2 size={12} />
+                    {isRemoving ? (
+                        <Loader size={12} className="animate-spin" />
+                    ) : (
+                        <Trash2 size={12} />
+                    )}
                 </button>
             </div>
         </div>
