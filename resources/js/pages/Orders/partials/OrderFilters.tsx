@@ -50,9 +50,9 @@ export const OrderFilters = ({
             </div>
 
             <div className="flex flex-wrap gap-3">
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1.5 w-full">
                     <label className="text-xs font-medium text-stone-500">Estatus</label>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         {statusOptions.map((opt) => {
                             const active = estatusId === opt.value;
                             return (
@@ -60,7 +60,7 @@ export const OrderFilters = ({
                                     key={opt.value}
                                     onClick={() => onEstatusChange(opt.value)}
                                     className={`h-9 flex items-center gap-2 px-3.5 rounded-xl border text-sm
-                                        font-medium transition-all
+                                        font-medium transition-all whitespace-nowrap
                                         ${active
                                             ? "border-amber-400 bg-amber-50 text-amber-700 shadow-sm"
                                             : "border-stone-200 bg-stone-50 text-stone-500 hover:border-stone-300 hover:bg-white"
@@ -76,7 +76,7 @@ export const OrderFilters = ({
                                 onClick={onClear}
                                 className="h-9 flex items-center gap-1.5 px-3 rounded-xl border
                                     border-stone-200 bg-stone-50 text-xs font-medium text-stone-400
-                                    hover:border-red-200 hover:bg-red-50 hover:text-red-500 transition-all"
+                                    hover:border-red-200 hover:bg-red-50 hover:text-red-500 transition-all whitespace-nowrap"
                             >
                                 <X size={13} />
                                 Limpiar

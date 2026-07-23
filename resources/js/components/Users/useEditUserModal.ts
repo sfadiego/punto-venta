@@ -2,6 +2,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useUpdateUser } from "@/services/useUserService";
+import { useAxios } from "@/hooks/useAxios";
 import { IUser } from "@/models/IUser";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 
@@ -29,6 +30,7 @@ const buildInitialValues = (user: IUser | null) => ({
 
 export const useEditUserModal = (user: IUser | null, onClose: () => void) => {
     const { mutateAsync, isPending } = useUpdateUser();
+    const { user: authUser, setCurrentUser } = useAxios();
 
     const formik = useFormik({
         initialValues: buildInitialValues(user),
@@ -37,7 +39,7 @@ export const useEditUserModal = (user: IUser | null, onClose: () => void) => {
         onSubmit: async (values, { setSubmitting }) => {
             if (!user) return;
             try {
-                await mutateAsync({
+                const res = await mutateAsync({
                     id: user.id,
                     data: {
                         nombre:           values.nombre,
@@ -50,6 +52,15 @@ export const useEditUserModal = (user: IUser | null, onClose: () => void) => {
                         password:         values.password || undefined,
                     },
                 });
+
+                // The edited user may be the one currently logged in — refresh the
+                // cached auth user so the sidebar reflects the change immediately,
+                // instead of staying stale until the next login.
+                if (authUser?.id === user.id) {
+                    const updatedUser = (res as { data: { data: IUser } }).data.data;
+                    setCurrentUser(updatedUser);
+                }
+
                 toast.success("Usuario actualizado correctamente");
                 onClose();
             } catch (error) {

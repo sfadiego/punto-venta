@@ -48,7 +48,7 @@ export default function OrderListPage() {
 
     return (
         <div className="px-5 py-6 max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <div>
                     <div className="flex items-center gap-2">
                         <h1 className="text-2xl font-bold text-stone-900">{sellByWeight ? "Pedidos" : "Órdenes"}</h1>
@@ -61,7 +61,7 @@ export default function OrderListPage() {
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <button
                         onClick={() => refetch()}
                         className="flex items-center gap-2 text-sm font-medium text-stone-500
