@@ -140,7 +140,7 @@ export const SalesByCategoryButton = ({ onClick, label = "Reporte por categoría
     <button
         onClick={onClick}
         title={label}
-        className="h-9 flex items-center gap-2 px-3 rounded-xl border border-amber-200
+        className="h-9 w-full sm:w-auto flex items-center justify-center gap-2 px-3 rounded-xl border border-amber-200
             bg-amber-50 text-amber-700 text-xs font-semibold hover:bg-amber-100
             hover:border-amber-300 transition-all self-end"
     >

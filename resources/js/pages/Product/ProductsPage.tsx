@@ -119,14 +119,14 @@ export default function ProductsPage() {
     return (
         <div className="px-5 py-6 max-w-7xl mx-auto">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-stone-900">Productos</h1>
                     <p className="text-stone-500 text-sm mt-0.5">
                         {total} {total === 1 ? "producto" : "productos"} en total
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <button
                         onClick={() => refetch()}
                         className="flex items-center gap-2 text-sm font-medium text-stone-500 hover:text-stone-700 bg-white border border-stone-200 px-3 py-2 rounded-xl hover:bg-stone-50 transition-colors"
