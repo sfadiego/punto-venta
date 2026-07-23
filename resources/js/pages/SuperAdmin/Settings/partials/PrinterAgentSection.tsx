@@ -1,4 +1,5 @@
 import { Download, Loader, Monitor, Apple } from "lucide-react";
+import { Input } from "@/components/ui/form/Input";
 import { usePrinterAgentDownload } from "./usePrinterAgentDownload";
 
 export const PrinterAgentSection = () => {
@@ -40,18 +41,13 @@ export const PrinterAgentSection = () => {
 
                 {/* Printer name */}
                 <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1.5">
-                        Nombre de impresora
-                    </label>
-                    <input
-                        type="text"
+                    <Input
+                        name="printer"
+                        label="Nombre de impresora"
                         value={printer}
                         onChange={e => setPrinter(e.target.value)}
                         placeholder="EPSON_TM-T20"
                         maxLength={100}
-                        required
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm
-                            focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
                     />
                     <p className="text-xs text-slate-400 mt-1">
                         Debe coincidir exactamente con el nombre de la impresora en el sistema del cliente.
@@ -60,17 +56,14 @@ export const PrinterAgentSection = () => {
 
                 {/* Port */}
                 <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1.5">
-                        Puerto WebSocket
-                    </label>
-                    <input
-                        type="number"
+                    <Input
+                        name="port"
+                        label="Puerto WebSocket"
+                        inputType="number"
                         value={port}
                         onChange={e => setPort(e.target.value)}
                         min={1024}
                         max={65535}
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm
-                            focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
                     />
                     <p className="text-xs text-slate-400 mt-1">Por defecto 8765. Cambiar solo si hay conflicto de puertos.</p>
                 </div>
