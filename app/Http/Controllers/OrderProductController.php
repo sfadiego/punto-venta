@@ -47,8 +47,8 @@ class OrderProductController extends Controller
     public function store(string $orderId, OrderProductStoreRequest $params): JsonResponse
     {
         $order = OrderModel::find($orderId);
-        if (! $order) {
-            return Response::error('no existe la orden');
+        if ($error = $this->assertOrderEditable($order)) {
+            return $error;
         }
 
         $orderDiscount = $order->descuento ?? 0;
@@ -103,6 +103,9 @@ class OrderProductController extends Controller
         }
 
         $order = OrderModel::find($orderId);
+        if ($error = $this->assertOrderEditable($order)) {
+            return $error;
+        }
         $orderDiscount = $order->descuento ?? 0;
 
         $oldLineSubtotal = round($orderProduct->precio * $orderProduct->cantidad * (1 - $orderProduct->descuento / 100), 2);
@@ -199,6 +202,9 @@ class OrderProductController extends Controller
         }
 
         $order = OrderModel::lockForUpdate()->find($orderId);
+        if ($error = $this->assertOrderEditable($order)) {
+            return $error;
+        }
         $orderDiscount = $order->descuento ?? 0;
         $lineSubtotal = round($item->precio * $item->cantidad * (1 - $item->descuento / 100), 2);
         $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
@@ -231,6 +237,9 @@ class OrderProductController extends Controller
         }
 
         $order = OrderModel::lockForUpdate()->find($orderId);
+        if ($error = $this->assertOrderEditable($order)) {
+            return $error;
+        }
         $orderDiscount = $order->descuento ?? 0;
         $lineSubtotal = round($delete->precio * $delete->cantidad * (1 - $delete->descuento / 100), 2);
         $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
@@ -245,6 +254,25 @@ class OrderProductController extends Controller
         $this->restoreServedIfAllReady($order->fresh());
 
         return Response::success('elemento borrado de la orden');
+    }
+
+    /**
+     * assertOrderEditable — solo InProcess/Served aceptan modificaciones de productos.
+     * Bloquea agregar/editar/borrar productos en órdenes ya cerradas, aunque el
+     * cliente envíe la petición (ej. UI desincronizada por caché stale en red lenta).
+     */
+    private function assertOrderEditable(?OrderModel $order): ?JsonResponse
+    {
+        if (! $order) {
+            return Response::error('no existe la orden');
+        }
+
+        $editableStatuses = [OrderStatusEnum::IN_PROCESS->value, OrderStatusEnum::SERVED->value];
+        if (! in_array($order->estatus_pedido_id, $editableStatuses, true)) {
+            return Response::error('La orden ya fue cerrada y no se puede modificar');
+        }
+
+        return null;
     }
 
     private function resetStatusIfReady(OrderModel $order): void
