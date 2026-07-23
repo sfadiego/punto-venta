@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useAxios } from "@/hooks/useAxios";
+import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -16,8 +16,7 @@ export const usePendingOrders = () => {
     const { data, isLoading } = useIndexPendingOrders(sistemaId);
     const { mutateAsync: updateStatus } = useUpdateOrderStatus();
 
-    const pendingRef = useRef(new Set<number>());
-    const [pendingIds, setPendingIds] = useState(new Set<number>());
+    const { pendingIds, isPending, withPending } = useOptimisticPendingSet<number>();
 
     const orders: IOrder[] = (data as IPaginate<IOrder> | undefined)?.data ?? [];
 
@@ -27,46 +26,35 @@ export const usePendingOrders = () => {
         queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
     };
 
-    const setLoading = (id: number, loading: boolean) => {
-        if (loading) {
-            pendingRef.current.add(id);
-        } else {
-            pendingRef.current.delete(id);
-        }
-        setPendingIds(new Set(pendingRef.current));
-    };
-
     const handleAccept = async (order: IOrder) => {
-        if (pendingRef.current.has(order.id)) return;
-        setLoading(order.id, true);
+        if (isPending(order.id)) return;
         try {
-            await updateStatus({
-                orderId: order.id,
-                statusId: OrderStatusEnum.InProcess,
-                extra: { nombre_pedido: order.nombre_pedido ?? "" },
-            });
+            await withPending([order.id], () =>
+                updateStatus({
+                    orderId: order.id,
+                    statusId: OrderStatusEnum.InProcess,
+                    extra: { nombre_pedido: order.nombre_pedido ?? "" },
+                }),
+            );
             toast.success(`Pedido de ${order.nombre_pedido ?? "cliente"} aceptado`);
             invalidate();
         } catch (error) {
             logUnexpectedError(error, "usePendingOrders.handleAccept");
             toast.error("No se pudo aceptar el pedido");
-        } finally {
-            setLoading(order.id, false);
         }
     };
 
     const handleReject = async (order: IOrder) => {
-        if (pendingRef.current.has(order.id)) return;
-        setLoading(order.id, true);
+        if (isPending(order.id)) return;
         try {
-            await updateStatus({ orderId: order.id, statusId: OrderStatusEnum.Canceled });
+            await withPending([order.id], () =>
+                updateStatus({ orderId: order.id, statusId: OrderStatusEnum.Canceled }),
+            );
             toast.info(`Pedido de ${order.nombre_pedido ?? "cliente"} rechazado`);
             invalidate();
         } catch (error) {
             logUnexpectedError(error, "usePendingOrders.handleReject");
             toast.error("No se pudo rechazar el pedido");
-        } finally {
-            setLoading(order.id, false);
         }
     };
 

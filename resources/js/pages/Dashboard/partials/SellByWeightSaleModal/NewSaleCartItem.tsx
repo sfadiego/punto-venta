@@ -1,17 +1,17 @@
 import { Trash2, Loader } from "lucide-react";
 import { useState } from "react";
-import { ModalCartItem } from "./useSellByWeightSaleModal";
+import { IModalCartItem } from "@/models/IModalCartItem";
 import { UNIDAD_LABELS, UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
 import { calcWeightFromPrice } from "@/utils/calcWeightFromPrice";
 import { WeightModeToggle } from "@/components/ui/WeightModeToggle";
 
-const isPeso = (item: ModalCartItem) =>
+const isPeso = (item: IModalCartItem) =>
     item.product.unidad_medida === UnidadMedidaEnum.Kg ||
     item.product.unidad_medida === UnidadMedidaEnum.Gr;
 
 interface NewSaleCartItemProps {
-    item: ModalCartItem;
+    item: IModalCartItem;
     mode: WeightInputModeEnum;
     displayQty: string;
     displayPrice: string;

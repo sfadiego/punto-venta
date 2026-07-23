@@ -1,6 +1,6 @@
 import { Loader } from "lucide-react";
 import { IOrder } from "@/models/IOrder";
-import { CartItem } from "../../useTakeOrder";
+import { ICartItem } from "@/models/ICartItem";
 import { usePayModal } from "./usePayModal";
 import { RestaurantPayModal } from "@/components/orders/PayOrder/RestaurantPayModal";
 import { CartEmptyState } from "./CartEmptyState";
@@ -10,7 +10,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 
 interface CartPanelProps {
     order: IOrder | undefined;
-    cart: CartItem[];
+    cart: ICartItem[];
     subtotal: number;
     orderDiscount: number;
     total: number;

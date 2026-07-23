@@ -1,12 +1,12 @@
 import { useRef, useEffect } from "react";
 import { Search, Package, Loader } from "lucide-react";
-import { CartItem } from "../../useTakeOrder";
+import { ICartItem } from "@/models/ICartItem";
 import { useProductGrid } from "./useProductGrid";
 import { CategoryTabs } from "./CategoryTabs";
 import { ProductCard } from "./ProductCard";
 
 interface ProductGridProps {
-    cart: CartItem[];
+    cart: ICartItem[];
     isReadOnly?: boolean;
     pendingProductIds?: Set<number>;
     onAdd: (productId: number, name: string, price: number) => void;
