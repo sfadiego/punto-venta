@@ -7,7 +7,11 @@ interface ProductCardProps {
     cartItem: CartItem | undefined;
     isReadOnly?: boolean;
     isPending?: boolean;
-    onAdd: (productId: number, name: string, price: number) => void;
+    onAdd: (
+        productId: number,
+        name: string,
+        price: number,
+    ) => void | Promise<void>;
 }
 
 export const ProductCard = ({
@@ -21,7 +25,10 @@ export const ProductCard = ({
 
     return (
         <button
-            onClick={() => !disabled && onAdd(product.id, product.nombre, product.precio)}
+            onClick={async () => {
+                if (disabled) return;
+                await onAdd(product.id, product.nombre, product.precio);
+            }}
             disabled={disabled}
             className={`relative bg-white rounded-xl border-2 p-4 text-left transition-all duration-150 ${
                 isReadOnly

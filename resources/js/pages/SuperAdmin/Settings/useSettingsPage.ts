@@ -4,6 +4,13 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useGetAppSettings, useUpdateAppSettings, IPaymentInfo } from "@/services/useAppSettingService";
 
+export type PaymentForm = {
+    bank: string;
+    account: string;
+    holder: string;
+    concept: string;
+};
+
 const paymentSchema = Yup.object({
     bank:    Yup.string().required("Requerido"),
     account: Yup.string().required("Requerido"),

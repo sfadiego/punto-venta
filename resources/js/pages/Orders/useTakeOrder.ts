@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { isItemAlreadyRemovedError } from "@/utils/axiosError";
 import { useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -64,7 +65,8 @@ export const useTakeOrder = () => {
     const { mutateAsync: addProduct } = useAddProductToOrder(orderId);
     const { mutateAsync: updateProduct } = useUpdateProductInOrder(orderId);
     const { mutateAsync: updateNote } = useUpdateOrderProductNote(orderId);
-    const { mutateAsync: deleteItem } = useDeleteItemFromOrder(orderId);
+    const { mutateAsync: deleteItem, isPending: isDeletingItem } =
+        useDeleteItemFromOrder(orderId);
     const { mutateAsync: updateOrder } = useUpdateOrder(orderId);
     // Add regular product (click on ProductCard).
     // If the product already exists in the cart, increment its quantity instead
@@ -120,13 +122,18 @@ export const useTakeOrder = () => {
         }
     };
 
-    // Add custom extra (no producto_id)
+    // Add custom extra (no producto_id).
+    // Uses a fixed guard key since the extra has no id until the server creates it —
+    // without this, a quick add+remove could race the still-in-flight create request.
+    const EXTRA_PENDING_KEY = -1;
     const addExtra = async (
         nombre: string,
         precio: number,
         cantidad: number,
     ) => {
-        if (isReadOnly) return;
+        if (isReadOnly || pendingRef.current.has(EXTRA_PENDING_KEY)) return;
+        pendingRef.current.add(EXTRA_PENDING_KEY);
+        setPendingProductIds(new Set(pendingRef.current));
         try {
             await addProduct(
                 { nombre_extra: nombre, cantidad, precio, descuento: 0 },
@@ -135,6 +142,9 @@ export const useTakeOrder = () => {
         } catch (error) {
             logUnexpectedError(error, "useTakeOrder.addExtra");
             toast.error("Error al agregar extra");
+        } finally {
+            pendingRef.current.delete(EXTRA_PENDING_KEY);
+            setPendingProductIds(new Set(pendingRef.current));
         }
     };
 
@@ -150,6 +160,7 @@ export const useTakeOrder = () => {
         setPendingProductIds(new Set(pendingRef.current));
         try {
             if (newQty <= 0) {
+                if (isDeletingItem) return;
                 await deleteItem(existing.orderProductId, {
                     onSuccess: invalidateOrder,
                 });
@@ -160,6 +171,10 @@ export const useTakeOrder = () => {
                 );
             }
         } catch (error) {
+            if (isItemAlreadyRemovedError(error)) {
+                invalidateOrder();
+                return;
+            }
             logUnexpectedError(error, "useTakeOrder.updateQuantity");
             toast.error("Error al actualizar producto");
         } finally {
@@ -185,14 +200,24 @@ export const useTakeOrder = () => {
         }
     };
 
-    // Remove any item (product or extra) by orderProductId
+    // Remove any item (product or extra) by orderProductId.
+    // Guards on the mutation's own `isPending` — instead of tracking a separate
+    // "in flight" flag — so a second remove/quantity-drop-to-zero can't fire a
+    // duplicate DELETE while the previous one hasn't settled yet.
     const removeFromCart = async (orderProductId: number) => {
-        if (isReadOnly || pendingRef.current.has(orderProductId)) return;
+        if (isReadOnly || pendingRef.current.has(orderProductId) || isDeletingItem)
+            return;
         pendingRef.current.add(orderProductId);
         setPendingProductIds(new Set(pendingRef.current));
         try {
             await deleteItem(orderProductId, { onSuccess: invalidateOrder });
         } catch (error) {
+            // "elemento no encontrado" means it was already removed by another
+            // in-flight request — the end state the user wanted is already true.
+            if (isItemAlreadyRemovedError(error)) {
+                invalidateOrder();
+                return;
+            }
             logUnexpectedError(error, "useTakeOrder.removeFromCart");
             toast.error("Error al eliminar producto");
         } finally {
