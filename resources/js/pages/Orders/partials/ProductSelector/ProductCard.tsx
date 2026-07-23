@@ -1,10 +1,10 @@
 import { Loader, Package } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
-import { CartItem } from "../../useTakeOrder";
+import { ICartItem } from "@/models/ICartItem";
 
 interface ProductCardProps {
     product: IProduct;
-    cartItem: CartItem | undefined;
+    cartItem: ICartItem | undefined;
     isReadOnly?: boolean;
     isPending?: boolean;
     onAdd: (

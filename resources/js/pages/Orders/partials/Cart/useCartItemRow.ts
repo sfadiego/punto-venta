@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { CartItem } from "../../useTakeOrder";
+import { ICartItem } from "@/models/ICartItem";
 
 export const useCartItemRow = (
-    item: CartItem,
+    item: ICartItem,
     onUpdateProductDiscount: (
         orderProductId: number,
         descuento: number,

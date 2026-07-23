@@ -1,13 +1,13 @@
 import { Eraser } from "lucide-react";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
-import { ModalCartItem } from "./useSellByWeightSaleModal";
+import { IModalCartItem } from "@/models/IModalCartItem";
 import { NewSaleCartItem } from "./NewSaleCartItem";
 import { NewSaleCartFooter } from "./NewSaleCartFooter";
 import { IProduct } from "@/models/IProduct";
 
 interface NewSaleCartPanelProps {
-    cart: ModalCartItem[];
+    cart: IModalCartItem[];
     sellByWeight: boolean;
     domicilioActivo: boolean;
     toggleDomicilio: (checked: boolean) => void;
@@ -24,7 +24,7 @@ interface NewSaleCartPanelProps {
     handleQtyBlur: (orderProductId: number) => void;
     getItemMode: (productId: number, product: IProduct) => WeightInputModeEnum;
     toggleItemMode: (productId: number, orderProductId: number, product: IProduct) => void;
-    getDisplayPrice: (orderProductId: number, item: ModalCartItem) => string;
+    getDisplayPrice: (orderProductId: number, item: IModalCartItem) => string;
     handlePriceChange: (orderProductId: number, value: string) => void;
     handlePriceBlur: (orderProductId: number) => void;
     removeFromCart: (orderProductId: number) => Promise<void>;

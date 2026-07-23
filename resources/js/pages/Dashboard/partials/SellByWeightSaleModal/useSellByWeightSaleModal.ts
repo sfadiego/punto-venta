@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAxios } from "@/hooks/useAxios";
 import { usePrintAgent } from "@/hooks/usePrintAgent";
+import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
 import { useIndexProducts } from "@/services/useProductService";
 import { useIndexCategories } from "@/services/useCategoriesService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
@@ -25,32 +26,13 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IProduct } from "@/models/IProduct";
 import { IOrder } from "@/models/IOrder";
 import { IOrderProduct } from "@/models/IOrderProduct";
+import { IModalCartItem } from "@/models/IModalCartItem";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { calcDeliveryTotal, calcCostoDomicilio } from "@/utils/deliveryCalc";
+import { buildModalCartItems, calcModalCartTotal } from "@/utils/sellByWeightCartCalc";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
-
-export type ModalCartItem = {
-    orderProductId: number;
-    productId: number;
-    product: IProduct;
-    cantidad: number;
-    // precio real guardado en order_product (puede diferir del catálogo en modo precio)
-    precioEfectivo: number;
-};
-
-function mapOrderProducts(orderProducts: IOrderProduct[]): ModalCartItem[] {
-    return (orderProducts ?? [])
-        .filter((op) => op.product != null && op.producto_id != null)
-        .map((op) => ({
-            orderProductId: op.id!,
-            productId: op.producto_id!,
-            product: op.product,
-            cantidad: parseFloat(String(op.cantidad)),
-            precioEfectivo: parseFloat(String(op.precio)),
-        }));
-}
 
 export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
     const { sistemaId, features } = useAxios();
@@ -89,13 +71,13 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     };
     const [search, setSearch] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-    const [cart, setCart] = useState<ModalCartItem[]>([]);
+    const [cart, setCart] = useState<IModalCartItem[]>([]);
     const [editingQtys, setEditingQtys] = useState<Record<number, string>>({});
     const [editingPrices, setEditingPrices] = useState<Record<number, string>>({});
     const [itemModes, setItemModes] = useState<Record<number, WeightInputModeEnum>>({});
 
     // Refs to always access latest values in async handlers (avoid stale closures)
-    const cartRef = useRef<ModalCartItem[]>([]);
+    const cartRef = useRef<IModalCartItem[]>([]);
     const itemModesRef = useRef<Record<number, WeightInputModeEnum>>({});
     const editingPricesRef = useRef<Record<number, string>>({});
     cartRef.current = cart;
@@ -103,8 +85,8 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     editingPricesRef.current = editingPrices;
     const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
-    const removingRef = useRef(new Set<number>());
-    const addingRef = useRef(new Set<number>());
+    const { isPending: isRemoving, withPending: withRemoving } = useOptimisticPendingSet<number>();
+    const { isPending: isAdding, withPending: withAdding } = useOptimisticPendingSet<number>();
 
     const rawInitialDomicilio = Number(initialOrder?.costo_domicilio ?? 0);
     const initialDomicilio = Math.abs(rawInitialDomicilio);
@@ -134,7 +116,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
 
     useEffect(() => {
         if (fullOrder?.order_products && initialOrder) {
-            const items = mapOrderProducts(fullOrder.order_products);
+            const items = buildModalCartItems(fullOrder.order_products);
             setCart(items);
             // Infer price mode: weight products where stored price differs from catalog price
             const modes: Record<number, WeightInputModeEnum> = {};
@@ -165,10 +147,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         return all.filter((p) => p.nombre.toLowerCase().includes(q));
     }, [productsData, search, selectedCategory]);
 
-    const total = useMemo(
-        () => cart.reduce((sum, item) => sum + item.precioEfectivo * item.cantidad, 0),
-        [cart],
-    );
+    const total = useMemo(() => calcModalCartTotal(cart), [cart]);
 
     const domicilio = parseFloat(costoDomicilio) || 0;
     const customerPays = orderDeliveryPaidBy === DeliveryPaidByEnum.Customer;
@@ -206,7 +185,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     };
 
     // En modo precio el display usa precioEfectivo × cantidad del item (siempre exacto)
-    const getDisplayPrice = (orderProductId: number, item: ModalCartItem): string =>
+    const getDisplayPrice = (orderProductId: number, item: IModalCartItem): string =>
         editingPrices[orderProductId] !== undefined
             ? editingPrices[orderProductId]
             : (item.precioEfectivo * item.cantidad).toFixed(2);
@@ -280,74 +259,72 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     };
 
     const addToCart = async (product: IProduct) => {
-        if (addingRef.current.has(product.id)) return;
-        addingRef.current.add(product.id);
+        if (isAdding(product.id)) return;
         try {
-            const oid = await ensureOrderCreated();
-            const existing = cartRef.current.find((i) => i.productId === product.id);
+            await withAdding([product.id], async () => {
+                const oid = await ensureOrderCreated();
+                const existing = cartRef.current.find((i) => i.productId === product.id);
 
-            if (existing) {
-                const newQty = existing.cantidad + defaultCantidad(product);
-                await updateOrderProduct({
+                if (existing) {
+                    const newQty = existing.cantidad + defaultCantidad(product);
+                    await updateOrderProduct({
+                        orderId: oid,
+                        orderProductId: existing.orderProductId,
+                        data: { cantidad: newQty, precio: existing.precioEfectivo },
+                    });
+                    setCart((prev) =>
+                        prev.map((i) =>
+                            i.orderProductId === existing.orderProductId ? { ...i, cantidad: newQty } : i,
+                        ),
+                    );
+                    return;
+                }
+
+                const res = await createOrderProduct({
                     orderId: oid,
-                    orderProductId: existing.orderProductId,
-                    data: { cantidad: newQty, precio: existing.precioEfectivo },
+                    data: {
+                        producto_id: product.id,
+                        cantidad: defaultCantidad(product),
+                        precio: product.precio,
+                        descuento: 0,
+                    },
                 });
-                setCart((prev) =>
-                    prev.map((i) =>
-                        i.orderProductId === existing.orderProductId ? { ...i, cantidad: newQty } : i,
-                    ),
-                );
-                return;
-            }
-
-            const res = await createOrderProduct({
-                orderId: oid,
-                data: {
-                    producto_id: product.id,
-                    cantidad: defaultCantidad(product),
-                    precio: product.precio,
-                    descuento: 0,
-                },
+                const op = (res as { data: { data: IOrderProduct } }).data.data;
+                setCart((prev) => [...prev, {
+                    orderProductId: op.id!,
+                    productId: product.id,
+                    product,
+                    cantidad: parseFloat(String(op.cantidad)),
+                    precioEfectivo: product.precio,
+                }]);
             });
-            const op = (res as { data: { data: IOrderProduct } }).data.data;
-            setCart((prev) => [...prev, {
-                orderProductId: op.id!,
-                productId: product.id,
-                product,
-                cantidad: parseFloat(String(op.cantidad)),
-                precioEfectivo: product.precio,
-            }]);
         } catch (error) {
             logUnexpectedError(error, "useSellByWeightSaleModal.addToCart");
             toast.error("Error al agregar producto");
-        } finally {
-            addingRef.current.delete(product.id);
         }
     };
 
     const removeFromCart = async (orderProductId: number): Promise<void> => {
         const oid = orderIdRef.current;
-        if (!oid || removingRef.current.has(orderProductId)) return;
+        if (!oid || isRemoving(orderProductId)) return;
         const item = cart.find((i) => i.orderProductId === orderProductId);
         if (!item) return;
-        removingRef.current.add(orderProductId);
         try {
-            await deleteOrderItem({ orderId: oid, orderProductId: item.orderProductId });
-            setCart((prev) => prev.filter((i) => i.orderProductId !== orderProductId));
+            await withRemoving([orderProductId], async () => {
+                await deleteOrderItem({ orderId: oid, orderProductId: item.orderProductId });
+                setCart((prev) => prev.filter((i) => i.orderProductId !== orderProductId));
+            });
         } catch (error) {
             logUnexpectedError(error, "useSellByWeightSaleModal.removeFromCart");
             toast.error("Error al eliminar producto");
             throw error;
-        } finally {
-            removingRef.current.delete(orderProductId);
         }
     };
 
     const clearCart = async () => {
         const oid = orderIdRef.current;
         if (!oid || cart.length === 0) return;
-        const toDelete = cart.filter((item) => !removingRef.current.has(item.orderProductId));
+        const toDelete = cart.filter((item) => !isRemoving(item.orderProductId));
         const results = await Promise.allSettled(
             toDelete.map((item) =>
                 deleteOrderItem({ orderId: oid, orderProductId: item.orderProductId }),

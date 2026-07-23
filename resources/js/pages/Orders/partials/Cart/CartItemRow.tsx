@@ -1,10 +1,10 @@
 import { Plus, Minus, Trash2, Tag, X, Loader } from "lucide-react";
-import { CartItem } from "../../useTakeOrder";
+import { ICartItem } from "@/models/ICartItem";
 import { CartItemNote } from "./CartItemNote";
 import { useCartItemRow } from "./useCartItemRow";
 
 interface CartItemRowProps {
-    item: CartItem;
+    item: ICartItem;
     isReadOnly?: boolean;
     isPending?: boolean;
     onUpdate: (orderProductId: number, delta: number) => void;
