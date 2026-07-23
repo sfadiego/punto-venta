@@ -301,6 +301,16 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; text-wrap: bala
   margin-left: -6px;
 }
 .hero-badge-avatars span:first-child { margin-left: 0; }
+.hero-badge-avatars img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--card);
+  object-fit: cover;
+  margin-left: -8px;
+  background: var(--paper-dim);
+}
+.hero-badge-avatars img:first-child { margin-left: 0; }
 .hero-badge-dot {
   width: 6px; height: 6px;
   border-radius: 50%;
@@ -1099,7 +1109,9 @@ footer {
 
     <div class="hero-badge">
       <div class="hero-badge-avatars">
-        <span>JM</span><span>KL</span><span>AR</span>
+        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/chantico.png" alt="Cliente Chantico" />
+        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/liro.png" alt="Cliente Liro" />
+        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/luna.png" alt="Cliente Luna" />
       </div>
       <span class="hero-badge-dot"></span>
       Más de 50 negocios activos
