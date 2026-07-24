@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Core\Data\IndexData;
+use App\Http\Requests\ClientErrorStoreRequest;
 use App\Models\ErrorReporting;
 use App\Services\ErrorReportingService;
 use Illuminate\Http\JsonResponse;
@@ -19,28 +20,19 @@ class ClientErrorController extends Controller
         return $service->run($data, $source ?: null);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(ClientErrorStoreRequest $request): JsonResponse
     {
-        $request->validate([
-            'message' => 'required|string|max:1000',
-            'stack' => 'nullable|string|max:5000',
-            'url' => 'nullable|string|max:500',
-            'context' => 'nullable|string|max:200',
-            'level' => 'nullable|string|max:20',
-            'tenant_slug' => 'nullable|string|max:100',
-            'user_id' => 'nullable|integer',
-            'usuario' => 'nullable|string|max:100',
-        ]);
-
         $tenantSlug = $request->input('tenant_slug', 'unknown');
         $context = $request->input('context');
         $message = $request->input('message');
+        $errorType = $request->input('error_type');
+        $errorCode = $request->input('error_code');
 
         ErrorReporting::create([
             'source' => 'frontend',
-            'endpoint' => $request->input('url', 'unknown'),
-            'method' => 'CLIENT',
-            'status_code' => 0,
+            'endpoint' => $request->input('failed_endpoint') ?? $request->input('url', 'unknown'),
+            'method' => $request->input('failed_method') ?? 'CLIENT',
+            'status_code' => $request->input('failed_status', 0),
             'error_message' => $message,
             'request_payload' => [
                 'stack' => $request->input('stack'),
@@ -48,6 +40,8 @@ class ClientErrorController extends Controller
                 'tenant_slug' => $tenantSlug,
                 'user_id' => $request->input('user_id'),
                 'usuario' => $request->input('usuario'),
+                'error_type' => $errorType,
+                'error_code' => $errorCode,
             ],
             'response_body' => null,
             'user_agent' => $request->userAgent(),
@@ -68,6 +62,8 @@ class ClientErrorController extends Controller
             'url' => $request->input('url'),
             'user_id' => $request->input('user_id'),
             'usuario' => $request->input('usuario'),
+            'error_type' => $errorType,
+            'error_code' => $errorCode,
         ]);
 
         return Response::success(null, 201);

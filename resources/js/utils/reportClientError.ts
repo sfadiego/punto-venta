@@ -10,6 +10,7 @@ export const reportClientError = ({ message, stack, context }: ReportErrorOption
         stack: stack?.slice(0, 5000),
         url: window.location.href,
         context,
+        error_type: "client",
     });
 
     try {
