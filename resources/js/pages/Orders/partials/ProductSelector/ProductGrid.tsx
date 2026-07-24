@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import { Search, Package, Loader } from "lucide-react";
 import { ICartItem } from "@/models/ICartItem";
+import { getCartQuantityForProduct } from "@/utils/cartCalc";
 import { useProductGrid } from "./useProductGrid";
 import { CategoryTabs } from "./CategoryTabs";
 import { ProductCard } from "./ProductCard";
@@ -91,7 +92,7 @@ export const ProductGrid = ({ cart, isReadOnly = false, pendingProductIds, onAdd
                                 <ProductCard
                                     key={product.id}
                                     product={product}
-                                    cartItem={cart.find((i) => i.id === product.id)}
+                                    quantityInCart={getCartQuantityForProduct(cart, product.id)}
                                     isReadOnly={isReadOnly}
                                     isPending={pendingProductIds?.has(product.id)}
                                     onAdd={onAdd}

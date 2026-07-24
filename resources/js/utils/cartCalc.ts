@@ -14,6 +14,11 @@ export const buildCartItems = (orderProducts: IOrderProduct[] = []): ICartItem[]
         isReady: op.is_ready ?? false,
     }));
 
+export const getCartQuantityForProduct = (cart: ICartItem[], productId: number): number =>
+    cart
+        .filter((item) => item.id === productId)
+        .reduce((sum, item) => sum + item.quantity, 0);
+
 export const calcCartTotals = (cart: ICartItem[], orderDiscount: number) => {
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     const subtotal = cart.reduce(

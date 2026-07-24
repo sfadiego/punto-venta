@@ -13,7 +13,6 @@ class ErrorReporting
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
-
         $status = $response->getStatusCode();
         $exception = $response instanceof \Illuminate\Http\Response || $response instanceof \Illuminate\Http\JsonResponse
             ? $response->exception

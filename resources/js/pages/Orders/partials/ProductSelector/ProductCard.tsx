@@ -1,10 +1,9 @@
 import { Loader, Package } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
-import { ICartItem } from "@/models/ICartItem";
 
 interface ProductCardProps {
     product: IProduct;
-    cartItem: ICartItem | undefined;
+    quantityInCart: number;
     isReadOnly?: boolean;
     isPending?: boolean;
     onAdd: (
@@ -16,12 +15,13 @@ interface ProductCardProps {
 
 export const ProductCard = ({
     product,
-    cartItem,
+    quantityInCart,
     isReadOnly = false,
     isPending = false,
     onAdd,
 }: ProductCardProps) => {
     const disabled = isReadOnly || isPending;
+    const inCart = quantityInCart > 0;
 
     return (
         <button
@@ -35,14 +35,14 @@ export const ProductCard = ({
                     ? "border-stone-100 opacity-70 cursor-not-allowed"
                     : isPending
                       ? "border-amber-300 opacity-70 cursor-wait"
-                      : cartItem
+                      : inCart
                         ? "border-amber-400 shadow-sm hover:shadow-md active:scale-95"
                         : "border-stone-100 hover:border-amber-200 hover:shadow-md active:scale-95"
             }`}
         >
-            {cartItem && !isPending && (
+            {inCart && !isPending && (
                 <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 bg-amber-500 text-white rounded-full text-xs flex items-center justify-center font-bold leading-none shadow-sm">
-                    {cartItem.quantity}
+                    {quantityInCart}
                 </span>
             )}
             {isPending && (
