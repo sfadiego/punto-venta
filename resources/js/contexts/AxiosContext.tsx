@@ -5,6 +5,7 @@ import { IAuthContextType } from "./interfaces/IAuthContextType";
 import { IAuthProviderProps } from "./interfaces/IAuthProviderProps";
 import { IUser } from "@/models/IUser";
 import { IBusinessFeatures } from "@/enums/BusinessTypeEnum";
+import { clearCachedBusinessConfig } from "@/utils/businessConfigCache";
 
 export const AxiosContext = createContext<IAuthContextType | undefined>(
     undefined,
@@ -77,6 +78,7 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         localStorage.removeItem("features");
         localStorage.removeItem("sistemaId");
         localStorage.removeItem("tenantSlug");
+        clearCachedBusinessConfig();
         window.location.replace(slug ? `/${slug}/auth` : "/auth");
     }, []);
 
