@@ -32,7 +32,7 @@ class ClientErrorController extends Controller
             'source' => 'frontend',
             'endpoint' => $request->input('failed_endpoint') ?? $request->input('url', 'unknown'),
             'method' => $request->input('failed_method') ?? 'CLIENT',
-            'status_code' => $request->input('failed_status', 0),
+            'status_code' => $request->input('failed_status') ?? 0,
             'error_message' => $message,
             'request_payload' => [
                 'stack' => $request->input('stack'),
