@@ -6,6 +6,7 @@ use App\Enums\MainOrderStatusEnum;
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
+use App\Models\CustomerModel;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
 use App\Models\OrderStatusModel;
@@ -90,6 +91,23 @@ class OrderTest extends TestCase
             ->assertJsonPath('data.id', $orden->id);
     }
 
+    public function test_show_orden_incluye_telefono_del_cliente(): void
+    {
+        $customer = CustomerModel::create([
+            CustomerModel::TENANT_ID => BusinessConfigModel::first()->id,
+            CustomerModel::NAME => 'Cliente Show',
+            CustomerModel::PHONE => '3101112222',
+        ]);
+        $orden = $this->crearOrden();
+        $orden->update([OrderModel::CUSTOMER_ID => $customer->id]);
+
+        $response = $this->getJson("/api/order/{$orden->id}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $response->assertJsonPath('data.customer.name', 'Cliente Show')
+            ->assertJsonPath('data.customer.phone', '3101112222');
+    }
+
     // ── Update ───────────────────────────────────────────────
 
     public function test_actualiza_orden(): void
@@ -105,6 +123,24 @@ class OrderTest extends TestCase
             ->assertJsonPath('data.nombre_pedido', 'Mesa Actualizada');
 
         $this->assertDatabaseHas('order', ['id' => $orden->id, 'nombre_pedido' => 'Mesa Actualizada']);
+    }
+
+    public function test_actualiza_orden_incluye_telefono_del_cliente(): void
+    {
+        $customer = CustomerModel::create([
+            CustomerModel::TENANT_ID => BusinessConfigModel::first()->id,
+            CustomerModel::NAME => 'Cliente Update',
+            CustomerModel::PHONE => '3119876543',
+        ]);
+        $orden = $this->crearOrden();
+        $orden->update([OrderModel::CUSTOMER_ID => $customer->id]);
+
+        $response = $this->putJson("/api/order/{$orden->id}", [
+            OrderModel::DESCUENTO => 5,
+        ], $this->authHeaders())
+            ->assertStatus(200);
+
+        $response->assertJsonPath('data.customer.phone', '3119876543');
     }
 
     // ── Delete ───────────────────────────────────────────────
