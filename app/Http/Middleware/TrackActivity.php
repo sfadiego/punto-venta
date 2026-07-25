@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * users.last_seen_at ya no se usa para el conteo de "usuarios activos" —
+ * ver App\Models\PersonalAccessToken::scopeActiveForTenant(), que cuenta
+ * sesiones (tokens) reales en vez de cuentas de usuario únicas.
+ */
 class TrackActivity
 {
     private const TTL_SECONDS = 60;

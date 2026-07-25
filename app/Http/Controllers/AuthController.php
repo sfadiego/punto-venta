@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionStatusEnum;
-use App\Http\Middleware\TrackActivity;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\BusinessConfigModel;
+use App\Models\PersonalAccessToken;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -32,7 +32,7 @@ class AuthController extends Controller
         return Response::success(
             [
                 'user' => $user->toArray(),
-                'token' => $user->createToken('access_token')->plainTextToken,
+                'token' => $user->issueAccessToken()->plainTextToken,
             ]
         );
     }
@@ -89,12 +89,11 @@ class AuthController extends Controller
         }
 
         if ($tenant) {
-            $activeCount = User::where(User::TENANT_ID, $tenant->id)
-                ->where('id', '!=', $result['user']->id)
-                ->where(User::LAST_SEEN_AT, '>=', now()->subMinutes(TrackActivity::activeWindowMinutes()))
+            $activeSessions = PersonalAccessToken::query()
+                ->activeForTenant($tenant->id)
                 ->count();
 
-            if ($activeCount >= $tenant->effectiveMaxUsers()) {
+            if ($activeSessions >= $tenant->effectiveMaxUsers()) {
                 $result['user']->tokens()->latest()->first()?->delete();
 
                 return response()->json([

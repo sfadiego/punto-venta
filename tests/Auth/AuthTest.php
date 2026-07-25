@@ -5,11 +5,21 @@ namespace Tests\Auth;
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionPlanEnum;
 use App\Models\BusinessConfigModel;
+use App\Models\PersonalAccessToken;
 use App\Models\User;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 class AuthTest extends TestCase
 {
+    /** Simula una sesión activa (token con actividad reciente) para pruebas de límite de plan. */
+    private function createActiveSession(BusinessConfigModel $tenant, ?Carbon $lastUsedAt = null): void
+    {
+        $user = User::factory()->create([User::TENANT_ID => $tenant->id]);
+        $token = $user->issueAccessToken();
+        $token->accessToken->forceFill([PersonalAccessToken::LAST_USED_AT => $lastUsedAt ?? now()])->save();
+    }
+
     public function test_login_con_credenciales_validas(): void
     {
         $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
@@ -226,11 +236,35 @@ class AuthTest extends TestCase
             'subscription_expires_at' => now()->addDays(7),
         ]);
 
-        // Crear 2 usuarios activos del mismo tenant (distintos al admin)
-        User::factory()->count(2)->create([
-            User::TENANT_ID => $tenant->id,
-            User::LAST_SEEN_AT => now(),
+        // Crear 2 sesiones activas del mismo tenant (distintas al admin)
+        $this->createActiveSession($tenant);
+        $this->createActiveSession($tenant);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
         ]);
+
+        $response->assertStatus(403)
+            ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
+    }
+
+    public function test_login_bloquea_cuando_la_misma_cuenta_ya_tiene_sesiones_en_el_limite(): void
+    {
+        // Reproduce el bug reportado: varias sesiones de la MISMA cuenta deben contar por separado.
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $tenant->update([
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Weekly->value,
+            'subscription_expires_at' => now()->addDays(7),
+        ]);
+
+        // 2 sesiones activas de la MISMA cuenta admin (ej. 2 dispositivos)
+        $tokenA = $admin->issueAccessToken();
+        $tokenA->accessToken->forceFill([PersonalAccessToken::LAST_USED_AT => now()])->save();
+        $tokenB = $admin->issueAccessToken();
+        $tokenB->accessToken->forceFill([PersonalAccessToken::LAST_USED_AT => now()])->save();
 
         $response = $this->postJson('/api/auth/login', [
             'email' => $admin->email,
@@ -252,11 +286,8 @@ class AuthTest extends TestCase
             'subscription_expires_at' => now()->addDays(7),
         ]);
 
-        // Solo 1 usuario activo → activeCount (1) < maxUsers (2) → debe pasar
-        User::factory()->create([
-            User::TENANT_ID => $tenant->id,
-            User::LAST_SEEN_AT => now(),
-        ]);
+        // Solo 1 sesión activa → activeSessions (1) < maxUsers (2) → debe pasar
+        $this->createActiveSession($tenant);
 
         $this->postJson('/api/auth/login', [
             'email' => $admin->email,
@@ -274,11 +305,9 @@ class AuthTest extends TestCase
             'subscription_expires_at' => now()->addDays(7),
         ]);
 
-        // 2 usuarios con last_seen_at fuera de la ventana activa (más de 15 min)
-        User::factory()->count(2)->create([
-            User::TENANT_ID => $tenant->id,
-            User::LAST_SEEN_AT => now()->subMinutes(20),
-        ]);
+        // 2 sesiones con actividad fuera de la ventana activa (más de 15 min)
+        $this->createActiveSession($tenant, now()->subMinutes(20));
+        $this->createActiveSession($tenant, now()->subMinutes(20));
 
         // Deben ser ignorados → login debe pasar
         $this->postJson('/api/auth/login', [
@@ -299,11 +328,8 @@ class AuthTest extends TestCase
             'subscription_expires_at' => now()->addDays(7),
         ]);
 
-        // 1 usuario activo → activeCount (1) >= effectiveMaxUsers (1) → debe bloquear
-        User::factory()->create([
-            User::TENANT_ID => $tenant->id,
-            User::LAST_SEEN_AT => now(),
-        ]);
+        // 1 sesión activa → activeSessions (1) >= effectiveMaxUsers (1) → debe bloquear
+        $this->createActiveSession($tenant);
 
         $this->postJson('/api/auth/login', [
             'email' => $admin->email,
@@ -324,11 +350,10 @@ class AuthTest extends TestCase
             'subscription_expires_at' => now()->addDays(7),
         ]);
 
-        // 3 usuarios activos → activeCount (3) < effectiveMaxUsers (5) → debe pasar
-        User::factory()->count(3)->create([
-            User::TENANT_ID => $tenant->id,
-            User::LAST_SEEN_AT => now(),
-        ]);
+        // 3 sesiones activas → activeSessions (3) < effectiveMaxUsers (5) → debe pasar
+        $this->createActiveSession($tenant);
+        $this->createActiveSession($tenant);
+        $this->createActiveSession($tenant);
 
         $this->postJson('/api/auth/login', [
             'email' => $admin->email,
@@ -348,11 +373,9 @@ class AuthTest extends TestCase
             'subscription_expires_at' => now()->addDays(7),
         ]);
 
-        // 2 usuarios activos → activeCount (2) >= effectiveMaxUsers (2 default) → bloquea
-        User::factory()->count(2)->create([
-            User::TENANT_ID => $tenant->id,
-            User::LAST_SEEN_AT => now(),
-        ]);
+        // 2 sesiones activas → activeSessions (2) >= effectiveMaxUsers (2 default) → bloquea
+        $this->createActiveSession($tenant);
+        $this->createActiveSession($tenant);
 
         $this->postJson('/api/auth/login', [
             'email' => $admin->email,

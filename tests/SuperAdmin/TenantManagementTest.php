@@ -4,6 +4,7 @@ namespace Tests\SuperAdmin;
 
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
+use App\Models\PersonalAccessToken;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -168,6 +169,24 @@ class TenantManagementTest extends TestCase
     {
         $tenant = BusinessConfigModel::first();
         $this->getJson("/api/super-admin/tenant/{$tenant->id}")->assertStatus(401);
+    }
+
+    public function test_active_users_count_cuenta_sesiones_no_cuentas_unicas(): void
+    {
+        // Reproduce el bug reportado: la MISMA cuenta logueada desde 2 dispositivos
+        // debe contar como 2 sesiones activas, no como 1 (antes se agrupaba por
+        // fila de `users`, ahora se cuenta por token/sesión de Sanctum).
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $tokenA = $admin->issueAccessToken();
+        $tokenA->accessToken->forceFill([PersonalAccessToken::LAST_USED_AT => now()])->save();
+        $tokenB = $admin->issueAccessToken();
+        $tokenB->accessToken->forceFill([PersonalAccessToken::LAST_USED_AT => now()])->save();
+
+        $this->getJson("/api/super-admin/tenant/{$tenant->id}", $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.active_users_count', 2);
     }
 
     // ── Update ────────────────────────────────────────────────

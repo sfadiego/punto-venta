@@ -9,7 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\HasApiTokens;
-use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\NewAccessToken;
 
 class User extends Authenticatable
 {
@@ -33,6 +33,7 @@ class User extends Authenticatable
 
     const TENANT_ID = 'tenant_id';
 
+    /** @deprecated para conteo de "usuarios activos"/límite de plan — ver App\Models\PersonalAccessToken::scopeActiveForTenant(). Sigue en uso para limpiar el valor en logout (ver AuthController::logout()). */
     const LAST_SEEN_AT = 'last_seen_at';
 
     const LOGIN_INACTIVE = 'login_inactive';
@@ -109,12 +110,20 @@ class User extends Authenticatable
 
         return [
             'user' => $user,
-            'access_token' => $user->createToken('access_token')->plainTextToken,
+            'access_token' => $user->issueAccessToken()->plainTextToken,
         ];
     }
 
     public static function generateAccessToken($user)
     {
-        return $user->createToken('access_token')->plainTextToken;
+        return $user->issueAccessToken()->plainTextToken;
+    }
+
+    public function issueAccessToken(): NewAccessToken
+    {
+        $token = $this->createToken('access_token');
+        $token->accessToken->update([PersonalAccessToken::TENANT_ID => $this->tenant_id]);
+
+        return $token;
     }
 }
