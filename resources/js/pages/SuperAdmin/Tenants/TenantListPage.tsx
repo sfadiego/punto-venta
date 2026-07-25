@@ -4,6 +4,7 @@ import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { useTenantList } from "./useTenantList";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
+import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
 import { ITenant } from "@/models/ITenant";
 import { ActiveUsersWidget } from "@/components/SuperAdmin/Tenants/ActiveUsersWidget";
 import { ActiveUsersBadge } from "@/components/SuperAdmin/Tenants/ActiveUsersBadge";
@@ -13,6 +14,13 @@ const FILTERS: { label: string; value: TenantStatusEnum }[] = [
     { label: "Inactivos",  value: TenantStatusEnum.Inactive },
     { label: "Eliminados", value: TenantStatusEnum.Deleted },
 ];
+
+const DEMO_FILTERS: { label: string; value: TenantDemoFilterEnum }[] = [
+    { label: "Demo", value: TenantDemoFilterEnum.Demo },
+];
+
+const STATUS_PREFIX = "status:";
+const DEMO_PREFIX = "demo:";
 
 export default function TenantListPage() {
     const navigate = useNavigate();
@@ -24,6 +32,8 @@ export default function TenantListPage() {
         refetch,
         status,
         setStatus,
+        demoFilter,
+        setDemoFilter,
         search,
         setSearch,
         handleToggle,
@@ -63,12 +73,24 @@ export default function TenantListPage() {
                     </div>
 
                     <select
-                        value={status}
-                        onChange={(e) => setStatus(e.target.value as TenantStatusEnum)}
+                        value={demoFilter !== TenantDemoFilterEnum.All ? `${DEMO_PREFIX}${demoFilter}` : `${STATUS_PREFIX}${status}`}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (value.startsWith(DEMO_PREFIX)) {
+                                setDemoFilter(value.slice(DEMO_PREFIX.length) as TenantDemoFilterEnum);
+                                setStatus(TenantStatusEnum.All);
+                            } else {
+                                setStatus(value.slice(STATUS_PREFIX.length) as TenantStatusEnum);
+                                setDemoFilter(TenantDemoFilterEnum.All);
+                            }
+                        }}
                         className="px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700"
                     >
                         {FILTERS.map((f) => (
-                            <option key={f.value} value={f.value}>{f.label}</option>
+                            <option key={f.value} value={`${STATUS_PREFIX}${f.value}`}>{f.label}</option>
+                        ))}
+                        {DEMO_FILTERS.map((f) => (
+                            <option key={f.value} value={`${DEMO_PREFIX}${f.value}`}>{f.label}</option>
                         ))}
                     </select>
                 </div>
@@ -141,6 +163,11 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
                     {!isDeleted && !tenant.activo && (
                         <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
                             Inactivo
+                        </span>
+                    )}
+                    {tenant.is_demo && (
+                        <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            Demo
                         </span>
                     )}
                     <ActiveUsersBadge count={tenant.active_users_count ?? 0} />

@@ -32,6 +32,7 @@ class TenantManagementController extends Controller
         $tenant = BusinessConfigModel::create([
             BusinessConfigModel::SLUG => $param->slug,
             BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => (bool) ($param->is_demo ?? false),
             BusinessConfigModel::BUSINESS_NAME => $param->business_name,
             BusinessConfigModel::PRIMARY_COLOR => $param->primary_color,
             BusinessConfigModel::SIDEBAR_COLOR => $param->sidebar_color,
@@ -91,6 +92,7 @@ class TenantManagementController extends Controller
     {
         $tenant->update([
             BusinessConfigModel::SLUG => $param->slug,
+            BusinessConfigModel::IS_DEMO => (bool) $param->is_demo,
             BusinessConfigModel::BUSINESS_NAME => $param->business_name,
             BusinessConfigModel::PRIMARY_COLOR => $param->primary_color,
             BusinessConfigModel::SIDEBAR_COLOR => $param->sidebar_color,

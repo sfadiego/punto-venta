@@ -9,6 +9,7 @@ import { logUnexpectedError } from "@/plugins/logger.plugin";
 
 export interface TenantFormValues {
     slug: string;
+    is_demo: boolean;
     business_name: string;
     primary_color: string;
     sidebar_color: string;
@@ -73,6 +74,7 @@ export const useTenantForm = (tenantId?: number) => {
         enableReinitialize: true,
         initialValues: {
             slug:             tenant?.slug ?? "",
+            is_demo:          tenant?.is_demo ?? false,
             business_name:    tenant?.business_name ?? "",
             primary_color:    tenant?.primary_color ?? COLOR_DEFAULTS.primary_color,
             sidebar_color:    tenant?.sidebar_color ?? COLOR_DEFAULTS.sidebar_color,

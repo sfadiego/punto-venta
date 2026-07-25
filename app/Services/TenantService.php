@@ -46,6 +46,11 @@ class TenantService extends DataTable
             $query->where(BusinessConfigModel::ACTIVO, false);
         }
 
+        $isDemo = request()->query('is_demo');
+        if ($isDemo !== null) {
+            $query->where(BusinessConfigModel::IS_DEMO, filter_var($isDemo, FILTER_VALIDATE_BOOLEAN));
+        }
+
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where(BusinessConfigModel::BUSINESS_NAME, 'like', "%{$search}%")
