@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search, Phone } from "lucide-react";
 import { IMenuBusiness } from "@/models/IMenu";
 
 interface MenuHeaderProps {
@@ -28,6 +28,15 @@ export const MenuHeader = ({ business, search, onSearch }: MenuHeaderProps) => (
                 <span className="font-semibold text-stone-800 text-sm truncate flex-1">
                     {business.business_name}
                 </span>
+                {business.phone && (
+                    <a
+                        href={`tel:${business.phone}`}
+                        className="flex items-center gap-1.5 text-xs font-medium text-stone-500 hover:text-stone-700 bg-stone-50 border border-stone-200 px-2.5 py-1.5 rounded-xl shrink-0 transition-colors"
+                    >
+                        <Phone size={13} />
+                        {business.phone}
+                    </a>
+                )}
             </div>
 
             <div className="relative">
