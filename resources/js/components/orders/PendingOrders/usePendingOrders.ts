@@ -8,6 +8,7 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IPaginate } from "@/intefaces/IPaginate";
 import { useIndexPendingOrders, useUpdateOrderStatus } from "@/services/useOrderService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export const usePendingOrders = () => {
     const { sistemaId } = useAxios();
@@ -40,7 +41,7 @@ export const usePendingOrders = () => {
             invalidate();
         } catch (error) {
             logUnexpectedError(error, "usePendingOrders.handleAccept");
-            toast.error("No se pudo aceptar el pedido");
+            toast.error(getUserFacingErrorMessage(error, "No se pudo aceptar el pedido"));
         }
     };
 
@@ -54,7 +55,7 @@ export const usePendingOrders = () => {
             invalidate();
         } catch (error) {
             logUnexpectedError(error, "usePendingOrders.handleReject");
-            toast.error("No se pudo rechazar el pedido");
+            toast.error(getUserFacingErrorMessage(error, "No se pudo rechazar el pedido"));
         }
     };
 

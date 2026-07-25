@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 const schema = Yup.object({
     costo_domicilio_default: Yup.number().min(0).required(),
@@ -45,7 +46,7 @@ export const useDeliverySection = (config: IBusinessConfig | undefined) => {
             } catch (error) {
 
                 logUnexpectedError(error, "useDeliverySection.onSubmit");
-                toast.error("No se pudo guardar la configuración.");
+                toast.error(getUserFacingErrorMessage(error, "No se pudo guardar la configuración."));
             } finally {
                 setSubmitting(false);
             }

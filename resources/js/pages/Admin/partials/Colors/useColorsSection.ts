@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 const DEFAULTS = {
     primary_color: "#F59E0B",
@@ -61,7 +62,7 @@ export const useColorsSection = (config: IBusinessConfig | undefined) => {
             },
             {
                 onSuccess: () => toast.success("Configuración guardada"),
-                onError: () => toast.error("Error al guardar"),
+                onError: (error) => toast.error(getUserFacingErrorMessage(error, "Error al guardar")),
             },
         );
     };
@@ -95,7 +96,7 @@ export const useColorsSection = (config: IBusinessConfig | undefined) => {
             },
             {
                 onSuccess: () => toast.success("Colores restablecidos"),
-                onError:   () => toast.error("Error al restablecer"),
+                onError:   (error) => toast.error(getUserFacingErrorMessage(error, "Error al restablecer")),
             },
         );
     };

@@ -11,6 +11,7 @@ import { useCustomerList } from "@/services/useCustomerService";
 import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 
@@ -100,7 +101,7 @@ export const usePayModal = (orderId: number, subtotal: number) => {
             navigate("/");
         } catch (error) {
             logUnexpectedError(error, "usePayModal.handlePay");
-            toast.error("Error al cerrar la orden");
+            toast.error(getUserFacingErrorMessage(error, "Error al cerrar la orden"));
         }
     };
 

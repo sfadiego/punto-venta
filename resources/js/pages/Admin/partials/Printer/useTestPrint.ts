@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { usePrintAgent } from "@/hooks/usePrintAgent";
 import { useFetchPrintTestBytes } from "@/services/useOrderService";
 import { reportClientError } from "@/utils/reportClientError";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export const useTestPrint = () => {
     const { print } = usePrintAgent();
@@ -17,7 +18,8 @@ export const useTestPrint = () => {
             await print(new Uint8Array(bytes as ArrayBuffer));
             toast.success("Impresión de prueba enviada");
         } catch (err) {
-            const msg = err instanceof Error ? err.message : "Error al imprimir";
+            const fallback = err instanceof Error ? err.message : "Error al imprimir";
+            const msg = getUserFacingErrorMessage(err, fallback);
             const stack = err instanceof Error ? err.stack : undefined;
             toast.error("Error: " + msg);
             reportClientError({ message: msg, stack, context: "print-agent-test" });

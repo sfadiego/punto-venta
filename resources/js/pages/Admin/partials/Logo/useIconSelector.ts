@@ -1,6 +1,7 @@
 import { toast } from "react-toastify";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export const useIconSelector = (config: IBusinessConfig | undefined) => {
     const { mutate: update, isPending: saving } = useUpdateBusinessConfig();
@@ -34,7 +35,7 @@ export const useIconSelector = (config: IBusinessConfig | undefined) => {
             {
                 onSuccess: () =>
                     toast.success(isDeselect ? "Icono eliminado" : "Icono actualizado"),
-                onError: () => toast.error("Error al guardar el icono"),
+                onError: (error) => toast.error(getUserFacingErrorMessage(error, "Error al guardar el icono")),
             }
         );
     };

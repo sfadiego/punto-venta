@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import {
     useShowCustomer,
     useToggleCustomerCredit,
@@ -62,7 +63,7 @@ export const useCustomerDetailPage = (customerId: number) => {
             toast.success(customer.allow_credit ? "Crédito revocado" : "Crédito habilitado");
         } catch (error) {
             logUnexpectedError(error, "useCustomerDetailPage.handleToggleCredit");
-            toast.error("No se pudo actualizar el crédito del cliente");
+            toast.error(getUserFacingErrorMessage(error, "No se pudo actualizar el crédito del cliente"));
         }
     };
 
@@ -90,7 +91,7 @@ export const useCustomerDetailPage = (customerId: number) => {
                     helpers.setErrors(errors);
                 } else {
                     logUnexpectedError(error, "useCustomerDetailPage.handleRegisterPayment");
-                    toast.error(apiError.response?.data?.message ?? "No se pudo registrar el pago");
+                    toast.error(getUserFacingErrorMessage(error, "No se pudo registrar el pago"));
                 }
             }
         },

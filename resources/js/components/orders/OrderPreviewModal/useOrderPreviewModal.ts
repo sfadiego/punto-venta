@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import {
     useShowOrder,
     useUpdateOrder,
@@ -77,8 +78,8 @@ export const useOrderPreviewModal = (orderId: number) => {
                     invalidateOrder();
                     setIsOpen(false);
                 },
-                onError: () => {
-                    toast.error("Error al actualizar el estado");
+                onError: (error) => {
+                    toast.error(getUserFacingErrorMessage(error, "Error al actualizar el estado"));
                 },
             },
         );
@@ -107,7 +108,7 @@ export const useOrderPreviewModal = (orderId: number) => {
                 error,
                 "useOrderPreviewModal.toggleProductReady",
             );
-            toast.error("Error al actualizar el platillo");
+            toast.error(getUserFacingErrorMessage(error, "Error al actualizar el platillo"));
         }
     };
 

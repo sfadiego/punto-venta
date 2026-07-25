@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 const schema = Yup.object({
     printer_name: Yup.string().nullable().max(100),
@@ -47,7 +48,7 @@ export const usePrinterSection = (config: IBusinessConfig | undefined) => {
             } catch (error) {
 
                 logUnexpectedError(error, "usePrinterSection.onSubmit");
-                toast.error("No se pudo guardar la configuración.");
+                toast.error(getUserFacingErrorMessage(error, "No se pudo guardar la configuración."));
             } finally {
                 setSubmitting(false);
             }

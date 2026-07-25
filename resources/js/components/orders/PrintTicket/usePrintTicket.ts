@@ -4,6 +4,7 @@ import { useBluetoothPrint } from "@/hooks/useBluetoothPrint";
 import { usePrintOrder, useFetchPrintBytes } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { reportClientError } from "@/utils/reportClientError";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { toast } from "react-toastify";
 
 export const usePrintTicket = (orderId: number) => {
@@ -17,7 +18,7 @@ export const usePrintTicket = (orderId: number) => {
     const { mutate: sendPrintServer, isPending: isPendingServer } = useMutation({
         mutationFn: () => printOrder(orderId),
         onSuccess: () => toast.success("Ticket enviado a la impresora"),
-        onError: () => toast.error("Impresora no disponible"),
+        onError: (error) => toast.error(getUserFacingErrorMessage(error, "Impresora no disponible")),
     });
 
     // Impresión vía agente WebSocket local

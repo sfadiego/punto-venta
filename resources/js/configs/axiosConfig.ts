@@ -3,6 +3,7 @@ import { ApisEnum } from "./apisEnum";
 
 const axiosApi: AxiosInstance = axios.create({
     baseURL: ApisEnum.BaseUrl.toString(),
+    timeout: 20000,
     headers: {
         "Content-Type": "application/json",
         Accept: "application/json",

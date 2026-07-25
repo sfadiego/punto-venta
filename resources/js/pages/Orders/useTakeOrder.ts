@@ -1,5 +1,5 @@
 import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { isItemAlreadyRemovedError } from "@/utils/axiosError";
+import { isItemAlreadyRemovedError, getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -96,7 +96,7 @@ export const useTakeOrder = () => {
             );
         } catch (error) {
             logUnexpectedError(error, "useTakeOrder.addToCart");
-            toast.error("Error al agregar producto");
+            toast.error(getUserFacingErrorMessage(error, "Error al agregar producto"));
         }
     };
 
@@ -116,7 +116,7 @@ export const useTakeOrder = () => {
             );
         } catch (error) {
             logUnexpectedError(error, "useTakeOrder.addExtra");
-            toast.error("Error al agregar extra");
+            toast.error(getUserFacingErrorMessage(error, "Error al agregar extra"));
         }
     };
 
@@ -149,7 +149,7 @@ export const useTakeOrder = () => {
                 return;
             }
             logUnexpectedError(error, "useTakeOrder.updateQuantity");
-            toast.error("Error al actualizar producto");
+            toast.error(getUserFacingErrorMessage(error, "Error al actualizar producto"));
         }
     };
 
@@ -166,7 +166,7 @@ export const useTakeOrder = () => {
             );
         } catch (error) {
             logUnexpectedError(error, "useTakeOrder.saveObservacion");
-            toast.error("Error al guardar la observación");
+            toast.error(getUserFacingErrorMessage(error, "Error al guardar la observación"));
         }
     };
 
@@ -188,7 +188,7 @@ export const useTakeOrder = () => {
                 return;
             }
             logUnexpectedError(error, "useTakeOrder.removeFromCart");
-            toast.error("Error al eliminar producto");
+            toast.error(getUserFacingErrorMessage(error, "Error al eliminar producto"));
         }
     };
 
@@ -209,7 +209,7 @@ export const useTakeOrder = () => {
         cart.forEach((item) => {
             deleteItem(item.orderProductId, {
                 onSuccess: invalidateOrder,
-            }).catch(() => toast.error("Error al limpiar pedido"));
+            }).catch((error) => toast.error(getUserFacingErrorMessage(error, "Error al limpiar pedido")));
         });
     };
 
@@ -219,7 +219,7 @@ export const useTakeOrder = () => {
             await updateOrder({ descuento }, { onSuccess: invalidateOrder });
         } catch (error) {
             logUnexpectedError(error, "useTakeOrder.updateOrderDiscount");
-            toast.error("Error al aplicar descuento");
+            toast.error(getUserFacingErrorMessage(error, "Error al aplicar descuento"));
         }
     };
 
@@ -235,7 +235,7 @@ export const useTakeOrder = () => {
             );
         } catch (error) {
             logUnexpectedError(error, "useTakeOrder.updateProductDiscount");
-            toast.error("Error al aplicar descuento");
+            toast.error(getUserFacingErrorMessage(error, "Error al aplicar descuento"));
         }
     };
 

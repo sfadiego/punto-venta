@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export const useMenuSection = (config: IBusinessConfig | undefined) => {
     const updateMutation = useUpdateBusinessConfig();
@@ -39,7 +40,7 @@ export const useMenuSection = (config: IBusinessConfig | undefined) => {
             );
         } catch (error) {
             logUnexpectedError(error, "useMenuSection.toggle");
-            toast.error("No se pudo guardar la configuración.");
+            toast.error(getUserFacingErrorMessage(error, "No se pudo guardar la configuración."));
         } finally {
             setIsSubmitting(false);
         }

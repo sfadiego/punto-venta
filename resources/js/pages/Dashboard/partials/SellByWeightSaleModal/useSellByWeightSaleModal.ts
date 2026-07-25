@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useQueryClient } from "@tanstack/react-query";
@@ -228,7 +229,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             });
         } catch (error) {
             logUnexpectedError(error, "useSellByWeightSaleModal.handlePriceBlur");
-            toast.error("Error al actualizar precio");
+            toast.error(getUserFacingErrorMessage(error, "Error al actualizar precio"));
         }
     };
 
@@ -300,7 +301,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             });
         } catch (error) {
             logUnexpectedError(error, "useSellByWeightSaleModal.addToCart");
-            toast.error("Error al agregar producto");
+            toast.error(getUserFacingErrorMessage(error, "Error al agregar producto"));
         }
     };
 
@@ -316,7 +317,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             });
         } catch (error) {
             logUnexpectedError(error, "useSellByWeightSaleModal.removeFromCart");
-            toast.error("Error al eliminar producto");
+            toast.error(getUserFacingErrorMessage(error, "Error al eliminar producto"));
             throw error;
         }
     };
@@ -377,7 +378,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             });
         } catch (error) {
             logUnexpectedError(error, "useSellByWeightSaleModal.handleQtyBlur");
-            toast.error("Error al actualizar cantidad");
+            toast.error(getUserFacingErrorMessage(error, "Error al actualizar cantidad"));
         }
     };
 
@@ -403,7 +404,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             toast.success("Ticket impreso");
         } catch (error) {
             logUnexpectedError(error, "useSellByWeightSaleModal.printTicket");
-            toast.error("Error al imprimir ticket");
+            toast.error(getUserFacingErrorMessage(error, "Error al imprimir ticket"));
         }
     };
 
@@ -513,7 +514,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             }
         } catch (error) {
             logUnexpectedError(error, "useSellByWeightSaleModal.handlePay");
-            toast.error("Error al registrar la venta.");
+            toast.error(getUserFacingErrorMessage(error, "Error al registrar la venta."));
         } finally {
             setIsPaying(false);
         }

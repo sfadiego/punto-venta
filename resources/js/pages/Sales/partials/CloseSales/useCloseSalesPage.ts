@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useGetActiveSale, useCloseSales, useCurrentTotalSale } from "@/services/useOpenSalesService";
 import { calcEfectivoCierre } from "@/utils/deliveryCalc";
 import { useIndexOrder } from "@/services/useOrderService";
@@ -99,8 +100,7 @@ export const useCloseSalesPage = () => {
             navigate("/");
         } catch (error) {
             logUnexpectedError(error, "useCloseSalesPage.handleClose");
-            const msg = (error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Error al cerrar la caja";
-            toast.error(msg);
+            toast.error(getUserFacingErrorMessage(error, "Error al cerrar la caja"));
         }
     };
 

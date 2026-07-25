@@ -8,6 +8,7 @@ import { useCreateDemoRequest } from "@/services/useDemoRequestService";
 import { BusinessNicheEnum } from "@/enums/BusinessNicheEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { isValidPhone, phoneValidationMessage } from "@/utils/phoneUtils";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export type DemoRequestForm = {
     business_name: string;
@@ -76,7 +77,7 @@ export const useAuthPage = () => {
                 resetForm();
             } catch (error) {
                 logUnexpectedError(error, "useAuthPage.demoFormik.onSubmit");
-                toast.error("No se pudo enviar la solicitud, intenta de nuevo");
+                toast.error(getUserFacingErrorMessage(error, "No se pudo enviar la solicitud, intenta de nuevo"));
             }
         },
     });
