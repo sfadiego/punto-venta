@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\BusinessConfigController;
+use App\Http\Controllers\Admin\ExpensesController;
 use App\Http\Controllers\Admin\MainOrderReportController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\PaymentMethodController;
@@ -32,6 +33,11 @@ Route::prefix('admin')->group(function () {
                 Route::get('total-current-sales', 'totalCurrentSales');
                 Route::post('close', 'closeSales');
             });
+        });
+
+        Route::prefix('{system}/expense')->controller(ExpensesController::class)->group(function () {
+            Route::get('', 'index');
+            Route::post('', 'store');
         });
 
         Route::prefix('statistics')->group(function () {

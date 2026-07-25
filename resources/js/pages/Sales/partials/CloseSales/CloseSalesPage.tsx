@@ -8,6 +8,7 @@ import { CloseSalesSummaryCardsRestaurant } from "@/components/CloseSales/CloseS
 import { CloseSalesSummaryCardsSellByWeight } from "@/components/CloseSales/CloseSalesSummaryCardsSellByWeight";
 import { CloseSalesTotalBanner } from "@/components/CloseSales/CloseSalesTotalBanner";
 import { CloseSalesSessionDetail } from "@/components/CloseSales/CloseSalesSessionDetail";
+import { CloseSalesExpensesList } from "@/components/CloseSales/CloseSalesExpensesList";
 import { CloseSalesActiveOrdersAlert } from "@/components/CloseSales/CloseSalesActiveOrdersAlert";
 import { CloseSalesCloseButton } from "@/components/CloseSales/CloseSalesCloseButton";
 
@@ -19,11 +20,13 @@ export default function CloseSalesPage() {
         totalBruto,
         totalDomicilios,
         totalNeto,
+        totalGastos,
         efectivoCierre,
         totalEfectivoPagado,
         totalTransferenciaPagado,
         totalPropinas,
         totalPropinasTarjeta,
+        expenses,
         sellByWeight,
         hasActiveOrders,
         activeOrdersCount,
@@ -68,6 +71,7 @@ export default function CloseSalesPage() {
                     totalTransferenciaPagado={totalTransferenciaPagado}
                     totalPropinas={totalPropinas}
                     totalPropinasTarjeta={totalPropinasTarjeta}
+                    totalGastos={totalGastos}
                 />
             ) : (
                 <CloseSalesSummaryCardsRestaurant
@@ -77,12 +81,15 @@ export default function CloseSalesPage() {
                     totalTransferenciaPagado={totalTransferenciaPagado}
                     totalPropinas={totalPropinas}
                     totalPropinasTarjeta={totalPropinasTarjeta}
+                    totalGastos={totalGastos}
                 />
             )}
 
             <CloseSalesTotalBanner total={totalEnCaja} />
 
             <CloseSalesSessionDetail activeSale={activeSale} />
+
+            <CloseSalesExpensesList expenses={expenses} />
 
             <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex-1">
