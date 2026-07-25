@@ -7,6 +7,7 @@ use App\Enums\OrderStatusEnum;
 use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MainOrderReportModel extends Model
 {
@@ -41,6 +42,11 @@ class MainOrderReportModel extends Model
     public function orders()
     {
         return $this->hasMany(OrderModel::class, 'sistema_id');
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(ExpenseModel::class, 'sistema_id');
     }
 
     public function user()
@@ -116,15 +122,24 @@ class MainOrderReportModel extends Model
         );
     }
 
+    public function totalExpensesByDay(): float
+    {
+        return (float) round(
+            ExpenseModel::where(ExpenseModel::SISTEMA_ID, $this->id)->sum(ExpenseModel::MONTO),
+            2
+        );
+    }
+
     public function closeSales(): MainOrderReportModel
     {
         $initialCash = $this->efectivo_caja_inicio;
         $totalBruto = $this->totalSalesByDay();
         $totalDomicilio = $this->totalDomiciliosByDay();
+        $totalGastos = $this->totalExpensesByDay();
 
         $this->update([
             self::VENTA_DIA => $totalBruto,
-            self::EFECTIVO_CAJA_CIERRE => $initialCash + $totalBruto - $totalDomicilio,
+            self::EFECTIVO_CAJA_CIERRE => $initialCash + $totalBruto - $totalDomicilio - $totalGastos,
             self::ESTATUS_CAJA => MainOrderStatusEnum::CLOSED,
         ]);
 

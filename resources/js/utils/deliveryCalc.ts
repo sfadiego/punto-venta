@@ -33,10 +33,13 @@ export const calcCostoDomicilio = (
  * Los domicilios absorbidos por el negocio se pagan al repartidor en efectivo,
  * por lo que reducen el efectivo disponible en caja.
  * Para restaurantes totalDomicilios = 0 → no tiene efecto.
+ * Los gastos extra (compra de insumos, etc.) siempre se pagan en efectivo,
+ * por lo que también reducen el efectivo disponible en caja.
  */
 export const calcEfectivoCierre = (
     efectivoInicio: number,
     totalEfectivoPagado: number,
     totalPropinaEfectivo: number,
     totalDomicilios: number,
-): number => efectivoInicio + totalEfectivoPagado + totalPropinaEfectivo - totalDomicilios;
+    totalGastos: number = 0,
+): number => efectivoInicio + totalEfectivoPagado + totalPropinaEfectivo - totalDomicilios - totalGastos;

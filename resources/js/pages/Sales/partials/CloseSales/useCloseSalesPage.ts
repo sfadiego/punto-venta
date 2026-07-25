@@ -7,6 +7,7 @@ import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useGetActiveSale, useCloseSales, useCurrentTotalSale } from "@/services/useOpenSalesService";
 import { calcEfectivoCierre } from "@/utils/deliveryCalc";
 import { useIndexOrder } from "@/services/useOrderService";
+import { useIndexExpenses } from "@/services/useExpenseService";
 import { useAxios } from "@/hooks/useAxios";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
@@ -21,6 +22,7 @@ export const useCloseSalesPage = () => {
     const sistemaId = activeSale?.id ?? null;
 
     const { data: totales, isLoading: loadingTotal } = useCurrentTotalSale(sistemaId ?? 0);
+    const { data: expenses } = useIndexExpenses(sistemaId);
     const { mutateAsync: closeSales, isPending: isClosing } = useCloseSales(sistemaId ?? 0);
 
     const { data: activeOrdersPage } = useIndexOrder({
@@ -52,6 +54,7 @@ export const useCloseSalesPage = () => {
     const totalDomicilios     = totales?.domicilios ?? 0;
     const totalNeto           = totales?.neto       ?? 0;
     const totalPropinas       = totales?.propinas   ?? 0;
+    const totalGastos         = totales?.gastos     ?? 0;
     const byPaymentMethod     = totales?.by_payment_method ?? [];
 
     const totalEfectivoPagado     = byPaymentMethod
@@ -75,6 +78,7 @@ export const useCloseSalesPage = () => {
         totalEfectivoPagado,
         sellByWeight ? 0 : totalPropinaEfectivo,
         totalDomicilios,
+        totalGastos,
     );
 
     const handleClose = async () => {
@@ -111,6 +115,8 @@ export const useCloseSalesPage = () => {
         totalBruto,
         totalDomicilios,
         totalNeto,
+        totalGastos,
+        expenses: expenses ?? [],
         efectivoCierre,
         totalEfectivoPagado,
         totalTransferenciaPagado,

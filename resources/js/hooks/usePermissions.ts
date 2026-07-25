@@ -18,7 +18,8 @@ type Action =
     | "kitchenView"
     | "managePendingOrders"
     | "viewUsers"
-    | "viewCustomers";
+    | "viewCustomers"
+    | "registerExpense";
 
 const ROLE_PERMISSIONS: Record<number, Set<Action>> = {
     [RoleEnum.Admin]: new Set<Action>([
@@ -39,6 +40,7 @@ const ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "managePendingOrders",
         "viewUsers",
         "viewCustomers",
+        "registerExpense",
     ]),
     [RoleEnum.Employe]: new Set<Action>([
         "viewDashboard",
@@ -60,6 +62,7 @@ const ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "viewOrders",
         "payOrder",
         "printTicket",
+        "registerExpense",
     ]),
 };
 
