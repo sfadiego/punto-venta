@@ -34,6 +34,7 @@ class MenuController extends Controller
 
         return Response::success([
             'business_name' => $tenant->business_name,
+            'phone' => $tenant->phone,
             'primary_color' => $tenant->primary_color,
             'logo' => $tenant->logo_path,
             'costo_domicilio_default' => $tenant->costo_domicilio_default ?? 0,

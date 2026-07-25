@@ -54,11 +54,23 @@ class MenuTest extends TestCase
                 'status',
                 'data' => [
                     'business_name',
+                    'phone',
                     'has_active_session',
                     'menu_enabled',
                     'costo_domicilio_default',
                 ],
             ]);
+    }
+
+    public function test_muestra_telefono_del_negocio(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::PHONE => '3157654321']);
+        $slug = $this->getSlug();
+
+        $this->getJson("/api/menu/{$slug}")
+            ->assertStatus(200)
+            ->assertJsonPath('data.phone', '3157654321');
     }
 
     public function test_slug_invalido_retorna_404(): void
@@ -180,6 +192,73 @@ class MenuTest extends TestCase
 
         $this->assertEquals(1, CustomerModel::where('phone', '3200000001')->count());
         $this->assertDatabaseHas('customers', ['phone' => '3200000001', 'address' => 'Dirección nueva']);
+    }
+
+    public function test_mismo_telefono_mantiene_un_unico_registro_en_clientes(): void
+    {
+        $this->crearSesionActiva();
+        $product = $this->crearProducto();
+
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::MENU_ENABLED => true]);
+
+        $slug = $this->getSlug();
+
+        $primerPedido = $this->postJson("/api/menu/{$slug}/order", [
+            'customer_name' => 'Cliente Uno',
+            'customer_phone' => '3211112222',
+            'is_delivery' => false,
+            'items' => [['product_id' => $product->id, 'cantidad' => 1]],
+        ])->assertStatus(201);
+
+        $segundoPedido = $this->postJson("/api/menu/{$slug}/order", [
+            'customer_name' => 'Cliente Uno Actualizado',
+            'customer_phone' => '3211112222',
+            'is_delivery' => false,
+            'items' => [['product_id' => $product->id, 'cantidad' => 1]],
+        ])->assertStatus(201);
+
+        // Un solo teléfono → un solo registro en la tabla customers, sin duplicados
+        $this->assertEquals(1, CustomerModel::where('phone', '3211112222')->count());
+        $this->assertDatabaseHas('customers', ['phone' => '3211112222', 'name' => 'Cliente Uno Actualizado']);
+
+        // Ambos pedidos deben quedar ligados al mismo cliente
+        $clienteId = CustomerModel::where('phone', '3211112222')->first()->id;
+        $this->assertDatabaseHas('order', [
+            'nombre_pedido' => 'Cliente Uno',
+            'customer_id' => $clienteId,
+        ]);
+        $this->assertDatabaseHas('order', [
+            'nombre_pedido' => 'Cliente Uno Actualizado',
+            'customer_id' => $clienteId,
+        ]);
+    }
+
+    public function test_telefonos_diferentes_crean_clientes_distintos(): void
+    {
+        $this->crearSesionActiva();
+        $product = $this->crearProducto();
+
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::MENU_ENABLED => true]);
+
+        $slug = $this->getSlug();
+
+        $this->postJson("/api/menu/{$slug}/order", [
+            'customer_name' => 'Cliente A',
+            'customer_phone' => '3221110000',
+            'is_delivery' => false,
+            'items' => [['product_id' => $product->id, 'cantidad' => 1]],
+        ])->assertStatus(201);
+
+        $this->postJson("/api/menu/{$slug}/order", [
+            'customer_name' => 'Cliente B',
+            'customer_phone' => '3229990000',
+            'is_delivery' => false,
+            'items' => [['product_id' => $product->id, 'cantidad' => 1]],
+        ])->assertStatus(201);
+
+        $this->assertEquals(2, CustomerModel::whereIn('phone', ['3221110000', '3229990000'])->count());
     }
 
     // ── Customer lookup ───────────────────────────────────────

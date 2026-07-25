@@ -1,5 +1,6 @@
 export interface IMenuBusiness {
     business_name: string;
+    phone: string | null;
     primary_color: string;
     logo: string | null;
     costo_domicilio_default: number;
