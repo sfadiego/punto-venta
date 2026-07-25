@@ -7,11 +7,17 @@ import { ICreateTenantPayload, ITenant, IUpdateTenantPayload } from "@/models/IT
 const url = ApiRoutes.SuperAdminTenant;
 const QUERY_KEY = "super-admin-tenants";
 
-export const useListTenants = (status: TenantStatusEnum = TenantStatusEnum.All, refetchInterval?: number) =>
+export const useListTenants = (
+    status: TenantStatusEnum = TenantStatusEnum.All,
+    refetchInterval?: number,
+    isDemo?: boolean,
+) =>
     useQuery<ITenant[]>({
-        queryKey: [QUERY_KEY, status],
+        queryKey: [QUERY_KEY, status, isDemo],
         queryFn: async () => {
-            const params = status !== TenantStatusEnum.All ? { status } : {};
+            const params: Record<string, string | boolean> = {};
+            if (status !== TenantStatusEnum.All) params.status = status;
+            if (isDemo !== undefined) params.is_demo = isDemo;
             const res = await superAdminAxios.get(url, { params });
             return res.data.data as ITenant[];
         },

@@ -29,6 +29,7 @@ class TenantStoreRequest extends FormRequest
             'admin_usuario' => 'required|string|unique:users,usuario',
             'admin_password' => 'required|string|min:6',
             BusinessConfigModel::TIPO_NEGOCIO => ['nullable', Rule::enum(BusinessTypeEnum::class)],
+            BusinessConfigModel::IS_DEMO => 'nullable|boolean',
         ];
     }
 }

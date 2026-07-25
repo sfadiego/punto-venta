@@ -21,6 +21,8 @@ class BusinessConfigModel extends Model
 
     const ACTIVO = 'activo';
 
+    const IS_DEMO = 'is_demo';
+
     const BUSINESS_NAME = 'business_name';
 
     const PRIMARY_COLOR = 'primary_color';
@@ -75,6 +77,7 @@ class BusinessConfigModel extends Model
 
     protected $casts = [
         self::ACTIVO => 'boolean',
+        self::IS_DEMO => 'boolean',
         self::PRINTER_ENABLED => 'boolean',
         self::BLUETOOTH_PRINTING_ENABLED => 'boolean',
         self::MENU_ENABLED => 'boolean',
@@ -86,6 +89,7 @@ class BusinessConfigModel extends Model
     protected $fillable = [
         self::SLUG,
         self::ACTIVO,
+        self::IS_DEMO,
         self::BUSINESS_NAME,
         self::PRIMARY_COLOR,
         self::SIDEBAR_COLOR,
@@ -156,6 +160,11 @@ class BusinessConfigModel extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class, 'tenant_id');
+    }
+
+    public function activeSessions(): HasMany
+    {
+        return $this->hasMany(PersonalAccessToken::class, PersonalAccessToken::TENANT_ID);
     }
 
     public function subscriptions(): HasMany

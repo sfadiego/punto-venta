@@ -7,6 +7,7 @@ import { CartDrawer } from "./partials/Cart/CartDrawer";
 import { CheckoutModal } from "./partials/Checkout/CheckoutModal";
 import { BusinessClosed } from "./partials/BusinessClosed";
 import { OrderingDisabled } from "./partials/OrderingDisabled";
+import { OrderConfirmed } from "./partials/OrderConfirmed";
 
 function MenuPage() {
     const {
@@ -27,6 +28,9 @@ function MenuPage() {
         setCartOpen,
         checkoutOpen,
         setCheckoutOpen,
+        orderConfirmed,
+        handleOrderSuccess,
+        startNewOrder,
     } = useMenuPage();
 
     if (isLoading) {
@@ -51,6 +55,10 @@ function MenuPage() {
 
     if (!business.has_active_session) {
         return <BusinessClosed business={business} />;
+    }
+
+    if (orderConfirmed) {
+        return <OrderConfirmed business={business} onNewOrder={startNewOrder} />;
     }
 
     return (
@@ -108,7 +116,7 @@ function MenuPage() {
                 deliveryCost={business.costo_domicilio_default}
                 primaryColor={business.primary_color}
                 onClose={() => setCheckoutOpen(false)}
-                onSuccess={cart.clear}
+                onSuccess={handleOrderSuccess}
             />
         </div>
     );

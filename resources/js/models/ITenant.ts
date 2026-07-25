@@ -4,6 +4,7 @@ export interface ITenant {
     id: number;
     slug: string;
     activo: boolean;
+    is_demo: boolean;
     business_name: string;
     primary_color: string;
     sidebar_color: string;
@@ -29,6 +30,7 @@ export interface ITenant {
 
 export interface ICreateTenantPayload {
     slug: string;
+    is_demo?: boolean;
     business_name: string;
     primary_color: string;
     sidebar_color: string;
@@ -45,6 +47,7 @@ export interface ICreateTenantPayload {
 export interface IUpdateTenantPayload {
     slug: string;
     activo?: boolean;
+    is_demo?: boolean;
     business_name: string;
     primary_color: string;
     sidebar_color: string;

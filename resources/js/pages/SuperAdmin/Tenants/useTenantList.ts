@@ -8,14 +8,19 @@ import {
     useRestoreTenant,
 } from "@/services/useSuperAdminService";
 import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
+import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { ITenant } from "@/models/ITenant";
 
+const toIsDemo = (filter: TenantDemoFilterEnum): boolean | undefined =>
+    filter === TenantDemoFilterEnum.Demo ? true : undefined;
+
 export const useTenantList = () => {
     const [status, setStatus] = useState<TenantStatusEnum>(TenantStatusEnum.All);
+    const [demoFilter, setDemoFilter] = useState<TenantDemoFilterEnum>(TenantDemoFilterEnum.All);
     const [search, setSearch] = useState("");
 
-    const { data: tenants = [], isLoading, refetch, isRefetching } = useListTenants(status, 30_000);
+    const { data: tenants = [], isLoading, refetch, isRefetching } = useListTenants(status, 30_000, toIsDemo(demoFilter));
     const deleteMutation = useDeleteTenant();
     const toggleMutation = useToggleTenant();
     const restoreMutation = useRestoreTenant();
@@ -96,6 +101,8 @@ export const useTenantList = () => {
         refetch,
         status,
         setStatus,
+        demoFilter,
+        setDemoFilter,
         search,
         setSearch,
         handleToggle,

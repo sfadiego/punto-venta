@@ -37,7 +37,10 @@ export const ProductGrid = ({
         <div className="flex flex-col gap-8">
             {categories.map((category) => (
                 <section key={category.id}>
-                    <h2 className="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-3">
+                    <h2
+                        className="text-sm font-semibold uppercase tracking-wider mb-3 px-3 py-2 rounded-lg"
+                        style={{ color: primaryColor, backgroundColor: `${primaryColor}1a` }}
+                    >
                         {category.nombre}
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

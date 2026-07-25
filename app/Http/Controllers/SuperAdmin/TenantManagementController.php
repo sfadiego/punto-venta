@@ -11,6 +11,7 @@ use App\Http\Middleware\TrackActivity;
 use App\Http\Requests\TenantStoreRequest;
 use App\Http\Requests\TenantUpdateRequest;
 use App\Models\BusinessConfigModel;
+use App\Models\PersonalAccessToken;
 use App\Models\SubscriptionModel;
 use App\Models\User;
 use App\Services\TenantService;
@@ -31,6 +32,7 @@ class TenantManagementController extends Controller
         $tenant = BusinessConfigModel::create([
             BusinessConfigModel::SLUG => $param->slug,
             BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => (bool) ($param->is_demo ?? false),
             BusinessConfigModel::BUSINESS_NAME => $param->business_name,
             BusinessConfigModel::PRIMARY_COLOR => $param->primary_color,
             BusinessConfigModel::SIDEBAR_COLOR => $param->sidebar_color,
@@ -75,7 +77,7 @@ class TenantManagementController extends Controller
 
         $tenant->loadCount([
             'users',
-            'users as active_users_count' => fn ($q) => $q->where('last_seen_at', '>=', $activeWindow),
+            'activeSessions as active_users_count' => fn ($q) => $q->where(PersonalAccessToken::LAST_USED_AT, '>=', $activeWindow),
         ]);
         $tenant->features = $tenant->tipo_negocio->features();
         $tenant->effective_max_users = $tenant->effectiveMaxUsers();
@@ -90,6 +92,7 @@ class TenantManagementController extends Controller
     {
         $tenant->update([
             BusinessConfigModel::SLUG => $param->slug,
+            BusinessConfigModel::IS_DEMO => (bool) $param->is_demo,
             BusinessConfigModel::BUSINESS_NAME => $param->business_name,
             BusinessConfigModel::PRIMARY_COLOR => $param->primary_color,
             BusinessConfigModel::SIDEBAR_COLOR => $param->sidebar_color,

@@ -41,7 +41,7 @@ class OrderController extends Controller
             ]);
         }
 
-        return Response::success($order->load(['orderProducts.product', 'paymentMethod:id,name']));
+        return Response::success($order->load(['orderProducts.product', 'paymentMethod:id,name', 'customer:id,name,phone']));
     }
 
     public function delete(OrderModel $order): JsonResponse
@@ -67,7 +67,7 @@ class OrderController extends Controller
         $isServed = (int) ($data['estatus_pedido_id'] ?? 0) === OrderStatusEnum::SERVED->value;
         $this->broadcast($isServed ? 'served' : 'updated', $order->id);
 
-        return Response::success($order->fresh(['paymentMethod:id,name', 'customer:id,name,balance']));
+        return Response::success($order->fresh(['paymentMethod:id,name', 'customer:id,name,balance,phone']));
     }
 
     public function total(OrderModel $order): JsonResponse

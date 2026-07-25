@@ -20,8 +20,18 @@ export const useMenuPage = () => {
     const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
     const [cartOpen, setCartOpen] = useState(false);
     const [checkoutOpen, setCheckoutOpen] = useState(false);
+    const [orderConfirmed, setOrderConfirmed] = useState(false);
 
     const cart = useCart();
+
+    const handleOrderSuccess = useCallback(() => {
+        cart.clear();
+        setOrderConfirmed(true);
+    }, [cart]);
+
+    const startNewOrder = useCallback(() => {
+        setOrderConfirmed(false);
+    }, []);
 
     // Flatten all pages into a single categories array
     const categories = useMemo(
@@ -95,5 +105,8 @@ export const useMenuPage = () => {
         setCartOpen,
         checkoutOpen,
         setCheckoutOpen,
+        orderConfirmed,
+        handleOrderSuccess,
+        startNewOrder,
     };
 };
