@@ -4,6 +4,7 @@ import { useBluetoothPrint } from "@/hooks/useBluetoothPrint";
 import { useFetchPrintTestBytes } from "@/services/useOrderService";
 import { reportClientError } from "@/utils/reportClientError";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { isUserCancelledBluetoothError } from "@/utils/bluetoothErrors";
 
 export const useBluetoothPrinterSection = () => {
     const { isSupported, isConnected, isPaired, deviceName, pair, forget, print } = useBluetoothPrint();
@@ -17,6 +18,7 @@ export const useBluetoothPrinterSection = () => {
             await pair();
             toast.success("Impresora Bluetooth emparejada");
         } catch (error) {
+            if (isUserCancelledBluetoothError(error)) return;
             logUnexpectedError(error, "useBluetoothPrinterSection.handlePair");
             const msg = error instanceof Error ? error.message : "No se pudo emparejar la impresora";
             toast.error(msg);
