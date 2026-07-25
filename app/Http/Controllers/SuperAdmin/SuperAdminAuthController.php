@@ -32,6 +32,9 @@ class SuperAdminAuthController extends Controller
             return Response::error(__('No tienes permisos de super administrador.'), 403);
         }
 
+        $result['user']->revokeOtherSessions($result['access_token_id']);
+        unset($result['access_token_id']);
+
         return Response::success($result);
     }
 }

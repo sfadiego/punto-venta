@@ -158,6 +158,11 @@ class BusinessConfigModel extends Model
         return $this->hasMany(User::class, 'tenant_id');
     }
 
+    public function activeSessions(): HasMany
+    {
+        return $this->hasMany(PersonalAccessToken::class, PersonalAccessToken::TENANT_ID);
+    }
+
     public function subscriptions(): HasMany
     {
         return $this->hasMany(SubscriptionModel::class, 'tenant_id');

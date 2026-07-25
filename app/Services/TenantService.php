@@ -7,6 +7,7 @@ use App\Core\Paginator\DataTable;
 use App\Enums\TenantStatusEnum;
 use App\Http\Middleware\TrackActivity;
 use App\Models\BusinessConfigModel;
+use App\Models\PersonalAccessToken;
 use Illuminate\Http\JsonResponse;
 
 class TenantService extends DataTable
@@ -38,7 +39,7 @@ class TenantService extends DataTable
 
         $query->withCount([
             'users',
-            'users as active_users_count' => fn ($q) => $q->where('last_seen_at', '>=', $activeWindow),
+            'activeSessions as active_users_count' => fn ($q) => $q->where(PersonalAccessToken::LAST_USED_AT, '>=', $activeWindow),
         ]);
 
         if ($status === TenantStatusEnum::Inactive) {

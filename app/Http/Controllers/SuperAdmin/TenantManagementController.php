@@ -11,6 +11,7 @@ use App\Http\Middleware\TrackActivity;
 use App\Http\Requests\TenantStoreRequest;
 use App\Http\Requests\TenantUpdateRequest;
 use App\Models\BusinessConfigModel;
+use App\Models\PersonalAccessToken;
 use App\Models\SubscriptionModel;
 use App\Models\User;
 use App\Services\TenantService;
@@ -75,7 +76,7 @@ class TenantManagementController extends Controller
 
         $tenant->loadCount([
             'users',
-            'users as active_users_count' => fn ($q) => $q->where('last_seen_at', '>=', $activeWindow),
+            'activeSessions as active_users_count' => fn ($q) => $q->where(PersonalAccessToken::LAST_USED_AT, '>=', $activeWindow),
         ]);
         $tenant->features = $tenant->tipo_negocio->features();
         $tenant->effective_max_users = $tenant->effectiveMaxUsers();
