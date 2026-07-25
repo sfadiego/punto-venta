@@ -11,7 +11,6 @@ import { TakeOrderSkeleton } from "./partials/TakeOrderLayout/TakeOrderSkeleton"
 
 export default function TakeOrderPage() {
     const { toggleSidebar } = useLayout();
-    const { mobileTab, setMobileTab, handleBack } = useTakeOrderPage();
 
     const {
         order,
@@ -22,6 +21,7 @@ export default function TakeOrderPage() {
         total,
         loadingCart,
         loadingOrder,
+        isError,
         isReadOnly,
         pendingProductIds,
         addToCart,
@@ -34,10 +34,12 @@ export default function TakeOrderPage() {
         updateProductDiscount,
     } = useTakeOrder();
 
+    const { mobileTab, setMobileTab, handleBack } = useTakeOrderPage(loadingOrder, isError);
+
     const { isOpen: extraOpen, openModal: openExtra, handleClose: closeExtra, formik: extraFormik } =
         useAddExtraModal(addExtra);
 
-    if (loadingOrder) {
+    if (loadingOrder || isError) {
         return <TakeOrderSkeleton />;
     }
 
