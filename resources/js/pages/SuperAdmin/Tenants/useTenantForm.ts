@@ -6,6 +6,7 @@ import { useCreateTenant, useUpdateTenant, useListTenants } from "@/services/use
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export interface TenantFormValues {
     slug: string;
@@ -115,8 +116,7 @@ export const useTenantForm = (tenantId?: number) => {
                 navigate(SuperAdminRoutes.Tenants);
             } catch (err: unknown) {
                 logUnexpectedError(err, "useTenantForm.onSubmit");
-                const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Error al guardar.";
-                toast.error(msg);
+                toast.error(getUserFacingErrorMessage(err, "Error al guardar."));
                 helpers.setSubmitting(false);
             }
         },

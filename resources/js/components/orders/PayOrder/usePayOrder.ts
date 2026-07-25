@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
@@ -99,7 +100,7 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
             }
         } catch (error) {
             logUnexpectedError(error, "usePayOrder.handlePay");
-            toast.error("Error al cerrar la orden");
+            toast.error(getUserFacingErrorMessage(error, "Error al cerrar la orden"));
         }
     };
 

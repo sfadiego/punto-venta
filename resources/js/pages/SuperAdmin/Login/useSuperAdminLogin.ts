@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { superAdminAuth } from "@/contexts/SuperAdminContext";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 const schema = Yup.object({
     email:    Yup.string().email("Email inválido").required("Requerido"),
@@ -20,8 +21,8 @@ export const useSuperAdminLogin = () => {
             try {
                 await superAdminAuth.login(values.email, values.password);
                 navigate(SuperAdminRoutes.Tenants, { replace: true });
-            } catch {
-                toast.error("Credenciales inválidas o sin permisos de super administrador.");
+            } catch (error) {
+                toast.error(getUserFacingErrorMessage(error, "Credenciales inválidas o sin permisos de super administrador."));
                 helpers.setSubmitting(false);
             }
         },

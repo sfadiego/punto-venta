@@ -5,6 +5,7 @@ import { useFetchPrintTestBytes } from "@/services/useOrderService";
 import { reportClientError } from "@/utils/reportClientError";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { isUserCancelledBluetoothError } from "@/utils/bluetoothErrors";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export const useBluetoothPrinterSection = () => {
     const { isSupported, isConnected, isPaired, deviceName, pair, forget, print } = useBluetoothPrint();
@@ -39,7 +40,8 @@ export const useBluetoothPrinterSection = () => {
             await print(new Uint8Array(bytes as ArrayBuffer));
             toast.success("Impresión de prueba enviada");
         } catch (error) {
-            const msg = error instanceof Error ? error.message : "Error al imprimir";
+            const fallback = error instanceof Error ? error.message : "Error al imprimir";
+            const msg = getUserFacingErrorMessage(error, fallback);
             const stack = error instanceof Error ? error.stack : undefined;
             toast.error(`Error: ${msg}`);
             reportClientError({ message: msg, stack, context: "print-bluetooth-test" });

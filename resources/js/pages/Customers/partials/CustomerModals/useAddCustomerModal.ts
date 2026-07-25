@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useModal } from "@/hooks/useModal";
 import { useStoreCustomer } from "@/services/useCustomerService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export type CustomerForm = {
     name: string;
@@ -46,7 +47,7 @@ export const useAddCustomerModal = (onSuccess: () => void) => {
                 onSuccess();
             } catch (error) {
                 logUnexpectedError(error, "useAddCustomerModal.onSubmit");
-                toast.error("Error al crear el cliente");
+                toast.error(getUserFacingErrorMessage(error, "Error al crear el cliente"));
             }
         },
     });

@@ -2,6 +2,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { IUser } from "@/models/IUser";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useLoginLockStatus, useUnblockLogin } from "@/services/useTenantUserService";
 
 export const useUserRowActions = (tenantId: number, user: IUser) => {
@@ -25,7 +26,7 @@ export const useUserRowActions = (tenantId: number, user: IUser) => {
             toast.success("Acceso desbloqueado correctamente.");
         } catch (error) {
             logUnexpectedError(error, "useUserRowActions.handleUnblock");
-            toast.error("No se pudo desbloquear el acceso.");
+            toast.error(getUserFacingErrorMessage(error, "No se pudo desbloquear el acceso."));
         }
     };
 

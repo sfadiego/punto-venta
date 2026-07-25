@@ -9,6 +9,7 @@ import { useCustomerList } from "@/services/useCustomerService";
 import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IOrder } from "@/models/IOrder";
@@ -87,7 +88,7 @@ export const useSaleQuickPay = (order: IOrder) => {
             }
         } catch (error) {
             logUnexpectedError(error, "useSaleQuickPay.handlePay");
-            toast.error("Error al cerrar la orden");
+            toast.error(getUserFacingErrorMessage(error, "Error al cerrar la orden"));
         }
     };
 

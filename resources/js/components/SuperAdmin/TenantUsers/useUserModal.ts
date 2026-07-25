@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { IUser, ICreateUserPayload, IUpdateUserPayload } from "@/models/IUser";
 import { useCreateTenantUser, useUpdateTenantUser } from "@/services/useTenantUserService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { RoleEnum } from "@/enums/RoleEnum";
 
 interface UseUserModalParams {
@@ -60,7 +61,7 @@ export const useUserModal = ({ tenantId, tenantSlug, user, onClose }: UseUserMod
             } catch (error) {
 
                 logUnexpectedError(error, "useUserModal.onSubmit");
-                toast.error("No se pudo guardar el usuario.");
+                toast.error(getUserFacingErrorMessage(error, "No se pudo guardar el usuario."));
             } finally {
                 setSubmitting(false);
             }

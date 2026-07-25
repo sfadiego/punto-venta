@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 const phoneRegex = /^[+\d][\d\s().-]{3,29}$/;
 const handleOrUrlRegex = /^(@[\w.-]+|https?:\/\/.+)$/;
@@ -80,7 +81,7 @@ export const useBusinessInfoSection = (config: IBusinessConfig | undefined) => {
             } catch (error) {
 
                 logUnexpectedError(error, "useBusinessInfoSection.onSubmit");
-                toast.error("No se pudo guardar la información.");
+                toast.error(getUserFacingErrorMessage(error, "No se pudo guardar la información."));
             } finally {
                 setSubmitting(false);
             }

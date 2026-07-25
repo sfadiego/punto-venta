@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useIndexCategories } from "@/services/useCategoriesService";
 import { useUpdateProduct } from "@/services/useProductService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useAxios } from "@/hooks/useAxios";
 import { IProduct } from "@/models/IProduct";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
@@ -58,7 +59,7 @@ export const useEditProductModal = (
             } catch (error) {
 
                 logUnexpectedError(error, "useEditProductModal.onSubmit");
-                toast.error("Error al actualizar el producto");
+                toast.error(getUserFacingErrorMessage(error, "Error al actualizar el producto"));
             }
         },
     });

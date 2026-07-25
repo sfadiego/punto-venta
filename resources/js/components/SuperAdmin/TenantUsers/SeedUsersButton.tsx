@@ -1,6 +1,7 @@
 import { Loader, Users } from "lucide-react";
 import { toast } from "react-toastify";
 import { useSeedTenantUsers } from "@/services/useTenantUserService";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 interface SeedUsersButtonProps {
     tenantId: number;
@@ -27,8 +28,8 @@ export const SeedUsersButton = ({ tenantId }: SeedUsersButtonProps) => {
                     toast.info("No se crearon usuarios.");
                 }
             },
-            onError: () => {
-                toast.error("Error al crear los usuarios de acceso.");
+            onError: (error) => {
+                toast.error(getUserFacingErrorMessage(error, "Error al crear los usuarios de acceso."));
             },
         });
     };

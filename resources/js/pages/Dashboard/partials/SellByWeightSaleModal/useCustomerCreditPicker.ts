@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ICustomer } from "@/models/ICustomer";
 import { useStoreCustomer } from "@/services/useCustomerService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 
 interface UseCustomerCreditPickerParams {
@@ -77,7 +78,7 @@ export const useCustomerCreditPicker = ({ customers, onSelect }: UseCustomerCred
             toast.success("Cliente creado y seleccionado");
         } catch (error) {
             logUnexpectedError(error, "useCustomerCreditPicker.handleCreate");
-            toast.error("No se pudo crear el cliente");
+            toast.error(getUserFacingErrorMessage(error, "No se pudo crear el cliente"));
         }
     };
 

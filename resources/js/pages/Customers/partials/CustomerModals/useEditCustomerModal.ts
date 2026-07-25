@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { ICustomer } from "@/models/ICustomer";
 import { useUpdateCustomer } from "@/services/useCustomerService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { CustomerForm } from "./useAddCustomerModal";
 
 const schema = Yup.object({
@@ -46,7 +47,7 @@ export const useEditCustomerModal = (
                 onClose();
             } catch (error) {
                 logUnexpectedError(error, "useEditCustomerModal.onSubmit");
-                toast.error("Error al actualizar el cliente");
+                toast.error(getUserFacingErrorMessage(error, "Error al actualizar el cliente"));
             }
         },
     });

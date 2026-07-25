@@ -3,6 +3,7 @@ import { UseMutateAsyncFunction } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
 import { toast } from "react-toastify";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 type ApiError = { response?: { data?: { data?: Record<string, string>; message?: string } } };
 
@@ -27,7 +28,7 @@ export const useOnSubmit = <Request = unknown, Response = unknown>({
                 onError(error as Error);
             } else {
                 logUnexpectedError(error, "useOnSubmit");
-                toast.error(apiError.response?.data?.message ?? "Error inesperado");
+                toast.error(getUserFacingErrorMessage(error, "Error inesperado"));
             }
         }
     };

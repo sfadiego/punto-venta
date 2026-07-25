@@ -3,6 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useGetAppSettings, useUpdateAppSettings, IPaymentInfo } from "@/services/useAppSettingService";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export type PaymentForm = {
     bank: string;
@@ -34,7 +35,7 @@ export const useSettingsPage = () => {
             { logo_upload_enabled: !settings?.logo_upload_enabled },
             {
                 onSuccess: () => toast.success("Configuración guardada"),
-                onError: () => toast.error("Error al guardar"),
+                onError: (error) => toast.error(getUserFacingErrorMessage(error, "Error al guardar")),
             }
         );
     };
@@ -48,7 +49,7 @@ export const useSettingsPage = () => {
                 { payment_info: values },
                 {
                     onSuccess: () => toast.success("Datos de pago guardados"),
-                    onError:   () => toast.error("Error al guardar"),
+                    onError:   (error) => toast.error(getUserFacingErrorMessage(error, "Error al guardar")),
                     onSettled: () => setSubmitting(false),
                 }
             );
