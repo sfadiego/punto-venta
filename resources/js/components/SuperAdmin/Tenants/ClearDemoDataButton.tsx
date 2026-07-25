@@ -2,6 +2,7 @@ import { Trash2, Loader } from "lucide-react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useClearDemoData } from "@/services/useSuperAdminService";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 interface ClearDemoDataButtonProps {
     tenantId: number;
@@ -25,7 +26,7 @@ export const ClearDemoDataButton = ({ tenantId }: ClearDemoDataButtonProps) => {
 
         mutate(tenantId, {
             onSuccess: () => toast.success("Datos de demo eliminados correctamente."),
-            onError: () => toast.error("Error al limpiar los datos de demo."),
+            onError: (error) => toast.error(getUserFacingErrorMessage(error, "Error al limpiar los datos de demo.")),
         });
     };
 

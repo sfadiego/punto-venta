@@ -3,7 +3,7 @@ import * as Yup from "yup";
 import { ISignInForm } from "@/intefaces/IAuth";
 import { useServiceLogin } from "@/services/auth/useServiceAuth";
 import { useFormik } from "formik";
-import { isAxiosError } from "@/utils/axiosError";
+import { isAxiosError, getUserFacingErrorMessage } from "@/utils/axiosError";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { toast } from "react-toastify";
 
@@ -33,9 +33,7 @@ export const useAuth = () => {
                 window.location.replace("/");
             } catch (error) {
                 if (isAxiosError(error)) {
-                    const msg =
-                        error.response?.data?.message ?? "Credenciales incorrectas";
-                    toast.error(msg);
+                    toast.error(getUserFacingErrorMessage(error, "Credenciales incorrectas"));
                 } else {
                     logUnexpectedError(error, "useAuth.login");
                     toast.error("Error al iniciar sesion");

@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { useUploadLogo, useRemoveLogo } from "@/services/useBusinessConfigService";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export const useLogoSection = (config: IBusinessConfig | undefined) => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -20,7 +21,7 @@ export const useLogoSection = (config: IBusinessConfig | undefined) => {
         form.append("logo", file);
         upload(form, {
             onSuccess: () => toast.success("Logo actualizado"),
-            onError: () => toast.error("Error al subir el logo"),
+            onError: (error) => toast.error(getUserFacingErrorMessage(error, "Error al subir el logo")),
         });
         e.target.value = "";
     };
@@ -28,7 +29,7 @@ export const useLogoSection = (config: IBusinessConfig | undefined) => {
     const handleRemove = () => {
         remove(undefined, {
             onSuccess: () => toast.success("Logo eliminado"),
-            onError: () => toast.error("Error al eliminar el logo"),
+            onError: (error) => toast.error(getUserFacingErrorMessage(error, "Error al eliminar el logo")),
         });
     };
 

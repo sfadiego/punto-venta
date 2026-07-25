@@ -5,6 +5,7 @@ import { useUpdateUser } from "@/services/useUserService";
 import { useAxios } from "@/hooks/useAxios";
 import { IUser } from "@/models/IUser";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 const schema = Yup.object({
     nombre:           Yup.string().required("El nombre es requerido"),
@@ -65,7 +66,7 @@ export const useEditUserModal = (user: IUser | null, onClose: () => void) => {
                 onClose();
             } catch (error) {
                 logUnexpectedError(error, "useEditUserModal.onSubmit");
-                toast.error("No se pudo actualizar el usuario");
+                toast.error(getUserFacingErrorMessage(error, "No se pudo actualizar el usuario"));
             } finally {
                 setSubmitting(false);
             }

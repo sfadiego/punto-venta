@@ -4,6 +4,7 @@ import { useIndexDemoRequests, useUpdateDemoRequest } from "@/services/useDemoRe
 import { DemoRequestStatusEnum } from "@/enums/DemoRequestStatusEnum";
 import { IDemoRequest, IUpdateDemoRequestPayload } from "@/models/IDemoRequest";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export const useDemoRequestsPage = () => {
     const [page, setPage] = useState(1);
@@ -37,7 +38,7 @@ export const useDemoRequestsPage = () => {
             setSelected(null);
         } catch (error) {
             logUnexpectedError(error, "useDemoRequestsPage.handleSave");
-            toast.error("No se pudo actualizar la solicitud");
+            toast.error(getUserFacingErrorMessage(error, "No se pudo actualizar la solicitud"));
         }
     };
 

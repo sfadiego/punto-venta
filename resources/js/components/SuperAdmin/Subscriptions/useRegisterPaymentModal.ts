@@ -7,6 +7,7 @@ import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { ITenantWithSubscription } from "@/models/ISubscription";
 import { useRegisterPayment } from "@/services/useSubscriptionService";
 import { localDateString, computeExpiresAt } from "@/utils/dateUtils";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 const schema = Yup.object({
     plan:      Yup.string().oneOf(Object.values(SubscriptionPlanEnum)).required("Requerido"),
@@ -48,7 +49,7 @@ export const useRegisterPaymentModal = (tenant: ITenantWithSubscription | null, 
             } catch (error) {
 
                 logUnexpectedError(error, "useRegisterPaymentModal.onSubmit");
-                toast.error("No se pudo registrar el pago.");
+                toast.error(getUserFacingErrorMessage(error, "No se pudo registrar el pago."));
             } finally {
                 setSubmitting(false);
             }

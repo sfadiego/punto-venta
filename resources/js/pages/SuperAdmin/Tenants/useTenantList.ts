@@ -10,6 +10,7 @@ import {
 import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
 import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { ITenant } from "@/models/ITenant";
 
 const toIsDemo = (filter: TenantDemoFilterEnum): boolean | undefined =>
@@ -49,7 +50,7 @@ export const useTenantList = () => {
             toast.success(`Cliente ${action === "activar" ? "activado" : "desactivado"} correctamente.`);
         } catch (error) {
             logUnexpectedError(error, "useTenantList.handleToggle");
-            toast.error(`No se pudo ${action} el cliente.`);
+            toast.error(getUserFacingErrorMessage(error, `No se pudo ${action} el cliente.`));
         }
     };
 
@@ -69,7 +70,7 @@ export const useTenantList = () => {
             toast.success("Cliente restaurado correctamente.");
         } catch (error) {
             logUnexpectedError(error, "useTenantList.handleRestore");
-            toast.error("No se pudo restaurar el cliente.");
+            toast.error(getUserFacingErrorMessage(error, "No se pudo restaurar el cliente."));
         }
     };
 
@@ -89,7 +90,7 @@ export const useTenantList = () => {
             toast.success("Cliente eliminado correctamente.");
         } catch (error) {
             logUnexpectedError(error, "useTenantList.handleDelete");
-            toast.error("No se pudo eliminar el cliente.");
+            toast.error(getUserFacingErrorMessage(error, "No se pudo eliminar el cliente."));
         }
     };
 

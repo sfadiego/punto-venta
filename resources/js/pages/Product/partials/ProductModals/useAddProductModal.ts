@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useModal } from "@/hooks/useModal";
 import { useStoreProduct } from "@/services/useProductService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useIndexCategories } from "@/services/useCategoriesService";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { useAxios } from "@/hooks/useAxios";
@@ -63,7 +64,7 @@ export const useAddProductModal = (onSuccess: () => void) => {
             } catch (error) {
 
                 logUnexpectedError(error, "useAddProductModal.onSubmit");
-                toast.error("Error al crear el producto");
+                toast.error(getUserFacingErrorMessage(error, "Error al crear el producto"));
             }
         },
     });

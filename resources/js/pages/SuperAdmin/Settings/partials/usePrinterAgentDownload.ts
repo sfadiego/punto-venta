@@ -2,13 +2,14 @@ import { useState } from "react";
 import { superAdminAxios } from "@/contexts/SuperAdminContext";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { isAxiosError } from "@/utils/axiosError";
+import { isAxiosError, getUserFacingErrorMessage } from "@/utils/axiosError";
 import { toast } from "react-toastify";
 
 type Platform = "win" | "mac";
 
 const parseErrorMessage = async (error: unknown): Promise<string> => {
     if (!isAxiosError(error)) return "Error inesperado al descargar";
+    if (!error.response) return getUserFacingErrorMessage(error, "Error inesperado al descargar");
     const data = error.response?.data;
     if (data instanceof Blob) {
         try {

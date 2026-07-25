@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { ICategory } from "@/models/ICategory";
 import { useUpdateCategory } from "@/services/useCategoriesService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { CategoryForm } from "./useAddCategoryModal";
 
 const schema = Yup.object({
@@ -40,7 +41,7 @@ export const useEditCategoryModal = (
             } catch (error) {
 
                 logUnexpectedError(error, "useEditCategoryModal.onSubmit");
-                toast.error("Error al actualizar la categoría");
+                toast.error(getUserFacingErrorMessage(error, "Error al actualizar la categoría"));
             }
         },
     });

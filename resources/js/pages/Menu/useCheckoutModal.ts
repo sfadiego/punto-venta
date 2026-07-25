@@ -4,6 +4,7 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useCreatePublicOrder, useGetMenuCustomerByPhone } from "@/services/useMenuService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { ICartItem } from "@/models/IMenu";
 import { isValidPhone, phoneValidationMessage } from "@/utils/phoneUtils";
 
@@ -60,7 +61,7 @@ export const useCheckoutModal = ({ slug, items, deliveryCost, onSuccess }: Check
                 onSuccess();
             } catch (error) {
                 logUnexpectedError(error, "useCheckoutModal.onSubmit");
-                toast.error("No se pudo enviar el pedido. Intenta de nuevo.");
+                toast.error(getUserFacingErrorMessage(error, "No se pudo enviar el pedido. Intenta de nuevo."));
             } finally {
                 setSubmitting(false);
             }
