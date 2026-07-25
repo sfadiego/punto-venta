@@ -11,6 +11,7 @@ import { RecentOrders } from "./partials/RecentOrders/RecentOrders";
 import { RecentSales } from "./partials/RecentSales/RecentSales";
 import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
+import { ExpensesButton } from "@/components/orders/ExpensesButton";
 import { SellByWeightSaleModal } from "./partials/SellByWeightSaleModal/SellByWeightSaleModal";
 import { OpenSalesModal } from "./partials/OpenSalesModal/OpenSalesModal";
 import { useOpenSalesModal } from "./partials/OpenSalesModal/useOpenSalesModal";
@@ -60,6 +61,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2 self-start sm:self-auto">
                     {cajaAbierta ? (
                         <>
+                            {can("registerExpense") && <ExpensesButton />}
                             {can("viewCloseSales") && (
                                 <button
                                     onClick={() => navigate(AdminRoutes.CloseSales)}

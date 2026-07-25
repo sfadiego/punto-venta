@@ -23,6 +23,7 @@ export interface ITotalCurrentSale {
     domicilios: number;
     neto: number;
     propinas: number;
+    gastos: number;
     by_payment_method: IPaymentMethodTotal[];
 }
 

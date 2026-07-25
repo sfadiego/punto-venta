@@ -1,4 +1,4 @@
-import { DollarSign, TrendingUp, Bike, CreditCard, Wallet } from "lucide-react";
+import { DollarSign, TrendingUp, Bike, CreditCard, Wallet, ReceiptText } from "lucide-react";
 import { SummaryCard } from "./SummaryCard";
 import { formatCurrency } from "@/utils/formatCurrency";
 
@@ -10,6 +10,7 @@ interface CloseSalesSummaryCardsSellByWeightProps {
     totalNeto: number;
     totalPropinas: number;
     totalPropinasTarjeta: number;
+    totalGastos: number;
 }
 
 export const CloseSalesSummaryCardsSellByWeight = ({
@@ -20,6 +21,7 @@ export const CloseSalesSummaryCardsSellByWeight = ({
     totalNeto,
     totalPropinas,
     totalPropinasTarjeta,
+    totalGastos,
 }: CloseSalesSummaryCardsSellByWeightProps) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <SummaryCard
@@ -62,6 +64,17 @@ export const CloseSalesSummaryCardsSellByWeight = ({
                 label="Propinas"
                 value={formatCurrency(totalPropinas + totalPropinasTarjeta)}
                 valueColor="text-violet-700"
+            />
+        )}
+
+        {totalGastos > 0 && (
+            <SummaryCard
+                icon={<ReceiptText size={20} className="text-red-500" />}
+                iconBg="bg-red-100"
+                label="Gastos extra"
+                value={`-${formatCurrency(totalGastos)}`}
+                valueColor="text-red-500"
+                note="Compras del turno"
             />
         )}
 

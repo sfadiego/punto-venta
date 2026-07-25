@@ -8,6 +8,7 @@ import { useOrderList } from "./useOrderList";
 import { OrderFilters } from "./partials/OrderFilters";
 import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
+import { ExpensesButton } from "@/components/orders/ExpensesButton";
 import { SellByWeightSaleModal } from "@/pages/Dashboard/partials/SellByWeightSaleModal/SellByWeightSaleModal";
 import { usePermissions } from "@/hooks/usePermissions";
 import { PendingOrdersSection } from "@/components/orders/PendingOrders/PendingOrdersSection";
@@ -72,6 +73,7 @@ export default function OrderListPage() {
                         Actualizar
                     </button>
 
+                    {sistemaId && can("registerExpense") && <ExpensesButton />}
                     {sistemaId && (sellByWeight ? <NewSaleButton /> : <NewOrderButton />)}
                 </div>
             </div>

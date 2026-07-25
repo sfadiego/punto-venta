@@ -114,7 +114,7 @@ class CloseSalesTotalsTest extends TestCase
             ->assertStatus(200)
             ->assertJsonPath('status', 'OK')
             ->assertJsonStructure([
-                'data' => ['bruto', 'domicilios', 'neto', 'propinas', 'by_payment_method'],
+                'data' => ['bruto', 'domicilios', 'neto', 'propinas', 'gastos', 'by_payment_method'],
             ]);
     }
 
@@ -128,6 +128,7 @@ class CloseSalesTotalsTest extends TestCase
         $this->assertEquals(0.0, $totales['domicilios']);
         $this->assertEquals(0.0, $totales['neto']);
         $this->assertEquals(0.0, $totales['propinas']);
+        $this->assertEquals(0.0, $totales['gastos']);
         $this->assertEmpty($totales['by_payment_method']);
     }
 
