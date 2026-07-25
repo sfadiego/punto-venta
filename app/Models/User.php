@@ -102,15 +102,20 @@ class User extends Authenticatable
 
         $user = User::where('email', $email)->first();
 
-        if (! $user->activo) {
-            Auth::guard()->logout();
+        // Esta API es 100% por token — Auth::attempt() solo se usa para validar el
+        // password, no debe dejar una sesión 'web' autenticada como efecto colateral.
+        Auth::guard('web')->logout();
 
+        if (! $user->activo) {
             return self::LOGIN_INACTIVE;
         }
 
+        $token = $user->issueAccessToken();
+
         return [
             'user' => $user,
-            'access_token' => $user->issueAccessToken()->plainTextToken,
+            'access_token' => $token->plainTextToken,
+            'access_token_id' => $token->accessToken->id,
         ];
     }
 
@@ -125,5 +130,11 @@ class User extends Authenticatable
         $token->accessToken->update([PersonalAccessToken::TENANT_ID => $this->tenant_id]);
 
         return $token;
+    }
+
+    /** Revoca todas las demás sesiones de esta cuenta, dejando solo el token indicado (single-session-per-cuenta). */
+    public function revokeOtherSessions(int $exceptTokenId): void
+    {
+        $this->tokens()->where('id', '!=', $exceptTokenId)->delete();
     }
 }

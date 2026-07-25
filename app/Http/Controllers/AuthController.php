@@ -88,6 +88,13 @@ class AuthController extends Controller
             }
         }
 
+        // A partir de aquí el login es válido salvo por el cupo del plan. Se cierra
+        // cualquier otra sesión de la MISMA cuenta antes de evaluar el cupo, para que
+        // reloguear desde un dispositivo nuevo reemplace la sesión anterior en vez de
+        // competir por cupo contra sí misma.
+        $result['user']->revokeOtherSessions($result['access_token_id']);
+        unset($result['access_token_id']);
+
         if ($tenant) {
             $activeSessions = PersonalAccessToken::query()
                 ->activeForTenant($tenant->id)

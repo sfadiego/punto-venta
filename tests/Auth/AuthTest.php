@@ -181,10 +181,12 @@ class AuthTest extends TestCase
             ->assertJsonPath('status', 'error');
     }
 
-    // ── Sesiones simultáneas ─────────────────────────────────
+    // ── Sesión única por cuenta ───────────────────────────────
 
-    public function test_login_desde_segundo_dispositivo_no_invalida_primera_sesion(): void
+    public function test_login_desde_segundo_dispositivo_invalida_la_primera_sesion(): void
     {
+        // Single-session-per-cuenta: loguear la misma cuenta desde un dispositivo nuevo
+        // cierra la sesión anterior, para que compartir credenciales no sume sesiones.
         $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
         $password = env('APP_ADMIN_PASSWORD');
 
@@ -203,24 +205,45 @@ class AuthTest extends TestCase
         ]);
         $responseB->assertStatus(200);
 
-        // El token del dispositivo A sigue siendo válido (no 401 Unauthorized)
+        // El token del dispositivo A quedó revocado (401 Unauthorized)
         $this->getJson('/api/category', ['Authorization' => "Bearer $tokenA"])
-            ->assertSuccessful();
+            ->assertStatus(401);
     }
 
-    public function test_login_crea_token_nuevo_sin_borrar_los_existentes(): void
+    public function test_login_conserva_un_solo_token_por_cuenta(): void
     {
         $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
-
-        $tokensBefore = $user->tokens()->count();
 
         $this->postJson('/api/auth/login', [
             'email' => $user->email,
             'password' => env('APP_ADMIN_PASSWORD'),
         ])->assertStatus(200);
 
-        // Debe haber exactamente un token más que antes
-        $this->assertEquals($tokensBefore + 1, $user->fresh()->tokens()->count());
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ])->assertStatus(200);
+
+        // Sin importar cuántas veces se loguee, solo debe quedar 1 sesión activa
+        $this->assertEquals(1, $user->fresh()->tokens()->count());
+    }
+
+    public function test_login_de_otra_cuenta_no_afecta_sesiones_ajenas(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+        $otro = User::factory()->create([User::TENANT_ID => $tenant->id]);
+
+        $tokenOtro = $otro->issueAccessToken()->plainTextToken;
+
+        $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ])->assertStatus(200);
+
+        // La sesión de una cuenta distinta no debe verse afectada
+        $this->getJson('/api/category', ['Authorization' => "Bearer $tokenOtro"])
+            ->assertSuccessful();
     }
 
     // ── Límite de usuarios simultáneos ───────────────────────
@@ -249,30 +272,29 @@ class AuthTest extends TestCase
             ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
     }
 
-    public function test_login_bloquea_cuando_la_misma_cuenta_ya_tiene_sesiones_en_el_limite(): void
+    public function test_login_de_la_misma_cuenta_no_compite_por_cupo_contra_si_misma(): void
     {
-        // Reproduce el bug reportado: varias sesiones de la MISMA cuenta deben contar por separado.
+        // Con single-session-per-cuenta, la sesión previa de la MISMA cuenta se revoca
+        // antes de evaluar el cupo — relogueaar nunca debe bloquearse por las propias sesiones.
         $tenant = BusinessConfigModel::first();
         $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
 
+        // Plan Weekly (máximo 2 usuarios) con suscripción activa
         $tenant->update([
             BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Weekly->value,
             'subscription_expires_at' => now()->addDays(7),
         ]);
 
-        // 2 sesiones activas de la MISMA cuenta admin (ej. 2 dispositivos)
+        // El admin ya tiene 2 sesiones activas propias (llenando el cupo por sí solo)
         $tokenA = $admin->issueAccessToken();
         $tokenA->accessToken->forceFill([PersonalAccessToken::LAST_USED_AT => now()])->save();
         $tokenB = $admin->issueAccessToken();
         $tokenB->accessToken->forceFill([PersonalAccessToken::LAST_USED_AT => now()])->save();
 
-        $response = $this->postJson('/api/auth/login', [
+        $this->postJson('/api/auth/login', [
             'email' => $admin->email,
             'password' => env('APP_ADMIN_PASSWORD'),
-        ]);
-
-        $response->assertStatus(403)
-            ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
+        ])->assertStatus(200)->assertJsonPath('status', 'OK');
     }
 
     public function test_login_permite_acceso_cuando_no_se_supera_el_limite(): void
