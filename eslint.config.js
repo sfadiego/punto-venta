@@ -17,6 +17,7 @@ export default [
             "bootstrap/ssr/**",
             "tailwind.config.js",
             "scripts/**",
+            "printer-agent/**",
         ],
     },
     // 2. Configuración base para JS y TS
