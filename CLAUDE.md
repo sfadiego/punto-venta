@@ -177,14 +177,17 @@ routes/
 - Todos los componentes deben ser responsivos
 
 ### Organización de `partials/`
-Cuando una carpeta `partials/` acumula más de ~6 archivos, agrupa por funcionalidad en subcarpetas:
+Cuando una carpeta `partials/` (o un grupo de funcionalidad dentro de ella) acumula más de ~6 archivos, agrupa por funcionalidad en subcarpetas. La regla es recursiva: un grupo que ya vive en su propia carpeta (ej. `SellByWeightSaleModal/`) y sigue creciendo se subdivide igual, por sub-funcionalidad dentro de ese grupo:
 
 ```
 partials/
 ├── <Funcionalidad>/      # PascalCase, agrupa componente + hook + subcomponentes
 │   ├── ComponentePrincipal.tsx
 │   ├── useComponentePrincipal.ts
-│   └── SubComponente.tsx
+│   ├── SubComponente.tsx
+│   └── <SubFuncionalidad>/   # si <Funcionalidad>/ a su vez crece >~6 archivos, se subdivide igual
+│       ├── ComponenteHijo.tsx
+│       └── useComponenteHijo.ts
 └── ComponenteSolitario.tsx  # Archivos sin grupo propio se dejan al nivel de partials/
 ```
 
@@ -192,7 +195,14 @@ partials/
 
 `pages/Dashboard/partials/`
 ```
-NewSaleModal/    ← modal de venta + carrito + pago (8 archivos)
+SellByWeightSaleModal/  ← modal de venta por peso (16 archivos), sub-agrupado:
+├── Cart/              ← CartPanel + item + footer + hook (4 archivos)
+├── PayModal/           ← modal de pago + selector de método + sección de efectivo (4 archivos)
+├── CustomerCredit/     ← picker de cliente a crédito + búsqueda + alta inline (4 archivos)
+├── SellByWeightSaleModal.tsx  ← orquestador, solitario
+├── useSellByWeightSaleModal.ts ← hook principal, solitario
+├── NewSaleModalHeader.tsx      ← solitario
+└── NewSaleProductPanel.tsx     ← solitario
 OpenSalesModal/  ← apertura de caja (2 archivos)
 RecentOrders/    ← vista restaurante + OrderCard (2 archivos)
 RecentSales/     ← vista sell_by_weight (2 archivos)

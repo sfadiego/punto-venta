@@ -3,8 +3,8 @@ import { useSellByWeightSaleModal } from "./useSellByWeightSaleModal";
 import { IOrder } from "@/models/IOrder";
 import { NewSaleModalHeader } from "./NewSaleModalHeader";
 import { NewSaleProductPanel } from "./NewSaleProductPanel";
-import { NewSaleCartPanel } from "./NewSaleCartPanel";
-import { SellByWeightPayModal } from "./SellByWeightPayModal";
+import { NewSaleCartPanel } from "./Cart/NewSaleCartPanel";
+import { SellByWeightPayModal } from "./PayModal/SellByWeightPayModal";
 
 interface SellByWeightSaleModalProps {
     onClose: () => void;

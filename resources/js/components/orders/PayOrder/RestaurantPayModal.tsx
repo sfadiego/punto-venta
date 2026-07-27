@@ -7,7 +7,7 @@ import { PayTransferAlert } from "../PayModal/PayTransferAlert";
 import { PayCashInput } from "../PayModal/PayCashInput";
 import { PayPropinaInput } from "../PayModal/PayPropinaInput";
 import { PayModalActions } from "../PayModal/PayModalActions";
-import { CustomerCreditPicker } from "@/pages/Dashboard/partials/SellByWeightSaleModal/CustomerCreditPicker";
+import { CustomerCreditPicker } from "@/pages/Dashboard/partials/SellByWeightSaleModal/CustomerCredit/CustomerCreditPicker";
 import { useAxios } from "@/hooks/useAxios";
 
 interface RestaurantPayModalProps {

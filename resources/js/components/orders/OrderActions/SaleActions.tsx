@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Eye, Trash2, Loader, DollarSign } from "lucide-react";
 import { PrintTicketButton } from "../PrintTicket/PrintTicketButton";
 import { OrderDetailModal } from "@/pages/Sales/partials/OrderDetailModal/OrderDetailModal";
-import { SellByWeightPayModal } from "@/pages/Dashboard/partials/SellByWeightSaleModal/SellByWeightPayModal";
+import { SellByWeightPayModal } from "@/pages/Dashboard/partials/SellByWeightSaleModal/PayModal/SellByWeightPayModal";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";
 import { useOrderActions } from "./useOrderActions";
