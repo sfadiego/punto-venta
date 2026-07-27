@@ -10,6 +10,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
 use App\Models\User;
+use App\Services\RolePermissionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Response;
 
 class AuthController extends Controller
 {
+    public function __construct(private readonly RolePermissionService $rolePermissionService) {}
+
     public function register(RegisterRequest $params): JsonResponse
     {
         $user = User::register(
@@ -112,6 +115,7 @@ class AuthController extends Controller
         }
 
         $result['features'] = $tenant?->tipo_negocio->features() ?? BusinessTypeEnum::Restaurante->features();
+        $result['role_permissions'] = $tenant ? $this->rolePermissionService->grantedMapForTenant($tenant->id) : null;
         $result['tenant_slug'] = $tenant?->slug;
 
         return Response::success($result);

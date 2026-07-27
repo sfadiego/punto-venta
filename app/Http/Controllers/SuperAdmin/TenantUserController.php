@@ -9,12 +9,15 @@ use App\Http\Requests\TenantUserUpdateRequest;
 use App\Models\BusinessConfigModel;
 use App\Models\User;
 use App\Services\LoginRateLimitService;
+use App\Services\RolePermissionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
 
 class TenantUserController extends Controller
 {
+    public function __construct(private readonly RolePermissionService $rolePermissionService) {}
+
     public function index(BusinessConfigModel $tenant): JsonResponse
     {
         $users = User::withoutGlobalScopes()
@@ -116,6 +119,8 @@ class TenantUserController extends Controller
 
             $created[] = $roleName;
         }
+
+        $this->rolePermissionService->seedDefaultsForTenant($tenant->id);
 
         return Response::success([
             'created' => $created,
