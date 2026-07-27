@@ -19,6 +19,8 @@ import { AdminRoutes } from "@/enums/RoutesEnum";
 import { usePermissions } from "@/hooks/usePermissions";
 import { IOrder } from "@/models/IOrder";
 import { PendingOrdersSection } from "@/components/orders/PendingOrders/PendingOrdersSection";
+import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/FeatureSpotlight";
+import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
 
 const ICON_MAP: Record<string, LucideIcon> = {
     Award,
@@ -61,7 +63,16 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2 self-start sm:self-auto">
                     {cajaAbierta ? (
                         <>
-                            {can("registerExpense") && <ExpensesButton />}
+                            {
+                                can("registerExpense") &&
+                                <FeatureSpotlight
+                                    featureKey={FeatureSpotlightKey.ExpensesButton}
+                                    title="Registrar gasto"
+                                    description="Registra un gasto para llevar un control de los egresos del negocio"
+                                >
+                                    <ExpensesButton />
+                                </FeatureSpotlight>
+                            }
                             {can("viewCloseSales") && (
                                 <button
                                     onClick={() => navigate(AdminRoutes.CloseSales)}
@@ -104,21 +115,27 @@ export default function DashboardPage() {
                     />
                 ))}
             </div>
-
-            {sellByWeight ? (
-                <RecentSales onSelect={setResumeOrder} />
-            ) : (
-                <RecentOrders
-                    orders={orders}
-                    isLoading={ordersLoading}
-                    isFetchingNextPage={isFetchingNextPage}
-                    hasNextPage={hasNextPage}
-                    sistemaId={sistemaId}
-                    onViewAll={() => navigate("/orders")}
-                    onLoadMore={fetchNextPage}
-                />
-            )}
-
+            <FeatureSpotlight
+                featureKey={FeatureSpotlightKey.OrderListSection}
+                title="Lista de Pedidos/Ordernes"
+                description="La sección de lista de pedidos/ordenes, donde podrás visualizar las órdenes recientes y gestionar su estado de manera eficiente."
+                variant="block"
+                placement="top-start"
+            >
+                {sellByWeight ? (
+                    <RecentSales onSelect={setResumeOrder} />
+                ) : (
+                    <RecentOrders
+                        orders={orders}
+                        isLoading={ordersLoading}
+                        isFetchingNextPage={isFetchingNextPage}
+                        hasNextPage={hasNextPage}
+                        sistemaId={sistemaId}
+                        onViewAll={() => navigate("/orders")}
+                        onLoadMore={fetchNextPage}
+                    />
+                )}
+            </FeatureSpotlight>
             <OpenSalesModal
                 isOpen={openSalesOpen}
                 isPending={openSalesPending}

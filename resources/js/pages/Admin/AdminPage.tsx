@@ -9,6 +9,8 @@ import { RolesPermissionsSection } from "./partials/RolesPermissions/RolesPermis
 import { AdminNav } from "./partials/AdminNav";
 import { SubscriptionInfoSection } from "@/components/Admin/SubscriptionInfoSection";
 import { useAdminPage } from "./useAdminPage";
+import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/FeatureSpotlight";
+import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
 
 function AdminPage() {
     const { config, isLoading, sellByWeight } = useAdminPage();
@@ -45,9 +47,37 @@ function AdminPage() {
                         {sellByWeight && (
                             <div id="domicilio"><DeliverySection config={config} /></div>
                         )}
-                        <div id="menu"><MenuSection config={config} /></div>
-                        <div id="permisos"><RolesPermissionsSection /></div>
-                        <div id="suscripcion"><SubscriptionInfoSection /></div>
+                        <div id="menu">
+                            <FeatureSpotlight
+                                featureKey={FeatureSpotlightKey.OnlineMenuSection}
+                                title="Sección de Menú"
+                                description="Descubre la nueva sección de menú, donde podrás gestionar y visualizar toda la información de tus productos de manera eficiente."
+                                variant="block"
+                            >
+                                <MenuSection config={config} />
+                            </FeatureSpotlight>
+                        </div>
+                        <div id="permisos">
+                            <FeatureSpotlight
+                                featureKey={FeatureSpotlightKey.RolePermissions}
+                                title="Roles y permisos"
+                                description="Define qué puede hacer cada rol dentro del sistema"
+                                variant="block"
+                            >
+                                <RolesPermissionsSection />
+                            </FeatureSpotlight>
+                        </div>
+                        <div id="suscripcion">
+                            <FeatureSpotlight
+                                featureKey={FeatureSpotlightKey.SubscriptionSection}
+                                title="Sección de Suscripción"
+                                description="Descubre la nueva sección de suscripción, donde podrás gestionar y visualizar la información de tus planes y suscripciones de manera eficiente."
+                                variant="block"
+                                placement="top-start"
+                            >
+                                <SubscriptionInfoSection />
+                            </FeatureSpotlight>
+                        </div>
                     </div>
                 </div>
             )}

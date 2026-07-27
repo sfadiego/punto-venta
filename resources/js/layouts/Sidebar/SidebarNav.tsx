@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";
+import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/FeatureSpotlight";
+import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
 
 type Action = Parameters<ReturnType<typeof usePermissions>["can"]>[0];
 
@@ -24,12 +26,12 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-    { label: "Dashboard",    icon: LayoutDashboard, path: "/",           permission: "viewDashboard" },
-    { label: "Órdenes",      icon: Package,         path: "/orders",     permission: "viewOrders" },
-    { label: "Productos",    icon: Coffee,          path: "/products",   permission: "viewProducts" },
-    { label: "Categorías",   icon: Tag,             path: "/categories", permission: "viewCategories" },
-    { label: "Ventas",       icon: ShoppingBag,     path: "/sales",      permission: "viewSales" },
-    { label: "Estadísticas", icon: BarChart2,       path: "/statistics", permission: "viewStatistics" },
+    { label: "Dashboard", icon: LayoutDashboard, path: "/", permission: "viewDashboard" },
+    { label: "Órdenes", icon: Package, path: "/orders", permission: "viewOrders" },
+    { label: "Productos", icon: Coffee, path: "/products", permission: "viewProducts" },
+    { label: "Categorías", icon: Tag, path: "/categories", permission: "viewCategories" },
+    { label: "Ventas", icon: ShoppingBag, path: "/sales", permission: "viewSales" },
+    { label: "Estadísticas", icon: BarChart2, path: "/statistics", permission: "viewStatistics" },
 ];
 
 interface SidebarNavProps {
@@ -62,16 +64,32 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
             {(can("viewUsers") || can("viewAdmin") || can("viewCustomers")) && (
                 <div className="pt-3 border-t border-white/10 mt-3 space-y-0.5">
                     {can("viewCustomers") && (
-                        <SidebarNavItem
-                            item={{ label: "Clientes", icon: HandCoins, path: "/customers", permission: "viewCustomers" }}
-                            onClick={onItemClick}
-                        />
+                        <FeatureSpotlight
+                            featureKey={FeatureSpotlightKey.CustomerSection}
+                            title="Sección de Clientes"
+                            description="Descubre la nueva sección de clientes, donde podrás gestionar y visualizar toda la información de tus clientes de manera eficiente."
+                            variant="block"
+                            placement="right-start"
+                        >
+                            <SidebarNavItem
+                                item={{ label: "Clientes", icon: HandCoins, path: "/customers", permission: "viewCustomers" }}
+                                onClick={onItemClick}
+                            />
+                        </FeatureSpotlight>
                     )}
                     {can("viewUsers") && (
-                        <SidebarNavItem
-                            item={{ label: "Usuarios", icon: Users, path: "/users", permission: "viewUsers" }}
-                            onClick={onItemClick}
-                        />
+                        <FeatureSpotlight
+                            featureKey={FeatureSpotlightKey.UsersSection}
+                            title="Sección de Usuarios"
+                            description="Descubre la nueva sección de usuarios, donde podrás gestionar y visualizar toda la información de tus usuarios de manera eficiente."
+                            variant="block"
+                            placement="right-start"
+                        >
+                            <SidebarNavItem
+                                item={{ label: "Usuarios", icon: Users, path: "/users", permission: "viewUsers" }}
+                                onClick={onItemClick}
+                            />
+                        </FeatureSpotlight>
                     )}
                     {can("viewAdmin") && (
                         <SidebarNavItem

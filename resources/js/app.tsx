@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { AxiosProvider } from "./contexts/AxiosContext";
+import { FeatureSpotlightQueueProvider } from "./contexts/FeatureSpotlightQueueContext";
 import { router } from "./router/routes";
 import { MantineProvider } from "@mantine/core";
 import { useErrorReporting } from "./hooks/useErrorReporting";
@@ -36,10 +37,12 @@ export const App = () => {
             <MantineProvider>
                 <QueryClientProvider client={queryClient}>
                     <ErrorReportingInit />
-                    <Suspense>
-                        <ToastContainer {...toastConfig} />
-                        <RouterProvider router={router} future={{ v7_startTransition: true }} />
-                    </Suspense>
+                    <FeatureSpotlightQueueProvider>
+                        <Suspense>
+                            <ToastContainer {...toastConfig} />
+                            <RouterProvider router={router} future={{ v7_startTransition: true }} />
+                        </Suspense>
+                    </FeatureSpotlightQueueProvider>
                 </QueryClientProvider>
             </MantineProvider>
         </AxiosProvider>
