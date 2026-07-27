@@ -10,12 +10,15 @@ class FeatureSpotlightSeen extends Model
 
     const USER_ID = 'user_id';
 
+    const TENANT_ID = 'tenant_id';
+
     const FEATURE_KEY = 'feature_key';
 
     const SEEN_AT = 'seen_at';
 
     protected $fillable = [
         self::USER_ID,
+        self::TENANT_ID,
         self::FEATURE_KEY,
         self::SEEN_AT,
     ];

@@ -11,6 +11,7 @@ import { TenantColorsSection } from "@/components/SuperAdmin/Tenants/TenantColor
 import { TenantAdminSection } from "@/components/SuperAdmin/Tenants/TenantAdminSection";
 import { TenantPrinterSection } from "@/components/SuperAdmin/Tenants/TenantPrinterSection";
 import { TenantDangerZone } from "@/components/SuperAdmin/Tenants/TenantDangerZone";
+import { TenantFeatureSpotlightsSection } from "@/components/SuperAdmin/Tenants/TenantFeatureSpotlightsSection/TenantFeatureSpotlightsSection";
 import { useGetTenant } from "@/services/useSuperAdminService";
 
 export default function TenantFormPage() {
@@ -97,6 +98,8 @@ export default function TenantFormPage() {
                             }
                         />
                     )}
+
+                    {isEdit && tenantId && <TenantFeatureSpotlightsSection tenantId={tenantId} />}
 
                     {isEdit && tenantId && <TenantDangerZone tenantId={tenantId} />}
 

@@ -11,4 +11,5 @@ export enum FeatureSpotlightKey {
     SubscriptionSection = "subscription_section",
     OnlineMenuSection = "online_menu_section",
     OrderListSection = "order_list_section",
+    TicketSection = "ticket_section",
 }
