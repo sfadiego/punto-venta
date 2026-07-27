@@ -12,6 +12,7 @@ export enum ApiRoutes {
     PaymentMethods = "/api/admin/payment-methods",
     BusinessConfig = "/api/admin/config",
     RolePermissions = "/api/admin/role-permissions",
+    FeatureSpotlights = "/api/feature-spotlights",
     Files = "/api/files",
     PrintBytes     = "/api/order/:id/print/bytes",
     PrintTestBytes = "/api/order/print/test-bytes",

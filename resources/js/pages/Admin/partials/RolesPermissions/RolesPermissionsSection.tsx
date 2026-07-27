@@ -60,11 +60,10 @@ export function RolesPermissionsSection() {
                         key={role}
                         type="button"
                         onClick={() => setActiveRole(role)}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                            activeRole === role
-                                ? "border-amber-500 text-amber-600"
-                                : "border-transparent text-stone-400 hover:text-stone-600"
-                        }`}
+                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeRole === role
+                            ? "border-amber-500 text-amber-600"
+                            : "border-transparent text-stone-400 hover:text-stone-600"
+                            }`}
                     >
                         {ROLE_LABELS[role]}
                     </button>
