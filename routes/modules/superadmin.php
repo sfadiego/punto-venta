@@ -6,6 +6,7 @@ use App\Http\Controllers\SuperAdmin\AppSettingController;
 use App\Http\Controllers\SuperAdmin\DemoRequestController;
 use App\Http\Controllers\SuperAdmin\SubscriptionController;
 use App\Http\Controllers\SuperAdmin\SuperAdminAuthController;
+use App\Http\Controllers\SuperAdmin\TenantFeatureSpotlightController;
 use App\Http\Controllers\SuperAdmin\TenantManagementController;
 use App\Http\Controllers\SuperAdmin\TenantUserController;
 use App\Http\Middleware\SuperAdminMiddleware;
@@ -44,6 +45,11 @@ Route::prefix('super-admin')->group(function () {
                 Route::patch('restore', 'restore');
                 Route::delete('', 'delete');
                 Route::delete('demo-data', 'clearDemoData');
+
+                Route::prefix('feature-spotlights')->controller(TenantFeatureSpotlightController::class)->group(function () {
+                    Route::get('', 'index');
+                    Route::put('', 'update');
+                });
             });
 
             Route::prefix('{tenant}/users')->controller(TenantUserController::class)->group(function () {

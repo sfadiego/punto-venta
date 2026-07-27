@@ -1,36 +1,10 @@
-import { NavLink } from "react-router-dom";
-import {
-    LayoutDashboard,
-    Package,
-    Tag,
-    BarChart2,
-    ShoppingBag,
-    LucideIcon,
-    Coffee,
-    Settings,
-    Users,
-    HandCoins,
-} from "lucide-react";
+import { Users, Settings, HandCoins } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";
-
-type Action = Parameters<ReturnType<typeof usePermissions>["can"]>[0];
-
-interface NavItem {
-    label: string;
-    icon: LucideIcon;
-    path: string;
-    permission: Action;
-}
-
-const navItems: NavItem[] = [
-    { label: "Dashboard",    icon: LayoutDashboard, path: "/",           permission: "viewDashboard" },
-    { label: "Órdenes",      icon: Package,         path: "/orders",     permission: "viewOrders" },
-    { label: "Productos",    icon: Coffee,          path: "/products",   permission: "viewProducts" },
-    { label: "Categorías",   icon: Tag,             path: "/categories", permission: "viewCategories" },
-    { label: "Ventas",       icon: ShoppingBag,     path: "/sales",      permission: "viewSales" },
-    { label: "Estadísticas", icon: BarChart2,       path: "/statistics", permission: "viewStatistics" },
-];
+import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/FeatureSpotlight";
+import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
+import { navItems } from "./navItems";
+import { SidebarNavItem } from "./SidebarNavItem";
 
 interface SidebarNavProps {
     onItemClick: () => void;
@@ -46,65 +20,77 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
             <div className="space-y-0.5 flex-1">
                 {navItems
                     .filter((item) => can(item.permission))
-                    .map((item) => (
-                        <SidebarNavItem
-                            key={item.path}
-                            item={
-                                item.path === "/orders" && sellByWeight
-                                    ? { ...item, label: "Pedidos" }
-                                    : item
-                            }
-                            onClick={onItemClick}
-                        />
-                    ))}
+                    .map((item) => {
+                        const resolvedItem =
+                            item.path === "/orders" && sellByWeight
+                                ? { ...item, label: "Pedidos" }
+                                : item;
+
+                        if (!item.spotlight) {
+                            return <SidebarNavItem key={item.path} item={resolvedItem} onClick={onItemClick} />;
+                        }
+
+                        return (
+                            <FeatureSpotlight
+                                key={item.path}
+                                featureKey={item.spotlight.key}
+                                title={item.spotlight.title}
+                                description={item.spotlight.description}
+                                variant="block"
+                                placement="right-start"
+                            >
+                                <SidebarNavItem item={resolvedItem} onClick={onItemClick} />
+                            </FeatureSpotlight>
+                        );
+                    })}
             </div>
 
             {(can("viewUsers") || can("viewAdmin") || can("viewCustomers")) && (
                 <div className="pt-3 border-t border-white/10 mt-3 space-y-0.5">
                     {can("viewCustomers") && (
-                        <SidebarNavItem
-                            item={{ label: "Clientes", icon: HandCoins, path: "/customers", permission: "viewCustomers" }}
-                            onClick={onItemClick}
-                        />
+                        <FeatureSpotlight
+                            featureKey={FeatureSpotlightKey.CustomerSection}
+                            title="Sección de Clientes"
+                            description="Descubre la nueva sección de clientes, donde podrás gestionar y visualizar toda la información de tus clientes de manera eficiente."
+                            variant="block"
+                            placement="right-start"
+                        >
+                            <SidebarNavItem
+                                item={{ label: "Clientes", icon: HandCoins, path: "/customers", permission: "viewCustomers" }}
+                                onClick={onItemClick}
+                            />
+                        </FeatureSpotlight>
                     )}
                     {can("viewUsers") && (
-                        <SidebarNavItem
-                            item={{ label: "Usuarios", icon: Users, path: "/users", permission: "viewUsers" }}
-                            onClick={onItemClick}
-                        />
+                        <FeatureSpotlight
+                            featureKey={FeatureSpotlightKey.UsersSection}
+                            title="Sección de Usuarios"
+                            description="Descubre la nueva sección de usuarios, donde podrás gestionar y visualizar toda la información de tus usuarios de manera eficiente."
+                            variant="block"
+                            placement="right-start"
+                        >
+                            <SidebarNavItem
+                                item={{ label: "Usuarios", icon: Users, path: "/users", permission: "viewUsers" }}
+                                onClick={onItemClick}
+                            />
+                        </FeatureSpotlight>
                     )}
                     {can("viewAdmin") && (
-                        <SidebarNavItem
-                            item={{ label: "Configuración", icon: Settings, path: "/admin", permission: "viewAdmin" }}
-                            onClick={onItemClick}
-                        />
+                        <FeatureSpotlight
+                            featureKey={FeatureSpotlightKey.ConfigurationSection}
+                            title="Sección de Configuración"
+                            description="Descubre la nueva sección de configuración, donde podrás gestionar y visualizar toda la información de tu sistema de manera eficiente."
+                            variant="block"
+                            placement="right-start"
+                        >
+                            <SidebarNavItem
+                                item={{ label: "Configuración", icon: Settings, path: "/admin", permission: "viewAdmin" }}
+                                onClick={onItemClick}
+                            />
+                        </FeatureSpotlight>
                     )}
                 </div>
             )}
         </nav>
-    );
-}
-
-interface SidebarNavItemProps {
-    item: NavItem;
-    onClick: () => void;
-}
-
-function SidebarNavItem({ item, onClick }: SidebarNavItemProps) {
-    return (
-        <NavLink
-            to={item.path}
-            end={item.path === "/"}
-            onClick={onClick}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 hover:bg-white/10"
-            style={({ isActive }) =>
-                isActive
-                    ? { backgroundColor: "var(--color-primary)", color: "var(--color-font)" }
-                    : { color: "color-mix(in srgb, var(--color-font) 65%, transparent)" }
-            }
-        >
-            <item.icon size={18} />
-            {item.label}
-        </NavLink>
     );
 }
