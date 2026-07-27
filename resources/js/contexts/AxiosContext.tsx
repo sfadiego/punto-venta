@@ -25,6 +25,11 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
             ? JSON.parse(localStorage.getItem("features")!)
             : null,
     );
+    const [rolePermissions, setRolePermissionsState] = useState<Record<number, string[]> | null>(
+        localStorage.getItem("rolePermissions")
+            ? JSON.parse(localStorage.getItem("rolePermissions")!)
+            : null,
+    );
     const [sistemaId, setSistemaId] = useState<number | null>(() => {
         const stored = Number(localStorage.getItem("sistemaId"));
         return stored > 0 ? stored : null;
@@ -59,6 +64,15 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         setFeatures(features);
     };
 
+    const configRolePermissions = (rolePermissions: Record<number, string[]> | null) => {
+        if (rolePermissions) {
+            localStorage.setItem("rolePermissions", JSON.stringify(rolePermissions));
+        } else {
+            localStorage.removeItem("rolePermissions");
+        }
+        setRolePermissionsState(rolePermissions);
+    };
+
     const setSistema = (sistema: number | null) => {
         const value = sistema && sistema > 0 ? sistema : null;
         localStorage.setItem("sistemaId", value?.toString() ?? "");
@@ -76,16 +90,24 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         localStorage.removeItem("authToken");
         localStorage.removeItem("user");
         localStorage.removeItem("features");
+        localStorage.removeItem("rolePermissions");
         localStorage.removeItem("sistemaId");
         localStorage.removeItem("tenantSlug");
         clearCachedBusinessConfig();
         window.location.replace(slug ? `/${slug}/auth` : "/auth");
     }, []);
 
-    const saveAuth = useCallback((accessToken: string, user: IUser, features: IBusinessFeatures, tenantSlug?: string | null) => {
+    const saveAuth = useCallback((
+        accessToken: string,
+        user: IUser,
+        features: IBusinessFeatures,
+        rolePermissions: Record<number, string[]> | null,
+        tenantSlug?: string | null,
+    ) => {
         configureAxiosHeaders(accessToken);
         configUser(user);
         configFeatures(features);
+        configRolePermissions(rolePermissions);
         if (tenantSlug) {
             localStorage.setItem("tenantSlug", tenantSlug);
         }
@@ -133,12 +155,14 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         isAuth,
         user,
         features,
+        rolePermissions,
         axiosApi,
         saveAuth,
         sistemaId,
         logout,
         setSistema,
         setCurrentUser: configUser,
+        setRolePermissions: configRolePermissions,
     };
 
     return (

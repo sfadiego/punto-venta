@@ -5,6 +5,7 @@ import { BusinessInfoSection } from "./partials/BusinessInfo/BusinessInfoSection
 import { PrinterSection } from "./partials/Printer/PrinterSection";
 import { DeliverySection } from "./partials/Delivery/DeliverySection";
 import { MenuSection } from "./partials/Menu/MenuSection";
+import { RolesPermissionsSection } from "./partials/RolesPermissions/RolesPermissionsSection";
 import { AdminNav } from "./partials/AdminNav";
 import { SubscriptionInfoSection } from "@/components/Admin/SubscriptionInfoSection";
 import { useAdminPage } from "./useAdminPage";
@@ -45,6 +46,7 @@ function AdminPage() {
                             <div id="domicilio"><DeliverySection config={config} /></div>
                         )}
                         <div id="menu"><MenuSection config={config} /></div>
+                        <div id="permisos"><RolesPermissionsSection /></div>
                         <div id="suscripcion"><SubscriptionInfoSection /></div>
                     </div>
                 </div>
