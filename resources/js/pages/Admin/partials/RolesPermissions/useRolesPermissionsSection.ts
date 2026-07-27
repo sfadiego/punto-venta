@@ -47,12 +47,20 @@ export const useRolesPermissionsSection = () => {
         );
     };
 
+    const resetToDefault = () => {
+        setDraft((prev) => ({
+            ...prev,
+            [activeRole]: Array.from(DEFAULT_ROLE_PERMISSIONS[activeRole]),
+        }));
+    };
+
     return {
         activeRole,
         setActiveRole,
         activeActions,
         toggle,
         handleSave,
+        resetToDefault,
         saving,
         isLoading,
     };

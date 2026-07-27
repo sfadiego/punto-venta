@@ -1,4 +1,4 @@
-import { Save, ShieldCheck } from "lucide-react";
+import { RotateCcw, Save, ShieldCheck } from "lucide-react";
 import { RoleEnum } from "@/enums/RoleEnum";
 import { Action, ALL_ACTIONS } from "@/hooks/usePermissions";
 import { CONFIGURABLE_ROLES, useRolesPermissionsSection } from "./useRolesPermissionsSection";
@@ -31,8 +31,16 @@ const PERMISSION_LABELS: Record<Action, string> = {
 };
 
 export function RolesPermissionsSection() {
-    const { activeRole, setActiveRole, activeActions, toggle, handleSave, saving, isLoading } =
-        useRolesPermissionsSection();
+    const {
+        activeRole,
+        setActiveRole,
+        activeActions,
+        toggle,
+        handleSave,
+        resetToDefault,
+        saving,
+        isLoading,
+    } = useRolesPermissionsSection();
 
     return (
         <section className="bg-white rounded-xl border border-stone-200 p-6">
@@ -86,15 +94,27 @@ export function RolesPermissionsSection() {
                         ))}
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                        <Save size={15} />
-                        {saving ? "Guardando…" : "Guardar cambios"}
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+                        >
+                            <Save size={15} />
+                            {saving ? "Guardando…" : "Guardar cambios"}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={resetToDefault}
+                            disabled={saving}
+                            className="flex items-center gap-2 px-5 py-2.5 border border-stone-200 hover:bg-stone-50 disabled:opacity-60 text-stone-600 text-sm font-medium rounded-lg transition-colors"
+                        >
+                            <RotateCcw size={15} />
+                            Restaurar por defecto
+                        </button>
+                    </div>
                 </>
             )}
         </section>
