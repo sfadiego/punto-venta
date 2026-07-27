@@ -28,8 +28,8 @@ export const useAuth = () => {
         onSubmit: async (values) => {
             try {
                 const slug = localStorage.getItem("tenantSlug") ?? undefined;
-                const { access_token, user, features, tenant_slug } = await loginMutation.mutateAsync({ ...values, slug });
-                saveAuth(access_token, user, features, tenant_slug);
+                const { access_token, user, features, role_permissions, tenant_slug } = await loginMutation.mutateAsync({ ...values, slug });
+                saveAuth(access_token, user, features, role_permissions, tenant_slug);
                 window.location.replace("/");
             } catch (error) {
                 if (isAxiosError(error)) {

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\BusinessConfigController;
 use App\Http\Controllers\Admin\ExpensesController;
 use App\Http\Controllers\Admin\MainOrderReportController;
+use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\UserController;
@@ -45,6 +46,11 @@ Route::prefix('admin')->group(function () {
                 Route::get('best-seller', 'top3BestSeller');
             });
         });
+    });
+
+    Route::prefix('role-permissions')->controller(RolePermissionController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::put('{role}', 'update');
     });
 
     Route::prefix('config')->group(function () {

@@ -1,7 +1,7 @@
 import { useAxios } from "@/hooks/useAxios";
 import { RoleEnum } from "@/enums/RoleEnum";
 
-type Action =
+export type Action =
     | "viewDashboard"
     | "viewOrders"
     | "viewProducts"
@@ -21,7 +21,28 @@ type Action =
     | "viewCustomers"
     | "registerExpense";
 
-const ROLE_PERMISSIONS: Record<number, Set<Action>> = {
+export const ALL_ACTIONS: Action[] = [
+    "viewDashboard",
+    "viewOrders",
+    "viewProducts",
+    "viewCategories",
+    "viewSales",
+    "viewStatistics",
+    "viewAdmin",
+    "viewCloseSales",
+    "takeOrder",
+    "payOrder",
+    "deleteOrder",
+    "editOrderName",
+    "printTicket",
+    "kitchenView",
+    "managePendingOrders",
+    "viewUsers",
+    "viewCustomers",
+    "registerExpense",
+];
+
+export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
     [RoleEnum.Admin]: new Set<Action>([
         "viewDashboard",
         "viewOrders",
@@ -50,6 +71,7 @@ const ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "editOrderName",
         "printTicket",
         "kitchenView",
+        "payOrder",
     ]),
     [RoleEnum.Cocina]: new Set<Action>([
         "viewDashboard",
@@ -67,9 +89,13 @@ const ROLE_PERMISSIONS: Record<number, Set<Action>> = {
 };
 
 export const usePermissions = () => {
-    const { user, features } = useAxios();
+    const { user, features, rolePermissions } = useAxios();
     const rolId = user?.rol_id ?? RoleEnum.Employe;
-    const basePermissions = ROLE_PERMISSIONS[rolId] ?? ROLE_PERMISSIONS[RoleEnum.Employe];
+    const isConfigurableRole = rolId !== RoleEnum.Admin && rolId !== RoleEnum.SuperAdmin;
+    const roleOverride = isConfigurableRole ? rolePermissions?.[rolId] as Action[] | undefined : undefined;
+    const basePermissions = roleOverride
+        ? new Set<Action>(roleOverride)
+        : DEFAULT_ROLE_PERMISSIONS[rolId] ?? DEFAULT_ROLE_PERMISSIONS[RoleEnum.Employe];
 
     const can = (action: Action): boolean => {
         if (action === "kitchenView" && features?.kitchen_view === false) return false;

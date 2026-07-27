@@ -11,5 +11,6 @@ export interface IAuthResponse {
     user: IUser;
     access_token: string;
     features: IBusinessFeatures;
+    role_permissions: Record<number, string[]> | null;
     tenant_slug: string | null;
 }
