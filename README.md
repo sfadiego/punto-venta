@@ -98,6 +98,20 @@ La impresora debe ser una **térmica ESC/POS con Bluetooth Low Energy (BLE)** �
 
 ---
 
+## Báscula (venta por peso)
+
+Los negocios con `tipo_negocio: venta_por_peso` pueden leer el peso directo de una báscula (probado con Torrey L-PCR) conectada por USB a la computadora de la caja, desde el botón **"Leer báscula"** en el carrito del modal de venta. Usa **Web Serial API** (`navigator.serial`) — sin agente local, mismo enfoque "sin agente" que la impresión Bluetooth.
+
+**Usar Chrome o Edge de escritorio.** Es un requisito, no solo una preferencia:
+
+- **Firefox no tiene soporte estable de Web Serial.** Solo existe una implementación experimental detrás de una bandera en `about:config` (`dom.serial.enabled`), incompleta y **sin persistencia de permisos** — vuelve a pedir el puerto en cada refresh de la página aunque ya se haya autorizado antes. No hay forma de arreglar esto desde el código de la app: es una limitación del navegador.
+- **Safari no implementa Web Serial en absoluto.**
+- En **Chrome/Edge**, el permiso del puerto sí persiste correctamente entre sesiones (`navigator.serial.getPorts()` reconecta en silencio sin volver a mostrar el selector), que es el comportamiento esperado para un cliente no técnico.
+
+Si el navegador no soporta Web Serial, el botón "Leer báscula" simplemente no se muestra (`ScaleContext.isSupported`) y el cajero sigue usando el input manual de peso sin ningún error visible.
+
+---
+
 ## Docker
 
 El contenedor incluye nginx + php-fpm + **Reverb** gestionados por Supervisor. No se necesita un proceso externo para WebSocket en producción.

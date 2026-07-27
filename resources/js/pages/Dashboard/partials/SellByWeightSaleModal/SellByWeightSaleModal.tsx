@@ -24,6 +24,7 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
         sellByWeight,
         addToCart, removeFromCart, clearCart,
         getDisplayQty, handleQtyChange, handleQtyBlur,
+        handleScaleReading, scaleSupported,
         getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,
         isCreatingOrder, handleClose, loadingOrder, isResuming,
         showPayModal, setShowPayModal,
@@ -76,6 +77,8 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
                             getDisplayQty={getDisplayQty}
                             handleQtyChange={handleQtyChange}
                             handleQtyBlur={handleQtyBlur}
+                            handleScaleReading={handleScaleReading}
+                            scaleSupported={scaleSupported}
                             getItemMode={getItemMode}
                             toggleItemMode={toggleItemMode}
                             getDisplayPrice={getDisplayPrice}

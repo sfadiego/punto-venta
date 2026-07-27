@@ -4,6 +4,7 @@ import { SidebarMini } from "./Sidebar/SidebarMini";
 import { LayoutProvider } from "@/contexts/LayoutContext";
 import { PrintAgentProvider } from "@/contexts/PrintAgentContext";
 import { BluetoothPrintProvider } from "@/contexts/BluetoothPrintContext";
+import { ScaleProvider } from "@/contexts/ScaleContext";
 import { useOrdersSocket } from "@/hooks/useOrdersSocket";
 import { useAppLayout } from "./useAppLayout";
 import { useAxios } from "@/hooks/useAxios";
@@ -36,6 +37,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return (
         <PrintAgentProvider enabled={import.meta.env.VITE_APP_ENV === "local" || !!config?.printer_enabled}>
         <BluetoothPrintProvider enabled={!!config?.bluetooth_printing_enabled}>
+        <ScaleProvider enabled={features?.sell_by_weight === true}>
         <LayoutProvider onToggleSidebar={handleMenuClick}>
             <div className="flex h-dvh bg-stone-50 overflow-hidden">
                 {sidebarOpen && (
@@ -69,6 +71,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 </div>
             </div>
         </LayoutProvider>
+        </ScaleProvider>
         </BluetoothPrintProvider>
         </PrintAgentProvider>
     );

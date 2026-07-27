@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAxios } from "@/hooks/useAxios";
+import { useScale } from "@/contexts/ScaleContext";
 import { usePrintAgent } from "@/hooks/usePrintAgent";
 import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
 import { useIndexProducts } from "@/services/useProductService";
@@ -37,6 +38,8 @@ import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 
 export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
     const { sistemaId, features } = useAxios();
+    const { readWeightKg, isSupported: scaleIsSupported, isPaired: scaleIsPaired } = useScale();
+    const scaleSupported = scaleIsSupported && scaleIsPaired;
     const queryClient = useQueryClient();
     const sellByWeight = features?.sell_by_weight === true;
     const { data: businessConfig } = useGetBusinessConfig();
@@ -382,6 +385,32 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         }
     };
 
+    // Lee el peso de la báscula (kg) y lo aplica como si el cajero lo hubiera
+    // tecleado — reusa handleQtyChange/handleQtyBlur para no duplicar la lógica
+    // de conversión a precio y guardado.
+    const handleScaleReading = async (orderProductId: number) => {
+        const item = cart.find((i) => i.orderProductId === orderProductId);
+        if (!item) return;
+        try {
+            const weightKg = await readWeightKg();
+            const weight = item.product.unidad_medida === UnidadMedidaEnum.Gr ? weightKg * 1000 : weightKg;
+            // qty <= 0 dispara removeFromCart en handleQtyBlur (mismo comportamiento que
+            // borrar el número a mano) — una lectura en 0 no debe borrar el producto.
+            if (weight <= 0) {
+                toast.error("La báscula marca 0 — coloca el producto y vuelve a leer");
+                return;
+            }
+            const value = item.product.unidad_medida === UnidadMedidaEnum.Kg
+                ? weight.toFixed(3)
+                : String(Math.round(weight));
+            handleQtyChange(orderProductId, value);
+            await handleQtyBlur(orderProductId);
+        } catch (error) {
+            logUnexpectedError(error, "useSellByWeightSaleModal.handleScaleReading");
+            toast.error(getUserFacingErrorMessage(error, "No se pudo leer la báscula"));
+        }
+    };
+
     const toggleDomicilio = (checked: boolean) => {
         setDomicilioActivo(checked);
         if (checked) {
@@ -533,6 +562,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         sellByWeight,
         addToCart, removeFromCart, clearCart,
         getDisplayQty, handleQtyChange, handleQtyBlur,
+        handleScaleReading, scaleSupported,
         getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,
         isCreatingOrder, handleClose,
         loadingOrder: !!initialOrder && loadingFullOrder && cart.length === 0,
