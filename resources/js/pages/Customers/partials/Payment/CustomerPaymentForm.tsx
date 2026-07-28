@@ -1,7 +1,7 @@
 import { FormikProps } from "formik";
 import { Loader } from "lucide-react";
 import { Input } from "@/components/ui/form/Input";
-import { PaymentForm } from "../useCustomerDetailPage";
+import { PaymentForm } from "../../useCustomerDetailPage";
 
 interface CustomerPaymentFormProps {
     balance: number;

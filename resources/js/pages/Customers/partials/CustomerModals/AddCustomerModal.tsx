@@ -1,7 +1,7 @@
 import { X, UserPlus, Loader } from "lucide-react";
 import { FormikProps } from "formik";
 import { CustomerForm } from "./useAddCustomerModal";
-import { CustomerFormFields } from "../CustomerFormFields";
+import { CustomerFormFields } from "./CustomerFormFields";
 
 interface AddCustomerModalProps {
     isOpen: boolean;
