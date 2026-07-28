@@ -6,9 +6,10 @@ import { useSalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryM
 import { CloseSalesHeader } from "@/components/CloseSales/CloseSalesHeader";
 import { CloseSalesSummaryCardsRestaurant } from "@/components/CloseSales/CloseSalesSummaryCardsRestaurant";
 import { CloseSalesSummaryCardsSellByWeight } from "@/components/CloseSales/CloseSalesSummaryCardsSellByWeight";
+import { CloseSalesCashSummary } from "@/components/CloseSales/CloseSalesCashSummary";
 import { CloseSalesTotalBanner } from "@/components/CloseSales/CloseSalesTotalBanner";
 import { CloseSalesSessionDetail } from "@/components/CloseSales/CloseSalesSessionDetail";
-import { CloseSalesExpensesList } from "@/components/CloseSales/CloseSalesExpensesList";
+import { CloseSalesExpensesModal } from "@/components/CloseSales/CloseSalesExpensesModal";
 import { CloseSalesActiveOrdersAlert } from "@/components/CloseSales/CloseSalesActiveOrdersAlert";
 import { CloseSalesCloseButton } from "@/components/CloseSales/CloseSalesCloseButton";
 
@@ -27,6 +28,9 @@ export default function CloseSalesPage() {
         totalPropinas,
         totalPropinasTarjeta,
         expenses,
+        isExpensesModalOpen,
+        openExpensesModal,
+        closeExpensesModal,
         sellByWeight,
         hasActiveOrders,
         activeOrdersCount,
@@ -64,32 +68,32 @@ export default function CloseSalesPage() {
 
             {sellByWeight ? (
                 <CloseSalesSummaryCardsSellByWeight
-                    efectivoInicio={efectivoInicio}
                     totalEfectivoPagado={totalEfectivoPagado}
-                    totalDomicilios={totalDomicilios}
                     totalNeto={totalNeto}
                     totalTransferenciaPagado={totalTransferenciaPagado}
                     totalPropinas={totalPropinas}
                     totalPropinasTarjeta={totalPropinasTarjeta}
-                    totalGastos={totalGastos}
                 />
             ) : (
                 <CloseSalesSummaryCardsRestaurant
-                    efectivoInicio={efectivoInicio}
                     totalBruto={totalBruto}
                     totalEfectivoPagado={totalEfectivoPagado}
                     totalTransferenciaPagado={totalTransferenciaPagado}
                     totalPropinas={totalPropinas}
                     totalPropinasTarjeta={totalPropinasTarjeta}
-                    totalGastos={totalGastos}
                 />
             )}
+
+            <CloseSalesCashSummary
+                efectivoInicio={efectivoInicio}
+                totalDomicilios={sellByWeight ? totalDomicilios : 0}
+                totalGastos={totalGastos}
+                onViewExpenses={openExpensesModal}
+            />
 
             <CloseSalesTotalBanner total={totalEnCaja} />
 
             <CloseSalesSessionDetail activeSale={activeSale} />
-
-            <CloseSalesExpensesList expenses={expenses} />
 
             <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex-1">
@@ -128,6 +132,12 @@ export default function CloseSalesPage() {
                 totalDomicilios={categoryModal.totalDomicilios}
                 totalNeto={categoryModal.totalNeto}
                 sistemaId={categoryModal.sistemaId}
+            />
+
+            <CloseSalesExpensesModal
+                isOpen={isExpensesModalOpen}
+                expenses={expenses}
+                onClose={closeExpensesModal}
             />
         </div>
     );
