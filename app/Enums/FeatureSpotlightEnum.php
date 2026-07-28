@@ -18,4 +18,5 @@ enum FeatureSpotlightEnum: string
     case ORDER_LIST_SECTION = 'order_list_section';
     case TICKET_SECTION = 'ticket_section';
     case FILTER_SALES_BY_DATE_MONTH = 'filter_sales_by_date_month';
+    case DELIVERY_SECTION_BUTTON = 'delivery_section_button';
 }
