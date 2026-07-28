@@ -4,9 +4,9 @@ import { IOrder } from "@/models/IOrder";
 import { useOrderPreviewModal } from "./useOrderPreviewModal";
 import { useAxios } from "@/hooks/useAxios";
 import { DetailHeader } from "./partials/DetailHeader";
-import { CustomerInfoSection } from "./partials/CustomerInfoSection";
+import { CustomerInfoSection } from "./partials/CustomerInfo/CustomerInfoSection";
 import { MarkServedAction } from "./partials/MarkServedAction";
-import { ProductList } from "./partials/ProductList";
+import { ProductList } from "./partials/Products/ProductList";
 
 interface OrderPreviewModalProps {
     order: IOrder;

@@ -4,12 +4,12 @@ import BestSellerWidget from "./BestSellerWidget";
 import { SalesByCategoryButton, SalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/SalesByCategoryModal";
 import { useSalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/useSalesByCategoryModal";
 import { CloseSalesHeader } from "@/components/CloseSales/CloseSalesHeader";
-import { CloseSalesSummaryCardsRestaurant } from "@/components/CloseSales/CloseSalesSummaryCardsRestaurant";
-import { CloseSalesSummaryCardsSellByWeight } from "@/components/CloseSales/CloseSalesSummaryCardsSellByWeight";
-import { CloseSalesCashSummary } from "@/components/CloseSales/CloseSalesCashSummary";
-import { CloseSalesTotalBanner } from "@/components/CloseSales/CloseSalesTotalBanner";
+import { CloseSalesSummaryCardsRestaurant } from "@/components/CloseSales/SummaryCards/CloseSalesSummaryCardsRestaurant";
+import { CloseSalesSummaryCardsSellByWeight } from "@/components/CloseSales/SummaryCards/CloseSalesSummaryCardsSellByWeight";
+import { CloseSalesCashSummary } from "@/components/CloseSales/CashSummary/CloseSalesCashSummary";
+import { CloseSalesTotalBanner } from "@/components/CloseSales/CashSummary/CloseSalesTotalBanner";
 import { CloseSalesSessionDetail } from "@/components/CloseSales/CloseSalesSessionDetail";
-import { CloseSalesExpensesModal } from "@/components/CloseSales/CloseSalesExpensesModal";
+import { CloseSalesExpensesModal } from "@/components/CloseSales/CashSummary/CloseSalesExpensesModal";
 import { CloseSalesActiveOrdersAlert } from "@/components/CloseSales/CloseSalesActiveOrdersAlert";
 import { CloseSalesCloseButton } from "@/components/CloseSales/CloseSalesCloseButton";
 

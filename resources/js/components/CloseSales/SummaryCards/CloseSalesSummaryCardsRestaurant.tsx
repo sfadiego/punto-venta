@@ -1,6 +1,6 @@
 import { TrendingUp, Banknote, CreditCard, HandCoins } from "lucide-react";
 import { SummaryCard } from "./SummaryCard";
-import { CloseSalesSectionHeading } from "./CloseSalesSectionHeading";
+import { CloseSalesSectionHeading } from "../CloseSalesSectionHeading";
 import { formatCurrency } from "@/utils/formatCurrency";
 
 interface CloseSalesSummaryCardsRestaurantProps {
