@@ -1,6 +1,6 @@
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
+import { CartDeliveryFields } from "@/components/orders/CartDeliveryFields";
 import { CartDiscountRow } from "./CartDiscountRow";
-import { CartDeliveryFields } from "./CartDeliveryFields";
 import { CartTotalRow } from "./CartTotalRow";
 import { CartCheckoutActions } from "./CartCheckoutActions";
 

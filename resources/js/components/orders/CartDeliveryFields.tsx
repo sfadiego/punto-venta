@@ -6,7 +6,7 @@ interface CartDeliveryFieldsProps {
     toggleDomicilio: (checked: boolean) => void;
     costoDomicilio: string;
     setCostoDomicilio: (v: string) => void;
-    onCostoDomicilioBlur: () => void;
+    onCostoDomicilioBlur?: () => void;
     setOrderDeliveryPaidBy: (v: DeliveryPaidByEnum) => void;
     domicilio: number;
     customerPays: boolean;
