@@ -24,9 +24,9 @@ export const CartDeliveryFields = ({
     customerPays,
     isReadOnly = false,
 }: CartDeliveryFieldsProps) => (
-    <>
+    <div className="space-y-2">
         {!isReadOnly && (
-            <label className="flex items-center gap-2 cursor-pointer select-none pt-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                     type="checkbox"
                     checked={domicilioActivo}
@@ -90,5 +90,5 @@ export const CartDeliveryFields = ({
                 )}
             </>
         )}
-    </>
+    </div>
 );

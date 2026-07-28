@@ -9,7 +9,10 @@ export const calcSpotlightCoords = (trigger: DOMRect, placement: Placement): Coo
                 transform: "translateY(-100%)",
             };
         case "right-start":
-            return { top: trigger.top, left: trigger.right + 12 };
+            // Usado exclusivamente por el Sidebar (fondo oscuro) — más separación que el
+            // resto de placements para que la tarjeta (también oscura) no se confunda
+            // visualmente con el borde del sidebar.
+            return { top: trigger.top, left: trigger.right + 24 };
         case "left-start":
             return { top: trigger.top, left: trigger.left - POPOVER_WIDTH - 12 };
         case "bottom-start":
