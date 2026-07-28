@@ -38,14 +38,14 @@ export const NewSaleCartItem = ({
 
     return (
         <div className="
-            flex items-center justify-between gap-2 px-4 py-2 border-b border-stone-100 last:border-0
+            flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 px-4 py-2 border-b border-stone-100 last:border-0
             sm:rounded-xl sm:bg-stone-50 sm:border sm:border-stone-100 sm:p-3 sm:mb-2 sm:last:mb-0
         ">
-            <p className="flex-1 min-w-0 text-xs font-semibold text-stone-900 truncate">
+            <p className="flex-1 min-w-[6rem] text-xs font-semibold text-stone-900 truncate">
                 {item.product.nombre}
             </p>
 
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                 {canToggle && (
                     <WeightModeToggle
                         mode={mode}
