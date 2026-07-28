@@ -17,8 +17,11 @@ export const WeightModeToggle = ({
     color = "stone",
     size = "md",
 }: WeightModeToggleProps) => {
-    const padding = size === "sm" ? "px-1.5 py-0.5" : "px-2.5 py-0.5";
+    // "sm" crece el área táctil en móvil/tablet y vuelve a compacto en desktop
+    // (lg:) — es el único tamaño usado en contextos táctiles (carrito de venta).
+    const padding = size === "sm" ? "px-3 py-2 lg:px-1.5 lg:py-0.5" : "px-2.5 py-0.5";
     const rounded = size === "sm" ? "rounded" : "rounded-md";
+    const textSize = size === "sm" ? "text-xs lg:text-[10px]" : "text-[10px]";
     const activeClass = color === "amber" ? "bg-amber-500 text-white" : "bg-stone-800 text-white";
     const inactiveClass =
         color === "amber"
@@ -27,7 +30,7 @@ export const WeightModeToggle = ({
     const divider = color === "amber" ? "border-l border-stone-200" : "";
 
     return (
-        <div className={`flex ${rounded} overflow-hidden border border-stone-200 text-[10px] font-semibold`}>
+        <div className={`flex ${rounded} overflow-hidden border border-stone-200 ${textSize} font-semibold`}>
             <button
                 type="button"
                 onClick={onSelectWeight}

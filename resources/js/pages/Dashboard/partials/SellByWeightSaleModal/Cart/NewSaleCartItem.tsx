@@ -65,14 +65,19 @@ export const NewSaleCartItem = ({
                                 onClick={handleReadScale}
                                 disabled={isReadingScale}
                                 title="Leer báscula"
-                                className="flex items-center justify-center w-6 h-6 rounded-md
+                                className="flex items-center justify-center w-9 h-9 lg:w-6 lg:h-6 rounded-md
                                     text-amber-500 bg-amber-50 hover:bg-amber-100
                                     transition-colors shrink-0 disabled:cursor-wait disabled:opacity-60"
                             >
                                 {isReadingScale ? (
-                                    <Loader size={12} className="animate-spin" />
+                                    <Loader size={18} className="animate-spin lg:hidden" />
                                 ) : (
-                                    <Weight size={12} />
+                                    <Weight size={18} className="lg:hidden" />
+                                )}
+                                {isReadingScale ? (
+                                    <Loader size={12} className="animate-spin hidden lg:block" />
+                                ) : (
+                                    <Weight size={12} className="hidden lg:block" />
                                 )}
                             </button>
                         )}
@@ -83,7 +88,7 @@ export const NewSaleCartItem = ({
                             step={item.product.unidad_medida === UnidadMedidaEnum.Kg ? 0.1 : 1}
                             onChange={(e) => onQtyChange(e.target.value)}
                             onBlur={onQtyBlur}
-                            className="w-14 sm:w-20 px-1.5 py-1 border border-stone-200 rounded-lg text-xs text-center
+                            className="w-16 lg:w-20 px-1.5 py-2 lg:py-1 border border-stone-200 rounded-lg text-sm lg:text-xs text-center
                                 focus:outline-none focus:ring-2 focus:ring-amber-400"
                         />
                         <span className="text-xs text-stone-400">{unitLabel}</span>
@@ -101,7 +106,7 @@ export const NewSaleCartItem = ({
                             step={0.5}
                             onChange={(e) => onPriceChange(e.target.value)}
                             onBlur={onPriceBlur}
-                            className="w-20 sm:w-24 px-1.5 py-1 border border-amber-300 rounded-lg text-xs text-center
+                            className="w-20 lg:w-24 px-1.5 py-2 lg:py-1 border border-amber-300 rounded-lg text-sm lg:text-xs text-center
                                 focus:outline-none focus:ring-2 focus:ring-amber-400"
                         />
                         <span className="text-xs text-stone-400">
@@ -115,14 +120,19 @@ export const NewSaleCartItem = ({
                 <button
                     onClick={handleRemove}
                     disabled={isRemoving}
-                    className="flex items-center justify-center w-6 h-6 rounded-md
+                    className="flex items-center justify-center w-9 h-9 lg:w-6 lg:h-6 rounded-md
                         text-red-300 bg-red-50 hover:text-red-500 hover:bg-red-100
                         transition-colors shrink-0 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     {isRemoving ? (
-                        <Loader size={12} className="animate-spin" />
+                        <Loader size={18} className="animate-spin lg:hidden" />
                     ) : (
-                        <Trash2 size={12} />
+                        <Trash2 size={18} className="lg:hidden" />
+                    )}
+                    {isRemoving ? (
+                        <Loader size={12} className="animate-spin hidden lg:block" />
+                    ) : (
+                        <Trash2 size={12} className="hidden lg:block" />
                     )}
                 </button>
             </div>
