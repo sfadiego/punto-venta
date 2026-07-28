@@ -101,7 +101,7 @@ export const SalesFilters = ({
                 )}
 
                 {showCategoryReport && onCategoryReport && (
-                    <div className="w-full sm:w-auto sm:ml-auto self-end">
+                    <div className="w-full lg:w-auto lg:ml-auto self-end">
                         <SalesByCategoryButton onClick={onCategoryReport} label={categoryReportLabel} />
                     </div>
                 )}
