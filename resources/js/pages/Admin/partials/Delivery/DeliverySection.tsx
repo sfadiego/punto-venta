@@ -1,6 +1,7 @@
 import { Bike, DollarSign, Loader } from "lucide-react";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
-import { useDeliverySection } from "./useDeliverySection";
+import { Input } from "@/components/ui/form/Input";
+import { useDeliverySection, DeliveryFormValues } from "./useDeliverySection";
 
 interface DeliverySectionProps {
     config: IBusinessConfig | undefined;
@@ -22,22 +23,17 @@ export const DeliverySection = ({ config }: DeliverySectionProps) => {
                     Costo domicilio por defecto
                 </label>
                 <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-sm">$</span>
-                    <input
-                        type="number"
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-sm z-10">$</span>
+                    <Input<DeliveryFormValues>
                         name="costo_domicilio_default"
-                        value={formik.values.costo_domicilio_default}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
+                        inputType="number"
                         min={0}
-                        step="0.01"
+                        step={0.01}
                         placeholder="0.00"
-                        className="w-full pl-8 pr-3.5 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                        formik={formik}
+                        className="pl-8"
                     />
                 </div>
-                {formik.touched.costo_domicilio_default && formik.errors.costo_domicilio_default && (
-                    <p className="text-red-500 text-xs mt-1">{String(formik.errors.costo_domicilio_default)}</p>
-                )}
                 <p className="text-xs text-stone-400 mt-1.5 flex items-center gap-1">
                     <Bike size={12} />
                     Este valor se precargará al registrar una nueva venta a domicilio

@@ -3,8 +3,8 @@ import { useSellByWeightSaleModal } from "./useSellByWeightSaleModal";
 import { IOrder } from "@/models/IOrder";
 import { NewSaleModalHeader } from "./NewSaleModalHeader";
 import { NewSaleProductPanel } from "./NewSaleProductPanel";
-import { NewSaleCartPanel } from "./NewSaleCartPanel";
-import { SellByWeightPayModal } from "./SellByWeightPayModal";
+import { NewSaleCartPanel } from "./Cart/NewSaleCartPanel";
+import { SellByWeightPayModal } from "./PayModal/SellByWeightPayModal";
 
 interface SellByWeightSaleModalProps {
     onClose: () => void;
@@ -24,6 +24,7 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
         sellByWeight,
         addToCart, removeFromCart, clearCart,
         getDisplayQty, handleQtyChange, handleQtyBlur,
+        handleScaleReading, scaleSupported,
         getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,
         isCreatingOrder, handleClose, loadingOrder, isResuming,
         showPayModal, setShowPayModal,
@@ -76,6 +77,8 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
                             getDisplayQty={getDisplayQty}
                             handleQtyChange={handleQtyChange}
                             handleQtyBlur={handleQtyBlur}
+                            handleScaleReading={handleScaleReading}
+                            scaleSupported={scaleSupported}
                             getItemMode={getItemMode}
                             toggleItemMode={toggleItemMode}
                             getDisplayPrice={getDisplayPrice}

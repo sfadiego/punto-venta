@@ -10,6 +10,10 @@ const schema = Yup.object({
     costo_domicilio_default: Yup.number().min(0).required(),
 });
 
+export interface DeliveryFormValues {
+    costo_domicilio_default: number;
+}
+
 export const useDeliverySection = (config: IBusinessConfig | undefined) => {
     const updateMutation = useUpdateBusinessConfig();
 

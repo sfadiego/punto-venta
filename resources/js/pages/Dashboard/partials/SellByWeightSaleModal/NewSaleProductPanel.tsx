@@ -28,8 +28,8 @@ export const NewSaleProductPanel = ({
     <div className="flex flex-col flex-1 border-r border-stone-100 overflow-hidden">
         {/* Toolbar */}
         <div className="px-4 pt-4 pb-2 shrink-0 space-y-2">
-            <div className="flex flex-col sm:flex-row gap-2">
-                <div className="relative flex-1">
+            <div className="flex flex-row gap-2">
+                <div className="relative flex-1 min-w-0">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
                     <input
                         type="text"
@@ -54,7 +54,7 @@ export const NewSaleProductPanel = ({
                     onChange={(e) => setNombrePedido(e.target.value)}
                     onBlur={handleNombreBlur}
                     placeholder="Referencia (opc.)"
-                    className="w-full sm:w-44 px-3 py-2 border border-stone-200 rounded-xl text-sm
+                    className="w-32 sm:w-44 shrink-0 px-3 py-2 border border-stone-200 rounded-xl text-sm
                         focus:outline-none focus:ring-2 focus:ring-amber-400 bg-stone-50 placeholder:text-stone-300"
                 />
             </div>

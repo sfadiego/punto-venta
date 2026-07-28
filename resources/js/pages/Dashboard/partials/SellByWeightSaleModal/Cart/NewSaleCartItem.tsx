@@ -1,14 +1,10 @@
-import { Trash2, Loader } from "lucide-react";
-import { useState } from "react";
+import { Trash2, Loader, Weight } from "lucide-react";
 import { IModalCartItem } from "@/models/IModalCartItem";
-import { UNIDAD_LABELS, UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
+import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
 import { calcWeightFromPrice } from "@/utils/calcWeightFromPrice";
 import { WeightModeToggle } from "@/components/ui/WeightModeToggle";
-
-const isPeso = (item: IModalCartItem) =>
-    item.product.unidad_medida === UnidadMedidaEnum.Kg ||
-    item.product.unidad_medida === UnidadMedidaEnum.Gr;
+import { isPeso, useNewSaleCartItem } from "./useNewSaleCartItem";
 
 interface NewSaleCartItemProps {
     item: IModalCartItem;
@@ -21,6 +17,8 @@ interface NewSaleCartItemProps {
     onPriceChange: (value: string) => void;
     onPriceBlur: () => void;
     onRemove: () => Promise<void>;
+    onReadScale: () => Promise<void>;
+    scaleSupported: boolean;
 }
 
 export const NewSaleCartItem = ({
@@ -30,34 +28,24 @@ export const NewSaleCartItem = ({
     onQtyChange, onQtyBlur,
     onPriceChange, onPriceBlur,
     onRemove,
+    onReadScale, scaleSupported,
 }: NewSaleCartItemProps) => {
-    const [isRemoving, setIsRemoving] = useState(false);
-
-    const handleRemove = async () => {
-        if (isRemoving) return;
-        setIsRemoving(true);
-        try {
-            await onRemove();
-        } catch {
-            // error already handled and toasted in removeFromCart
-        } finally {
-            setIsRemoving(false);
-        }
-    };
-    const canToggle = isPeso(item);
-    const unitLabel = UNIDAD_LABELS[item.product.unidad_medida];
-    const lineTotal = (item.precioEfectivo * item.cantidad).toFixed(2);
+    const {
+        isRemoving, handleRemove,
+        isReadingScale, handleReadScale,
+        canToggle, unitLabel, lineTotal,
+    } = useNewSaleCartItem({ item, onRemove, onReadScale });
 
     return (
         <div className="
-            flex items-center gap-2 px-4 py-2 border-b border-stone-100 last:border-0
-            sm:flex-col sm:items-stretch sm:gap-1.5 sm:p-3 sm:rounded-xl sm:bg-stone-50 sm:border sm:border-stone-100 sm:mb-2 sm:last:mb-0
+            flex items-center justify-between gap-2 px-4 py-2 border-b border-stone-100 last:border-0
+            sm:rounded-xl sm:bg-stone-50 sm:border sm:border-stone-100 sm:p-3 sm:mb-2 sm:last:mb-0
         ">
-            <div className="flex items-center justify-between sm:justify-start gap-1.5">
-                <p className="flex-1 text-xs font-semibold text-stone-900 truncate">
-                    {item.product.nombre}
-                </p>
+            <p className="flex-1 min-w-0 text-xs font-semibold text-stone-900 truncate">
+                {item.product.nombre}
+            </p>
 
+            <div className="flex items-center gap-1.5 shrink-0">
                 {canToggle && (
                     <WeightModeToggle
                         mode={mode}
@@ -68,11 +56,26 @@ export const NewSaleCartItem = ({
                         size="sm"
                     />
                 )}
-            </div>
 
-            <div className="flex items-center gap-1.5 shrink-0">
                 {mode === WeightInputModeEnum.Weight ? (
                     <>
+                        {isPeso(item) && scaleSupported && (
+                            <button
+                                type="button"
+                                onClick={handleReadScale}
+                                disabled={isReadingScale}
+                                title="Leer báscula"
+                                className="flex items-center justify-center w-6 h-6 rounded-md
+                                    text-amber-500 bg-amber-50 hover:bg-amber-100
+                                    transition-colors shrink-0 disabled:cursor-wait disabled:opacity-60"
+                            >
+                                {isReadingScale ? (
+                                    <Loader size={12} className="animate-spin" />
+                                ) : (
+                                    <Weight size={12} />
+                                )}
+                            </button>
+                        )}
                         <input
                             type="number"
                             value={displayQty}
@@ -84,7 +87,7 @@ export const NewSaleCartItem = ({
                                 focus:outline-none focus:ring-2 focus:ring-amber-400"
                         />
                         <span className="text-xs text-stone-400">{unitLabel}</span>
-                        <span className="flex-1 text-xs font-bold text-amber-600 text-right">
+                        <span className="text-xs font-bold text-amber-600">
                             ${lineTotal}
                         </span>
                     </>
@@ -101,7 +104,7 @@ export const NewSaleCartItem = ({
                             className="w-20 sm:w-24 px-1.5 py-1 border border-amber-300 rounded-lg text-xs text-center
                                 focus:outline-none focus:ring-2 focus:ring-amber-400"
                         />
-                        <span className="flex-1 text-xs text-stone-400 text-right">
+                        <span className="text-xs text-stone-400">
                             {item.product.precio > 0
                                 ? `${calcWeightFromPrice(displayPrice, item.product.precio).toFixed(3)} ${unitLabel}`
                                 : `— ${unitLabel}`}

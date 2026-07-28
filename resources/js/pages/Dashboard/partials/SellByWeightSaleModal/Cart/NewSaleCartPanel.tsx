@@ -22,6 +22,8 @@ interface NewSaleCartPanelProps {
     getDisplayQty: (orderProductId: number, cantidad: number) => string;
     handleQtyChange: (orderProductId: number, value: string) => void;
     handleQtyBlur: (orderProductId: number) => void;
+    handleScaleReading: (orderProductId: number) => Promise<void>;
+    scaleSupported: boolean;
     getItemMode: (productId: number, product: IProduct) => WeightInputModeEnum;
     toggleItemMode: (productId: number, orderProductId: number, product: IProduct) => void;
     getDisplayPrice: (orderProductId: number, item: IModalCartItem) => string;
@@ -40,10 +42,11 @@ export const NewSaleCartPanel = ({
     customerPays, domicilio,
     total, totalFinal,
     getDisplayQty, handleQtyChange, handleQtyBlur,
+    handleScaleReading, scaleSupported,
     getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,
     removeFromCart, clearCart, onPay,
 }: NewSaleCartPanelProps) => (
-    <div className="flex flex-col w-full sm:w-80 shrink-0 min-h-0 overflow-hidden">
+    <div className="flex flex-col w-full sm:w-80 shrink-0 min-h-0 overflow-hidden bg-stone-50 border-t border-stone-100 sm:border-t-0 sm:bg-white">
         <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
             <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
                 Carrito
@@ -76,6 +79,8 @@ export const NewSaleCartPanel = ({
                                 onModeToggle={() => toggleItemMode(item.productId, item.orderProductId, item.product)}
                                 onQtyChange={(v) => handleQtyChange(item.orderProductId, v)}
                                 onQtyBlur={() => handleQtyBlur(item.orderProductId)}
+                                onReadScale={() => handleScaleReading(item.orderProductId)}
+                                scaleSupported={scaleSupported}
                                 onPriceChange={(v) => handlePriceChange(item.orderProductId, v)}
                                 onPriceBlur={() => handlePriceBlur(item.orderProductId)}
                                 onRemove={() => removeFromCart(item.orderProductId)}

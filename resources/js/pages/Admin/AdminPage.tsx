@@ -4,6 +4,7 @@ import { ColorsSection } from "./partials/Colors/ColorsSection";
 import { BusinessInfoSection } from "./partials/BusinessInfo/BusinessInfoSection";
 import { PrinterSection } from "./partials/Printer/PrinterSection";
 import { DeliverySection } from "./partials/Delivery/DeliverySection";
+import { ScaleSection } from "./partials/Scale/ScaleSection";
 import { MenuSection } from "./partials/Menu/MenuSection";
 import { RolesPermissionsSection } from "./partials/RolesPermissions/RolesPermissionsSection";
 import { AdminNav } from "./partials/AdminNav";
@@ -43,7 +44,7 @@ function AdminPage() {
                         <div id="negocio">
                             <FeatureSpotlight
                                 featureKey={FeatureSpotlightKey.TicketSection}
-                                title="Sección de Configuración"
+                                title="Configuracion de impresora"
                                 description="Descubre la nueva sección de configuración para tickets donde podrás personalizar y gestionar la apariencia de el ticket."
                                 variant="block"
                                 placement="top-start"
@@ -68,6 +69,9 @@ function AdminPage() {
                                     <DeliverySection config={config} />
                                 </FeatureSpotlight>
                             </div>
+                        )}
+                        {sellByWeight && (
+                            <div id="bascula"><ScaleSection /></div>
                         )}
                         <div id="menu">
                             <FeatureSpotlight
