@@ -1732,8 +1732,13 @@ footer {
 .vr-chips{display:flex;flex-wrap:wrap;gap:7px;padding:0 18px 14px;background:var(--paper-dim)}
 .vr-chip{font-size:12.5px;padding:10px 14px;min-height:40px;border-radius:99px;border:1px solid var(--card-line);background:var(--card);color:var(--ember-ink);cursor:pointer;font-family:inherit;font-weight:600;transition:transform .15s,box-shadow .2s,border-color .2s}
 .vr-chip:hover{transform:translateY(-2px);border-color:var(--ember);box-shadow:0 4px 12px rgba(0,137,145,.2)}
-.vr-bot-cta{display:none;align-items:center;gap:8px;margin:0 18px 16px;padding:11px 14px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:12px;background:var(--paper-dim)}
+.vr-bot-cta{display:none;flex-direction:column;align-items:flex-start;gap:10px;margin:0 18px 16px;padding:12px 14px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:12px;background:var(--paper-dim)}
 .vr-bot-cta.on{display:flex}
+.vr-cta-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+.vr-cta-actions .vr-wa{grid-column:1 / -1;justify-content:center}
+.vr-contact{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--card);border:1px solid var(--card-line);color:var(--ink);border-radius:99px;padding:9px 14px;font-size:12.5px;font-weight:800;text-decoration:none;white-space:nowrap;transition:border-color .2s,transform .15s,box-shadow .2s}
+.vr-contact:hover{border-color:var(--ember);transform:scale(1.04);box-shadow:0 4px 12px rgba(0,137,145,.18)}
+.vr-contact svg{width:15px;height:15px;stroke:var(--ember)}
 .vr-wa{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:7px;background:#25D366;color:#fff;border-radius:99px;padding:10px 18px;font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap;box-shadow:0 4px 14px rgba(37,211,102,.5);animation:vrWaGlow 1.4s ease-in-out infinite}
 .vr-wa::before{content:'';position:absolute;top:0;left:-120%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);transform:skewX(-20deg);animation:vrWaShine 2.2s ease-in-out infinite}
 .vr-wa:hover{background:#1EBE5D;transform:scale(1.05)}
@@ -1781,11 +1786,15 @@ footer {
       <button class="vr-chip" data-q="¿Cómo empiezo a usarlo?">🚀 ¿Cómo empiezo?</button>
     </div>
     <div class="vr-bot-cta" id="vrCta">
-      <span class="vr-cta-txt">¿Listo para probarlo?</span>
-      <a class="vr-wa" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
-        WhatsApp
-      </a>
+      <span class="vr-cta-txt">¿Hablamos? Contáctanos por el medio que prefieras:</span>
+      <div class="vr-cta-actions">
+        <a class="vr-wa" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg><span>WhatsApp</span></a>
+        <a class="vr-contact" href="tel:+523121166870" aria-label="Llamar al 312 116 6870">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>Llamar</span></a>
+        <a class="vr-contact" href="mailto:posventarapida@gmail.com?subject=Interesado%20en%20Venta%20R%C3%A1pida" aria-label="Enviar correo a posventarapida@gmail.com">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span>Correo</span></a>
+      </div>
     </div>
     <div class="vr-bot-foot">
       <label for="vrInput" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Escribe tu pregunta</label>
