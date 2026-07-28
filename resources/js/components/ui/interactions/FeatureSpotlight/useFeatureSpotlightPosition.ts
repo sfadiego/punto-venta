@@ -15,15 +15,35 @@ export const useFeatureSpotlightPosition = (visible: boolean, placement: Placeme
 
         const updatePosition = () => {
             if (!triggerRef.current) return;
-            setCoords(calcSpotlightCoords(triggerRef.current.getBoundingClientRect(), placement));
+            const rect = triggerRef.current.getBoundingClientRect();
+
+            // El trigger puede seguir montado pero fuera de pantalla (ej. sidebar
+            // colapsado o cerrado en mobile, movido con translate-x fuera del
+            // viewport en vez de desmontarse) — en ese caso no hay nada visible a lo
+            // que "apuntar", así que no se muestra la tarjeta en vez de flotar
+            // desconectada del elemento real.
+            const isOffscreen =
+                rect.right <= 0 || rect.left >= window.innerWidth ||
+                rect.bottom <= 0 || rect.top >= window.innerHeight;
+            if (isOffscreen) {
+                setCoords(null);
+                return;
+            }
+
+            setCoords(calcSpotlightCoords(rect, placement));
         };
 
         updatePosition();
         window.addEventListener("resize", updatePosition);
         window.addEventListener("scroll", updatePosition, true);
+        // El sidebar (y otros triggers) puede animarse con `transition-transform`
+        // (ej. colapsar/expandir) sin disparar resize/scroll — se recalcula al
+        // terminar esa transición para que la tarjeta reaparezca en su lugar.
+        window.addEventListener("transitionend", updatePosition, true);
         return () => {
             window.removeEventListener("resize", updatePosition);
             window.removeEventListener("scroll", updatePosition, true);
+            window.removeEventListener("transitionend", updatePosition, true);
         };
     }, [visible, placement]);
 

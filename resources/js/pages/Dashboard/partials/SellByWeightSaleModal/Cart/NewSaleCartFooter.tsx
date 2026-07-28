@@ -40,8 +40,9 @@ export const NewSaleCartFooter = ({
             {sellByWeight && (
                 <FeatureSpotlight
                     featureKey={FeatureSpotlightKey.DeliverySectionButton}
-                    title="Venta por peso"
-                    description="Seleccione productos por peso y agregue al carrito"
+                    title="Envío a domicilio"
+                    description="Envío a domicilio, podrás gestionar los pedidos a domicilio."
+                    variant="block"
                     placement="top-start"
                 >
                     <CartDeliveryFields
