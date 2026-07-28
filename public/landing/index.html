@@ -1026,9 +1026,23 @@ footer {
 .pricing-cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 
 @media (max-width: 600px) {
-  .period-bar { flex-wrap: wrap; border-radius: 16px; }
+  .period-bar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+    max-width: 340px;
+    border-radius: 16px;
+  }
+  .period-btn { width: 100%; padding: 12px 10px; }
+  .period-btn:last-child { grid-column: 1 / -1; }
   .pricing-card { padding: 36px 28px; }
   .pricing-amount { font-size: 56px; }
+}
+/* Ultra-angosto: apila los períodos en una sola columna para que el texto nunca se corte */
+@media (max-width: 300px) {
+  .period-bar { grid-template-columns: 1fr; }
+  .period-btn:last-child { grid-column: auto; }
 }
 
 /* ============ RITMO VISUAL ENTRE SECCIONES ============ */
