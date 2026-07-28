@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { getUserFacingErrorMessage, isOrderNotFoundError } from "@/utils/axiosError";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useQueryClient } from "@tanstack/react-query";
@@ -508,9 +508,13 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
                     orderId: oid,
                     orderProductId: item.orderProductId,
                     data: { cantidad: 1, precio: price },
-                }).catch((err) =>
-                    logUnexpectedError(err, "useSellByWeightSaleModal.handleClose.flushPriceMode"),
-                );
+                }).catch((err) => {
+                    // 404 = la orden ya no existe (borrada desde otra terminal mientras
+                    // estaba abierta acá) — resultado esperado en un POS multi-terminal,
+                    // no hay nada que reintentar ni reportar.
+                    if (isOrderNotFoundError(err)) return;
+                    logUnexpectedError(err, "useSellByWeightSaleModal.handleClose.flushPriceMode");
+                });
             });
         if (priceModeFlush.length > 0) await Promise.all(priceModeFlush);
 
@@ -525,7 +529,9 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
                 },
             });
         } catch (error) {
-            logUnexpectedError(error, "useSellByWeightSaleModal.handleClose.saveDelivery");
+            if (!isOrderNotFoundError(error)) {
+                logUnexpectedError(error, "useSellByWeightSaleModal.handleClose.saveDelivery");
+            }
         }
 
         // Has products (or resume mode): leave as InProcess, refresh list
