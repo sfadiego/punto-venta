@@ -210,16 +210,24 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; text-wrap: bala
 @media (max-width: 1024px) {
   .nav-links { gap: 24px; font-size: 14px; }
 }
-@media (max-width: 860px) {
-  .nav-links { gap: 16px; font-size: 13px; }
-  .nav-cta-wrap { gap: 8px; }
-}
-@media (max-width: 760px) {
-  .nav-links-mobile-hide { display: none; }
-  .nav-demo-btn { display: none; }
+/* Tablet y móvil: hamburguesa + todos los CTA dentro del drawer.
+   Los selectores con .nav-cta-wrap suben la especificidad para ganarle
+   a la regla base .btn { display:inline-flex } declarada más abajo. */
+@media (max-width: 900px) {
+  .nav-links { display: none; }
+  .nav-cta-wrap .js-login-btn,
+  .nav-cta-wrap .nav-demo-btn { display: none; }
   .nav-hamburger { display: flex; }
   .nav-drawer { display: none; }
   .nav-drawer.open { display: flex; }
+  .brand { font-size: 18px; }
+}
+@media (max-width: 420px) {
+  .brand { font-size: 16px; gap: 8px; }
+  .brand-mark { width: 26px; height: 26px; font-size: 12px; }
+  .nav-inner { height: 58px; }
+  .nav-drawer { top: 58px; }
+  .nav-drawer-links a { font-size: 15px; padding: 12px 0; }
 }
 
 /* ============ BUTTONS ============ */
