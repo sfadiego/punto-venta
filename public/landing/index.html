@@ -1743,7 +1743,8 @@ footer {
     </div>
     <div class="vr-chips" id="vrChips" role="group" aria-label="Preguntas frecuentes">
       <button class="vr-chip" data-q="¿Cuánto cuesta Venta Rápida?">💰 ¿Cuánto cuesta?</button>
-      <button class="vr-chip" data-q="¿Sirve para venta por peso, como una carnicería?">⚖️ ¿Venta por peso?</button>
+      <button class="vr-chip" data-q="¿Sirve para venta por peso, como una carnicería?">🥩 ¿Venta por peso?</button>
+      <button class="vr-chip" data-q="¿Puedo conectar una báscula digital al sistema?">⚖️ ¿Báscula digital?</button>
       <button class="vr-chip" data-q="¿Necesito una impresora de tickets?">🖨️ ¿Necesito impresora?</button>
       <button class="vr-chip" data-q="¿Para qué giros de negocio sirve?">🏪 ¿Para qué giros?</button>
       <button class="vr-chip" data-q="¿Funciona por internet o en la nube?">📶 ¿Cómo funciona?</button>
@@ -1775,6 +1776,7 @@ footer {
   var INIT='¡Hola! 👋 Soy el asistente de Venta Rápida.\n¿En qué te ayudo? Elige una pregunta o escríbeme la tuya.';
   var R=[
     [/cu[aá]nto|cuesta|precio|costo|plan|pagar|mensualidad/,'costo'],
+    [/b[aá]scula digital|conectar.{0,10}b[aá]scula|b[aá]scula.{0,10}usb|b[aá]scula.{0,10}serial|leer.{0,10}peso|peso.{0,10}autom/,'bascula'],
     [/peso|kilo|gramo|carnicer|b[aá]scula|granel/,'peso'],
     [/impresora|ticket|imprim|comanda/,'impresora'],
     [/giro|negocio|sirve para|cafeter|restaurante|taquer|abarrote|fruter|loncher|tortiller/,'giros'],
@@ -1783,7 +1785,8 @@ footer {
   ];
   var FR={
     costo:'Es un solo plan con todo incluido 💳\n\n• Semanal: $100/sem\n• Quincenal: $200/qna\n• Mensual: $399/mes\n• Semestral: $2,100 (sale en $350/mes)\n• Anual: $4,200 (sale en $350/mes)\n\nSin costos ocultos: incluye ventas, productos, órdenes y estadísticas.',
-    peso:'¡Sí! ⚖️ Venta Rápida tiene un modo de venta por peso ideal para carnicerías, fruterías y todo lo que se vende a granel. Capturas el precio o el peso y el sistema calcula el total automáticamente.',
+    bascula:'¡Sí! 🔌 Puedes conectar tu báscula digital vía USB o Serial directamente al sistema.\n\nAl poner el producto en la báscula, el peso se lee automáticamente y el precio se calcula al instante — sin teclear, sin errores.\n\nCompatible con las básculas digitales de uso común en carnicerías y graneles. ¿Quieres saber si tu báscula es compatible? Escríbenos 👇',
+    peso:'¡Sí! ⚖️ Venta Rápida tiene un modo de venta por peso ideal para carnicerías, fruterías y todo lo que se vende a granel. Capturas el precio o el peso y el sistema calcula el total automáticamente.\n\nAdemás puedes conectar tu báscula digital para que el peso llegue solo — sin teclear nada.',
     impresora:'No es obligatoria 🖨️. Puedes operar sin impresora, pero si la tienes, Venta Rápida imprime tickets de tus ventas con nuestro agente de impresión. Tú decides.',
     giros:'Funciona para cualquier negocio de mostrador 🏪: cafeterías, restaurantes, carnicerías, taquerías, abarrotes, fruterías, loncherías y tortillerías, entre otros.',
     como:'Es 100% en la nube ☁️. Entras desde cualquier navegador en tu compu, tablet o celular — sin instalar nada. Tus ventas y reportes quedan siempre sincronizados.',
