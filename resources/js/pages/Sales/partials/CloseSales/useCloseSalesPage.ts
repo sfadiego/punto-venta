@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -24,6 +25,10 @@ export const useCloseSalesPage = () => {
     const { data: totales, isLoading: loadingTotal } = useCurrentTotalSale(sistemaId ?? 0);
     const { data: expenses } = useIndexExpenses(sistemaId);
     const { mutateAsync: closeSales, isPending: isClosing } = useCloseSales(sistemaId ?? 0);
+
+    const [isExpensesModalOpen, setIsExpensesModalOpen] = useState(false);
+    const openExpensesModal = () => setIsExpensesModalOpen(true);
+    const closeExpensesModal = () => setIsExpensesModalOpen(false);
 
     const { data: activeOrdersPage } = useIndexOrder({
         sistema_id: sistemaId,
@@ -117,6 +122,9 @@ export const useCloseSalesPage = () => {
         totalNeto,
         totalGastos,
         expenses: expenses ?? [],
+        isExpensesModalOpen,
+        openExpensesModal,
+        closeExpensesModal,
         efectivoCierre,
         totalEfectivoPagado,
         totalTransferenciaPagado,
