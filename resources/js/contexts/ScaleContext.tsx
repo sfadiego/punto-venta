@@ -32,6 +32,15 @@ const notMounted = async (): Promise<never> => {
  */
 export class ScaleNotConnectedError extends Error {}
 
+/**
+ * Se lanza cuando el usuario cierra/cancela el selector nativo de puertos de
+ * Web Serial sin elegir uno (ej. no hay báscula conectada por USB en ese
+ * momento, o se arrepintió) — el navegador lo reporta como un DOMException
+ * "NotFoundError" genérico con mensaje técnico en inglés. Es un resultado
+ * esperado de la acción del usuario, no un error de la app.
+ */
+export class ScalePairingCancelledError extends Error {}
+
 export const ScaleContext = createContext<ScaleContextType>({
     isSupported: false,
     isConnected: false,
@@ -118,7 +127,17 @@ export const ScaleProvider = ({ children, enabled = false }: ScaleProviderProps)
     const pair = useCallback(async () => {
         if (!isSupported) throw new Error("Este navegador no soporta báscula USB (usa Chrome o Edge de escritorio)");
 
-        const port = await navigator.serial!.requestPort();
+        let port: SerialPort;
+        try {
+            port = await navigator.serial!.requestPort();
+        } catch (error) {
+            if (error instanceof DOMException && error.name === "NotFoundError") {
+                throw new ScalePairingCancelledError(
+                    "No se seleccionó ningún dispositivo. Conecta la báscula por USB e intenta de nuevo.",
+                );
+            }
+            throw error;
+        }
         await openPort(port);
 
         portRef.current = port;
