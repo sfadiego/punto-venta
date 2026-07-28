@@ -13,7 +13,6 @@ interface NewSaleCartPanelProps {
     toggleDomicilio: (checked: boolean) => void;
     costoDomicilio: string;
     setCostoDomicilio: (v: string) => void;
-    orderDeliveryPaidBy: DeliveryPaidByEnum;
     setOrderDeliveryPaidBy: (v: DeliveryPaidByEnum) => void;
     customerPays: boolean;
     domicilio: number;
@@ -38,7 +37,7 @@ export const NewSaleCartPanel = ({
     cart, sellByWeight,
     domicilioActivo, toggleDomicilio,
     costoDomicilio, setCostoDomicilio,
-    orderDeliveryPaidBy, setOrderDeliveryPaidBy,
+    setOrderDeliveryPaidBy,
     customerPays, domicilio,
     total, totalFinal,
     getDisplayQty, handleQtyChange, handleQtyBlur,
@@ -97,7 +96,6 @@ export const NewSaleCartPanel = ({
             toggleDomicilio={toggleDomicilio}
             costoDomicilio={costoDomicilio}
             setCostoDomicilio={setCostoDomicilio}
-            orderDeliveryPaidBy={orderDeliveryPaidBy}
             setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
             customerPays={customerPays}
             domicilio={domicilio}

@@ -17,7 +17,7 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
         nombrePedido, setNombrePedido, handleNombreBlur,
         domicilioActivo, toggleDomicilio,
         costoDomicilio, setCostoDomicilio,
-        orderDeliveryPaidBy, setOrderDeliveryPaidBy,
+        setOrderDeliveryPaidBy,
         categories, selectedCategory, setSelectedCategory,
         products, productsLoading,
         cart, total, totalFinal, domicilio, customerPays,
@@ -68,7 +68,6 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
                             toggleDomicilio={toggleDomicilio}
                             costoDomicilio={costoDomicilio}
                             setCostoDomicilio={setCostoDomicilio}
-                            orderDeliveryPaidBy={orderDeliveryPaidBy}
                             setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
                             customerPays={customerPays}
                             domicilio={domicilio}

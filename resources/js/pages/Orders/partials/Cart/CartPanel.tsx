@@ -6,7 +6,7 @@ import { usePayModal } from "./usePayModal";
 import { RestaurantPayModal } from "@/components/orders/PayOrder/RestaurantPayModal";
 import { CartEmptyState } from "./CartEmptyState";
 import { CartItemRow } from "./CartItemRow";
-import { CartFooter } from "./CartFooter";
+import { CartFooter } from "./CartFooter/CartFooter";
 import { usePermissions } from "@/hooks/usePermissions";
 
 interface CartPanelProps {
@@ -21,7 +21,6 @@ interface CartPanelProps {
     costoDomicilio: string;
     setCostoDomicilio: (v: string) => void;
     onCostoDomicilioBlur: () => void;
-    orderDeliveryPaidBy: DeliveryPaidByEnum;
     setOrderDeliveryPaidBy: (v: DeliveryPaidByEnum) => void;
     domicilio: number;
     customerPays: boolean;
@@ -51,7 +50,6 @@ export const CartPanel = ({
     costoDomicilio,
     setCostoDomicilio,
     onCostoDomicilioBlur,
-    orderDeliveryPaidBy,
     setOrderDeliveryPaidBy,
     domicilio,
     customerPays,
@@ -157,7 +155,6 @@ export const CartPanel = ({
                     costoDomicilio={costoDomicilio}
                     setCostoDomicilio={setCostoDomicilio}
                     onCostoDomicilioBlur={onCostoDomicilioBlur}
-                    orderDeliveryPaidBy={orderDeliveryPaidBy}
                     setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
                     domicilio={domicilio}
                     customerPays={customerPays}
