@@ -25,7 +25,6 @@ export default function TakeOrderPage() {
         costoDomicilio,
         setCostoDomicilio,
         handleCostoDomicilioBlur,
-        orderDeliveryPaidBy,
         setOrderDeliveryPaidBy,
         domicilio,
         customerPays,
@@ -86,7 +85,6 @@ export default function TakeOrderPage() {
                             costoDomicilio={costoDomicilio}
                             setCostoDomicilio={setCostoDomicilio}
                             onCostoDomicilioBlur={handleCostoDomicilioBlur}
-                            orderDeliveryPaidBy={orderDeliveryPaidBy}
                             setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
                             domicilio={domicilio}
                             customerPays={customerPays}
@@ -133,7 +131,6 @@ export default function TakeOrderPage() {
                             costoDomicilio={costoDomicilio}
                             setCostoDomicilio={setCostoDomicilio}
                             onCostoDomicilioBlur={handleCostoDomicilioBlur}
-                            orderDeliveryPaidBy={orderDeliveryPaidBy}
                             setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
                             domicilio={domicilio}
                             customerPays={customerPays}
