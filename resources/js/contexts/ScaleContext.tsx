@@ -23,6 +23,15 @@ const notMounted = async (): Promise<never> => {
     throw new Error("ScaleProvider no montado");
 };
 
+/**
+ * Se lanza específicamente cuando no hay un puerto ya autorizado (getPorts()
+ * vacío) — distinto de un error de lectura con la báscula ya conectada. Sirve
+ * para que quien llama pueda reintentar pidiendo el puerto de nuevo (ej. en
+ * Firefox, que no persiste permisos de Web Serial entre refrescos: la app cree
+ * que ya está emparejada mientras el navegador ya perdió el permiso real).
+ */
+export class ScaleNotConnectedError extends Error {}
+
 export const ScaleContext = createContext<ScaleContextType>({
     isSupported: false,
     isConnected: false,
@@ -97,7 +106,7 @@ export const ScaleProvider = ({ children, enabled = false }: ScaleProviderProps)
         const known = await navigator.serial!.getPorts();
         const port = known[0];
         if (!port) {
-            throw new Error("La báscula no está conectada — ve a Configuración y presiona \"Conectar báscula\"");
+            throw new ScaleNotConnectedError("La báscula no está conectada — ve a Configuración y presiona \"Conectar báscula\"");
         }
 
         await openPort(port);

@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAxios } from "@/hooks/useAxios";
-import { useScale } from "@/contexts/ScaleContext";
+import { useScale, ScaleNotConnectedError } from "@/contexts/ScaleContext";
 import { usePrintAgent } from "@/hooks/usePrintAgent";
 import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
 import { useIndexProducts } from "@/services/useProductService";
@@ -15,7 +15,6 @@ import {
     useShowOrder,
     useStoreOrder,
     useUpdateOrderData,
-    useDeleteOrderById,
     useCreateOrderProduct,
     useUpdateOrderProduct,
     useDeleteOrderItem,
@@ -38,8 +37,7 @@ import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 
 export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOrder) => {
     const { sistemaId, features } = useAxios();
-    const { readWeightKg, isSupported: scaleIsSupported, isPaired: scaleIsPaired } = useScale();
-    const scaleSupported = scaleIsSupported && scaleIsPaired;
+    const { readWeightKg, pair: pairScale, isSupported: scaleSupported, isPaired: scaleIsPaired } = useScale();
     const queryClient = useQueryClient();
     const sellByWeight = features?.sell_by_weight === true;
     const { data: businessConfig } = useGetBusinessConfig();
@@ -47,7 +45,6 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
 
     const { mutateAsync: storeOrder } = useStoreOrder();
     const { mutateAsync: updateOrderData } = useUpdateOrderData();
-    const { mutateAsync: deleteOrderById } = useDeleteOrderById();
     const { mutateAsync: createOrderProduct } = useCreateOrderProduct();
     const { mutateAsync: updateOrderProduct } = useUpdateOrderProduct();
     const { mutateAsync: deleteOrderItem } = useDeleteOrderItem();
@@ -356,10 +353,15 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         }
     };
 
-    const handleQtyBlur = async (orderProductId: number) => {
+    // explicitValue: para llamadas que no vienen de un evento real de blur del
+    // input (ej. handleScaleReading, que llama handleQtyChange + handleQtyBlur
+    // en la misma pasada síncrona) — editingQtys todavía no refleja el
+    // setEditingQtys de handleQtyChange en ese caso (closure obsoleto), así que
+    // depender del estado ahí perdía el valor sin guardarlo en el backend.
+    const handleQtyBlur = async (orderProductId: number, explicitValue?: string) => {
         const oid = orderIdRef.current;
         if (!oid) return;
-        const value = editingQtys[orderProductId];
+        const value = explicitValue ?? editingQtys[orderProductId];
         if (value === undefined) return;
         const qty = parseFloat(value) || 0;
         setEditingQtys((prev) => { const n = { ...prev }; delete n[orderProductId]; return n; });
@@ -392,7 +394,23 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         const item = cart.find((i) => i.orderProductId === orderProductId);
         if (!item) return;
         try {
-            const weightKg = await readWeightKg();
+            // Si nunca se conectó desde Configuración, se pide el puerto aquí mismo
+            // (mismo flujo de un clic que había antes) en vez de solo mostrar un
+            // error diciendo que vaya a Configuración.
+            let weightKg: number;
+            try {
+                if (!scaleIsPaired) await pairScale();
+                weightKg = await readWeightKg();
+            } catch (error) {
+                // El flag local dice "emparejada" pero el navegador no tiene el
+                // puerto (ej. Firefox no persiste permisos de Web Serial entre
+                // refrescos) — se reintenta pidiendo el puerto de nuevo. Otros
+                // errores (báscula apagada, respuesta ilegible) no se reintentan
+                // aquí, solo se propagan al catch de afuera.
+                if (!(error instanceof ScaleNotConnectedError)) throw error;
+                await pairScale();
+                weightKg = await readWeightKg();
+            }
             const weight = item.product.unidad_medida === UnidadMedidaEnum.Gr ? weightKg * 1000 : weightKg;
             // qty <= 0 dispara removeFromCart en handleQtyBlur (mismo comportamiento que
             // borrar el número a mano) — una lectura en 0 no debe borrar el producto.
@@ -404,10 +422,16 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
                 ? weight.toFixed(3)
                 : String(Math.round(weight));
             handleQtyChange(orderProductId, value);
-            await handleQtyBlur(orderProductId);
+            await handleQtyBlur(orderProductId, value);
         } catch (error) {
-            logUnexpectedError(error, "useSellByWeightSaleModal.handleScaleReading");
-            toast.error(getUserFacingErrorMessage(error, "No se pudo leer la báscula"));
+            // ScaleContext lanza Error normales con mensajes accionables (ej. "ve a
+            // Configuración y presiona 'Conectar báscula'") — son estados esperados
+            // del flujo (no conectada, sin respuesta, etc.), no bugs, así que no se
+            // reportan con logUnexpectedError (eso los mandaría al log de errores del
+            // SuperAdmin como ruido). getUserFacingErrorMessage tampoco sirve aquí:
+            // solo interpreta AxiosError y descartaría el mensaje con su fallback.
+            const msg = error instanceof Error ? error.message : "No se pudo leer la báscula";
+            toast.error(msg);
         }
     };
 
@@ -440,6 +464,15 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     const invalidateOrderQueries = () => {
         queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
         queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
+        // useShowOrder usa `${ApiRoutes.Orders}/${orderId}` como query key completa
+        // (un string distinto por orden, no un arreglo jerárquico) — la invalidación
+        // de arriba no la alcanza por prefijo. Sin esto, reabrir esta misma orden
+        // (resume) repuebla el carrito con order_products ya borrados/editados en
+        // caché desde antes de cerrar el modal.
+        const oid = orderIdRef.current;
+        if (oid) {
+            queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${oid}`] });
+        }
         if (sistemaId) {
             queryClient.invalidateQueries({
                 queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`],
@@ -456,48 +489,43 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             return;
         }
 
-        // No products: delete the empty order silently
-        if (cartRef.current.length === 0) {
-            try {
-                await deleteOrderById(oid);
-            } catch (error) {
-                logUnexpectedError(error, "useSellByWeightSaleModal.handleClose.deleteEmpty");
-            }
-        } else {
-            // Flush only price-mode items that have an unblurred pending edit.
-            // Items already blurred are saved by handlePriceBlur; flushing them again
-            // risks sending stale state if the ref hasn't updated after the blur yet.
-            const priceModeFlush = cartRef.current
-                .filter((item) => {
-                    const pending = editingPricesRef.current[item.orderProductId];
-                    return itemModesRef.current[item.productId] === WeightInputModeEnum.Price && pending !== undefined;
-                })
-                .map((item) => {
-                    const pending = editingPricesRef.current[item.orderProductId]!;
-                    const price = parseFloat(pending) || (item.precioEfectivo * item.cantidad);
-                    return updateOrderProduct({
-                        orderId: oid,
-                        orderProductId: item.orderProductId,
-                        data: { cantidad: 1, precio: price },
-                    }).catch((err) =>
-                        logUnexpectedError(err, "useSellByWeightSaleModal.handleClose.flushPriceMode"),
-                    );
-                });
-            if (priceModeFlush.length > 0) await Promise.all(priceModeFlush);
+        // El pedido queda como InProcess aunque el carrito esté vacío (ej. se
+        // agregaron productos y luego se limpiaron) — visible en la lista, listo
+        // para retomar y seguir agregando, en vez de borrarse por completo.
 
-            // Persist delivery state so it restores correctly on resume
-            try {
-                await updateOrderData({
+        // Flush only price-mode items that have an unblurred pending edit.
+        // Items already blurred are saved by handlePriceBlur; flushing them again
+        // risks sending stale state if the ref hasn't updated after the blur yet.
+        const priceModeFlush = cartRef.current
+            .filter((item) => {
+                const pending = editingPricesRef.current[item.orderProductId];
+                return itemModesRef.current[item.productId] === WeightInputModeEnum.Price && pending !== undefined;
+            })
+            .map((item) => {
+                const pending = editingPricesRef.current[item.orderProductId]!;
+                const price = parseFloat(pending) || (item.precioEfectivo * item.cantidad);
+                return updateOrderProduct({
                     orderId: oid,
-                    data: {
-                        costo_domicilio: domicilioActivo
-                            ? calcCostoDomicilio(domicilio, domicilioActivo, customerPays)
-                            : 0,
-                    },
-                });
-            } catch (error) {
-                logUnexpectedError(error, "useSellByWeightSaleModal.handleClose.saveDelivery");
-            }
+                    orderProductId: item.orderProductId,
+                    data: { cantidad: 1, precio: price },
+                }).catch((err) =>
+                    logUnexpectedError(err, "useSellByWeightSaleModal.handleClose.flushPriceMode"),
+                );
+            });
+        if (priceModeFlush.length > 0) await Promise.all(priceModeFlush);
+
+        // Persist delivery state so it restores correctly on resume
+        try {
+            await updateOrderData({
+                orderId: oid,
+                data: {
+                    costo_domicilio: domicilioActivo
+                        ? calcCostoDomicilio(domicilio, domicilioActivo, customerPays)
+                        : 0,
+                },
+            });
+        } catch (error) {
+            logUnexpectedError(error, "useSellByWeightSaleModal.handleClose.saveDelivery");
         }
 
         // Has products (or resume mode): leave as InProcess, refresh list
