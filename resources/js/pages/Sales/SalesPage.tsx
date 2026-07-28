@@ -1,17 +1,36 @@
 import { DataTable } from "mantine-datatable";
 import { ShoppingBag, RefreshCw } from "lucide-react";
 import { useSalesPage } from "./useSalesPage";
-import { SalesFilters } from "./partials/SalesFilters";
+import { SalesFilters } from "./partials/SalesFilters/SalesFilters";
+import { SalesReportModeEnum } from "@/enums/SalesReportModeEnum";
 import { OrderDetailModal } from "./partials/OrderDetailModal/OrderDetailModal";
 import { SalesByCategoryModal } from "./partials/SalesByCategoryModal/SalesByCategoryModal";
 import { useSalesByCategoryModal } from "./partials/SalesByCategoryModal/useSalesByCategoryModal";
 import { RestaurantSalesModal } from "./partials/RestaurantSalesModal/RestaurantSalesModal";
 
 export default function SalesPage() {
-    const { dataTableProps, isLoading, refetch, fecha, categoriaId, categories, sellByWeight, handleFechaChange, handleCategoriaChange, handleClear, modal } =
-        useSalesPage();
+    const {
+        dataTableProps,
+        isLoading,
+        refetch,
+        reportMode,
+        fecha,
+        mes,
+        categoriaId,
+        categories,
+        sellByWeight,
+        handleReportModeChange,
+        handleFechaChange,
+        handleMesChange,
+        handleCategoriaChange,
+        handleClear,
+        modal,
+    } = useSalesPage();
 
-    const categoryModal = useSalesByCategoryModal(fecha);
+    const categoryModal = useSalesByCategoryModal(
+        reportMode === SalesReportModeEnum.Day ? fecha : null,
+        reportMode === SalesReportModeEnum.Month ? mes : null,
+    );
 
     return (
         <div className="px-5 py-6 max-w-7xl mx-auto">
@@ -36,12 +55,16 @@ export default function SalesPage() {
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
                 <SalesFilters
                     fecha={fecha}
+                    mes={mes}
+                    reportMode={reportMode}
                     categoriaId={categoriaId}
                     categories={categories}
                     sellByWeight={sellByWeight}
                     showCategoryReport={true}
                     categoryReportLabel={sellByWeight ? "Reporte por categoría" : "Resumen de ventas"}
+                    onReportModeChange={handleReportModeChange}
                     onFechaChange={handleFechaChange}
+                    onMesChange={handleMesChange}
                     onCategoriaChange={handleCategoriaChange}
                     onCategoryReport={categoryModal.open}
                     onClear={handleClear}
@@ -77,6 +100,7 @@ export default function SalesPage() {
                     totalNeto={categoryModal.totalNeto}
                     sistemaId={categoryModal.sistemaId}
                     fecha={categoryModal.fecha}
+                    mes={categoryModal.mes}
                 />
             ) : (
                 <RestaurantSalesModal
@@ -88,6 +112,7 @@ export default function SalesPage() {
                     totalDomicilios={categoryModal.totalDomicilios}
                     totalNeto={categoryModal.totalNeto}
                     fecha={categoryModal.fecha}
+                    mes={categoryModal.mes}
                 />
             )}
         </div>

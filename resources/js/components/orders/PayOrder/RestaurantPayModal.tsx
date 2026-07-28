@@ -1,7 +1,7 @@
 import { IPaymentMethod } from "@/models/IPaymentMethod";
 import { ICustomer } from "@/models/ICustomer";
 import { PayModalHeader } from "../PayModal/PayModalHeader";
-import { PayModalTotal } from "../PayModal/PayModalTotal";
+import { PayModalTotalSummary } from "../PayModal/PayModalTotalSummary";
 import { PayMethodSelector } from "../PayModal/PayMethodSelector";
 import { PayTransferAlert } from "../PayModal/PayTransferAlert";
 import { PayCashInput } from "../PayModal/PayCashInput";
@@ -13,6 +13,10 @@ import { useAxios } from "@/hooks/useAxios";
 interface RestaurantPayModalProps {
     isOpen: boolean;
     subtotal: number;
+    totalFinal: number;
+    domicilio: number;
+    domicilioActivo: boolean;
+    customerPays: boolean;
     cash: string;
     setCash: (v: string) => void;
     change: number;
@@ -36,6 +40,10 @@ interface RestaurantPayModalProps {
 export const RestaurantPayModal = ({
     isOpen,
     subtotal,
+    totalFinal,
+    domicilio,
+    domicilioActivo,
+    customerPays,
     cash,
     setCash,
     change,
@@ -68,7 +76,13 @@ export const RestaurantPayModal = ({
                 <PayModalHeader onClose={onClose} />
 
                 <div className="p-5 space-y-4">
-                    <PayModalTotal subtotal={subtotal} />
+                    <PayModalTotalSummary
+                        totalFinal={totalFinal}
+                        subtotal={subtotal}
+                        domicilio={domicilio}
+                        domicilioActivo={domicilioActivo}
+                        customerPays={customerPays}
+                    />
 
                     <PayMethodSelector
                         paymentMethods={paymentMethods}
@@ -91,7 +105,7 @@ export const RestaurantPayModal = ({
 
                             <PayPropinaInput
                                 isCash={isCash}
-                                subtotal={subtotal}
+                                subtotal={totalFinal}
                                 propina={propina}
                                 setPropina={setPropina}
                             />
@@ -101,7 +115,7 @@ export const RestaurantPayModal = ({
                                 cash={cash}
                                 setCash={setCash}
                                 change={change}
-                                max={Math.ceil(subtotal * 10)}
+                                max={Math.ceil(totalFinal * 10)}
                             />
                         </>
                     )}

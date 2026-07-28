@@ -4,7 +4,7 @@ import { CloseSalesSectionHeading } from "./CloseSalesSectionHeading";
 import { formatCurrency } from "@/utils/formatCurrency";
 
 interface CloseSalesSummaryCardsRestaurantProps {
-    totalBruto: number;
+    totalNeto: number;
     totalEfectivoPagado: number;
     totalTransferenciaPagado: number;
     totalPropinas: number;
@@ -12,7 +12,7 @@ interface CloseSalesSummaryCardsRestaurantProps {
 }
 
 export const CloseSalesSummaryCardsRestaurant = ({
-    totalBruto,
+    totalNeto,
     totalEfectivoPagado,
     totalTransferenciaPagado,
     totalPropinas,
@@ -41,7 +41,7 @@ export const CloseSalesSummaryCardsRestaurant = ({
                 icon={<TrendingUp size={20} className="text-emerald-600" />}
                 iconBg="bg-emerald-100"
                 label="Ventas Totales"
-                value={formatCurrency(totalBruto)}
+                value={formatCurrency(totalNeto)}
                 valueColor="text-emerald-700"
                 className="sm:col-span-2"
             />

@@ -12,10 +12,17 @@ import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { calcCostoDomicilio } from "@/utils/deliveryCalc";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 
-export const usePayModal = (orderId: number, subtotal: number) => {
+interface DeliveryInfo {
+    domicilio: number;
+    domicilioActivo: boolean;
+    customerPays: boolean;
+}
+
+export const usePayModal = (orderId: number, total: number, delivery: DeliveryInfo) => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { sistemaId } = useAxios();
@@ -37,12 +44,12 @@ export const usePayModal = (orderId: number, subtotal: number) => {
     const selectedCustomer = customers.find((c) => c.id === selectedCustomerId) ?? null;
 
     const cashNum = parseFloat(cash) || 0;
-    const change = cashNum - subtotal;
+    const change = cashNum - total;
     const canPay = isCreditMode
-        ? subtotal > 0 && !!selectedCustomer && selectedCustomer.allow_credit
+        ? total > 0 && !!selectedCustomer && selectedCustomer.allow_credit
         : isCash
-            ? cashNum >= subtotal && subtotal > 0
-            : subtotal > 0;
+            ? cashNum >= total && total > 0
+            : total > 0;
 
     const handleOpen = () => {
         setCash("");
@@ -72,6 +79,9 @@ export const usePayModal = (orderId: number, subtotal: number) => {
         try {
             await updateOrder({
                 estatus_pedido_id: OrderStatusEnum.Closed,
+                costo_domicilio: delivery.domicilioActivo
+                    ? calcCostoDomicilio(delivery.domicilio, delivery.domicilioActivo, delivery.customerPays)
+                    : 0,
                 ...paymentData,
             });
             queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });

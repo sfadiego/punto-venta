@@ -86,12 +86,13 @@ class OrderController extends Controller
     {
         $sistemaId = $request->query('sistema_id') ? (int) $request->query('sistema_id') : null;
         $date = $request->query('fecha');
+        $month = $request->query('mes');
 
-        if (! $sistemaId && ! $date) {
-            return Response::error('Se requiere sistema_id o fecha.');
+        if (! $sistemaId && ! $date && ! $month) {
+            return Response::error('Se requiere sistema_id, fecha o mes.');
         }
 
-        return Response::success($saleService->salesByCategory($sistemaId, $date));
+        return Response::success($saleService->salesByCategory($sistemaId, $date, $month));
     }
 
     private function broadcast(string $type = 'updated', ?int $orderId = null): void

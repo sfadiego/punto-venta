@@ -34,7 +34,6 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
     } = useOrderPreviewModal(order.id);
     const { features } = useAxios();
     const showOrderServed = features?.order_served !== false;
-    const sellByWeight = features?.sell_by_weight === true;
 
     return (
         <>
@@ -75,7 +74,7 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                             />
                         )}
 
-                        {sellByWeight && Number(order.costo_domicilio) !== 0 && (
+                        {Number(order.costo_domicilio) !== 0 && (
                             <div className="px-5 py-2.5 border-b border-stone-100 shrink-0">
                                 <OrderDeliveryBadge costoDomicilio={order.costo_domicilio} />
                             </div>

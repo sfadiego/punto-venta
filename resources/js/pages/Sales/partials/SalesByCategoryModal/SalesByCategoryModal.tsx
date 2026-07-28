@@ -1,5 +1,6 @@
 import { X, LayoutGrid, Loader, Bike, FileArchive } from "lucide-react";
 import { ISalesByCategory } from "@/models/ISalesByCategory";
+import { formatDateLabel, formatMonthLabel } from "@/utils/dateUtils";
 
 interface SalesByCategoryModalProps {
     isOpen: boolean;
@@ -12,6 +13,7 @@ interface SalesByCategoryModalProps {
     totalNeto: number;
     sistemaId: number | null;
     fecha?: string | null;
+    mes?: string | null;
 }
 
 export const SalesByCategoryModal = ({
@@ -25,6 +27,7 @@ export const SalesByCategoryModal = ({
     totalNeto,
     sistemaId,
     fecha,
+    mes,
 }: SalesByCategoryModalProps) => {
     if (!isOpen) return null;
 
@@ -42,9 +45,9 @@ export const SalesByCategoryModal = ({
                             {sistemaId && (
                                 <p className="text-xs text-stone-400">Sesión #{sistemaId}</p>
                             )}
-                            {fecha && !sistemaId && (
+                            {!sistemaId && (fecha || mes) && (
                                 <p className="text-xs text-stone-400">
-                                    {new Date(fecha + "T00:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })}
+                                    {fecha ? formatDateLabel(fecha) : formatMonthLabel(mes!)}
                                 </p>
                             )}
                         </div>

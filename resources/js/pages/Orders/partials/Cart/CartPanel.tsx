@@ -1,6 +1,7 @@
 import { Loader } from "lucide-react";
 import { IOrder } from "@/models/IOrder";
 import { ICartItem } from "@/models/ICartItem";
+import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 import { usePayModal } from "./usePayModal";
 import { RestaurantPayModal } from "@/components/orders/PayOrder/RestaurantPayModal";
 import { CartEmptyState } from "./CartEmptyState";
@@ -14,6 +15,16 @@ interface CartPanelProps {
     subtotal: number;
     orderDiscount: number;
     total: number;
+    totalFinal: number;
+    domicilioActivo: boolean;
+    toggleDomicilio: (checked: boolean) => void;
+    costoDomicilio: string;
+    setCostoDomicilio: (v: string) => void;
+    onCostoDomicilioBlur: () => void;
+    orderDeliveryPaidBy: DeliveryPaidByEnum;
+    setOrderDeliveryPaidBy: (v: DeliveryPaidByEnum) => void;
+    domicilio: number;
+    customerPays: boolean;
     isLoading: boolean;
     isReadOnly?: boolean;
     pendingProductIds?: Set<number>;
@@ -34,6 +45,16 @@ export const CartPanel = ({
     subtotal,
     orderDiscount,
     total,
+    totalFinal,
+    domicilioActivo,
+    toggleDomicilio,
+    costoDomicilio,
+    setCostoDomicilio,
+    onCostoDomicilioBlur,
+    orderDeliveryPaidBy,
+    setOrderDeliveryPaidBy,
+    domicilio,
+    customerPays,
     isLoading,
     isReadOnly = false,
     pendingProductIds,
@@ -67,7 +88,7 @@ export const CartPanel = ({
         handlePay,
         handleSelectCredit,
         handleSelectMethod,
-    } = usePayModal(order?.id ?? 0, total);
+    } = usePayModal(order?.id ?? 0, totalFinal, { domicilio, domicilioActivo, customerPays });
 
     return (
         <>
@@ -130,6 +151,16 @@ export const CartPanel = ({
                     subtotal={subtotal}
                     orderDiscount={orderDiscount}
                     total={total}
+                    totalFinal={totalFinal}
+                    domicilioActivo={domicilioActivo}
+                    toggleDomicilio={toggleDomicilio}
+                    costoDomicilio={costoDomicilio}
+                    setCostoDomicilio={setCostoDomicilio}
+                    onCostoDomicilioBlur={onCostoDomicilioBlur}
+                    orderDeliveryPaidBy={orderDeliveryPaidBy}
+                    setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
+                    domicilio={domicilio}
+                    customerPays={customerPays}
                     hasItems={cart.length > 0}
                     isReadOnly={isReadOnly}
                     orderId={order?.id ?? 0}
@@ -141,7 +172,11 @@ export const CartPanel = ({
 
             <RestaurantPayModal
                 isOpen={payOpen}
-                subtotal={subtotal}
+                subtotal={total}
+                totalFinal={totalFinal}
+                domicilio={domicilio}
+                domicilioActivo={domicilioActivo}
+                customerPays={customerPays}
                 cash={cash}
                 setCash={setCash}
                 change={change}

@@ -12,8 +12,10 @@ import { useOrderDetailModal } from "./partials/OrderDetailModal/useOrderDetailM
 import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
 
 import { localDateString } from "@/utils/dateUtils";
+import { SalesReportModeEnum } from "@/enums/SalesReportModeEnum";
 
 const today = () => localDateString();
+const currentMonth = () => today().slice(0, 7);
 
 const renderersMap: DataTableRenderersMap = {
     total: (o: IOrder) => `$${o.total.toFixed(2)}`,
@@ -34,7 +36,9 @@ export const useSalesPage = () => {
     const { features } = useAxios();
     const sellByWeight = features?.sell_by_weight === true;
 
+    const [reportMode, setReportMode] = useState<SalesReportModeEnum>(SalesReportModeEnum.Day);
     const [fecha, setFecha] = useState<string | null>(today());
+    const [mes, setMes] = useState<string | null>(currentMonth());
     const [categoriaId, setCategoriaId] = useState<number | null>(null);
     const modal = useOrderDetailModal();
 
@@ -70,7 +74,7 @@ export const useSalesPage = () => {
         service: useIndexOrder,
         payload: {
             estatus_pedido_id: OrderStatusEnum.Closed,
-            ...(fecha ? { fecha } : {}),
+            ...(reportMode === SalesReportModeEnum.Day ? (fecha ? { fecha } : {}) : (mes ? { mes } : {})),
             ...(categoriaId !== null ? { categoria_id: categoriaId } : {}),
         },
         renderersMap,
@@ -103,8 +107,18 @@ export const useSalesPage = () => {
         [dataTableProps, actionsColumn],
     );
 
+    const handleReportModeChange = (mode: SalesReportModeEnum) => {
+        setReportMode(mode);
+        setPage(1);
+    };
+
     const handleFechaChange = (value: string | null) => {
         setFecha(value);
+        setPage(1);
+    };
+
+    const handleMesChange = (value: string | null) => {
+        setMes(value);
         setPage(1);
     };
 
@@ -114,7 +128,9 @@ export const useSalesPage = () => {
     };
 
     const handleClear = () => {
+        setReportMode(SalesReportModeEnum.Day);
         setFecha(today());
+        setMes(currentMonth());
         setCategoriaId(null);
         setPage(1);
     };
@@ -123,11 +139,15 @@ export const useSalesPage = () => {
         dataTableProps: enhancedDataTableProps,
         isLoading,
         refetch,
+        reportMode,
         fecha,
+        mes,
         categoriaId,
         categories,
         sellByWeight,
+        handleReportModeChange,
         handleFechaChange,
+        handleMesChange,
         handleCategoriaChange,
         handleClear,
         modal,

@@ -76,7 +76,7 @@ export default function CloseSalesPage() {
                 />
             ) : (
                 <CloseSalesSummaryCardsRestaurant
-                    totalBruto={totalBruto}
+                    totalNeto={totalNeto}
                     totalEfectivoPagado={totalEfectivoPagado}
                     totalTransferenciaPagado={totalTransferenciaPagado}
                     totalPropinas={totalPropinas}
@@ -86,7 +86,7 @@ export default function CloseSalesPage() {
 
             <CloseSalesCashSummary
                 efectivoInicio={efectivoInicio}
-                totalDomicilios={sellByWeight ? totalDomicilios : 0}
+                totalDomicilios={totalDomicilios}
                 totalGastos={totalGastos}
                 onViewExpenses={openExpensesModal}
             />
