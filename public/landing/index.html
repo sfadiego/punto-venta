@@ -246,6 +246,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; text-wrap: bala
   white-space: nowrap;
 }
 .btn:active { transform: scale(0.97); }
+/* Foco visible para navegación por teclado (no afecta el mouse gracias a :focus-visible) */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 .btn-primary {
   background: var(--ember);
   color: #fff;
@@ -970,7 +976,7 @@ footer {
 }
 .period-btn {
   border: none; background: transparent; cursor: pointer;
-  padding: 9px 18px; border-radius: 10px;
+  padding: 12px 18px; min-height: 44px; border-radius: 10px;
   font-family: var(--font-body); font-weight: 700; font-size: 13.5px;
   color: var(--ink-soft); transition: all .18s ease; white-space: nowrap;
 }
@@ -1110,9 +1116,9 @@ footer {
 
     <div class="hero-badge">
       <div class="hero-badge-avatars">
-        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/chantico.jpg" alt="Cliente Chantico" />
-        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/liro.jpg" alt="Cliente Liro" />
-        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/luna.jpg" alt="Cliente Luna" />
+        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/chantico.jpg" alt="Cliente Chantico" width="38" height="38" loading="lazy" />
+        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/liro.jpg" alt="Cliente Liro" width="38" height="38" loading="lazy" />
+        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/luna.jpg" alt="Cliente Luna" width="38" height="38" loading="lazy" />
       </div>
       <span class="hero-badge-dot"></span>
       Más de 50 negocios activos
@@ -1146,6 +1152,8 @@ footer {
         src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/pos.jpg"
         alt="Panel de Venta Rápida"
         class="hero-app-img"
+        width="1906"
+        height="925"
       />
     </div>
 
@@ -1695,7 +1703,7 @@ footer {
 .vr-bot-ti span{font-size:12px;opacity:.85;display:flex;align-items:center;gap:6px}
 .vr-bot-dot{width:8px;height:8px;border-radius:50%;background:#5CF08E;box-shadow:0 0 0 0 rgba(92,240,142,.6);animation:vrPing 2s infinite}
 @keyframes vrPing{70%{box-shadow:0 0 0 8px rgba(92,240,142,0)}100%{box-shadow:0 0 0 0 rgba(92,240,142,0)}}
-.vr-bot-x{margin-left:auto;background:rgba(255,255,255,.18);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;display:grid;place-items:center;font-size:18px;line-height:1}
+.vr-bot-x{margin-left:auto;background:rgba(255,255,255,.18);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;display:grid;place-items:center;font-size:18px;line-height:1}
 .vr-bot-x:hover{background:rgba(255,255,255,.3)}
 .vr-bot-body{padding:16px 18px;display:flex;flex-direction:column;gap:12px;max-height:300px;overflow-y:auto;background:var(--paper-dim)}
 .vr-bot-body::-webkit-scrollbar{width:5px}.vr-bot-body::-webkit-scrollbar-thumb{background:var(--card-line);border-radius:99px}
@@ -1708,7 +1716,7 @@ footer {
 .vr-typing i:nth-child(2){animation-delay:.2s}.vr-typing i:nth-child(3){animation-delay:.4s}
 @keyframes vrDot{0%,80%,100%{opacity:.25}40%{opacity:1}}
 .vr-chips{display:flex;flex-wrap:wrap;gap:7px;padding:0 18px 14px;background:var(--paper-dim)}
-.vr-chip{font-size:12px;padding:7px 13px;border-radius:99px;border:1px solid var(--card-line);background:var(--card);color:var(--ember-ink);cursor:pointer;font-family:inherit;font-weight:600;transition:transform .15s,box-shadow .2s,border-color .2s}
+.vr-chip{font-size:12.5px;padding:10px 14px;min-height:40px;border-radius:99px;border:1px solid var(--card-line);background:var(--card);color:var(--ember-ink);cursor:pointer;font-family:inherit;font-weight:600;transition:transform .15s,box-shadow .2s,border-color .2s}
 .vr-chip:hover{transform:translateY(-2px);border-color:var(--ember);box-shadow:0 4px 12px rgba(0,137,145,.2)}
 .vr-bot-cta{display:none;align-items:center;gap:8px;margin:0 18px 16px;padding:11px 14px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:12px;background:var(--paper-dim)}
 .vr-bot-cta.on{display:flex}
