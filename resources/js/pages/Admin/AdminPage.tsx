@@ -58,16 +58,7 @@ function AdminPage() {
                         )}
                         {sellByWeight && (
                             <div id="domicilio">
-                                <FeatureSpotlight
-                                    featureKey={FeatureSpotlightKey.DeliverySection}
-                                    title="Sección de Domicilio"
-                                    description="Descubre la nueva sección de domicilio, donde podrás gestionar y visualizar toda la información de tus pedidos a domicilio de manera eficiente."
-                                    variant="block"
-                                    placement="top-start"
-                                >
-
-                                    <DeliverySection config={config} />
-                                </FeatureSpotlight>
+                                <DeliverySection config={config} />
                             </div>
                         )}
                         {sellByWeight && (

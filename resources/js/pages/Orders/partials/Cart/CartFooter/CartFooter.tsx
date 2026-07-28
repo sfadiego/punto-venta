@@ -3,6 +3,8 @@ import { CartDeliveryFields } from "@/components/orders/CartDeliveryFields";
 import { CartDiscountRow } from "./CartDiscountRow";
 import { CartTotalRow } from "./CartTotalRow";
 import { CartCheckoutActions } from "./CartCheckoutActions";
+import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
+import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/FeatureSpotlight";
 
 interface CartFooterProps {
     subtotal: number;
@@ -56,19 +58,25 @@ export const CartFooter = ({
                     isReadOnly={isReadOnly}
                     onUpdateDiscount={onUpdateDiscount}
                 />
-
-                <CartDeliveryFields
-                    domicilioActivo={domicilioActivo}
-                    toggleDomicilio={toggleDomicilio}
-                    costoDomicilio={costoDomicilio}
-                    setCostoDomicilio={setCostoDomicilio}
-                    onCostoDomicilioBlur={onCostoDomicilioBlur}
-                    setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
-                    domicilio={domicilio}
-                    customerPays={customerPays}
-                    isReadOnly={isReadOnly}
-                />
-
+                <FeatureSpotlight
+                    featureKey={FeatureSpotlightKey.DeliverySectionButton}
+                    title="Envio Domicilio"
+                    description="Envio a domicilio, podrás gestionar los pedidos a domicilio."
+                    variant="block"
+                    placement="top-start"
+                >
+                    <CartDeliveryFields
+                        domicilioActivo={domicilioActivo}
+                        toggleDomicilio={toggleDomicilio}
+                        costoDomicilio={costoDomicilio}
+                        setCostoDomicilio={setCostoDomicilio}
+                        onCostoDomicilioBlur={onCostoDomicilioBlur}
+                        setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
+                        domicilio={domicilio}
+                        customerPays={customerPays}
+                        isReadOnly={isReadOnly}
+                    />
+                </FeatureSpotlight>
                 <CartTotalRow totalFinal={totalFinal} domicilioExcedeTotal={domicilioExcedeTotal} />
             </div>
 

@@ -8,6 +8,7 @@ export enum FeatureSpotlightKey {
     CategoriesSection = "categories_section",
     ConfigurationSection = "configuration_section",
     DeliverySection = "delivery_section",
+    DeliverySectionButton = "delivery_section_button",
     SubscriptionSection = "subscription_section",
     OnlineMenuSection = "online_menu_section",
     OrderListSection = "order_list_section",
