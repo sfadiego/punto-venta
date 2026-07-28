@@ -655,6 +655,31 @@ section { padding: 92px 0; }
 .mock-bar-bg { background: var(--paper-dim); border-radius: 999px; height: 6px; overflow: hidden; }
 .mock-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--ember), var(--marigold)); }
 
+/* Mockup Báscula */
+.mock-scale-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 300px; }
+.mock-scale-display {
+  width: 100%;
+  background: var(--card); border: 1px solid var(--card-line);
+  border-radius: 14px; padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(17,24,39,0.07);
+}
+.mock-scale-screen { text-align: center; }
+.mock-scale-label { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .07em; }
+.mock-scale-reading { display: flex; align-items: baseline; justify-content: center; gap: 6px; margin: 8px 0 4px; }
+.mock-scale-value { font-size: 38px; font-weight: 900; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1; }
+.mock-scale-unit { font-size: 16px; font-weight: 700; color: var(--ink-soft); }
+.mock-scale-status { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; color: #16a34a; }
+.mock-scale-dot { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; animation: scalePulse 1.4s ease-in-out infinite; display: inline-block; }
+@keyframes scalePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+.mock-scale-arrow { color: var(--ink-soft); opacity: 0.4; }
+.mock-scale-field {
+  width: 100%; background: color-mix(in srgb, var(--ember) 6%, var(--card));
+  border: 1.5px solid var(--ember); border-radius: 12px; padding: 12px 16px;
+}
+.mock-scale-field-label { font-size: 11px; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; display: block; }
+.mock-scale-field-value { display: flex; align-items: center; justify-content: space-between; }
+.mock-scale-field-value span:first-child { font-size: 15px; font-weight: 700; color: var(--ink); }
+
 /* Mockup Cocina */
 .mock-kitchen { display: flex; gap: 12px; width: 100%; max-width: 340px; }
 .mock-kitchen-card {
@@ -1169,9 +1194,50 @@ footer {
           </div>
         </div>
 
+        <!-- ─── PASO: Báscula digital ─── -->
         <div class="zz-row reverse">
           <div class="zz-text">
-            <span class="zz-num">02 — Cobrar</span>
+            <span class="zz-num">02 — Báscula digital</span>
+            <h3>Conecta tu báscula y el peso llega solo — sin teclear.</h3>
+            <p>Pon el producto en la báscula, el sistema lee el peso automáticamente y calcula el precio al instante. Cero errores, más velocidad en el mostrador.</p>
+            <div class="zz-chips">
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Conexión USB / Serial</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Lectura automática</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Sin errores de captura</span>
+            </div>
+          </div>
+          <div class="zz-visual">
+            <div class="mock-scale-wrap">
+              <div class="mock-scale-display">
+                <div class="mock-scale-screen">
+                  <span class="mock-scale-label">Báscula conectada</span>
+                  <div class="mock-scale-reading">
+                    <span class="mock-scale-value">0.850</span>
+                    <span class="mock-scale-unit">kg</span>
+                  </div>
+                  <div class="mock-scale-status">
+                    <span class="mock-scale-dot"></span> En vivo
+                  </div>
+                </div>
+              </div>
+              <div class="mock-scale-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="24" height="24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+              </div>
+              <div class="mock-scale-field">
+                <span class="mock-scale-field-label">Bistec de res</span>
+                <div class="mock-scale-field-value">
+                  <span>0.850 kg</span>
+                  <span class="mock-price">$153.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /paso báscula -->
+
+        <div class="zz-row">
+          <div class="zz-text">
+            <span class="zz-num">03 — Cobrar</span>
             <h3>Efectivo, transferencia o fiado — tú decides cómo cobra.</h3>
             <p>Da crédito a tus clientes de confianza, registra abonos y bloquea cuando el saldo se pasa.</p>
             <div class="zz-chips">
@@ -1201,7 +1267,7 @@ footer {
 
         <div class="zz-row">
           <div class="zz-text">
-            <span class="zz-num">03 — Cerrar caja</span>
+            <span class="zz-num">04 — Cerrar caja</span>
             <h3>Al final del día, ve exactamente qué vendiste y cuánto entra.</h3>
             <p>Cierra la caja, revisa los cortes más vendidos por kg y compara contra el efectivo del cajón.</p>
             <div class="zz-chips">
