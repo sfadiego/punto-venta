@@ -3,9 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { useCustomerDetailPage } from "./useCustomerDetailPage";
 import { CustomerBalanceCard } from "./partials/CustomerBalanceCard";
-import { CustomerPaymentForm } from "./partials/CustomerPaymentForm";
+import { CustomerPaymentForm } from "./partials/Payment/CustomerPaymentForm";
 import { CustomerCreditOrdersList } from "./partials/CustomerCreditOrdersList";
-import { CustomerPaymentHistoryList } from "./partials/CustomerPaymentHistoryList";
+import { CustomerPaymentHistoryList } from "./partials/Payment/CustomerPaymentHistoryList";
 
 export default function CustomerDetailPage() {
     const navigate = useNavigate();

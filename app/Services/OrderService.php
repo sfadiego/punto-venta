@@ -57,8 +57,12 @@ class OrderService extends DataTable
         }
 
         $fecha = request()->query('fecha');
+        $mes = request()->query('mes');
         if ($fecha) {
             $query->whereDate('created_at', $fecha);
+        } elseif ($mes) {
+            [$year, $month] = explode('-', $mes);
+            $query->whereYear('created_at', (int) $year)->whereMonth('created_at', (int) $month);
         }
 
         $categoriaId = request()->query('categoria_id');

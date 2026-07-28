@@ -6,8 +6,8 @@ import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
 import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
 import { ITenant } from "@/models/ITenant";
-import { ActiveUsersWidget } from "@/components/SuperAdmin/Tenants/ActiveUsersWidget";
-import { ActiveUsersBadge } from "@/components/SuperAdmin/Tenants/ActiveUsersBadge";
+import { ActiveUsersWidget } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersWidget";
+import { ActiveUsersBadge } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersBadge";
 
 const FILTERS: { label: string; value: TenantStatusEnum }[] = [
     { label: "Todos",      value: TenantStatusEnum.All },

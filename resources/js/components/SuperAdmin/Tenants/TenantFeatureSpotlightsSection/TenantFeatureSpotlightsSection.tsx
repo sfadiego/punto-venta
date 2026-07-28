@@ -15,6 +15,7 @@ const FEATURE_LABELS: Record<FeatureSpotlightKey, string> = {
     [FeatureSpotlightKey.OnlineMenuSection]: "Sección de menú online",
     [FeatureSpotlightKey.OrderListSection]: "Lista de pedidos/órdenes",
     [FeatureSpotlightKey.TicketSection]: "Sección de tickets",
+    [FeatureSpotlightKey.FilterSalesByDateMonth]: "Filtro de ventas por mes",
 };
 
 interface TenantFeatureSpotlightsSectionProps {

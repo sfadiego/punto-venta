@@ -50,6 +50,36 @@ class OrderTest extends TestCase
             ->assertJsonStructure(['current_page', 'data', 'total', 'per_page']);
     }
 
+    public function test_lista_ordenes_filtra_por_mes(): void
+    {
+        $orden = $this->crearOrden();
+        $mesActual = now()->format('Y-m');
+        $mesPasado = now()->subMonthNoOverflow()->format('Y-m');
+
+        $this->getJson(
+            "/api/order?sistema_id={$orden->sistema_id}&estatus_pedido_id={$orden->estatus_pedido_id}&mes={$mesActual}",
+            $this->authHeaders()
+        )->assertStatus(206)->assertJsonPath('total', 1);
+
+        $this->getJson(
+            "/api/order?sistema_id={$orden->sistema_id}&estatus_pedido_id={$orden->estatus_pedido_id}&mes={$mesPasado}",
+            $this->authHeaders()
+        )->assertStatus(206)->assertJsonPath('total', 0);
+    }
+
+    public function test_lista_ordenes_fecha_tiene_prioridad_sobre_mes(): void
+    {
+        $orden = $this->crearOrden();
+        $hoy = now()->toDateString();
+        $mesPasado = now()->subMonthNoOverflow()->format('Y-m');
+
+        // Si vienen ambos, "fecha" debe ganar aunque "mes" apunte a otro período.
+        $this->getJson(
+            "/api/order?sistema_id={$orden->sistema_id}&estatus_pedido_id={$orden->estatus_pedido_id}&fecha={$hoy}&mes={$mesPasado}",
+            $this->authHeaders()
+        )->assertStatus(206)->assertJsonPath('total', 1);
+    }
+
     // ── Store ────────────────────────────────────────────────
 
     public function test_crea_orden(): void
@@ -123,6 +153,19 @@ class OrderTest extends TestCase
             ->assertJsonPath('data.nombre_pedido', 'Mesa Actualizada');
 
         $this->assertDatabaseHas('order', ['id' => $orden->id, 'nombre_pedido' => 'Mesa Actualizada']);
+    }
+
+    public function test_actualiza_orden_costo_domicilio(): void
+    {
+        $orden = $this->crearOrden();
+
+        $this->putJson("/api/order/{$orden->id}", [
+            OrderModel::COSTO_DOMICILIO => -35,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+
+        $this->assertDatabaseHas('order', ['id' => $orden->id, 'costo_domicilio' => -35]);
     }
 
     public function test_actualiza_orden_incluye_telefono_del_cliente(): void
@@ -293,6 +336,31 @@ class OrderTest extends TestCase
             ->assertStatus(422);
     }
 
+    public function test_ventas_por_categoria_sin_ningun_parametro_falla(): void
+    {
+        $this->getJson('/api/order/sales-by-category', $this->authHeaders())
+            ->assertStatus(422);
+    }
+
+    public function test_ventas_por_categoria_con_mes(): void
+    {
+        $report = $this->crearReporte();
+        $mes = now()->format('Y-m');
+
+        $this->getJson("/api/order/sales-by-category?sistema_id={$report->id}&mes={$mes}", $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+    }
+
+    public function test_ventas_por_categoria_solo_con_mes_no_falla(): void
+    {
+        $mes = now()->format('Y-m');
+
+        $this->getJson("/api/order/sales-by-category?mes={$mes}", $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+    }
+
     private function venderConProducto(int $sistemaId, string $nombreProducto, float $precio, int $cantidad = 1): void
     {
         $product = ProductModel::create([
@@ -329,6 +397,83 @@ class OrderTest extends TestCase
 
         // Ambas sesiones caen en la misma categoría (CategoryModel::first()), así que se agregan en una sola fila
         $this->assertEquals(150.0, $totalRevenue);
+    }
+
+    public function test_ventas_por_categoria_por_mes_agrega_todas_las_sesiones_del_mes(): void
+    {
+        $sesionA = $this->crearReporte();
+        $sesionB = $this->crearReporte();
+
+        $this->venderConProducto($sesionA->id, 'Producto mes A', 100);
+        $this->venderConProducto($sesionB->id, 'Producto mes B', 50);
+
+        $mes = now()->format('Y-m');
+
+        $response = $this->getJson("/api/order/sales-by-category?mes={$mes}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $categories = $response->json('data.categories');
+        $totalRevenue = collect($categories)->sum('total_revenue');
+
+        $this->assertEquals(150.0, $totalRevenue);
+    }
+
+    public function test_ventas_por_categoria_mes_no_incluye_otro_mes(): void
+    {
+        $sesion = $this->crearReporte();
+        $this->venderConProducto($sesion->id, 'Producto fuera de mes', 100);
+
+        $mesPasado = now()->subMonthNoOverflow()->format('Y-m');
+
+        $response = $this->getJson("/api/order/sales-by-category?mes={$mesPasado}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertEmpty($response->json('data.categories'));
+    }
+
+    public function test_ventas_por_categoria_fecha_tiene_prioridad_sobre_mes(): void
+    {
+        $sesion = $this->crearReporte();
+        $this->venderConProducto($sesion->id, 'Producto prioridad', 100);
+
+        $hoy = now()->toDateString();
+        $mesPasado = now()->subMonthNoOverflow()->format('Y-m');
+
+        // Si vienen ambos, "fecha" (hoy, con ventas) debe ganar sobre "mes" (pasado, vacío).
+        $response = $this->getJson(
+            "/api/order/sales-by-category?fecha={$hoy}&mes={$mesPasado}",
+            $this->authHeaders()
+        )->assertStatus(200);
+
+        $totalRevenue = collect($response->json('data.categories'))->sum('total_revenue');
+        $this->assertEquals(100.0, $totalRevenue);
+    }
+
+    public function test_ventas_por_categoria_domicilios_por_mes(): void
+    {
+        $sesion = $this->crearReporte();
+        $product = ProductModel::create([
+            ProductModel::NOMBRE => 'Producto Domicilio Mes',
+            ProductModel::PRECIO => 100,
+            ProductModel::CATEGORIA_ID => CategoryModel::first()->id,
+            ProductModel::ACTIVO => true,
+        ]);
+
+        $this->postJson('/api/order/sale', [
+            'sistema_id' => $sesion->id,
+            'nombre_pedido' => 'Venta con domicilio',
+            'costo_domicilio' => -30,
+            'items' => [
+                ['producto_id' => $product->id, 'cantidad' => 1, 'precio' => 100],
+            ],
+        ], $this->authHeaders())->assertStatus(200);
+
+        $mes = now()->format('Y-m');
+
+        $response = $this->getJson("/api/order/sales-by-category?mes={$mes}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertEquals(30.0, $response->json('data.domicilios'));
     }
 
     public function test_ventas_por_categoria_con_sistema_solo_esa_sesion(): void

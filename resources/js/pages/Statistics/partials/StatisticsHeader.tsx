@@ -1,4 +1,4 @@
-import { MonthPicker } from "./MonthPicker";
+import { MonthPicker } from "@/components/ui/form/MonthPicker";
 
 interface StatisticsHeaderProps {
     formattedMonth: string;

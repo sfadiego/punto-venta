@@ -2,7 +2,7 @@ import { FormikProps } from "formik";
 import { Input } from "@/components/ui/form/Input";
 import { Textarea } from "@/components/ui/form/textarea";
 import { AddressAutocomplete } from "@/components/ui/form/AddressAutocomplete";
-import { CustomerForm } from "./CustomerModals/useAddCustomerModal";
+import { CustomerForm } from "./useAddCustomerModal";
 
 interface CustomerFormFieldsProps {
     formik: FormikProps<CustomerForm>;
