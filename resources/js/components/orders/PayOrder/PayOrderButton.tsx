@@ -44,6 +44,12 @@ export const PayOrderButton = ({
         [OrderStatusEnum.InProcess, OrderStatusEnum.Served].includes(order.estatus_pedido_id) &&
         order.total > 0;
 
+    const rawDomicilio = Number(order.costo_domicilio ?? 0);
+    const domicilio = Math.abs(rawDomicilio);
+    const domicilioActivo = domicilio > 0;
+    const customerPays = rawDomicilio >= 0;
+    const subtotal = customerPays ? order.total - domicilio : order.total;
+
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         handleOpen();
@@ -66,7 +72,11 @@ export const PayOrderButton = ({
 
             <RestaurantPayModal
                 isOpen={isOpen}
-                subtotal={order.total}
+                subtotal={subtotal}
+                totalFinal={order.total}
+                domicilio={domicilio}
+                domicilioActivo={domicilioActivo}
+                customerPays={customerPays}
                 cash={cash}
                 setCash={setCash}
                 change={change}

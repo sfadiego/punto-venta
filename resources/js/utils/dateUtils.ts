@@ -28,6 +28,24 @@ export const formatOrderDateTime = (dateStr: string): string =>
         minute: "2-digit",
     });
 
+/** Formatea una fecha YYYY-MM-DD a texto largo local, ej. "20 de julio de 2026" (es-MX). */
+export const formatDateLabel = (fecha: string): string =>
+    new Date(fecha + "T00:00:00").toLocaleDateString("es-MX", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
+
+/** Formatea un mes YYYY-MM a texto largo local, ej. "Julio 2026" (es-MX). */
+export const formatMonthLabel = (mes: string): string => {
+    const [year, month] = mes.split("-").map(Number);
+    const label = new Date(year, month - 1, 1).toLocaleDateString("es-MX", {
+        month: "long",
+        year: "numeric",
+    });
+    return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
 type DateMutator = (d: Date) => void;
 
 // null = plan sin vencimiento (Lifetime). undefined = plan desconocido → también retorna null.

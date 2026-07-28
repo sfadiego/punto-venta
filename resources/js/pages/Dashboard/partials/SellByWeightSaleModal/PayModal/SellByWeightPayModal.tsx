@@ -2,7 +2,7 @@ import { X, Loader, ShoppingCart } from "lucide-react";
 import { IPaymentMethod } from "@/models/IPaymentMethod";
 import { ICustomer } from "@/models/ICustomer";
 import { CustomerCreditPicker } from "../CustomerCredit/CustomerCreditPicker";
-import { PayModalTotalSummary } from "./PayModalTotalSummary";
+import { PayModalTotalSummary } from "@/components/orders/PayModal/PayModalTotalSummary";
 import { PaymentMethodSelector } from "./PaymentMethodSelector";
 import { CashPaymentSection } from "./CashPaymentSection";
 

@@ -6,7 +6,6 @@ import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { PrintTicketButton } from "@/components/orders/PrintTicket/PrintTicketButton";
 import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
-import { useAxios } from "@/hooks/useAxios";
 
 interface OrderDetailModalProps {
     isOpen: boolean;
@@ -24,9 +23,6 @@ const formatDate = (dateStr: string) =>
     });
 
 export const OrderDetailModal = ({ isOpen, order, onClose }: OrderDetailModalProps) => {
-    const { features } = useAxios();
-    const sellByWeight = features?.sell_by_weight === true;
-
     return (
         <Modal
             opened={isOpen}
@@ -74,9 +70,8 @@ export const OrderDetailModal = ({ isOpen, order, onClose }: OrderDetailModalPro
                         )}
                     </div>
 
-                    {/* Domicilio badge — solo negocios de venta por peso */}
-                    {sellByWeight && (
-                        <OrderDeliveryBadge costoDomicilio={order.costo_domicilio} showEmpty />
+                    {Number(order.costo_domicilio) !== 0 && (
+                        <OrderDeliveryBadge costoDomicilio={order.costo_domicilio} />
                     )}
 
                     {/* Totals */}
@@ -95,7 +90,7 @@ export const OrderDetailModal = ({ isOpen, order, onClose }: OrderDetailModalPro
                             <span>Total</span>
                             <span>{formatCurrency(order.total)}</span>
                         </div>
-                        {sellByWeight && Number(order.costo_domicilio) !== 0 && (
+                        {Number(order.costo_domicilio) !== 0 && (
                             <>
                                 <div className="flex justify-between text-sm text-red-500">
                                     <span>Domicilio</span>

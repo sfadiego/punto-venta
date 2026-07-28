@@ -19,6 +19,16 @@ export default function TakeOrderPage() {
         subtotal,
         orderDiscount,
         total,
+        totalFinal,
+        domicilioActivo,
+        toggleDomicilio,
+        costoDomicilio,
+        setCostoDomicilio,
+        handleCostoDomicilioBlur,
+        orderDeliveryPaidBy,
+        setOrderDeliveryPaidBy,
+        domicilio,
+        customerPays,
         loadingCart,
         loadingOrder,
         isError,
@@ -70,6 +80,16 @@ export default function TakeOrderPage() {
                             subtotal={subtotal}
                             orderDiscount={orderDiscount}
                             total={total}
+                            totalFinal={totalFinal}
+                            domicilioActivo={domicilioActivo}
+                            toggleDomicilio={toggleDomicilio}
+                            costoDomicilio={costoDomicilio}
+                            setCostoDomicilio={setCostoDomicilio}
+                            onCostoDomicilioBlur={handleCostoDomicilioBlur}
+                            orderDeliveryPaidBy={orderDeliveryPaidBy}
+                            setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
+                            domicilio={domicilio}
+                            customerPays={customerPays}
                             isLoading={loadingCart}
                             isReadOnly={isReadOnly}
                             onUpdate={updateQuantity}
@@ -107,6 +127,16 @@ export default function TakeOrderPage() {
                             subtotal={subtotal}
                             orderDiscount={orderDiscount}
                             total={total}
+                            totalFinal={totalFinal}
+                            domicilioActivo={domicilioActivo}
+                            toggleDomicilio={toggleDomicilio}
+                            costoDomicilio={costoDomicilio}
+                            setCostoDomicilio={setCostoDomicilio}
+                            onCostoDomicilioBlur={handleCostoDomicilioBlur}
+                            orderDeliveryPaidBy={orderDeliveryPaidBy}
+                            setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
+                            domicilio={domicilio}
+                            customerPays={customerPays}
                             isLoading={loadingCart}
                             isReadOnly={isReadOnly}
                             onUpdate={updateQuantity}

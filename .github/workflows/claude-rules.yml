@@ -172,3 +172,37 @@ jobs:
           else
             echo "✅ Todas las páginas dentro del límite sugerido"
           fi
+
+      - name: Verificar carpetas con muchos archivos sueltos (candidatas a reorganizar)
+        run: |
+          echo "── Verificando organización por funcionalidad (CLAUDE.md: 'Organización de partials/') ──"
+          MAX_FILES=6
+          FOUND=0
+
+          check_dir() {
+            local dir="$1"
+            count=$(find "$dir" -maxdepth 1 -type f \( -name "*.tsx" -o -name "*.ts" \) | wc -l | tr -d ' ')
+            if [ "$count" -gt "$MAX_FILES" ]; then
+              echo "⚠️  $dir tiene $count archivos sueltos (límite sugerido: $MAX_FILES)"
+              FOUND=$((FOUND + 1))
+            fi
+          }
+
+          # Carpetas partials/ de cada página y sus subcarpetas de grupo (ej. partials/Cart/)
+          while IFS= read -r dir; do
+            check_dir "$dir"
+          done < <(find resources/js/pages -type d -path "*/partials*" 2>/dev/null)
+
+          # Todo el árbol de components/ (módulos reutilizables y sus subcarpetas)
+          while IFS= read -r dir; do
+            check_dir "$dir"
+          done < <(find resources/js/components -type d 2>/dev/null)
+
+          if [ "$FOUND" -gt 0 ]; then
+            echo ""
+            echo "Agrupa por sub-funcionalidad en subcarpetas si tiene sentido (CLAUDE.md: 'Organización de partials/')."
+            echo "No todos los casos ameritan split — carpetas de una sola funcionalidad cohesiva (ej. un modal con sus piezas) pueden quedarse así."
+            # Warning, no bloquea el PR — es una señal para revisión humana, no una regla dura.
+          else
+            echo "✅ Sin carpetas con exceso de archivos sueltos"
+          fi

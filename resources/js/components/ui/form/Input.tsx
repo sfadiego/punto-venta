@@ -3,7 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 type InputStyleTypes = "default" | "error" | "none" | "outlined";
-type InputTypes = "email" | "text" | "password" | "tel" | "number" | "url" | "search";
+type InputTypes = "email" | "text" | "password" | "tel" | "number" | "url" | "search" | "date";
 
 const inputVariant: Record<InputStyleTypes, string> = {
     error: "border-red-400 bg-red-50",

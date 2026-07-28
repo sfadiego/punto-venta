@@ -1,6 +1,6 @@
 import { DollarSign, Bike, ReceiptText } from "lucide-react";
-import { SummaryCard } from "./SummaryCard";
-import { CloseSalesSectionHeading } from "./CloseSalesSectionHeading";
+import { SummaryCard } from "../SummaryCards/SummaryCard";
+import { CloseSalesSectionHeading } from "../CloseSalesSectionHeading";
 import { CloseSalesExpensesButton } from "./CloseSalesExpensesButton";
 import { formatCurrency } from "@/utils/formatCurrency";
 
