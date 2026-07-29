@@ -22,9 +22,10 @@ class MenuController extends Controller
 {
     public function show(string $slug): JsonResponse
     {
-        $tenant = BusinessConfigModel::where(BusinessConfigModel::SLUG, $slug)
-            ->where('activo', true)
-            ->firstOrFail();
+        $tenant = $this->findTenantBySlug($slug);
+        if (! $tenant) {
+            return Response::error('Negocio no encontrado', null, Http::NotFound);
+        }
 
         app()->instance('tenant_id', $tenant->id);
 
@@ -46,9 +47,10 @@ class MenuController extends Controller
 
     public function products(IndexData $data, string $slug, MenuService $service): JsonResponse
     {
-        $tenant = BusinessConfigModel::where(BusinessConfigModel::SLUG, $slug)
-            ->where('activo', true)
-            ->firstOrFail();
+        $tenant = $this->findTenantBySlug($slug);
+        if (! $tenant) {
+            return Response::error('Negocio no encontrado', null, Http::NotFound);
+        }
 
         app()->instance('tenant_id', $tenant->id);
 
@@ -63,9 +65,10 @@ class MenuController extends Controller
             return Response::success(null);
         }
 
-        $tenant = BusinessConfigModel::where(BusinessConfigModel::SLUG, $slug)
-            ->where('activo', true)
-            ->firstOrFail();
+        $tenant = $this->findTenantBySlug($slug);
+        if (! $tenant) {
+            return Response::error('Negocio no encontrado', null, Http::NotFound);
+        }
 
         $customer = CustomerModel::withoutGlobalScopes()
             ->where(CustomerModel::TENANT_ID, $tenant->id)
@@ -89,9 +92,10 @@ class MenuController extends Controller
 
     public function store(PublicOrderStoreRequest $request, string $slug): JsonResponse
     {
-        $tenant = BusinessConfigModel::where(BusinessConfigModel::SLUG, $slug)
-            ->where('activo', true)
-            ->firstOrFail();
+        $tenant = $this->findTenantBySlug($slug);
+        if (! $tenant) {
+            return Response::error('Negocio no encontrado', null, Http::NotFound);
+        }
 
         app()->instance('tenant_id', $tenant->id);
 
@@ -180,5 +184,12 @@ class MenuController extends Controller
             'nombre_pedido' => $order->nombre_pedido,
             'total' => $order->total,
         ], null, Http::Created);
+    }
+
+    private function findTenantBySlug(string $slug): ?BusinessConfigModel
+    {
+        return BusinessConfigModel::where(BusinessConfigModel::SLUG, $slug)
+            ->where('activo', true)
+            ->first();
     }
 }
