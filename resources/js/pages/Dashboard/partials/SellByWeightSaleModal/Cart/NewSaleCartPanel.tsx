@@ -30,6 +30,7 @@ interface NewSaleCartPanelProps {
     handlePriceBlur: (orderProductId: number) => void;
     removeFromCart: (orderProductId: number) => Promise<void>;
     clearCart: () => void;
+    isClearing: boolean;
     onPay: () => void;
 }
 
@@ -43,7 +44,7 @@ export const NewSaleCartPanel = ({
     getDisplayQty, handleQtyChange, handleQtyBlur,
     handleScaleReading, scaleSupported,
     getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,
-    removeFromCart, clearCart, onPay,
+    removeFromCart, clearCart, isClearing, onPay,
 }: NewSaleCartPanelProps) => (
     <div className="flex flex-col w-full sm:w-80 shrink-0 min-h-0 overflow-hidden bg-stone-50 border-t border-stone-100 sm:border-t-0 sm:bg-white">
         <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
@@ -53,7 +54,8 @@ export const NewSaleCartPanel = ({
             {cart.length > 0 && (
                 <button
                     onClick={clearCart}
-                    className="flex items-center gap-1 text-xs text-stone-400 hover:text-red-400 transition-colors"
+                    disabled={isClearing}
+                    className="flex items-center gap-1 text-xs text-stone-400 hover:text-red-400 transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
                     <Eraser size={11} />
                     Limpiar

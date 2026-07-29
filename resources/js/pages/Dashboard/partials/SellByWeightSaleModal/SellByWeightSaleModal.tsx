@@ -22,7 +22,7 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
         products, productsLoading,
         cart, total, totalFinal, domicilio, customerPays,
         sellByWeight,
-        addToCart, removeFromCart, clearCart,
+        addToCart, removeFromCart, clearCart, isClearing,
         getDisplayQty, handleQtyChange, handleQtyBlur,
         handleScaleReading, scaleSupported,
         getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,
@@ -85,6 +85,7 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
                             handlePriceBlur={handlePriceBlur}
                             removeFromCart={removeFromCart}
                             clearCart={clearCart}
+                            isClearing={isClearing}
                             onPay={() => {
                                 const first = paymentMethods.find((m) => m.active);
                                 setIsCreditMode(false);

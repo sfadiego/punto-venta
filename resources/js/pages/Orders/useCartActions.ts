@@ -9,6 +9,7 @@ import {
     useUpdateProductInOrder,
     useUpdateOrderProductNote,
     useDeleteItemFromOrder,
+    useClearCartFromOrder,
 } from "@/services/useOrderService";
 import { useInvalidateOrder } from "./useInvalidateOrder";
 
@@ -30,6 +31,8 @@ export const useCartActions = (
     const { mutateAsync: updateNote } = useUpdateOrderProductNote(orderId);
     const { mutateAsync: deleteItem, isPending: isDeletingItem } =
         useDeleteItemFromOrder(orderId);
+    const { mutateAsync: clearOrderCart, isPending: isClearingCart } =
+        useClearCartFromOrder(orderId);
 
     // Add regular product (click on ProductCard).
     // If the product already exists in the cart, increment its quantity instead
@@ -173,7 +176,7 @@ export const useCartActions = (
     };
 
     const clearCart = async () => {
-        if (isReadOnly) return;
+        if (isReadOnly || isClearingCart) return;
         const result = await Swal.fire({
             title: "¿Limpiar pedido?",
             text: "Se eliminarán todos los productos de la orden.",
@@ -186,11 +189,12 @@ export const useCartActions = (
             reverseButtons: true,
         });
         if (!result.isConfirmed) return;
-        cart.forEach((item) => {
-            deleteItem(item.orderProductId, {
-                onSuccess: invalidateOrder,
-            }).catch((error) => toast.error(getUserFacingErrorMessage(error, "Error al limpiar pedido")));
-        });
+        try {
+            await clearOrderCart(undefined, { onSuccess: invalidateOrder });
+        } catch (error) {
+            logUnexpectedError(error, "useCartActions.clearCart");
+            toast.error(getUserFacingErrorMessage(error, "Error al limpiar pedido"));
+        }
     };
 
     return {
@@ -201,5 +205,6 @@ export const useCartActions = (
         saveObservacion,
         removeFromCart,
         clearCart,
+        isClearingCart,
     };
 };

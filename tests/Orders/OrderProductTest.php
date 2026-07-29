@@ -776,6 +776,180 @@ class OrderProductTest extends TestCase
         $this->assertEquals(64.8, (float) $orden->total);
     }
 
+    // ── ClearCart ────────────────────────────────────────────
+
+    public function test_clear_cart_elimina_todos_los_productos_y_extras_sin_residuos(): void
+    {
+        $orden = $this->crearOrden();
+        $prodA = $this->crearProducto();
+        $prodB = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prodA->id,
+            OrderProductModel::CANTIDAD => 2,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prodB->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::NOMBRE_EXTRA => 'Salsa extra',
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 15,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->deleteJson("/api/order/{$orden->id}/clear-cart", [], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+
+        $this->assertEquals(0, OrderProductModel::where('pedido_id', $orden->id)->count());
+        $this->assertDatabaseMissing('order_product', ['pedido_id' => $orden->id]);
+    }
+
+    public function test_clear_cart_resetea_subtotal_y_total_a_cero(): void
+    {
+        $orden = $this->crearOrden();
+        $orden->update([OrderModel::SUBTOTAL => 500, OrderModel::TOTAL => 450]);
+        $prodA = $this->crearProducto();
+        $prodB = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prodA->id,
+            OrderProductModel::CANTIDAD => 3,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prodB->id,
+            OrderProductModel::CANTIDAD => 2,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 10,
+        ]);
+
+        $this->deleteJson("/api/order/{$orden->id}/clear-cart", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        $orden->refresh();
+        $this->assertEquals(0.0, (float) $orden->subtotal);
+        $this->assertEquals(0.0, (float) $orden->total);
+    }
+
+    public function test_clear_cart_no_afecta_productos_de_otra_orden(): void
+    {
+        $ordenA = $this->crearOrden();
+        $ordenB = $this->crearOrden();
+        $product = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $ordenA->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+        $itemB = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $ordenB->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+        $ordenB->update([OrderModel::SUBTOTAL => 45, OrderModel::TOTAL => 45]);
+
+        $this->deleteJson("/api/order/{$ordenA->id}/clear-cart", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        // La orden B no debe perder sus productos ni sus totales
+        $this->assertDatabaseHas('order_product', ['id' => $itemB->id]);
+        $ordenB->refresh();
+        $this->assertEquals(45.0, (float) $ordenB->subtotal);
+        $this->assertEquals(45.0, (float) $ordenB->total);
+    }
+
+    public function test_clear_cart_en_carrito_ya_vacio_es_idempotente(): void
+    {
+        $orden = $this->crearOrden();
+
+        $this->deleteJson("/api/order/{$orden->id}/clear-cart", [], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+
+        $orden->refresh();
+        $this->assertEquals(0.0, (float) $orden->subtotal);
+        $this->assertEquals(0.0, (float) $orden->total);
+        $this->assertEquals(0, OrderProductModel::where('pedido_id', $orden->id)->count());
+    }
+
+    public function test_clear_cart_llamado_dos_veces_seguidas_no_falla_ni_deja_residuos(): void
+    {
+        // Simula el escenario real del bug: doble clic/doble invocación de clearCart.
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+        $orden->update([OrderModel::SUBTOTAL => 45, OrderModel::TOTAL => 45]);
+
+        $this->deleteJson("/api/order/{$orden->id}/clear-cart", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        // Segunda invocación sobre el carrito ya vacío — no debe romper ni responder 422
+        $this->deleteJson("/api/order/{$orden->id}/clear-cart", [], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+
+        $orden->refresh();
+        $this->assertEquals(0, OrderProductModel::where('pedido_id', $orden->id)->count());
+        $this->assertEquals(0.0, (float) $orden->subtotal);
+        $this->assertEquals(0.0, (float) $orden->total);
+    }
+
+    public function test_clear_cart_en_orden_cerrada_falla_y_conserva_productos(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
+        $product = $this->crearProducto();
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+        $orden->update([OrderModel::SUBTOTAL => 45, OrderModel::TOTAL => 45]);
+
+        $this->deleteJson("/api/order/{$orden->id}/clear-cart", [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseHas('order_product', ['id' => $item->id]);
+        $orden->refresh();
+        $this->assertEquals(45.0, (float) $orden->subtotal);
+        $this->assertEquals(45.0, (float) $orden->total);
+    }
+
+    public function test_clear_cart_en_orden_inexistente_falla(): void
+    {
+        $this->deleteJson('/api/order/999999/clear-cart', [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+    }
+
     // ── Auth ─────────────────────────────────────────────────
 
     public function test_sin_token_no_accede(): void

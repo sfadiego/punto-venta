@@ -136,6 +136,9 @@ export const useDeleteItemFromOrder = (orderId: number) => {
     });
 };
 
+export const useClearCartFromOrder = (orderId: number) =>
+    useDELETE({ url: `${url}/${orderId}/clear-cart` });
+
 // Updates observacion on any order_product by order_product.id (works for products and extras)
 export const useUpdateOrderProductNote = (orderId: number) => {
     const { axiosApi } = useAxios();
@@ -249,6 +252,13 @@ export const useDeleteOrderItem = () => {
     return useMutation({
         mutationFn: ({ orderId, orderProductId }: { orderId: number; orderProductId: number }) =>
             axiosDELETE(axiosApi, { url: `${url}/${orderId}/extra/${orderProductId}` }),
+    });
+};
+
+export const useClearOrderCart = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: (orderId: number) => axiosDELETE(axiosApi, { url: `${url}/${orderId}/clear-cart` }),
     });
 };
 
