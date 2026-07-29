@@ -1,6 +1,6 @@
 import { X, LayoutGrid, Loader, Bike, FileArchive } from "lucide-react";
 import { ISalesByCategory } from "@/models/ISalesByCategory";
-import { formatDateLabel, formatMonthLabel } from "@/utils/dateUtils";
+import { formatDateLabel, formatMonthLabel, formatWeekLabel } from "@/utils/dateUtils";
 
 interface SalesByCategoryModalProps {
     isOpen: boolean;
@@ -13,6 +13,7 @@ interface SalesByCategoryModalProps {
     totalNeto: number;
     sistemaId: number | null;
     fecha?: string | null;
+    semana?: string | null;
     mes?: string | null;
 }
 
@@ -27,6 +28,7 @@ export const SalesByCategoryModal = ({
     totalNeto,
     sistemaId,
     fecha,
+    semana,
     mes,
 }: SalesByCategoryModalProps) => {
     if (!isOpen) return null;
@@ -45,9 +47,13 @@ export const SalesByCategoryModal = ({
                             {sistemaId && (
                                 <p className="text-xs text-stone-400">Sesión #{sistemaId}</p>
                             )}
-                            {!sistemaId && (fecha || mes) && (
+                            {!sistemaId && (fecha || semana || mes) && (
                                 <p className="text-xs text-stone-400">
-                                    {fecha ? formatDateLabel(fecha) : formatMonthLabel(mes!)}
+                                    {fecha
+                                        ? formatDateLabel(fecha)
+                                        : semana
+                                        ? formatWeekLabel(semana)
+                                        : formatMonthLabel(mes!)}
                                 </p>
                             )}
                         </div>

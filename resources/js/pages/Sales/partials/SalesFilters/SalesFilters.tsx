@@ -9,6 +9,7 @@ import { ClearFiltersButton } from "./ClearFiltersButton";
 
 interface SalesFiltersProps {
     fecha: string | null;
+    semana: string | null;
     mes: string | null;
     reportMode: SalesReportModeEnum;
     categoriaId?: number | null;
@@ -18,6 +19,7 @@ interface SalesFiltersProps {
     categoryReportLabel?: string;
     onReportModeChange: (mode: SalesReportModeEnum) => void;
     onFechaChange: (value: string | null) => void;
+    onSemanaChange: (value: string | null) => void;
     onMesChange: (value: string | null) => void;
     onCategoriaChange?: (id: number | null) => void;
     onCategoryReport?: () => void;
@@ -26,6 +28,7 @@ interface SalesFiltersProps {
 
 export const SalesFilters = ({
     fecha,
+    semana,
     mes,
     reportMode,
     categoriaId = null,
@@ -35,12 +38,18 @@ export const SalesFilters = ({
     categoryReportLabel,
     onReportModeChange,
     onFechaChange,
+    onSemanaChange,
     onMesChange,
     onCategoriaChange,
     onCategoryReport,
     onClear,
 }: SalesFiltersProps) => {
-    const hasActive = (reportMode === SalesReportModeEnum.Day ? !!fecha : !!mes) || categoriaId !== null;
+    const hasActive =
+        (reportMode === SalesReportModeEnum.Day
+            ? !!fecha
+            : reportMode === SalesReportModeEnum.Week
+            ? !!semana
+            : !!mes) || categoriaId !== null;
 
     return (
         <div className="flex flex-col gap-3 mb-5">
@@ -62,8 +71,10 @@ export const SalesFilters = ({
                 <SalesPeriodInput
                     reportMode={reportMode}
                     fecha={fecha}
+                    semana={semana}
                     mes={mes}
                     onFechaChange={onFechaChange}
+                    onSemanaChange={onSemanaChange}
                     onMesChange={onMesChange}
                 />
 

@@ -2,14 +2,20 @@ import { useGET } from "@/hooks/useApi";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { ISalesByCategoryResponse } from "@/models/ISalesByCategory";
 
-export const useSalesByCategory = (sistemaId: number | null, fecha?: string | null, mes?: string | null) =>
+export const useSalesByCategory = (
+    sistemaId: number | null,
+    fecha?: string | null,
+    mes?: string | null,
+    semana?: string | null,
+) =>
     useGET<ISalesByCategoryResponse>({
         url: ApiRoutes.OrderSalesByCategory,
         filters: {
             ...(sistemaId ? { sistema_id: sistemaId } : {}),
             ...(fecha ? { fecha } : {}),
+            ...(semana ? { semana } : {}),
             ...(mes ? { mes } : {}),
         },
-        enable: !!sistemaId || !!fecha || !!mes,
-        nameQuery: `${ApiRoutes.OrderSalesByCategory}-${sistemaId ?? "any"}-${fecha ?? "all"}-${mes ?? "all"}`,
+        enable: !!sistemaId || !!fecha || !!semana || !!mes,
+        nameQuery: `${ApiRoutes.OrderSalesByCategory}-${sistemaId ?? "any"}-${fecha ?? "all"}-${semana ?? "all"}-${mes ?? "all"}`,
     });

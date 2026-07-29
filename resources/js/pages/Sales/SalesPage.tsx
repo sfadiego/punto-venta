@@ -15,12 +15,14 @@ export default function SalesPage() {
         refetch,
         reportMode,
         fecha,
+        semana,
         mes,
         categoriaId,
         categories,
         sellByWeight,
         handleReportModeChange,
         handleFechaChange,
+        handleSemanaChange,
         handleMesChange,
         handleCategoriaChange,
         handleClear,
@@ -30,6 +32,7 @@ export default function SalesPage() {
     const categoryModal = useSalesByCategoryModal(
         reportMode === SalesReportModeEnum.Day ? fecha : null,
         reportMode === SalesReportModeEnum.Month ? mes : null,
+        reportMode === SalesReportModeEnum.Week ? semana : null,
     );
 
     return (
@@ -55,6 +58,7 @@ export default function SalesPage() {
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
                 <SalesFilters
                     fecha={fecha}
+                    semana={semana}
                     mes={mes}
                     reportMode={reportMode}
                     categoriaId={categoriaId}
@@ -64,6 +68,7 @@ export default function SalesPage() {
                     categoryReportLabel={sellByWeight ? "Reporte por categoría" : "Resumen de ventas"}
                     onReportModeChange={handleReportModeChange}
                     onFechaChange={handleFechaChange}
+                    onSemanaChange={handleSemanaChange}
                     onMesChange={handleMesChange}
                     onCategoriaChange={handleCategoriaChange}
                     onCategoryReport={categoryModal.open}
@@ -100,6 +105,7 @@ export default function SalesPage() {
                     totalNeto={categoryModal.totalNeto}
                     sistemaId={categoryModal.sistemaId}
                     fecha={categoryModal.fecha}
+                    semana={categoryModal.semana}
                     mes={categoryModal.mes}
                 />
             ) : (
@@ -112,6 +118,7 @@ export default function SalesPage() {
                     totalDomicilios={categoryModal.totalDomicilios}
                     totalNeto={categoryModal.totalNeto}
                     fecha={categoryModal.fecha}
+                    semana={categoryModal.semana}
                     mes={categoryModal.mes}
                 />
             )}

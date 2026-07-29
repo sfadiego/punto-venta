@@ -27,6 +27,7 @@ export const useIndexOrder = ({
     sistema_id,
     estatus_pedido_id,
     fecha,
+    semana,
     mes,
     categoria_id,
 }: IPaginateServiceProps) =>
@@ -40,6 +41,7 @@ export const useIndexOrder = ({
             ...(sistema_id ? { sistema_id } : {}),
             ...(estatus_pedido_id ? { estatus_pedido_id } : {}),
             ...(fecha ? { fecha } : {}),
+            ...(semana ? { semana } : {}),
             ...(mes ? { mes } : {}),
             ...(categoria_id ? { categoria_id } : {}),
         },

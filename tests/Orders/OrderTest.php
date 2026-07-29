@@ -12,6 +12,7 @@ use App\Models\OrderModel;
 use App\Models\OrderStatusModel;
 use App\Models\ProductModel;
 use App\Models\User;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 class OrderTest extends TestCase
@@ -76,6 +77,35 @@ class OrderTest extends TestCase
         // Si vienen ambos, "fecha" debe ganar aunque "mes" apunte a otro período.
         $this->getJson(
             "/api/order?sistema_id={$orden->sistema_id}&estatus_pedido_id={$orden->estatus_pedido_id}&fecha={$hoy}&mes={$mesPasado}",
+            $this->authHeaders()
+        )->assertStatus(206)->assertJsonPath('total', 1);
+    }
+
+    public function test_lista_ordenes_filtra_por_semana(): void
+    {
+        $orden = $this->crearOrden();
+        $semanaActual = now()->startOfWeek(Carbon::MONDAY)->toDateString();
+        $semanaPasada = now()->subWeek()->startOfWeek(Carbon::MONDAY)->toDateString();
+
+        $this->getJson(
+            "/api/order?sistema_id={$orden->sistema_id}&estatus_pedido_id={$orden->estatus_pedido_id}&semana={$semanaActual}",
+            $this->authHeaders()
+        )->assertStatus(206)->assertJsonPath('total', 1);
+
+        $this->getJson(
+            "/api/order?sistema_id={$orden->sistema_id}&estatus_pedido_id={$orden->estatus_pedido_id}&semana={$semanaPasada}",
+            $this->authHeaders()
+        )->assertStatus(206)->assertJsonPath('total', 0);
+    }
+
+    public function test_lista_ordenes_fecha_tiene_prioridad_sobre_semana(): void
+    {
+        $orden = $this->crearOrden();
+        $hoy = now()->toDateString();
+        $semanaPasada = now()->subWeek()->startOfWeek(Carbon::MONDAY)->toDateString();
+
+        $this->getJson(
+            "/api/order?sistema_id={$orden->sistema_id}&estatus_pedido_id={$orden->estatus_pedido_id}&fecha={$hoy}&semana={$semanaPasada}",
             $this->authHeaders()
         )->assertStatus(206)->assertJsonPath('total', 1);
     }
@@ -361,6 +391,25 @@ class OrderTest extends TestCase
             ->assertJsonPath('status', 'OK');
     }
 
+    public function test_ventas_por_categoria_con_semana(): void
+    {
+        $report = $this->crearReporte();
+        $semana = now()->startOfWeek(Carbon::MONDAY)->toDateString();
+
+        $this->getJson("/api/order/sales-by-category?sistema_id={$report->id}&semana={$semana}", $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+    }
+
+    public function test_ventas_por_categoria_solo_con_semana_no_falla(): void
+    {
+        $semana = now()->startOfWeek(Carbon::MONDAY)->toDateString();
+
+        $this->getJson("/api/order/sales-by-category?semana={$semana}", $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+    }
+
     private function venderConProducto(int $sistemaId, string $nombreProducto, float $precio, int $cantidad = 1): void
     {
         $product = ProductModel::create([
@@ -449,6 +498,72 @@ class OrderTest extends TestCase
         $this->assertEquals(100.0, $totalRevenue);
     }
 
+    public function test_ventas_por_categoria_por_semana_agrega_todas_las_sesiones_de_la_semana(): void
+    {
+        $sesionA = $this->crearReporte();
+        $sesionB = $this->crearReporte();
+
+        $this->venderConProducto($sesionA->id, 'Producto semana A', 100);
+        $this->venderConProducto($sesionB->id, 'Producto semana B', 50);
+
+        $semana = now()->startOfWeek(Carbon::MONDAY)->toDateString();
+
+        $response = $this->getJson("/api/order/sales-by-category?semana={$semana}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $totalRevenue = collect($response->json('data.categories'))->sum('total_revenue');
+        $this->assertEquals(150.0, $totalRevenue);
+    }
+
+    public function test_ventas_por_categoria_semana_no_incluye_otra_semana(): void
+    {
+        $sesion = $this->crearReporte();
+        $this->venderConProducto($sesion->id, 'Producto fuera de semana', 100);
+
+        $semanaPasada = now()->subWeek()->startOfWeek(Carbon::MONDAY)->toDateString();
+
+        $response = $this->getJson("/api/order/sales-by-category?semana={$semanaPasada}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertEmpty($response->json('data.categories'));
+    }
+
+    public function test_ventas_por_categoria_fecha_tiene_prioridad_sobre_semana(): void
+    {
+        $sesion = $this->crearReporte();
+        $this->venderConProducto($sesion->id, 'Producto prioridad semana', 100);
+
+        $hoy = now()->toDateString();
+        $semanaPasada = now()->subWeek()->startOfWeek(Carbon::MONDAY)->toDateString();
+
+        // Si vienen ambos, "fecha" (hoy, con ventas) debe ganar sobre "semana" (pasada, vacía).
+        $response = $this->getJson(
+            "/api/order/sales-by-category?fecha={$hoy}&semana={$semanaPasada}",
+            $this->authHeaders()
+        )->assertStatus(200);
+
+        $totalRevenue = collect($response->json('data.categories'))->sum('total_revenue');
+        $this->assertEquals(100.0, $totalRevenue);
+    }
+
+    public function test_ventas_por_categoria_semana_tiene_prioridad_sobre_mes(): void
+    {
+        $sesion = $this->crearReporte();
+        $this->venderConProducto($sesion->id, 'Producto prioridad semana-mes', 100);
+
+        $semana = now()->startOfWeek(Carbon::MONDAY)->toDateString();
+        $mesPasado = now()->subMonthNoOverflow()->format('Y-m');
+
+        // Si vienen ambos (sin fecha), "semana" (actual, con ventas) debe ganar sobre "mes" (pasado, vacío).
+        $response = $this->getJson(
+            "/api/order/sales-by-category?semana={$semana}&mes={$mesPasado}",
+            $this->authHeaders()
+        )->assertStatus(200);
+
+        $totalRevenue = collect($response->json('data.categories'))->sum('total_revenue');
+        $this->assertEquals(100.0, $totalRevenue);
+    }
+
     public function test_ventas_por_categoria_domicilios_por_mes(): void
     {
         $sesion = $this->crearReporte();
@@ -471,6 +586,33 @@ class OrderTest extends TestCase
         $mes = now()->format('Y-m');
 
         $response = $this->getJson("/api/order/sales-by-category?mes={$mes}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertEquals(30.0, $response->json('data.domicilios'));
+    }
+
+    public function test_ventas_por_categoria_domicilios_por_semana(): void
+    {
+        $sesion = $this->crearReporte();
+        $product = ProductModel::create([
+            ProductModel::NOMBRE => 'Producto Domicilio Semana',
+            ProductModel::PRECIO => 100,
+            ProductModel::CATEGORIA_ID => CategoryModel::first()->id,
+            ProductModel::ACTIVO => true,
+        ]);
+
+        $this->postJson('/api/order/sale', [
+            'sistema_id' => $sesion->id,
+            'nombre_pedido' => 'Venta con domicilio semana',
+            'costo_domicilio' => -30,
+            'items' => [
+                ['producto_id' => $product->id, 'cantidad' => 1, 'precio' => 100],
+            ],
+        ], $this->authHeaders())->assertStatus(200);
+
+        $semana = now()->startOfWeek(Carbon::MONDAY)->toDateString();
+
+        $response = $this->getJson("/api/order/sales-by-category?semana={$semana}", $this->authHeaders())
             ->assertStatus(200);
 
         $this->assertEquals(30.0, $response->json('data.domicilios'));

@@ -12,8 +12,8 @@ export const ReportModeToggle = ({ reportMode, onChange }: ReportModeToggleProps
         <label className="text-xs font-medium text-stone-500">Período</label>
         <FeatureSpotlight
             featureKey={FeatureSpotlightKey.FilterSalesByDateMonth}
-            title="Filtra por mes"
-            description="Ahora puedes ver el resumen de ventas de un mes completo, no solo de un día."
+            title="Filtra por dia, semana o mes"
+            description="Ahora puedes ver el resumen de ventas de diferentes periodos, no solo de un día."
         >
             <div className="flex h-9 rounded-xl border border-stone-200 overflow-hidden text-xs">
                 <button
@@ -26,6 +26,17 @@ export const ReportModeToggle = ({ reportMode, onChange }: ReportModeToggleProps
                     }`}
                 >
                     Día
+                </button>
+                <button
+                    type="button"
+                    onClick={() => onChange(SalesReportModeEnum.Week)}
+                    className={`px-3 font-medium transition-colors border-l border-stone-200 ${
+                        reportMode === SalesReportModeEnum.Week
+                            ? "bg-amber-500 text-white"
+                            : "bg-stone-50 text-stone-500 hover:bg-stone-100"
+                    }`}
+                >
+                    Semana
                 </button>
                 <button
                     type="button"

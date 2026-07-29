@@ -86,13 +86,14 @@ class OrderController extends Controller
     {
         $sistemaId = $request->query('sistema_id') ? (int) $request->query('sistema_id') : null;
         $date = $request->query('fecha');
+        $week = $request->query('semana');
         $month = $request->query('mes');
 
-        if (! $sistemaId && ! $date && ! $month) {
-            return Response::error('Se requiere sistema_id, fecha o mes.');
+        if (! $sistemaId && ! $date && ! $week && ! $month) {
+            return Response::error('Se requiere sistema_id, fecha, semana o mes.');
         }
 
-        return Response::success($saleService->salesByCategory($sistemaId, $date, $month));
+        return Response::success($saleService->salesByCategory($sistemaId, $date, $month, $week));
     }
 
     private function broadcast(string $type = 'updated', ?int $orderId = null): void

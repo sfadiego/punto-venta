@@ -7,6 +7,7 @@ use App\Core\Paginator\DataTable;
 use App\Enums\OrderStatusEnum;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 
@@ -57,9 +58,15 @@ class OrderService extends DataTable
         }
 
         $fecha = request()->query('fecha');
+        $semana = request()->query('semana');
         $mes = request()->query('mes');
         if ($fecha) {
             $query->whereDate('created_at', $fecha);
+        } elseif ($semana) {
+            $query->whereBetween('created_at', [
+                Carbon::parse($semana)->startOfDay(),
+                Carbon::parse($semana)->addDays(6)->endOfDay(),
+            ]);
         } elseif ($mes) {
             [$year, $month] = explode('-', $mes);
             $query->whereYear('created_at', (int) $year)->whereMonth('created_at', (int) $month);

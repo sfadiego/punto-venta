@@ -11,7 +11,7 @@ import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
 import { useOrderDetailModal } from "./partials/OrderDetailModal/useOrderDetailModal";
 import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
 
-import { localDateString } from "@/utils/dateUtils";
+import { getWeekStart, localDateString } from "@/utils/dateUtils";
 import { SalesReportModeEnum } from "@/enums/SalesReportModeEnum";
 
 const today = () => localDateString();
@@ -38,6 +38,7 @@ export const useSalesPage = () => {
 
     const [reportMode, setReportMode] = useState<SalesReportModeEnum>(SalesReportModeEnum.Day);
     const [fecha, setFecha] = useState<string | null>(today());
+    const [semana, setSemana] = useState<string | null>(getWeekStart());
     const [mes, setMes] = useState<string | null>(currentMonth());
     const [categoriaId, setCategoriaId] = useState<number | null>(null);
     const modal = useOrderDetailModal();
@@ -74,7 +75,11 @@ export const useSalesPage = () => {
         service: useIndexOrder,
         payload: {
             estatus_pedido_id: OrderStatusEnum.Closed,
-            ...(reportMode === SalesReportModeEnum.Day ? (fecha ? { fecha } : {}) : (mes ? { mes } : {})),
+            ...(reportMode === SalesReportModeEnum.Day
+                ? (fecha ? { fecha } : {})
+                : reportMode === SalesReportModeEnum.Week
+                ? (semana ? { semana } : {})
+                : (mes ? { mes } : {})),
             ...(categoriaId !== null ? { categoria_id: categoriaId } : {}),
         },
         renderersMap,
@@ -117,6 +122,11 @@ export const useSalesPage = () => {
         setPage(1);
     };
 
+    const handleSemanaChange = (value: string | null) => {
+        setSemana(value);
+        setPage(1);
+    };
+
     const handleMesChange = (value: string | null) => {
         setMes(value);
         setPage(1);
@@ -130,6 +140,7 @@ export const useSalesPage = () => {
     const handleClear = () => {
         setReportMode(SalesReportModeEnum.Day);
         setFecha(today());
+        setSemana(getWeekStart());
         setMes(currentMonth());
         setCategoriaId(null);
         setPage(1);
@@ -141,12 +152,14 @@ export const useSalesPage = () => {
         refetch,
         reportMode,
         fecha,
+        semana,
         mes,
         categoriaId,
         categories,
         sellByWeight,
         handleReportModeChange,
         handleFechaChange,
+        handleSemanaChange,
         handleMesChange,
         handleCategoriaChange,
         handleClear,
