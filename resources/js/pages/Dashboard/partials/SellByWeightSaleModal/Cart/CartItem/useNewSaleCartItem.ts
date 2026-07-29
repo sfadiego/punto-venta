@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { IModalCartItem } from "@/models/IModalCartItem";
 import { UNIDAD_LABELS, UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
+import { formatMoney } from "@/utils/formatCurrency";
 
 export const isPeso = (item: IModalCartItem) =>
     item.product.unidad_medida === UnidadMedidaEnum.Kg ||
@@ -40,7 +41,7 @@ export const useNewSaleCartItem = ({ item, onRemove, onReadScale }: UseNewSaleCa
 
     const canToggle = isPeso(item);
     const unitLabel = UNIDAD_LABELS[item.product.unidad_medida];
-    const lineTotal = (item.precioEfectivo * item.cantidad).toFixed(2);
+    const lineTotal = formatMoney(item.precioEfectivo * item.cantidad);
 
     return {
         isRemoving, handleRemove,

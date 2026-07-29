@@ -2,7 +2,7 @@ import { Eraser } from "lucide-react";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
 import { IModalCartItem } from "@/models/IModalCartItem";
-import { NewSaleCartItem } from "./NewSaleCartItem";
+import { NewSaleCartItem } from "./CartItem/NewSaleCartItem";
 import { NewSaleCartFooter } from "./NewSaleCartFooter";
 import { IProduct } from "@/models/IProduct";
 
@@ -63,7 +63,7 @@ export const NewSaleCartPanel = ({
             )}
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto pb-2">
+        <div className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden pb-2">
             {cart.length === 0 ? (
                 <p className="text-xs text-stone-400 text-center pt-8">Sin productos</p>
             ) : (
