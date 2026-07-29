@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { superAdminAxios } from "@/contexts/SuperAdminContext";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -25,4 +26,12 @@ export const useIndexErrorLogs = ({
             return res.data as IPaginate<IErrorLog>;
         },
         staleTime: 30_000,
+    });
+
+export const usePruneErrorLogs = () =>
+    useMutation({
+        mutationFn: async (days: number) => {
+            const res = await superAdminAxios.delete(`${url}/prune`, { params: { days } });
+            return res.data as { data: { deleted: number } };
+        },
     });

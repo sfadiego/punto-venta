@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Core\Data\IndexData;
 use App\Http\Requests\ClientErrorStoreRequest;
+use App\Http\Requests\ErrorReportingPruneRequest;
 use App\Models\ErrorReporting;
+use App\Services\ErrorReportingCleanupService;
 use App\Services\ErrorReportingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +20,14 @@ class ClientErrorController extends Controller
         $source = $request->query('source');
 
         return $service->run($data, $source ?: null);
+    }
+
+    public function prune(ErrorReportingPruneRequest $request, ErrorReportingCleanupService $service): JsonResponse
+    {
+        $days = $request->validated('days') ?? 90;
+        $deleted = $service->pruneOlderThan((int) $days);
+
+        return Response::success(['deleted' => $deleted]);
     }
 
     public function store(ClientErrorStoreRequest $request): JsonResponse

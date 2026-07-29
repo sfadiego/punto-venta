@@ -165,4 +165,92 @@ class ClientErrorTest extends TestCase
             ->assertJsonPath('total', 0)
             ->assertJsonPath('data', []);
     }
+
+    // ── Prune (solo superadmin) ────────────────────────────────
+
+    public function test_prune_requiere_autenticacion_superadmin(): void
+    {
+        $this->deleteJson('/api/super-admin/error-logs/prune')
+            ->assertStatus(401);
+    }
+
+    public function test_prune_no_accesible_con_token_admin(): void
+    {
+        $this->deleteJson('/api/super-admin/error-logs/prune', [], $this->authHeaders())
+            ->assertStatus(403);
+    }
+
+    public function test_prune_elimina_logs_mas_antiguos_que_el_default_de_90_dias(): void
+    {
+        $viejo = ErrorReporting::create([
+            'source' => 'backend',
+            'endpoint' => '/api/order',
+            'method' => 'POST',
+            'status_code' => 500,
+            'error_message' => 'Error viejo',
+            'created_at' => now()->subDays(91),
+        ]);
+
+        $reciente = ErrorReporting::create([
+            'source' => 'backend',
+            'endpoint' => '/api/order',
+            'method' => 'POST',
+            'status_code' => 500,
+            'error_message' => 'Error reciente',
+            'created_at' => now()->subDays(10),
+        ]);
+
+        $this->deleteJson('/api/super-admin/error-logs/prune', [], $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonPath('data.deleted', 1);
+
+        $this->assertModelMissing($viejo);
+        $this->assertModelExists($reciente);
+    }
+
+    public function test_prune_acepta_dias_personalizados(): void
+    {
+        $log30 = ErrorReporting::create([
+            'source' => 'backend',
+            'endpoint' => '/api/order',
+            'method' => 'POST',
+            'status_code' => 500,
+            'error_message' => 'Error de hace 31 días',
+            'created_at' => now()->subDays(31),
+        ]);
+
+        $this->deleteJson('/api/super-admin/error-logs/prune?days=30', [], $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.deleted', 1);
+
+        $this->assertModelMissing($log30);
+    }
+
+    public function test_prune_dias_invalidos_falla(): void
+    {
+        $this->deleteJson('/api/super-admin/error-logs/prune?days=0', [], $this->superAdminHeaders())
+            ->assertStatus(400);
+
+        $this->deleteJson('/api/super-admin/error-logs/prune?days=abc', [], $this->superAdminHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_prune_sin_logs_antiguos_no_elimina_nada(): void
+    {
+        $reciente = ErrorReporting::create([
+            'source' => 'backend',
+            'endpoint' => '/api/order',
+            'method' => 'POST',
+            'status_code' => 500,
+            'error_message' => 'Error reciente',
+            'created_at' => now(),
+        ]);
+
+        $this->deleteJson('/api/super-admin/error-logs/prune', [], $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.deleted', 0);
+
+        $this->assertModelExists($reciente);
+    }
 }
