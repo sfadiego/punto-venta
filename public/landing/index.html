@@ -1041,6 +1041,42 @@ footer {
 .pricing-cta-block p { color: var(--ink-soft); margin-bottom: 28px; font-size: 15.5px; }
 .pricing-cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 
+/* Callout: opera desde tablet / arma tu paquete de equipo */
+.hw-callout {
+  display: flex; align-items: center; gap: 24px;
+  max-width: 760px; margin: 40px auto 0;
+  background: var(--card); border: 1px solid var(--card-line);
+  border-radius: 20px; padding: 26px 30px;
+  box-shadow: 0 4px 24px -10px rgba(17,24,39,0.12);
+}
+.hw-callout-icon {
+  flex-shrink: 0; width: 54px; height: 54px; border-radius: 14px;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--ember) 10%, var(--card));
+  color: var(--ember);
+}
+.hw-callout-icon svg { width: 26px; height: 26px; }
+.hw-callout-text { flex: 1; text-align: left; }
+.hw-callout-text h3 { font-size: 19px; margin: 0 0 6px; letter-spacing: -0.01em; }
+.hw-callout-text p { font-size: 14.5px; color: var(--ink-soft); margin: 0; line-height: 1.5; }
+.hw-devices { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.hw-devices span {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 700; color: var(--ink);
+  background: color-mix(in srgb, var(--ember) 7%, var(--card));
+  border: 1px solid var(--card-line); border-radius: 99px; padding: 6px 12px;
+}
+.hw-devices svg { width: 14px; height: 14px; color: var(--ember); flex-shrink: 0; }
+.hw-callout-cta { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 9px; width: 176px; }
+.hw-callout-cta .btn { width: 100%; justify-content: center; }
+.hw-cta-hint { font-size: 12px; color: var(--ink-soft); line-height: 1.4; text-align: center; }
+@media (max-width: 760px) {
+  .hw-callout { flex-direction: column; text-align: center; gap: 20px; padding: 28px 24px; }
+  .hw-callout-text { text-align: center; }
+  .hw-devices { justify-content: center; }
+  .hw-callout-cta { width: 100%; }
+}
+
 @media (max-width: 600px) {
   .period-bar {
     display: grid;
@@ -1601,6 +1637,26 @@ footer {
         <a target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;justify-content:center;" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">
           Solicitar una demo
         </a>
+      </div>
+    </div>
+
+    <!-- Callout: funciona en lo que ya tienes / cotiza equipo -->
+    <div class="hw-callout reveal">
+      <div class="hw-callout-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></svg>
+      </div>
+      <div class="hw-callout-text">
+        <h3>No necesitas una computadora cara</h3>
+        <p>Venta Rápida funciona en tu <strong>laptop, tablet o celular</strong> — sin instalar nada.</p>
+        <div class="hw-devices">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></svg>Laptop</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M12 18h.01"/></svg>Tablet</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>Celular</span>
+        </div>
+      </div>
+      <div class="hw-callout-cta">
+        <a class="btn btn-primary" target="_blank" rel="noopener" href="https://wa.me/523121166870?text=Hola%2C%20quiero%20cotizar%20un%20paquete%20de%20equipo%20para%20usar%20Venta%20R%C3%A1pida">Cotizar equipo</a>
+        <span class="hw-cta-hint">¿Necesitas hardware? Te armamos el paquete.</span>
       </div>
     </div>
 
