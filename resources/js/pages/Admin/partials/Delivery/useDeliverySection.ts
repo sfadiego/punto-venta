@@ -42,6 +42,7 @@ export const useDeliverySection = (config: IBusinessConfig | undefined) => {
                     logo_icon:               config.logo_icon,
                     printer_name:            config.printer_name,
                     printer_host:            config.printer_host,
+                    paper_width:             config.paper_width,
                     costo_domicilio_default: values.costo_domicilio_default,
                     printer_enabled:         config.printer_enabled,
                     menu_enabled:            config.menu_enabled,

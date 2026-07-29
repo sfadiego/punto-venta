@@ -5,6 +5,7 @@ namespace Tests\Orders;
 use App\Models\BusinessConfigModel;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
+use App\Printer\Formatters\VentaFormatter;
 use Tests\TestCase;
 
 class PrintTest extends TestCase
@@ -68,5 +69,58 @@ class PrintTest extends TestCase
 
         $response->assertStatus(200);
         $this->assertStringContainsString('application/octet-stream', $response->headers->get('Content-Type'));
+    }
+
+    // ── Ancho de papel ───────────────────────────────────────
+
+    public function test_bytes_usa_32_caracteres_por_linea_con_papel_58mm(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::PAPER_WIDTH => '58']);
+
+        $orden = $this->crearOrden();
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        $this->assertStringContainsString(str_repeat('=', 32), $response->getContent());
+        $this->assertStringNotContainsString(str_repeat('=', 48), $response->getContent());
+    }
+
+    public function test_bytes_usa_48_caracteres_por_linea_con_papel_80mm(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::PAPER_WIDTH => '80']);
+
+        $orden = $this->crearOrden();
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        $this->assertStringContainsString(str_repeat('=', 48), $response->getContent());
+    }
+
+    public function test_chars_for_paper_width_58mm_retorna_32(): void
+    {
+        $this->assertEquals(32, VentaFormatter::charsForPaperWidth('58'));
+    }
+
+    public function test_chars_for_paper_width_80mm_retorna_48(): void
+    {
+        $this->assertEquals(48, VentaFormatter::charsForPaperWidth('80'));
+    }
+
+    public function test_chars_for_paper_width_nulo_retorna_32_por_defecto(): void
+    {
+        $this->assertEquals(32, VentaFormatter::charsForPaperWidth(null));
+    }
+
+    public function test_chars_for_paper_width_valor_desconocido_retorna_32_por_defecto(): void
+    {
+        $this->assertEquals(32, VentaFormatter::charsForPaperWidth('999'));
     }
 }

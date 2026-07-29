@@ -72,6 +72,7 @@ class VentaTicketData implements TicketDataInterface
                 'whatsapp' => $config?->whatsapp,
                 'website' => $config?->website,
                 'ticket_footer' => $config?->ticket_footer,
+                'paper_width' => $config?->paper_width ?? '58',
             ],
         ];
     }

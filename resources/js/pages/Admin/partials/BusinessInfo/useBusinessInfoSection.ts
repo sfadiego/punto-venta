@@ -64,6 +64,7 @@ export const useBusinessInfoSection = (config: IBusinessConfig | undefined) => {
                     ticket_footer: values.ticket_footer || null,
                     printer_name: config.printer_name,
                     printer_host: config.printer_host,
+                    paper_width: config.paper_width,
                     logo_icon: config.logo_icon,
                     costo_domicilio_default: config.costo_domicilio_default,
                     printer_enabled: config.printer_enabled,

@@ -41,6 +41,7 @@ class BusinessConfigController extends Controller
             'ticket_footer' => $request->ticket_footer,
             'printer_name' => $request->printer_name,
             'printer_host' => $request->printer_host,
+            'paper_width' => $request->paper_width ?? '58',
             'logo_icon' => $request->logo_icon,
             'costo_domicilio_default' => $request->costo_domicilio_default ?? 0,
             'menu_enabled' => $request->boolean('menu_enabled'),
