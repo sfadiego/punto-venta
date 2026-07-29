@@ -39,8 +39,9 @@ class PrintController extends Controller
             $p = $connector->getPrinter();
             $p->initialize();
 
-            $line = str_repeat('=', 32);
-            $dline = str_repeat('-', 32);
+            $chars = VentaFormatter::charsForPaperWidth($tenant->paper_width);
+            $line = str_repeat('=', $chars);
+            $dline = str_repeat('-', $chars);
             $now = now()->setTimezone(config('app.timezone'));
 
             $p->setJustification(\Mike42\Escpos\Printer::JUSTIFY_CENTER);

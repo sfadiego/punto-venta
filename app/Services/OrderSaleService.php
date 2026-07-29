@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\OrderStatusEnum;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
+use Carbon\Carbon;
 
 class OrderSaleService
 {
@@ -43,13 +44,14 @@ class OrderSaleService
     }
 
     /**
-     * Reporte de ventas por categoría. Al menos uno de $sistemaId/$date/$month debe venir:
-     * - Solo $sistemaId (sin fecha ni mes): totales de esa sesión puntual (uso en CloseSales).
+     * Reporte de ventas por categoría. Al menos uno de $sistemaId/$date/$month/$week debe venir:
+     * - Solo $sistemaId (sin fecha, semana ni mes): totales de esa sesión puntual (uso en CloseSales).
      * - Con $date: agrega TODAS las sesiones cerradas ese día (uso en SalesPage — vista
      *   histórica que no está atada a la sesión actualmente activa en el navegador).
+     * - Con $week (lunes, formato YYYY-MM-DD): agrega todas las sesiones cerradas de esa semana.
      * - Con $month (formato YYYY-MM): agrega todas las sesiones cerradas de ese mes.
      */
-    public function salesByCategory(?int $sistemaId, ?string $date, ?string $month = null): array
+    public function salesByCategory(?int $sistemaId, ?string $date, ?string $month = null, ?string $week = null): array
     {
         $query = OrderProductModel::query()
             ->join('order as o', 'o.id', '=', 'order_product.pedido_id')
@@ -62,7 +64,7 @@ class OrderSaleService
             $query->where('o.sistema_id', $sistemaId);
         }
 
-        $this->applyPeriod($query, 'o.created_at', $date, $month);
+        $this->applyPeriod($query, 'o.created_at', $date, $month, $week);
 
         $categories = $query
             ->groupBy('categories.id', 'categories.nombre')
@@ -78,7 +80,7 @@ class OrderSaleService
             $domiciliosQuery->where(OrderModel::SISTEMA_ID, $sistemaId);
         }
 
-        $this->applyPeriod($domiciliosQuery, 'created_at', $date, $month);
+        $this->applyPeriod($domiciliosQuery, 'created_at', $date, $month, $week);
 
         $domicilios = (float) round(
             $domiciliosQuery->selectRaw('ABS(SUM(costo_domicilio)) as total')->value('total') ?? 0,
@@ -92,12 +94,17 @@ class OrderSaleService
     }
 
     /**
-     * Aplica el filtro de fecha puntual o de mes (YYYY-MM) sobre la columna dada.
+     * Aplica el filtro de fecha puntual, semana (lunes YYYY-MM-DD) o mes (YYYY-MM) sobre la columna dada.
      */
-    private function applyPeriod($query, string $column, ?string $date, ?string $month): void
+    private function applyPeriod($query, string $column, ?string $date, ?string $month, ?string $week = null): void
     {
         if ($date) {
             $query->whereDate($column, $date);
+        } elseif ($week) {
+            $query->whereBetween($column, [
+                Carbon::parse($week)->startOfDay(),
+                Carbon::parse($week)->addDays(6)->endOfDay(),
+            ]);
         } elseif ($month) {
             [$year, $monthNumber] = explode('-', $month);
             $query->whereYear($column, (int) $year)->whereMonth($column, (int) $monthNumber);

@@ -29,6 +29,7 @@ export const useMenuSection = (config: IBusinessConfig | undefined) => {
                 logo_icon:               config.logo_icon,
                 printer_name:            config.printer_name,
                 printer_host:            config.printer_host,
+                paper_width:             config.paper_width,
                 printer_enabled:         config.printer_enabled,
                 costo_domicilio_default: config.costo_domicilio_default,
                 menu_enabled:            !config.menu_enabled,

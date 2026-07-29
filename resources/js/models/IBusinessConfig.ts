@@ -16,6 +16,7 @@ export interface IBusinessConfig {
     ticket_footer: string | null;
     printer_name: string | null;
     printer_host: string | null;
+    paper_width: "58" | "80";
     printer_enabled: boolean;
     bluetooth_printing_enabled: boolean;
     menu_enabled: boolean;

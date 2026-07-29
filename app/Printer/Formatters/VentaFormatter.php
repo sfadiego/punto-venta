@@ -8,19 +8,28 @@ use Mike42\Escpos\Printer;
 
 class VentaFormatter implements TicketFormatterInterface
 {
-    // 58mm paper, Font A (12 dots/char) ≈ 32 chars per line
-    private const WIDTH = 32;
+    // Caracteres por línea según el ancho de papel, Font A (12 dots/char):
+    // 58mm ≈ 32 chars, 80mm ≈ 48 chars.
+    private const CHARS_PER_PAPER_WIDTH = [
+        '58' => 32,
+        '80' => 48,
+    ];
 
-    // Columnas para línea de producto
-    private const COL_NAME = 23; // nombre del producto
+    private int $width;
 
-    private const COL_TOTAL = 9; // total (right-aligned, incluye $)
+    private int $colName; // nombre del producto
+
+    private int $colTotal; // total (right-aligned, incluye $)
 
     public function format(TicketDataInterface $data, Printer $printer): void
     {
         $d = $data->toArray();
 
         $business = $d['business'];
+
+        $this->width = self::charsForPaperWidth($business['paper_width'] ?? '58');
+        $this->colTotal = (int) round($this->width * 9 / 32);
+        $this->colName = $this->width - $this->colTotal;
 
         // ─── Encabezado ───────────────────────────────────────
         $printer->setJustification(Printer::JUSTIFY_CENTER);
@@ -112,35 +121,41 @@ class VentaFormatter implements TicketFormatterInterface
         $printer->feed(4);
     }
 
+    /** Caracteres por línea para un ancho de papel dado (mm, '58' o '80'). */
+    public static function charsForPaperWidth(?string $paperWidth): int
+    {
+        return self::CHARS_PER_PAPER_WIDTH[$paperWidth ?? '58'] ?? 32;
+    }
+
     // ─── Helpers ──────────────────────────────────────────────
 
     private function line(string $char): string
     {
-        return str_repeat($char, self::WIDTH);
+        return str_repeat($char, $this->width);
     }
 
     /**
-     * Encabezado de columnas (una sola línea, 32 chars):
+     * Encabezado de columnas (una sola línea, ancho según el papel):
      * "PRODUCTO               TOTAL   "
      */
     private function productHeader(): string
     {
-        return str_pad('PRODUCTO', self::COL_NAME)
-            .str_pad('TOTAL', self::COL_TOTAL, ' ', STR_PAD_LEFT);
+        return str_pad('PRODUCTO', $this->colName)
+            .str_pad('TOTAL', $this->colTotal, ' ', STR_PAD_LEFT);
     }
 
     /**
      * Línea de producto en dos líneas:
-     * "Pecho de res             $70.00"  ← nombre + total (32 chars)
+     * "Pecho de res             $70.00"  ← nombre + total (ancho según el papel)
      * "  0.350 kg x $200.00"             ← cantidad (con decimales si es peso) x precio
      */
     private function productLine(array $item): string
     {
-        $name = mb_substr($item['nombre'], 0, self::COL_NAME);
+        $name = mb_substr($item['nombre'], 0, $this->colName);
         $total = '$'.number_format($item['total'], 2);
 
-        $line1 = str_pad($name, self::COL_NAME)
-            .str_pad($total, self::COL_TOTAL, ' ', STR_PAD_LEFT);
+        $line1 = str_pad($name, $this->colName)
+            .str_pad($total, $this->colTotal, ' ', STR_PAD_LEFT);
 
         $unidad = $item['unidad_medida'] ?? 'unidad';
         $esPeso = in_array($unidad, ['kg', 'gr']);
@@ -166,12 +181,12 @@ class VentaFormatter implements TicketFormatterInterface
     }
 
     /**
-     * Fila de total: label a la izquierda, valor a la derecha (32 chars total).
+     * Fila de total: label a la izquierda, valor a la derecha (ancho según el papel).
      */
     private function totalRow(string $label, string $value): string
     {
         $valueLen = strlen($value);
-        $labelLen = self::WIDTH - $valueLen;
+        $labelLen = $this->width - $valueLen;
 
         return str_pad($label, $labelLen).$value;
     }

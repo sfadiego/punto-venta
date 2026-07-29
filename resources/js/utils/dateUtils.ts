@@ -46,6 +46,46 @@ export const formatMonthLabel = (mes: string): string => {
     return label.charAt(0).toUpperCase() + label.slice(1);
 };
 
+/** Devuelve el lunes (YYYY-MM-DD) de la semana que contiene la fecha dada (hoy por defecto). */
+export const getWeekStart = (date: Date = new Date()): string => {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const day = d.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diffToMonday);
+    return localDateString(d);
+};
+
+/** Desplaza una semana (YYYY-MM-DD, lunes) N semanas hacia adelante/atrás. */
+export const shiftWeek = (semana: string, weeks: number): string => {
+    const d = parseDateLocal(semana);
+    if (!d) return semana;
+    d.setDate(d.getDate() + weeks * 7);
+    return localDateString(d);
+};
+
+/** Formatea el rango de una semana (lunes YYYY-MM-DD) a texto corto, ej. "21 - 27 jul 2026". */
+export const formatWeekLabel = (semana: string): string => {
+    const start = parseDateLocal(semana);
+    if (!start) return "";
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+
+    const startDay = start.getDate();
+    const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+    const endLabel = end.toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" });
+
+    if (sameMonth) {
+        return `${startDay} - ${endLabel}`;
+    }
+
+    const startLabel = start.toLocaleDateString("es-MX", {
+        day: "numeric",
+        month: "short",
+        ...(start.getFullYear() !== end.getFullYear() ? { year: "numeric" as const } : {}),
+    });
+    return `${startLabel} - ${endLabel}`;
+};
+
 type DateMutator = (d: Date) => void;
 
 // null = plan sin vencimiento (Lifetime). undefined = plan desconocido → también retorna null.

@@ -7,7 +7,7 @@ interface PrinterConfigFormProps {
     config: IBusinessConfig | undefined;
 }
 
-type PrinterFormValues = { printer_name: string; printer_host: string };
+type PrinterFormValues = { printer_name: string; printer_host: string; paper_width: "58" | "80" };
 
 export const PrinterConfigForm = ({ config }: PrinterConfigFormProps) => {
     const { formik } = usePrinterSection(config);
@@ -47,6 +47,29 @@ export const PrinterConfigForm = ({ config }: PrinterConfigFormProps) => {
                 />
                 <p className="text-xs text-stone-400">
                     Usado cuando el servidor tiene acceso directo a la impresora por red local.
+                </p>
+            </div>
+
+            <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-stone-700">Tamaño de papel</label>
+                <div className="flex h-9 w-fit rounded-xl border border-stone-200 overflow-hidden text-xs">
+                    {(["58", "80"] as const).map((width) => (
+                        <button
+                            key={width}
+                            type="button"
+                            onClick={() => formik.setFieldValue("paper_width", width)}
+                            className={`px-4 font-medium transition-colors ${
+                                formik.values.paper_width === width
+                                    ? "bg-amber-500 text-white"
+                                    : "bg-stone-50 text-stone-500 hover:bg-stone-100"
+                            } ${width === "80" ? "border-l border-stone-200" : ""}`}
+                        >
+                            {width}mm
+                        </button>
+                    ))}
+                </div>
+                <p className="text-xs text-stone-400">
+                    Ancho de la impresora térmica. La mayoría de las impresoras portátiles usan 58mm.
                 </p>
             </div>
 

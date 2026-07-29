@@ -76,6 +76,52 @@ class BusinessConfigTest extends TestCase
             ->assertJsonPath('data.menu_enabled', true);
     }
 
+    public function test_actualiza_paper_width_a_80mm(): void
+    {
+        $this->putJson('/api/admin/config', [
+            'business_name' => 'Cafe Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'paper_width' => '80',
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.paper_width', '80');
+
+        $tenant = BusinessConfigModel::first();
+        $this->assertDatabaseHas('business_config', [
+            'id' => $tenant->id,
+            'paper_width' => '80',
+        ]);
+    }
+
+    public function test_paper_width_default_es_58mm_si_no_se_envia(): void
+    {
+        $this->putJson('/api/admin/config', [
+            'business_name' => 'Cafe Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.paper_width', '58');
+    }
+
+    public function test_no_actualiza_con_paper_width_invalido(): void
+    {
+        $this->putJson('/api/admin/config', [
+            'business_name' => 'Cafe Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'paper_width' => '110',
+        ], $this->authHeaders())
+            ->assertStatus(400);
+    }
+
     public function test_bluetooth_printing_enabled_no_se_puede_modificar_desde_el_tenant(): void
     {
         $tenant = BusinessConfigModel::first();

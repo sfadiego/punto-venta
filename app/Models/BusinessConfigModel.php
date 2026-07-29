@@ -53,6 +53,8 @@ class BusinessConfigModel extends Model
 
     const PRINTER_HOST = 'printer_host';
 
+    const PAPER_WIDTH = 'paper_width';
+
     const PRINTER_ENABLED = 'printer_enabled';
 
     const BLUETOOTH_PRINTING_ENABLED = 'bluetooth_printing_enabled';
@@ -105,6 +107,7 @@ class BusinessConfigModel extends Model
         self::TICKET_FOOTER,
         self::PRINTER_NAME,
         self::PRINTER_HOST,
+        self::PAPER_WIDTH,
         self::PRINTER_ENABLED,
         self::BLUETOOTH_PRINTING_ENABLED,
         self::MENU_ENABLED,
