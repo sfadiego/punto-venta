@@ -101,7 +101,7 @@ export default function TenantFormPage() {
 
                     {isEdit && tenantId && <TenantFeatureSpotlightsSection tenantId={tenantId} />}
 
-                    {isEdit && tenantId && <TenantDangerZone tenantId={tenantId} />}
+                    {isEdit && tenantId && tenantDetail?.is_demo && <TenantDangerZone tenantId={tenantId} />}
 
                     <div className="flex justify-end gap-3">
                         <button
