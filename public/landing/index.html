@@ -210,16 +210,24 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; text-wrap: bala
 @media (max-width: 1024px) {
   .nav-links { gap: 24px; font-size: 14px; }
 }
-@media (max-width: 860px) {
-  .nav-links { gap: 16px; font-size: 13px; }
-  .nav-cta-wrap { gap: 8px; }
-}
-@media (max-width: 760px) {
-  .nav-links-mobile-hide { display: none; }
-  .nav-demo-btn { display: none; }
+/* Tablet y móvil: hamburguesa + todos los CTA dentro del drawer.
+   Los selectores con .nav-cta-wrap suben la especificidad para ganarle
+   a la regla base .btn { display:inline-flex } declarada más abajo. */
+@media (max-width: 900px) {
+  .nav-links { display: none; }
+  .nav-cta-wrap .js-login-btn,
+  .nav-cta-wrap .nav-demo-btn { display: none; }
   .nav-hamburger { display: flex; }
   .nav-drawer { display: none; }
   .nav-drawer.open { display: flex; }
+  .brand { font-size: 18px; }
+}
+@media (max-width: 420px) {
+  .brand { font-size: 16px; gap: 8px; }
+  .brand-mark { width: 26px; height: 26px; font-size: 12px; }
+  .nav-inner { height: 58px; }
+  .nav-drawer { top: 58px; }
+  .nav-drawer-links a { font-size: 15px; padding: 12px 0; }
 }
 
 /* ============ BUTTONS ============ */
@@ -238,6 +246,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; text-wrap: bala
   white-space: nowrap;
 }
 .btn:active { transform: scale(0.97); }
+/* Foco visible para navegación por teclado (no afecta el mouse gracias a :focus-visible) */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 .btn-primary {
   background: var(--ember);
   color: #fff;
@@ -655,6 +669,31 @@ section { padding: 92px 0; }
 .mock-bar-bg { background: var(--paper-dim); border-radius: 999px; height: 6px; overflow: hidden; }
 .mock-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--ember), var(--marigold)); }
 
+/* Mockup Báscula */
+.mock-scale-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 300px; }
+.mock-scale-display {
+  width: 100%;
+  background: var(--card); border: 1px solid var(--card-line);
+  border-radius: 14px; padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(17,24,39,0.07);
+}
+.mock-scale-screen { text-align: center; }
+.mock-scale-label { font-size: 11px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .07em; }
+.mock-scale-reading { display: flex; align-items: baseline; justify-content: center; gap: 6px; margin: 8px 0 4px; }
+.mock-scale-value { font-size: 38px; font-weight: 900; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1; }
+.mock-scale-unit { font-size: 16px; font-weight: 700; color: var(--ink-soft); }
+.mock-scale-status { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; color: #16a34a; }
+.mock-scale-dot { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; animation: scalePulse 1.4s ease-in-out infinite; display: inline-block; }
+@keyframes scalePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+.mock-scale-arrow { color: var(--ink-soft); opacity: 0.4; }
+.mock-scale-field {
+  width: 100%; background: color-mix(in srgb, var(--ember) 6%, var(--card));
+  border: 1.5px solid var(--ember); border-radius: 12px; padding: 12px 16px;
+}
+.mock-scale-field-label { font-size: 11px; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; display: block; }
+.mock-scale-field-value { display: flex; align-items: center; justify-content: space-between; }
+.mock-scale-field-value span:first-child { font-size: 15px; font-weight: 700; color: var(--ink); }
+
 /* Mockup Cocina */
 .mock-kitchen { display: flex; gap: 12px; width: 100%; max-width: 340px; }
 .mock-kitchen-card {
@@ -912,6 +951,22 @@ footer {
 .footer-contact a { display: inline-flex; align-items: center; gap: 7px; }
 .footer-contact svg { width: 16px; height: 16px; color: var(--ember); flex-shrink: 0; }
 .footer-contact a:hover svg { color: var(--ember-ink); }
+/* Footer responsive: apilado y centrado en tablet/móvil */
+@media (max-width: 900px) {
+  .footer-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 22px;
+  }
+  .footer-links {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .footer-links a { display: inline-flex; align-items: center; padding: 10px 12px; }
+  .footer-fine { max-width: 34ch; }
+}
 
 /* ============ REVEAL ============ */
 .reveal { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
@@ -937,7 +992,7 @@ footer {
 }
 .period-btn {
   border: none; background: transparent; cursor: pointer;
-  padding: 9px 18px; border-radius: 10px;
+  padding: 12px 18px; min-height: 44px; border-radius: 10px;
   font-family: var(--font-body); font-weight: 700; font-size: 13.5px;
   color: var(--ink-soft); transition: all .18s ease; white-space: nowrap;
 }
@@ -986,10 +1041,60 @@ footer {
 .pricing-cta-block p { color: var(--ink-soft); margin-bottom: 28px; font-size: 15.5px; }
 .pricing-cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 
+/* Callout: opera desde tablet / arma tu paquete de equipo */
+.hw-callout {
+  display: flex; align-items: center; gap: 24px;
+  max-width: 760px; margin: 40px auto 0;
+  background: var(--card); border: 1px solid var(--card-line);
+  border-radius: 20px; padding: 26px 30px;
+  box-shadow: 0 4px 24px -10px rgba(17,24,39,0.12);
+}
+.hw-callout-icon {
+  flex-shrink: 0; width: 54px; height: 54px; border-radius: 14px;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--ember) 10%, var(--card));
+  color: var(--ember);
+}
+.hw-callout-icon svg { width: 26px; height: 26px; }
+.hw-callout-text { flex: 1; text-align: left; }
+.hw-callout-text h3 { font-size: 19px; margin: 0 0 6px; letter-spacing: -0.01em; }
+.hw-callout-text p { font-size: 14.5px; color: var(--ink-soft); margin: 0; line-height: 1.5; }
+.hw-devices { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.hw-devices span {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 700; color: var(--ink);
+  background: color-mix(in srgb, var(--ember) 7%, var(--card));
+  border: 1px solid var(--card-line); border-radius: 99px; padding: 6px 12px;
+}
+.hw-devices svg { width: 14px; height: 14px; color: var(--ember); flex-shrink: 0; }
+.hw-callout-cta { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 9px; width: 176px; }
+.hw-callout-cta .btn { width: 100%; justify-content: center; }
+.hw-cta-hint { font-size: 12px; color: var(--ink-soft); line-height: 1.4; text-align: center; }
+@media (max-width: 760px) {
+  .hw-callout { flex-direction: column; text-align: center; gap: 20px; padding: 28px 24px; }
+  .hw-callout-text { text-align: center; }
+  .hw-devices { justify-content: center; }
+  .hw-callout-cta { width: 100%; }
+}
+
 @media (max-width: 600px) {
-  .period-bar { flex-wrap: wrap; border-radius: 16px; }
+  .period-bar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+    max-width: 340px;
+    border-radius: 16px;
+  }
+  .period-btn { width: 100%; padding: 12px 10px; }
+  .period-btn:last-child { grid-column: 1 / -1; }
   .pricing-card { padding: 36px 28px; }
   .pricing-amount { font-size: 56px; }
+}
+/* Ultra-angosto: apila los períodos en una sola columna para que el texto nunca se corte */
+@media (max-width: 300px) {
+  .period-bar { grid-template-columns: 1fr; }
+  .period-btn:last-child { grid-column: auto; }
 }
 
 /* ============ RITMO VISUAL ENTRE SECCIONES ============ */
@@ -1053,7 +1158,7 @@ footer {
     </ul>
     <div class="nav-cta-wrap">
       <a class="btn btn-ghost btn-sm nav-links-mobile-hide js-login-btn" href="/auth">Iniciar sesión</a>
-      <a class="btn btn-primary btn-sm nav-demo-btn js-demo-btn" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">Solicitar demo</a>
+      <a class="btn btn-primary btn-sm nav-demo-btn js-demo-btn" href="https://wa.me/523124491976?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida" target="_blank" rel="noopener">Solicitar demo</a>
       <button class="nav-hamburger" id="navHamburger" aria-label="Abrir menú" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -1068,7 +1173,7 @@ footer {
   </ul>
   <div class="nav-drawer-ctas">
     <a class="btn btn-ghost js-login-btn" href="/auth">Iniciar sesión</a>
-    <a class="btn btn-primary js-demo-btn" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">Solicitar demo</a>
+    <a class="btn btn-primary js-demo-btn" href="https://wa.me/523124491976?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida" target="_blank" rel="noopener">Solicitar demo</a>
   </div>
 </div>
 
@@ -1077,12 +1182,12 @@ footer {
 
     <div class="hero-badge">
       <div class="hero-badge-avatars">
-        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/chantico.jpg" alt="Cliente Chantico" />
-        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/liro.jpg" alt="Cliente Liro" />
-        <img src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/luna.jpg" alt="Cliente Luna" />
+        <img src="./assets/chantico.jpg" alt="Cliente Chantico" width="38" height="38" loading="lazy" />
+        <img src="./assets/liro.jpg" alt="Cliente Liro" width="38" height="38" loading="lazy" />
+        <img src="./assets/luna.jpg" alt="Cliente Luna" width="38" height="38" loading="lazy" />
       </div>
       <span class="hero-badge-dot"></span>
-      Más de 50 negocios activos
+      Cada vez mas negocios confían en Venta Rápida.
     </div>
 
     <h1>Cobra en segundos.<br><em>Controla</em> todo tu negocio.</h1>
@@ -1093,7 +1198,7 @@ footer {
     </p>
 
     <div class="hero-ctas">
-      <a class="btn btn-primary btn-pill" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">Solicitar una demo</a>
+      <a class="btn btn-primary btn-pill" href="https://wa.me/523124491976?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida" target="_blank" rel="noopener">Solicitar una demo</a>
       <a class="btn btn-ghost btn-pill" href="#como-funciona">Ver cómo funciona</a>
     </div>
 
@@ -1110,9 +1215,11 @@ footer {
 
     <div class="hero-mock-wrap">
       <img
-        src="https://5rb8eqx3dsix9msl.public.blob.vercel-storage.com/pos.jpg"
+        src="./assets/ss-pos-venta.png"
         alt="Panel de Venta Rápida"
         class="hero-app-img"
+        width="1906"
+        height="925"
       />
     </div>
 
@@ -1142,7 +1249,7 @@ footer {
         <div class="zz-row">
           <div class="zz-text">
             <span class="zz-num">01 — Pesar y vender</span>
-            <h3>Busca el corte, ingresa el peso — el precio sale solo.</h3>
+            <h3>Busca el producto, ingresa el peso — el precio sale solo.</h3>
             <p>Sin calculadora aparte, sin error humano. Ingresa los gramos y el sistema cobra exacto al centavo.</p>
             <div class="zz-chips">
               <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Precio por kg</span>
@@ -1169,11 +1276,52 @@ footer {
           </div>
         </div>
 
+        <!-- ─── PASO: Báscula digital ─── -->
         <div class="zz-row reverse">
           <div class="zz-text">
-            <span class="zz-num">02 — Cobrar</span>
-            <h3>Efectivo, transferencia o fiado — tú decides cómo cobra.</h3>
-            <p>Da crédito a tus clientes de confianza, registra abonos y bloquea cuando el saldo se pasa.</p>
+            <span class="zz-num">02 — Báscula digital</span>
+            <h3>Conecta tu báscula y el peso llega solo — sin teclear.</h3>
+            <p>Pon el producto en la báscula, el sistema lee el peso automáticamente y calcula el precio al instante. Cero errores, más velocidad en el mostrador.</p>
+            <div class="zz-chips">
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Conexión USB / Serial</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Lectura automática</span>
+              <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Sin errores de captura</span>
+            </div>
+          </div>
+          <div class="zz-visual">
+            <div class="mock-scale-wrap">
+              <div class="mock-scale-display">
+                <div class="mock-scale-screen">
+                  <span class="mock-scale-label">Báscula conectada</span>
+                  <div class="mock-scale-reading">
+                    <span class="mock-scale-value">0.850</span>
+                    <span class="mock-scale-unit">kg</span>
+                  </div>
+                  <div class="mock-scale-status">
+                    <span class="mock-scale-dot"></span> En vivo
+                  </div>
+                </div>
+              </div>
+              <div class="mock-scale-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="24" height="24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+              </div>
+              <div class="mock-scale-field">
+                <span class="mock-scale-field-label">Bistec de res</span>
+                <div class="mock-scale-field-value">
+                  <span>0.850 kg</span>
+                  <span class="mock-price">$153.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /paso báscula -->
+
+        <div class="zz-row">
+          <div class="zz-text">
+            <span class="zz-num">03 — Cobrar</span>
+            <h3>Efectivo, transferencia o credito — tú decides cómo cobra.</h3>
+            <p>Da crédito a tus clientes de confianza, registra abonos y bloquea cuando sea necesario.</p>
             <div class="zz-chips">
               <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Efectivo</span>
               <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Transferencia</span>
@@ -1201,9 +1349,9 @@ footer {
 
         <div class="zz-row">
           <div class="zz-text">
-            <span class="zz-num">03 — Cerrar caja</span>
+            <span class="zz-num">04 — Cerrar caja</span>
             <h3>Al final del día, ve exactamente qué vendiste y cuánto entra.</h3>
-            <p>Cierra la caja, revisa los cortes más vendidos por kg y compara contra el efectivo del cajón.</p>
+            <p>Cierra la caja, revisa los cortes más vendidos por kg, gr o unidad y compara contra el efectivo del cajón.</p>
             <div class="zz-chips">
               <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Apertura y cierre de caja</span>
               <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Top de cortes vendidos</span>
@@ -1309,7 +1457,7 @@ footer {
           <div class="zz-text">
             <span class="zz-num">03 — Cobrar y cerrar</span>
             <h3>Cobra cuando la orden está lista. Cierra la caja sin sorpresas.</h3>
-            <p>Efectivo, transferencia o fiado. Al final del día revisa cuánto vendiste por categoría y compara contra la caja.</p>
+            <p>Efectivo, transferencia o credito. Al final del día revisa cuánto vendiste por categoría y compara contra la caja.</p>
             <div class="zz-chips">
               <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Efectivo y transferencia</span>
               <span class="zz-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Crédito a clientes</span>
@@ -1435,9 +1583,9 @@ footer {
     <!-- Selector de período -->
     <div class="period-selector">
       <div class="period-bar" role="group" aria-label="Período de facturación">
-        <button class="period-btn" data-period="semanal"    data-amount="100"  data-unit="/sem"  data-note="100">Semanal</button>
-        <button class="period-btn" data-period="quincenal" data-amount="200"  data-unit="/qna"  data-note="200">Quincenal</button>
-        <button class="period-btn active" data-period="mensual" data-amount="399" data-unit="/mes"  data-note="399">Mensual</button>
+        <button class="period-btn" data-period="semanal"    data-amount="100"  data-unit="/sem"  data-note="100 /semanal">Semanal</button>
+        <button class="period-btn" data-period="quincenal" data-amount="200"  data-unit="/qna"  data-note="200 /quincenal">Quincenal</button>
+        <button class="period-btn active" data-period="mensual" data-amount="399" data-unit="/mes"  data-note="399 /mensual">Mensual</button>
         <button class="period-btn" data-period="semestral" data-amount="2,100" data-unit="/sem" data-note="Son $350/mes · ahorras $300">Semestral</button>
         <button class="period-btn" data-period="anual"     data-amount="4,200" data-unit="/año" data-note="Son $350/mes · pagas todo el año">Anual</button>
       </div>
@@ -1486,9 +1634,29 @@ footer {
           </li>
         </ul>
 
-        <a target="_blank" class="btn btn-primary" style="width:100%;justify-content:center;" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">
+        <a target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;justify-content:center;" href="https://wa.me/523124491976?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida">
           Solicitar una demo
         </a>
+      </div>
+    </div>
+
+    <!-- Callout: funciona en lo que ya tienes / cotiza equipo -->
+    <div class="hw-callout reveal">
+      <div class="hw-callout-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></svg>
+      </div>
+      <div class="hw-callout-text">
+        <h3>No necesitas una computadora cara</h3>
+        <p>Venta Rápida funciona en tu <strong>laptop, tablet o celular</strong> — sin instalar nada.</p>
+        <div class="hw-devices">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></svg>Laptop</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M12 18h.01"/></svg>Tablet</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>Celular</span>
+        </div>
+      </div>
+      <div class="hw-callout-cta">
+        <a class="btn btn-primary" target="_blank" rel="noopener" href="https://wa.me/523124491976?text=Hola%2C%20quiero%20cotizar%20un%20paquete%20de%20equipo%20para%20usar%20Venta%20R%C3%A1pida">Cotizar equipo</a>
+        <span class="hw-cta-hint">¿Necesitas hardware? Te armamos el paquete.</span>
       </div>
     </div>
 
@@ -1513,15 +1681,15 @@ footer {
     <ul class="footer-links">
       <li><a href="#como-funciona">Cómo funciona</a></li>
       <li class="footer-contact">
-        <a href="https://wa.me/523121166870" aria-label="WhatsApp">
+        <a href="https://wa.me/523124491976" aria-label="Escríbenos por WhatsApp al 312 449 1976" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          312 116 6870
+          312 449 1976
         </a>
       </li>
       <li class="footer-contact">
-        <a href="mailto:sfadiego@gmail.com" aria-label="Correo">
+        <a href="mailto:posventarapida@gmail.com" aria-label="Escríbenos al correo posventarapida@gmail.com">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-          sfadiego@gmail.com
+          posventarapida@gmail.com
         </a>
       </li>
     </ul>
@@ -1611,7 +1779,7 @@ footer {
 
 <!-- ===== Asistente Virtual (bot con preguntas predefinidas) ===== -->
 <style>
-.vr-bot-root{position:fixed;bottom:80px;right:28px;z-index:1000;display:flex;flex-direction:column;align-items:flex-end;gap:12px;font-family:var(--font-body)}
+.vr-bot-root{position:fixed;bottom:80px;right:28px;z-index:1000;display:flex;flex-direction:column;align-items:flex-end;gap:12px;font-family:var(--font-body);pointer-events:none}
 .vr-bot-panel{width:370px;max-width:calc(100vw - 32px);transform:scale(.9) translateY(16px);transform-origin:bottom right;opacity:0;pointer-events:none;transition:transform .28s cubic-bezier(.22,1,.36,1),opacity .2s;border-radius:20px;overflow:hidden;background:var(--card);box-shadow:0 20px 60px rgba(17,24,39,.22),0 4px 16px rgba(0,137,145,.14);border:1px solid var(--card-line)}
 .vr-bot-panel.open{transform:scale(1) translateY(0);opacity:1;pointer-events:auto}
 .vr-bot-top{display:flex;align-items:center;gap:12px;padding:14px 18px;background:linear-gradient(135deg,var(--ember),var(--marigold));color:#fff}
@@ -1621,7 +1789,7 @@ footer {
 .vr-bot-ti span{font-size:12px;opacity:.85;display:flex;align-items:center;gap:6px}
 .vr-bot-dot{width:8px;height:8px;border-radius:50%;background:#5CF08E;box-shadow:0 0 0 0 rgba(92,240,142,.6);animation:vrPing 2s infinite}
 @keyframes vrPing{70%{box-shadow:0 0 0 8px rgba(92,240,142,0)}100%{box-shadow:0 0 0 0 rgba(92,240,142,0)}}
-.vr-bot-x{margin-left:auto;background:rgba(255,255,255,.18);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;display:grid;place-items:center;font-size:18px;line-height:1}
+.vr-bot-x{margin-left:auto;background:rgba(255,255,255,.18);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;display:grid;place-items:center;font-size:18px;line-height:1}
 .vr-bot-x:hover{background:rgba(255,255,255,.3)}
 .vr-bot-body{padding:16px 18px;display:flex;flex-direction:column;gap:12px;max-height:300px;overflow-y:auto;background:var(--paper-dim)}
 .vr-bot-body::-webkit-scrollbar{width:5px}.vr-bot-body::-webkit-scrollbar-thumb{background:var(--card-line);border-radius:99px}
@@ -1634,10 +1802,15 @@ footer {
 .vr-typing i:nth-child(2){animation-delay:.2s}.vr-typing i:nth-child(3){animation-delay:.4s}
 @keyframes vrDot{0%,80%,100%{opacity:.25}40%{opacity:1}}
 .vr-chips{display:flex;flex-wrap:wrap;gap:7px;padding:0 18px 14px;background:var(--paper-dim)}
-.vr-chip{font-size:12px;padding:7px 13px;border-radius:99px;border:1px solid var(--card-line);background:var(--card);color:var(--ember-ink);cursor:pointer;font-family:inherit;font-weight:600;transition:transform .15s,box-shadow .2s,border-color .2s}
+.vr-chip{font-size:12.5px;padding:10px 14px;min-height:40px;border-radius:99px;border:1px solid var(--card-line);background:var(--card);color:var(--ember-ink);cursor:pointer;font-family:inherit;font-weight:600;transition:transform .15s,box-shadow .2s,border-color .2s}
 .vr-chip:hover{transform:translateY(-2px);border-color:var(--ember);box-shadow:0 4px 12px rgba(0,137,145,.2)}
-.vr-bot-cta{display:none;align-items:center;gap:8px;margin:0 18px 16px;padding:11px 14px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:12px;background:var(--paper-dim)}
+.vr-bot-cta{display:none;flex-direction:column;align-items:flex-start;gap:10px;margin:0 18px 16px;padding:12px 14px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:12px;background:var(--paper-dim)}
 .vr-bot-cta.on{display:flex}
+.vr-cta-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+.vr-cta-actions .vr-wa{grid-column:1 / -1;justify-content:center}
+.vr-contact{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--card);border:1px solid var(--card-line);color:var(--ink);border-radius:99px;padding:9px 14px;font-size:12.5px;font-weight:800;text-decoration:none;white-space:nowrap;transition:border-color .2s,transform .15s,box-shadow .2s}
+.vr-contact:hover{border-color:var(--ember);transform:scale(1.04);box-shadow:0 4px 12px rgba(0,137,145,.18)}
+.vr-contact svg{width:15px;height:15px;stroke:var(--ember)}
 .vr-wa{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:7px;background:#25D366;color:#fff;border-radius:99px;padding:10px 18px;font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap;box-shadow:0 4px 14px rgba(37,211,102,.5);animation:vrWaGlow 1.4s ease-in-out infinite}
 .vr-wa::before{content:'';position:absolute;top:0;left:-120%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);transform:skewX(-20deg);animation:vrWaShine 2.2s ease-in-out infinite}
 .vr-wa:hover{background:#1EBE5D;transform:scale(1.05)}
@@ -1651,9 +1824,9 @@ footer {
 .vr-bot-send{flex:none;padding:0 16px;background:linear-gradient(135deg,var(--ember),var(--marigold));color:#fff;border:none;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer}
 .vr-bot-send:disabled{opacity:.5;cursor:default}
 .vr-bot-trigger{display:flex;align-items:center;gap:10px}
-.vr-bot-pill{background:var(--card);border:1px solid var(--card-line);padding:9px 15px;border-radius:14px;box-shadow:var(--shadow);cursor:pointer;white-space:nowrap;font-size:13px;font-weight:700;color:var(--ink);font-family:inherit;position:relative;animation:vrFloat 4s ease-in-out infinite}
+.vr-bot-pill{background:var(--card);border:1px solid var(--card-line);padding:9px 15px;border-radius:14px;box-shadow:var(--shadow);cursor:pointer;white-space:nowrap;font-size:13px;font-weight:700;color:var(--ink);font-family:inherit;position:relative;animation:vrFloat 4s ease-in-out infinite;pointer-events:auto}
 .vr-bot-pill::after{content:'';position:absolute;right:-7px;top:50%;transform:translateY(-50%);border:7px solid transparent;border-left:7px solid var(--card)}
-.vr-bot-btn{width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--ember),var(--marigold));color:#fff;display:grid;place-items:center;font-size:26px;box-shadow:0 8px 22px rgba(0,137,145,.42);animation:vrFloat 4s ease-in-out infinite;position:relative}
+.vr-bot-btn{width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--ember),var(--marigold));color:#fff;display:grid;place-items:center;font-size:26px;box-shadow:0 8px 22px rgba(0,137,145,.42);animation:vrFloat 4s ease-in-out infinite;position:relative;pointer-events:auto}
 .vr-bot-btn::after{content:'';position:absolute;top:3px;right:3px;width:12px;height:12px;border-radius:50%;background:#5CF08E;border:2px solid #fff}
 .vr-bot-root.open .vr-bot-pill,.vr-bot-root.open .vr-bot-btn::after{display:none}
 @keyframes vrFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
@@ -1677,18 +1850,23 @@ footer {
     </div>
     <div class="vr-chips" id="vrChips" role="group" aria-label="Preguntas frecuentes">
       <button class="vr-chip" data-q="¿Cuánto cuesta Venta Rápida?">💰 ¿Cuánto cuesta?</button>
-      <button class="vr-chip" data-q="¿Sirve para venta por peso, como una carnicería?">⚖️ ¿Venta por peso?</button>
+      <button class="vr-chip" data-q="¿Sirve para venta por peso, como una carnicería?">🥩 ¿Venta por peso?</button>
+      <button class="vr-chip" data-q="¿Puedo conectar una báscula digital al sistema?">⚖️ ¿Báscula digital?</button>
       <button class="vr-chip" data-q="¿Necesito una impresora de tickets?">🖨️ ¿Necesito impresora?</button>
       <button class="vr-chip" data-q="¿Para qué giros de negocio sirve?">🏪 ¿Para qué giros?</button>
       <button class="vr-chip" data-q="¿Funciona por internet o en la nube?">📶 ¿Cómo funciona?</button>
       <button class="vr-chip" data-q="¿Cómo empiezo a usarlo?">🚀 ¿Cómo empiezo?</button>
     </div>
     <div class="vr-bot-cta" id="vrCta">
-      <span class="vr-cta-txt">¿Listo para probarlo?</span>
-      <a class="vr-wa" href="https://wa.me/523121166870?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
-        WhatsApp
-      </a>
+      <span class="vr-cta-txt">¿Hablamos? Contáctanos por el medio que prefieras:</span>
+      <div class="vr-cta-actions">
+        <a class="vr-wa" href="https://wa.me/523124491976?text=Hola%2C%20me%20interesa%20una%20demo%20de%20Venta%20R%C3%A1pida" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg><span>WhatsApp</span></a>
+        <a class="vr-contact" href="tel:+523124491976" aria-label="Llamar al 312 449 1976">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>Llamar</span></a>
+        <a class="vr-contact" href="mailto:posventarapida@gmail.com?subject=Interesado%20en%20Venta%20R%C3%A1pida" aria-label="Enviar correo a posventarapida@gmail.com">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span>Correo</span></a>
+      </div>
     </div>
     <div class="vr-bot-foot">
       <label for="vrInput" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Escribe tu pregunta</label>
@@ -1698,17 +1876,18 @@ footer {
   </div>
   <div class="vr-bot-trigger">
     <button class="vr-bot-pill" id="vrPill">💡 ¿Dudas? Pregúntame</button>
-    <button class="vr-bot-btn" id="vrBtn" aria-label="Abrir asistente virtual">💬</button>
+    <button class="vr-bot-btn" id="vrBtn" aria-label="Abrir asistente virtual"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg></button>
   </div>
 </aside>
 
 <script>
 (function(){
   'use strict';
-  var WA='523121166870';
+  var WA='523124491976';
   var INIT='¡Hola! 👋 Soy el asistente de Venta Rápida.\n¿En qué te ayudo? Elige una pregunta o escríbeme la tuya.';
   var R=[
     [/cu[aá]nto|cuesta|precio|costo|plan|pagar|mensualidad/,'costo'],
+    [/b[aá]scula digital|conectar.{0,10}b[aá]scula|b[aá]scula.{0,10}usb|b[aá]scula.{0,10}serial|leer.{0,10}peso|peso.{0,10}autom/,'bascula'],
     [/peso|kilo|gramo|carnicer|b[aá]scula|granel/,'peso'],
     [/impresora|ticket|imprim|comanda/,'impresora'],
     [/giro|negocio|sirve para|cafeter|restaurante|taquer|abarrote|fruter|loncher|tortiller/,'giros'],
@@ -1717,7 +1896,8 @@ footer {
   ];
   var FR={
     costo:'Es un solo plan con todo incluido 💳\n\n• Semanal: $100/sem\n• Quincenal: $200/qna\n• Mensual: $399/mes\n• Semestral: $2,100 (sale en $350/mes)\n• Anual: $4,200 (sale en $350/mes)\n\nSin costos ocultos: incluye ventas, productos, órdenes y estadísticas.',
-    peso:'¡Sí! ⚖️ Venta Rápida tiene un modo de venta por peso ideal para carnicerías, fruterías y todo lo que se vende a granel. Capturas el precio o el peso y el sistema calcula el total automáticamente.',
+    bascula:'¡Sí! 🔌 Puedes conectar tu báscula digital vía USB o Serial directamente al sistema.\n\nAl poner el producto en la báscula, el peso se lee automáticamente y el precio se calcula al instante — sin teclear, sin errores.\n\nCompatible con las básculas digitales de uso común en carnicerías y graneles. ¿Quieres saber si tu báscula es compatible? Escríbenos 👇',
+    peso:'¡Sí! ⚖️ Venta Rápida tiene un modo de venta por peso ideal para carnicerías, fruterías y todo lo que se vende a granel. Capturas el precio o el peso y el sistema calcula el total automáticamente.\n\nAdemás puedes conectar tu báscula digital para que el peso llegue solo — sin teclear nada.',
     impresora:'No es obligatoria 🖨️. Puedes operar sin impresora, pero si la tienes, Venta Rápida imprime tickets de tus ventas con nuestro agente de impresión. Tú decides.',
     giros:'Funciona para cualquier negocio de mostrador 🏪: cafeterías, restaurantes, carnicerías, taquerías, abarrotes, fruterías, loncherías y tortillerías, entre otros.',
     como:'Es 100% en la nube ☁️. Entras desde cualquier navegador en tu compu, tablet o celular — sin instalar nada. Tus ventas y reportes quedan siempre sincronizados.',
