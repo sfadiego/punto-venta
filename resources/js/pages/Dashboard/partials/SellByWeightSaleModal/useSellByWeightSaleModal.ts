@@ -18,6 +18,7 @@ import {
     useCreateOrderProduct,
     useUpdateOrderProduct,
     useDeleteOrderItem,
+    useClearOrderCart,
     usePrintOrder,
     useFetchPrintBytes,
 } from "@/services/useOrderService";
@@ -48,6 +49,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     const { mutateAsync: createOrderProduct } = useCreateOrderProduct();
     const { mutateAsync: updateOrderProduct } = useUpdateOrderProduct();
     const { mutateAsync: deleteOrderItem } = useDeleteOrderItem();
+    const { mutateAsync: clearOrderCart } = useClearOrderCart();
     const { mutateAsync: printOrder } = usePrintOrder();
     const fetchPrintBytes = useFetchPrintBytes();
 
@@ -85,6 +87,12 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     itemModesRef.current = itemModes;
     editingPricesRef.current = editingPrices;
     const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+
+    // Guard contra doble-clic/doble-invocación de clearCart: sin esto, un segundo
+    // clic mientras las deletes de la primera pasada siguen en vuelo reintenta
+    // borrar order_products ya eliminados y el backend responde 422.
+    const isClearingRef = useRef(false);
+    const [isClearing, setIsClearing] = useState(false);
 
     const { isPending: isRemoving, withPending: withRemoving } = useOptimisticPendingSet<number>();
     const { isPending: isAdding, withPending: withAdding } = useOptimisticPendingSet<number>();
@@ -324,19 +332,19 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
 
     const clearCart = async () => {
         const oid = orderIdRef.current;
-        if (!oid || cart.length === 0) return;
-        const toDelete = cart.filter((item) => !isRemoving(item.orderProductId));
-        const results = await Promise.allSettled(
-            toDelete.map((item) =>
-                deleteOrderItem({ orderId: oid, orderProductId: item.orderProductId }),
-            ),
-        );
-        results.forEach((result) => {
-            if (result.status === "rejected") {
-                logUnexpectedError(result.reason, "useSellByWeightSaleModal.clearCart");
-            }
-        });
-        setCart([]);
+        if (!oid || cart.length === 0 || isClearingRef.current) return;
+        isClearingRef.current = true;
+        setIsClearing(true);
+        try {
+            await clearOrderCart(oid);
+            setCart([]);
+        } catch (error) {
+            logUnexpectedError(error, "useSellByWeightSaleModal.clearCart");
+            toast.error(getUserFacingErrorMessage(error, "Error al vaciar el carrito"));
+        } finally {
+            isClearingRef.current = false;
+            setIsClearing(false);
+        }
     };
 
     // Quantity editing: local state for display, API call on blur
@@ -594,7 +602,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
         products, productsLoading,
         cart, total, totalFinal, domicilio, customerPays,
         sellByWeight,
-        addToCart, removeFromCart, clearCart,
+        addToCart, removeFromCart, clearCart, isClearing,
         getDisplayQty, handleQtyChange, handleQtyBlur,
         handleScaleReading, scaleSupported,
         getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,

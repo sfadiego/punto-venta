@@ -17,6 +17,7 @@ Route::prefix('super-admin')->group(function () {
 
     Route::middleware(['auth:sanctum', SuperAdminMiddleware::class])->group(function () {
         Route::get('error-logs', [ClientErrorController::class, 'index']);
+        Route::delete('error-logs/prune', [ClientErrorController::class, 'prune']);
         Route::post('printer-agent/download', [PrinterAgentController::class, 'download']);
 
         Route::prefix('demo-requests')->controller(DemoRequestController::class)->group(function () {

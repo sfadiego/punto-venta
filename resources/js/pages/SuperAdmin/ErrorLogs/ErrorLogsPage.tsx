@@ -1,4 +1,4 @@
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { ErrorLogsTable } from "@/components/SuperAdmin/ErrorLogs/ErrorLogsTable";
 import { ErrorLogDetailModal } from "@/components/SuperAdmin/ErrorLogs/ErrorLogDetailModal";
@@ -26,6 +26,8 @@ export default function ErrorLogsPage() {
         selectedLog,
         openDetail,
         closeDetail,
+        handlePrune,
+        isPruning,
     } = useErrorLogsPage();
 
     return (
@@ -41,13 +43,23 @@ export default function ErrorLogsPage() {
                             Monitoreo de errores del sistema registrados en tiempo real
                         </p>
                     </div>
-                    <button
-                        onClick={() => refetch()}
-                        className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
-                    >
-                        <RefreshCw size={15} />
-                        Actualizar
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handlePrune}
+                            disabled={isPruning}
+                            className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                        >
+                            <Trash2 size={15} />
+                            Purgar antiguos
+                        </button>
+                        <button
+                            onClick={() => refetch()}
+                            className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                            <RefreshCw size={15} />
+                            Actualizar
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-3 mb-4">

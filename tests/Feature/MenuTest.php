@@ -76,7 +76,19 @@ class MenuTest extends TestCase
     public function test_slug_invalido_retorna_404(): void
     {
         $this->getJson('/api/menu/slug-que-no-existe')
-            ->assertStatus(404);
+            ->assertStatus(404)
+            ->assertJsonPath('status', 'error')
+            ->assertJsonPath('message', 'Negocio no encontrado');
+    }
+
+    public function test_slug_de_tenant_inactivo_retorna_404(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::ACTIVO => false]);
+
+        $this->getJson("/api/menu/{$tenant->slug}")
+            ->assertStatus(404)
+            ->assertJsonPath('status', 'error');
     }
 
     public function test_muestra_estado_sesion_activa(): void
@@ -105,7 +117,9 @@ class MenuTest extends TestCase
     public function test_productos_slug_invalido_retorna_404(): void
     {
         $this->getJson('/api/menu/slug-invalido/products')
-            ->assertStatus(404);
+            ->assertStatus(404)
+            ->assertJsonPath('status', 'error')
+            ->assertJsonPath('message', 'Negocio no encontrado');
     }
 
     // ── Store (pedido público) ────────────────────────────────
@@ -302,6 +316,14 @@ class MenuTest extends TestCase
             ->assertJsonPath('data', null);
     }
 
+    public function test_lookup_cliente_slug_invalido_retorna_404(): void
+    {
+        $this->getJson('/api/menu/slug-invalido/customer?phone=3101112222')
+            ->assertStatus(404)
+            ->assertJsonPath('status', 'error')
+            ->assertJsonPath('message', 'Negocio no encontrado');
+    }
+
     public function test_pedido_publico_sin_sesion_activa_falla(): void
     {
         $tenant = BusinessConfigModel::first();
@@ -397,5 +419,20 @@ class MenuTest extends TestCase
             'is_delivery' => false,
             'items' => [['product_id' => 99999, 'cantidad' => 1]],
         ])->assertStatus(404);
+    }
+
+    public function test_pedido_publico_slug_invalido_retorna_404(): void
+    {
+        $product = $this->crearProducto();
+
+        $this->postJson('/api/menu/slug-invalido/order', [
+            'customer_name' => 'Test',
+            'customer_phone' => '3007777777',
+            'is_delivery' => false,
+            'items' => [['product_id' => $product->id, 'cantidad' => 1]],
+        ])
+            ->assertStatus(404)
+            ->assertJsonPath('status', 'error')
+            ->assertJsonPath('message', 'Negocio no encontrado');
     }
 }

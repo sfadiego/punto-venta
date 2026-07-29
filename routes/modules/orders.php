@@ -35,6 +35,8 @@ Route::prefix('order')->group(function () {
                     Route::delete('{extra}', 'deleteExtra');
                 });
             });
+
+            Route::delete('clear-cart', [OrderProductController::class, 'clearCart']);
         });
     });
 });

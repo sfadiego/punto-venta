@@ -39,6 +39,7 @@ export default function TakeOrderPage() {
         saveObservacion,
         removeFromCart,
         clearCart,
+        isClearingCart,
         updateOrderDiscount,
         updateProductDiscount,
     } = useTakeOrder();
@@ -94,6 +95,7 @@ export default function TakeOrderPage() {
                             onRemove={removeFromCart}
                             onNote={saveObservacion}
                             onClear={clearCart}
+                            isClearingCart={isClearingCart}
                             onUpdateDiscount={updateOrderDiscount}
                             onUpdateProductDiscount={updateProductDiscount}
                         />
@@ -140,6 +142,7 @@ export default function TakeOrderPage() {
                             onRemove={removeFromCart}
                             onNote={saveObservacion}
                             onClear={clearCart}
+                            isClearingCart={isClearingCart}
                             onUpdateDiscount={updateOrderDiscount}
                             onUpdateProductDiscount={updateProductDiscount}
                         />

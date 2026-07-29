@@ -31,6 +31,7 @@ interface CartPanelProps {
     onRemove: (orderProductId: number) => void;
     onNote: (orderProductId: number, note: string) => Promise<void>;
     onClear: () => void;
+    isClearingCart?: boolean;
     onUpdateDiscount: (descuento: number) => Promise<void>;
     onUpdateProductDiscount: (
         orderProductId: number,
@@ -60,6 +61,7 @@ export const CartPanel = ({
     onRemove,
     onNote,
     onClear,
+    isClearingCart = false,
     onUpdateDiscount,
     onUpdateProductDiscount,
 }: CartPanelProps) => {
@@ -107,7 +109,8 @@ export const CartPanel = ({
                     {cart.length > 0 && !isReadOnly && (
                         <button
                             onClick={onClear}
-                            className="text-xs text-red-400 hover:text-red-600 font-medium transition-colors"
+                            disabled={isClearingCart}
+                            className="text-xs text-red-400 hover:text-red-600 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
                         >
                             Limpiar
                         </button>

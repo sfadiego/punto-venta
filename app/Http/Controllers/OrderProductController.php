@@ -223,6 +223,26 @@ class OrderProductController extends Controller
     }
 
     /**
+     * clearCart — deletes every order_product (products and extras) of the order in one shot
+     */
+    public function clearCart(int $orderId): JsonResponse
+    {
+        $order = OrderModel::lockForUpdate()->find($orderId);
+        if ($error = $this->assertOrderEditable($order)) {
+            return $error;
+        }
+
+        OrderProductModel::where('pedido_id', $orderId)->delete();
+
+        DB::table('order')->where('id', $orderId)->update([
+            'subtotal' => 0,
+            'total' => 0,
+        ]);
+
+        return Response::success('carrito vaciado');
+    }
+
+    /**
      * delete — removes a regular product from the order by producto_id
      */
     public function delete(int $orderId, int $product): JsonResponse
