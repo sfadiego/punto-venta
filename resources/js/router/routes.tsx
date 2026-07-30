@@ -4,7 +4,6 @@ import { superAdminRoutes } from "./modules/superadmin.routes";
 import AppLayout from "@/layouts/AppLayout";
 import PrivateRoute from "@/components/PrivateRoute/PrivateRoute";
 import IRoute from "@/intefaces/IRoutes";
-import { RoleEnum } from "@/enums/RoleEnum";
 
 const AuthPage         = lazy(() => import("@/pages/Auth/AuthPage"));
 const TenantAuthPage   = lazy(() => import("@/pages/Auth/TenantAuthPage"));
@@ -36,22 +35,19 @@ const FullPageLoader = () => (
     </div>
 );
 
-const allow = (...roles: RoleEnum[]) =>
-    (u: { rol_id: number }) => roles.includes(u.rol_id as RoleEnum);
-
 const privateRoutes: IRoute[] = [
     { path: "/",               element: <DashboardPage />,  private: true },
     { path: "/orders",         element: <OrderListPage />,  private: true },
-    { path: "/products",       element: <ProductsPage />,   private: true, hasPermission: allow(RoleEnum.Admin, RoleEnum.Employe) },
-    { path: "/categories",     element: <CategoriesPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
-    { path: "/customers",      element: <CustomersPage />,      private: true, hasPermission: allow(RoleEnum.Admin) },
-    { path: "/customers/:id",  element: <CustomerDetailPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
-    { path: "/take-order/:id", element: <TakeOrderPage />,  private: true, hasPermission: allow(RoleEnum.Admin, RoleEnum.Employe) },
-    { path: "/close-sales",    element: <CloseSalesPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
-    { path: "/sales",          element: <SalesPage />,      private: true, hasPermission: allow(RoleEnum.Admin) },
-    { path: "/statistics",     element: <StatisticsPage />, private: true, hasPermission: allow(RoleEnum.Admin) },
-    { path: "/users",          element: <UsersPage />,        private: true, hasPermission: allow(RoleEnum.Admin) },
-    { path: "/admin",          element: <AdminPage />,        private: true, hasPermission: allow(RoleEnum.Admin) },
+    { path: "/products",       element: <ProductsPage />,   private: true, permission: "viewProducts" },
+    { path: "/categories",     element: <CategoriesPage />, private: true, permission: "viewCategories" },
+    { path: "/customers",      element: <CustomersPage />,      private: true, permission: "viewCustomers" },
+    { path: "/customers/:id",  element: <CustomerDetailPage />, private: true, permission: "viewCustomers" },
+    { path: "/take-order/:id", element: <TakeOrderPage />,  private: true, permission: "takeOrder" },
+    { path: "/close-sales",    element: <CloseSalesPage />, private: true, permission: "viewCloseSales" },
+    { path: "/sales",          element: <SalesPage />,      private: true, permission: "viewSales" },
+    { path: "/statistics",     element: <StatisticsPage />, private: true, permission: "viewStatistics" },
+    { path: "/users",          element: <UsersPage />,        private: true, permission: "viewUsers" },
+    { path: "/admin",          element: <AdminPage />,        private: true, permission: "viewAdmin" },
     { path: "/subscription",   element: <SubscriptionPage />, private: true },
 ];
 

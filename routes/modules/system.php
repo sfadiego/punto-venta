@@ -22,11 +22,16 @@ Route::prefix('admin')->group(function () {
         });
     });
 
-    Route::prefix('users')->middleware('role.admin')->group(function () {
-        Route::controller(UserController::class)->group(function () {
+    Route::prefix('users')->controller(UserController::class)->group(function () {
+        // Lectura: accesible si el rol tiene "viewUsers" otorgado (Admin siempre pasa).
+        // Escritura (crear/editar): exclusiva de Admin — "viewUsers" solo da visibilidad.
+        Route::middleware('permission:viewUsers')->group(function () {
             Route::get('/', 'index');
-            Route::post('/', 'store');
             Route::get('{user}', 'show');
+        });
+
+        Route::middleware('role.admin')->group(function () {
+            Route::post('/', 'store');
             Route::put('{user}', 'update');
         });
     });
@@ -56,9 +61,16 @@ Route::prefix('admin')->group(function () {
         });
     });
 
-    Route::prefix('role-permissions')->middleware('role.admin')->controller(RolePermissionController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::put('{role}', 'update');
+    Route::prefix('role-permissions')->controller(RolePermissionController::class)->group(function () {
+        // Lectura: accesible si el rol tiene "viewAdmin" otorgado (ve qué puede hacer
+        // cada rol, sin poder cambiarlo). Escritura sigue exclusiva de Admin.
+        Route::middleware('permission:viewAdmin')->group(function () {
+            Route::get('/', 'index');
+        });
+
+        Route::middleware('role.admin')->group(function () {
+            Route::put('{role}', 'update');
+        });
     });
 
     Route::prefix('config')->controller(BusinessConfigController::class)->group(function () {

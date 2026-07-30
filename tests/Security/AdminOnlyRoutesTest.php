@@ -3,6 +3,9 @@
 namespace Tests\Security;
 
 use App\Enums\RoleEnum;
+use App\Models\BusinessConfigModel;
+use App\Models\Permission;
+use App\Models\RolePermission;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -11,6 +14,17 @@ class AdminOnlyRoutesTest extends TestCase
     private function empleado(): User
     {
         return User::where('rol_id', RoleEnum::EMPLOYE->value)->first();
+    }
+
+    private function otorgarPermiso(int $roleId, string $key): void
+    {
+        $permission = Permission::where(Permission::KEY, $key)->firstOrFail();
+
+        RolePermission::create([
+            RolePermission::TENANT_ID => BusinessConfigModel::first()->id,
+            RolePermission::ROLE_ID => $roleId,
+            RolePermission::PERMISSION_ID => $permission->id,
+        ]);
     }
 
     public function test_empleado_no_puede_autopromoverse_a_admin(): void
@@ -39,6 +53,35 @@ class AdminOnlyRoutesTest extends TestCase
             ->assertStatus(403);
     }
 
+    public function test_empleado_con_permiso_viewusers_si_lista_usuarios(): void
+    {
+        $this->otorgarPermiso(RoleEnum::EMPLOYE->value, 'viewUsers');
+
+        $this->getJson('/api/admin/users', $this->authHeaders($this->empleado()))
+            ->assertStatus(206);
+    }
+
+    public function test_empleado_con_permiso_viewusers_no_puede_crear_ni_editar_usuarios(): void
+    {
+        $this->otorgarPermiso(RoleEnum::EMPLOYE->value, 'viewUsers');
+        $empleado = $this->empleado();
+
+        // "viewUsers" solo da lectura — crear/editar sigue siendo exclusivo de Admin.
+        $this->postJson('/api/admin/users', [
+            'nombre' => 'Intruso', 'apellido_paterno' => 'Test',
+            'email' => 'intruso-'.uniqid().'@test.com', 'usuario' => 'intruso-'.uniqid(),
+            'password' => 'Password123', 'rol_id' => RoleEnum::EMPLOYE->value,
+        ], $this->authHeaders($empleado))
+            ->assertStatus(403);
+
+        $this->putJson("/api/admin/users/{$empleado->id}", [
+            'nombre' => 'Hackeado', 'apellido_paterno' => $empleado->apellido_paterno ?? 'Paterno',
+            'email' => $empleado->email, 'usuario' => $empleado->usuario,
+            'rol_id' => RoleEnum::EMPLOYE->value, 'activo' => true,
+        ], $this->authHeaders($empleado))
+            ->assertStatus(403);
+    }
+
     public function test_empleado_no_puede_editar_role_permissions(): void
     {
         $this->putJson('/api/admin/role-permissions/'.RoleEnum::EMPLOYE->value, [
@@ -50,6 +93,24 @@ class AdminOnlyRoutesTest extends TestCase
     public function test_empleado_no_lee_role_permissions(): void
     {
         $this->getJson('/api/admin/role-permissions', $this->authHeaders($this->empleado()))
+            ->assertStatus(403);
+    }
+
+    public function test_empleado_con_permiso_viewadmin_si_lee_role_permissions(): void
+    {
+        $this->otorgarPermiso(RoleEnum::EMPLOYE->value, 'viewAdmin');
+
+        $this->getJson('/api/admin/role-permissions', $this->authHeaders($this->empleado()))
+            ->assertStatus(200);
+    }
+
+    public function test_empleado_con_permiso_viewadmin_no_puede_editar_role_permissions(): void
+    {
+        $this->otorgarPermiso(RoleEnum::EMPLOYE->value, 'viewAdmin');
+
+        $this->putJson('/api/admin/role-permissions/'.RoleEnum::EMPLOYE->value, [
+            'permissions' => ['viewDashboard', 'viewAdmin'],
+        ], $this->authHeaders($this->empleado()))
             ->assertStatus(403);
     }
 

@@ -4,7 +4,9 @@ import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { ICategory } from "@/models/ICategory";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { RoleEnum } from "@/enums/RoleEnum";
 import { useDeleteCategory } from "@/services/useCategoriesService";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface CategoryTableActionsProps {
     category: ICategory;
@@ -13,7 +15,12 @@ interface CategoryTableActionsProps {
 
 export const CategoryTableActions = ({ category, onEdit }: CategoryTableActionsProps) => {
     const queryClient = useQueryClient();
+    const { hasRole } = usePermissions();
     const { mutateAsync: deleteCategory, isPending: isDeleting } = useDeleteCategory(category.id!);
+
+    // Crear/editar/borrar categorías es exclusivo de Admin en el backend, aunque el
+    // rol tenga viewCategories otorgado (ese permiso solo da acceso de lectura).
+    if (!hasRole(RoleEnum.Admin)) return null;
 
     const handleDelete = async () => {
         const result = await Swal.fire({

@@ -2,9 +2,13 @@ import { Plus, RefreshCw, Search } from "lucide-react";
 import { UsersTable } from "@/components/Users/UsersTable";
 import { EditUserModal } from "@/components/Users/EditUserModal";
 import { CreateUserModal } from "@/components/Users/CreateUserModal";
+import { RoleEnum } from "@/enums/RoleEnum";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useUsersPage } from "./useUsersPage";
 
 export default function UsersPage() {
+    const { hasRole } = usePermissions();
+    const isAdmin = hasRole(RoleEnum.Admin);
     const {
         users,
         total,
@@ -45,7 +49,7 @@ export default function UsersPage() {
                         <RefreshCw size={15} />
                         <span className="hidden sm:inline">Actualizar</span>
                     </button>
-                    {!atUserLimit && (
+                    {isAdmin && !atUserLimit && (
                         <button
                             onClick={openCreateModal}
                             className="flex items-center gap-2 text-sm font-medium text-white bg-amber-500 px-3 py-2 rounded-xl hover:bg-amber-600 transition-colors"

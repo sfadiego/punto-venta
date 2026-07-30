@@ -1,11 +1,11 @@
-import { IUser } from "@/models/IUser";
+import { Action } from "@/utils/permissionUtils";
 import { ReactElement } from "react";
 
 export default interface IRoute {
     path: string;
     element: ReactElement;
     private?: boolean;
-    hasPermission?: (props: IUser) => boolean;
+    permission?: Action;
     layout?: string;
     publicFallback?: string;
 }

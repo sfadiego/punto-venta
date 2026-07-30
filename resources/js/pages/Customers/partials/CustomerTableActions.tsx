@@ -6,7 +6,9 @@ import { toast } from "react-toastify";
 import { ICustomer } from "@/models/ICustomer";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { AdminRoutes } from "@/enums/RoutesEnum";
+import { RoleEnum } from "@/enums/RoleEnum";
 import { useDeleteCustomer } from "@/services/useCustomerService";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface CustomerTableActionsProps {
     customer: ICustomer;
@@ -16,6 +18,8 @@ interface CustomerTableActionsProps {
 export const CustomerTableActions = ({ customer, onEdit }: CustomerTableActionsProps) => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { hasRole } = usePermissions();
+    const isAdmin = hasRole(RoleEnum.Admin);
     const { mutateAsync: deleteCustomer, isPending: isDeleting } = useDeleteCustomer(customer.id);
 
     const handleDelete = async () => {
@@ -46,24 +50,28 @@ export const CustomerTableActions = ({ customer, onEdit }: CustomerTableActionsP
             >
                 <Eye size={20} />
             </button>
-            <button
-                onClick={() => onEdit(customer)}
-                title="Editar cliente"
-                className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-all"
-            >
-                <Pencil size={20} />
-            </button>
-            <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                title="Eliminar cliente"
-                className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all disabled:opacity-50"
-            >
-                {isDeleting
-                    ? <Loader size={20} className="animate-spin text-red-500" />
-                    : <Trash2 size={20} />
-                }
-            </button>
+            {isAdmin && (
+                <button
+                    onClick={() => onEdit(customer)}
+                    title="Editar cliente"
+                    className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-all"
+                >
+                    <Pencil size={20} />
+                </button>
+            )}
+            {isAdmin && (
+                <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    title="Eliminar cliente"
+                    className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all disabled:opacity-50"
+                >
+                    {isDeleting
+                        ? <Loader size={20} className="animate-spin text-red-500" />
+                        : <Trash2 size={20} />
+                    }
+                </button>
+            )}
         </div>
     );
 };
