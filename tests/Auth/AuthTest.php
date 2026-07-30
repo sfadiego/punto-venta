@@ -130,6 +130,26 @@ class AuthTest extends TestCase
         ])->assertStatus(400);
     }
 
+    public function test_registro_ignora_rol_id_enviado_por_el_cliente(): void
+    {
+        // El registro es público y sin autenticación — rol_id nunca debe venir del
+        // cliente, de lo contrario cualquiera podría auto-asignarse SUPERADMIN.
+        $this->postJson('/api/auth/register', [
+            'nombre' => 'Atacante',
+            'apellido_paterno' => 'Test',
+            'email' => 'atacante@test.com',
+            'usuario' => 'atacante_test',
+            'rol_id' => RoleEnum::SUPERADMIN->value,
+            'password' => 'Test1234',
+            'password_confirmation' => 'Test1234',
+        ])->assertStatus(200);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'atacante@test.com',
+            'rol_id' => RoleEnum::EMPLOYE->value,
+        ]);
+    }
+
     // ── Logout ───────────────────────────────────────────────
 
     public function test_logout_cierra_sesion(): void

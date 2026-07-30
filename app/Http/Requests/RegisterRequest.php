@@ -28,7 +28,6 @@ class RegisterRequest extends FormRequest
             User::NOMBRE => 'required',
             User::APELLIDO_PATERNO => 'required|string',
             User::APELLIDO_MATERNO => 'nullable|string',
-            User::ROL_ID => 'required|exists:role,id',
             'password' => 'required|min:8|regex:/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()]{8,}$/|confirmed',
             'password_confirmation' => 'required_with:password|same:password',
         ];

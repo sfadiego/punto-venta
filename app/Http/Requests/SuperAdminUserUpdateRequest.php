@@ -2,12 +2,11 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UserUpdateRequest extends FormRequest
+class SuperAdminUserUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -26,17 +25,12 @@ class UserUpdateRequest extends FormRequest
             'apellido_materno' => 'nullable|string|max:100',
             'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($userId)],
             'usuario' => ['required', 'string', 'max:80', Rule::unique('users', 'usuario')->ignore($userId)],
-            'password' => 'nullable|string|min:8',
-            // Esta ruta solo la alcanza un Admin de tenant (gate 'role.admin'). Nunca debe
-            // poder asignar SUPERADMIN — ese rol se gestiona exclusivamente desde el panel
-            // SuperAdmin, fuera del contexto de un tenant.
-            'rol_id' => ['required', Rule::in([
-                RoleEnum::ADMIN->value,
-                RoleEnum::EMPLOYE->value,
-                RoleEnum::COCINA->value,
-                RoleEnum::CAJA->value,
-            ])],
-            'activo' => 'required|boolean',
+            // Contraseña opcional al editar: vacío conserva la actual.
+            'password' => [
+                'nullable', 'string', 'min:8',
+                'regex:/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()]{8,}$/',
+                'confirmed',
+            ],
         ];
     }
 }
