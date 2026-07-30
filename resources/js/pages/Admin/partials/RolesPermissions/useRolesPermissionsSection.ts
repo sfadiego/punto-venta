@@ -1,13 +1,21 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { RoleEnum } from "@/enums/RoleEnum";
-import { Action, DEFAULT_ROLE_PERMISSIONS } from "@/hooks/usePermissions";
+import { Action, DEFAULT_ROLE_PERMISSIONS, getApplicableActions } from "@/utils/permissionUtils";
+import { useAxios } from "@/hooks/useAxios";
 import { useIndexRolePermissions, useUpdateRolePermission } from "@/services/useRolePermissionService";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
-export const CONFIGURABLE_ROLES = [RoleEnum.Employe, RoleEnum.Cocina, RoleEnum.Caja];
+const ALL_CONFIGURABLE_ROLES = [RoleEnum.Employe, RoleEnum.Cocina, RoleEnum.Caja];
 
 export const useRolesPermissionsSection = () => {
+    const { features } = useAxios();
+    // Cocina y Caja no existen como roles asignables en negocios de venta por peso —
+    // ver useUsersPage.ts, que ya excluye estos mismos roles al crear usuarios.
+    const sellByWeight = features?.sell_by_weight === true;
+    const configurableRoles = sellByWeight ? [RoleEnum.Employe] : ALL_CONFIGURABLE_ROLES;
+    const applicableActions = getApplicableActions(features);
+
     const [activeRole, setActiveRole] = useState<RoleEnum>(RoleEnum.Employe);
     const [draft, setDraft] = useState<Record<number, Action[]>>({});
     const { data: rolePermissions, isLoading } = useIndexRolePermissions();
@@ -16,12 +24,20 @@ export const useRolesPermissionsSection = () => {
     useEffect(() => {
         if (!rolePermissions) return;
         const initial: Record<number, Action[]> = {};
-        CONFIGURABLE_ROLES.forEach((role) => {
+        configurableRoles.forEach((role) => {
             initial[role] = (rolePermissions[role] as Action[] | undefined)
                 ?? Array.from(DEFAULT_ROLE_PERMISSIONS[role]);
         });
         setDraft(initial);
-    }, [rolePermissions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rolePermissions, sellByWeight]);
+
+    useEffect(() => {
+        if (!configurableRoles.includes(activeRole)) {
+            setActiveRole(configurableRoles[0]);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sellByWeight]);
 
     const activeActions = new Set<Action>(draft[activeRole] ?? []);
 
@@ -55,6 +71,8 @@ export const useRolesPermissionsSection = () => {
     };
 
     return {
+        configurableRoles,
+        applicableActions,
         activeRole,
         setActiveRole,
         activeActions,
