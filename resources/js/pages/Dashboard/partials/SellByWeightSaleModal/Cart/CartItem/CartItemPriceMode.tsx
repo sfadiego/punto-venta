@@ -20,7 +20,7 @@ export const CartItemPriceMode = ({
             step={0.5}
             onChange={(e) => onPriceChange(e.target.value)}
             onBlur={onPriceBlur}
-            className="w-16 lg:w-24 px-1 lg:px-1.5 py-2 lg:py-1 border border-amber-300 rounded-lg text-sm lg:text-xs text-center
+            className="w-16 sm:w-20 px-1 sm:px-1.5 py-2 sm:py-1 border border-amber-300 rounded-lg text-sm sm:text-xs text-center
                 focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
         <span className="text-xs text-stone-400">
