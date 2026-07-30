@@ -45,7 +45,7 @@ export const NewSaleCartItem = ({
                 <p className="min-w-0 flex-1 text-xs font-semibold text-stone-900 truncate">
                     {item.product.nombre}
                 </p>
-                <span className="hidden lg:inline shrink-0 text-xs font-bold text-amber-600">
+                <span className="shrink-0 text-xs font-bold text-amber-600">
                     ${lineTotal}
                 </span>
             </div>
@@ -71,7 +71,6 @@ export const NewSaleCartItem = ({
                         onQtyChange={onQtyChange}
                         onQtyBlur={onQtyBlur}
                         unitLabel={unitLabel}
-                        lineTotal={lineTotal}
                         isPeso={isPeso(item)}
                         scaleSupported={scaleSupported}
                         isReadingScale={isReadingScale}
