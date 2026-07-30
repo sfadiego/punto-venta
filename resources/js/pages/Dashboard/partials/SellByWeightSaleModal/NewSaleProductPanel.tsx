@@ -2,6 +2,7 @@ import { Search, Loader, XCircle } from "lucide-react";
 import { ICategory } from "@/models/ICategory";
 import { IProduct } from "@/models/IProduct";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
+import { formatMoney } from "@/utils/formatCurrency";
 
 interface NewSaleProductPanelProps {
     search: string;
@@ -118,12 +119,12 @@ export const NewSaleProductPanel = ({
                                 lg:text-xs lg:font-semibold lg:line-clamp-2 lg:whitespace-normal lg:w-full">
                                 {product.nombre}
                             </p>
-                            <div className="flex items-center gap-2 shrink-0 lg:w-full lg:justify-between lg:pt-0.5">
-                                <span className="text-xs text-stone-400 hidden lg:inline">
-                                    {UNIDAD_LABELS[product.unidad_medida]}
-                                </span>
+                            <div className="flex items-center gap-1 shrink-0 lg:w-full lg:justify-end lg:pt-0.5">
                                 <span className="text-sm font-bold text-amber-600 lg:text-xs lg:font-bold">
-                                    ${product.precio.toFixed(2)}
+                                    ${formatMoney(product.precio)}
+                                </span>
+                                <span className="text-xs text-stone-400 lg:text-[10px]">
+                                    /{UNIDAD_LABELS[product.unidad_medida]}
                                 </span>
                             </div>
                         </button>
