@@ -8,7 +8,6 @@ interface CartItemWeightModeProps {
     onQtyChange: (value: string) => void;
     onQtyBlur: () => void;
     unitLabel: string;
-    lineTotal: string;
     isPeso: boolean;
     scaleSupported: boolean;
     isReadingScale: boolean;
@@ -17,7 +16,7 @@ interface CartItemWeightModeProps {
 
 export const CartItemWeightMode = ({
     item, displayQty, onQtyChange, onQtyBlur,
-    unitLabel, lineTotal, isPeso, scaleSupported,
+    unitLabel, isPeso, scaleSupported,
     isReadingScale, onReadScale,
 }: CartItemWeightModeProps) => (
     <>
@@ -31,10 +30,9 @@ export const CartItemWeightMode = ({
             step={item.product.unidad_medida === UnidadMedidaEnum.Kg ? 0.1 : 1}
             onChange={(e) => onQtyChange(e.target.value)}
             onBlur={onQtyBlur}
-            className="w-14 sm:w-16 px-1 sm:px-1.5 py-2 sm:py-1 border border-stone-200 rounded-lg text-sm sm:text-xs text-center
+            className="w-20 lg:w-20 shrink-0 px-1 lg:px-1.5 py-2 lg:py-1 border border-stone-200 rounded-lg text-sm lg:text-xs text-center
                 focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
-        <span className="text-xs text-stone-400">{unitLabel}</span>
-        <span className="text-xs font-bold text-amber-600">${lineTotal}</span>
+        <span className="shrink-0 text-xs text-stone-400">{unitLabel}</span>
     </>
 );

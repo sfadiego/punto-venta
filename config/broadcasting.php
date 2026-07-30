@@ -43,6 +43,10 @@ return [
             ],
             'client_options' => [
                 // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
+                // Evita que un broadcast síncrono (ShouldBroadcastNow) bloquee la request HTTP
+                // si Reverb está caído o lento — ver timeout de axios (20s) en usePayModal.handlePay.
+                'connect_timeout' => 2,
+                'timeout' => 3,
             ],
         ],
 

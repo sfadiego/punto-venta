@@ -51,7 +51,7 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
                 ) : (
                     <>
                         {/* Desktop: productos y carrito lado a lado */}
-                        <div className="hidden sm:flex flex-1 min-h-0 overflow-hidden">
+                        <div className="hidden lg:flex flex-1 min-h-0 overflow-hidden">
                             <NewSaleProductPanel
                                 search={search}
                                 setSearch={setSearch}
@@ -102,8 +102,8 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
                             />
                         </div>
 
-                        {/* Mobile: un panel a la vez, alternado por tabs */}
-                        <div className="flex sm:hidden flex-col flex-1 min-h-0 overflow-hidden">
+                        {/* Mobile/tablet: un panel a la vez, alternado por tabs */}
+                        <div className="flex lg:hidden flex-col flex-1 min-h-0 overflow-hidden">
                             <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
                                 {mobileTab === "products" ? (
                                     <NewSaleProductPanel

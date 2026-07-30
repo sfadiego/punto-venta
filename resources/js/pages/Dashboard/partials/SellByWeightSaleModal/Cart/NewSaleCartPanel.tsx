@@ -46,7 +46,7 @@ export const NewSaleCartPanel = ({
     getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,
     removeFromCart, clearCart, isClearing, onPay,
 }: NewSaleCartPanelProps) => (
-    <div className="flex flex-col w-full sm:w-72 flex-1 sm:flex-none sm:shrink-0 min-h-0 overflow-hidden bg-stone-50 border-t border-stone-100 sm:border-t-0 sm:bg-white">
+    <div className="flex flex-col w-full lg:w-96 flex-1 lg:flex-none lg:shrink-0 min-h-0 overflow-hidden bg-stone-50 border-t border-stone-100 lg:border-t-0 lg:bg-white">
         <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
             <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
                 Carrito
@@ -67,7 +67,7 @@ export const NewSaleCartPanel = ({
             {cart.length === 0 ? (
                 <p className="text-xs text-stone-400 text-center pt-8">Sin productos</p>
             ) : (
-                <div className="px-3 pt-1 sm:px-4">
+                <div className="px-2 pt-1 lg:px-2">
                     {cart.map((item) => {
                         const mode = getItemMode(item.productId, item.product);
                         return (
