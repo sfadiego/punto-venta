@@ -1,3 +1,4 @@
+import { formatMoney } from "@/utils/formatCurrency";
 import { ShoppingCart } from "lucide-react";
 
 interface CartButtonProps {
@@ -33,7 +34,7 @@ export const CartButton = ({ count, total, primaryColor, onClick }: CartButtonPr
                     </span>
                 </div>
                 <span className="flex-1 text-left text-sm font-semibold">Ver pedido</span>
-                <span className="text-sm font-bold tabular-nums">${total.toFixed(2)}</span>
+                <span className="text-sm font-bold tabular-nums">${formatMoney(total)}</span>
             </button>
         </div>
     );

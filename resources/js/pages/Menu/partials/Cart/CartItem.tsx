@@ -3,6 +3,7 @@ import { ICartItem, IMenuProduct } from "@/models/IMenu";
 import { CartItemNote } from "./CartItemNote";
 import { WeightControls } from "../ProductSelector/WeightControls/WeightControls";
 import { isWeightUnit, formatPricePerUnit } from "@/utils/weightUnits";
+import { formatMoney } from "@/utils/formatCurrency";
 
 interface CartItemProps {
     item: ICartItem;
@@ -30,14 +31,14 @@ export const CartItem = ({ item, primaryColor, onAdd, onRemove, onDelete, onSetW
                     <p className="text-xs text-stone-400 mt-0.5">
                         {byWeight
                             ? formatPricePerUnit(item.product.precio, unit)
-                            : `$${item.product.precio.toFixed(2)} c/u`}
+                            : `$${formatMoney(item.product.precio)} c/u`}
                     </p>
                 </div>
 
                 {/* Subtotal + borrar */}
                 <div className="flex items-center gap-2 shrink-0">
                     <span className="text-sm font-semibold text-stone-800 w-14 text-right tabular-nums">
-                        ${subtotal.toFixed(2)}
+                        ${formatMoney(subtotal)}
                     </span>
                     <button
                         onClick={() => onDelete(item.product.id)}
