@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\HttpErrors;
+use App\Http\Middleware\AdminOnlyMiddleware;
 use App\Http\Middleware\CheckSubscription;
 use App\Http\Middleware\ErrorReporting;
 use App\Http\Middleware\ResolveTenant;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'check.subscription' => CheckSubscription::class,
             'track.activity' => TrackActivity::class,
+            'role.admin' => AdminOnlyMiddleware::class,
         ]);
         // ResolveTenant asigna app('tenant_id'), usado por TenantScope para filtrar modelos
         // tenant-scoped. Debe correr ANTES de SubstituteBindings — de lo contrario, el binding

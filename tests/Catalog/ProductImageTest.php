@@ -19,6 +19,7 @@ class ProductImageTest extends TestCase
     private function crearImagen(): ProductImageModel
     {
         return ProductImageModel::create([
+            'tenant_id' => BusinessConfigModel::first()->id,
             ProductImageModel::NOMBRE_ARCHIVO => 'slug-test/old_image.jpg',
             ProductImageModel::URL => 'private/slug-test/old_image.jpg',
         ]);

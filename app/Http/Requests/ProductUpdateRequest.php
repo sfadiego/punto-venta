@@ -24,13 +24,21 @@ class ProductUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+
         return [
             ProductModel::NOMBRE => 'required|string|max:255',
             ProductModel::PRECIO => 'required|decimal:0,2',
             ProductModel::DESCRIPCION => 'nullable',
-            ProductModel::CATEGORIA_ID => 'required|exists:categories,id',
+            ProductModel::CATEGORIA_ID => [
+                'required',
+                Rule::exists('categories', 'id')->where('tenant_id', $tenantId),
+            ],
             ProductModel::ACTIVO => 'boolean',
-            ProductModel::FOTO_ID => 'nullable|exists:product_image',
+            'picture_id' => [
+                'nullable',
+                Rule::exists('product_image', 'id')->where('tenant_id', $tenantId),
+            ],
             ProductModel::UNIDAD_MEDIDA => ['nullable', Rule::enum(UnidadMedidaEnum::class)],
         ];
     }

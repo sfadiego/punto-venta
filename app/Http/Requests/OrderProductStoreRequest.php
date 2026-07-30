@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\OrderProductModel;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class OrderProductStoreRequest extends FormRequest
@@ -23,12 +24,17 @@ class OrderProductStoreRequest extends FormRequest
      */
     public function rules(): array
     {
+        $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+
         return [
             OrderProductModel::DESCUENTO => 'nullable|numeric|min:0|max:99',
             OrderProductModel::CANTIDAD => $this->nombre_extra
                 ? 'required|integer|min:1|max:99'
                 : 'required|numeric|min:0.001|max:99',
-            OrderProductModel::PRODUCTO_ID => 'nullable|exists:product,id',
+            OrderProductModel::PRODUCTO_ID => [
+                'nullable',
+                Rule::exists('product', 'id')->where('tenant_id', $tenantId),
+            ],
             OrderProductModel::PRECIO => 'required|numeric|min:0|max:99999',
             OrderProductModel::NOMBRE_EXTRA => 'nullable|string|max:255',
             OrderProductModel::OBSERVACION => 'nullable|string|max:200',

@@ -16,9 +16,13 @@ class CategoryUpdateRequest extends FormRequest
     public function rules(): array
     {
         $categoryId = $this->route('category')?->id;
+        $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
 
         return [
-            CategoryModel::NOMBRE => ['required', 'string', 'max:255', Rule::unique('categories', 'nombre')->ignore($categoryId)],
+            CategoryModel::NOMBRE => [
+                'required', 'string', 'max:255',
+                Rule::unique('categories', 'nombre')->where('tenant_id', $tenantId)->ignore($categoryId),
+            ],
             CategoryModel::ORDEN => 'nullable|integer|min:0|max:2147483647',
             CategoryModel::FOTO_ID => 'nullable',
             CategoryModel::ICON_NAME => 'nullable|string|max:100',
