@@ -1,4 +1,5 @@
 import { useAxios } from "@/hooks/useAxios";
+import { usePermissions } from "@/hooks/usePermissions";
 import IRoute from "@/intefaces/IRoutes";
 import React, { ReactElement } from "react";
 import { Navigate } from "react-router-dom";
@@ -10,7 +11,8 @@ const PrivateRoute = ({
     element: ReactElement;
     route: IRoute;
 }) => {
-    const { isAuth, user } = useAxios();
+    const { isAuth } = useAxios();
+    const { can } = usePermissions();
 
     if (!isAuth) {
         if (route.publicFallback) {
@@ -21,7 +23,7 @@ const PrivateRoute = ({
         return <Navigate to="/auth" replace />;
     }
 
-    if (route.hasPermission !== undefined && !route.hasPermission(user!)) {
+    if (route.permission !== undefined && !can(route.permission)) {
         return <Navigate to="/forbidden" replace />;
     }
 

@@ -3,6 +3,8 @@ import { DataTable, DataTableColumn } from "mantine-datatable";
 import { Pencil } from "lucide-react";
 import { IUser } from "@/models/IUser";
 import RoleBadge from "@/components/Role/RoleBadge";
+import { RoleEnum } from "@/enums/RoleEnum";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useUsersTable } from "./useUsersTable";
 
 interface UsersTableProps {
@@ -31,6 +33,8 @@ export const UsersTable = ({
     onLimitChange,
 }: UsersTableProps) => {
     const { baseColumns } = useUsersTable(onEdit);
+    const { hasRole } = usePermissions();
+    const isAdmin = hasRole(RoleEnum.Admin);
 
     const columns = useMemo<DataTableColumn<IUser>[]>(() => {
         const renderers: Partial<Record<string, UserCellRenderer>> = {
@@ -51,7 +55,7 @@ export const UsersTable = ({
                     {u.activo ? "Activo" : "Inactivo"}
                 </span>
             ),
-            _acciones: (u) => (
+            _acciones: (u) => isAdmin ? (
                 <button
                     onClick={() => onEdit(u)}
                     className="w-7 h-7 rounded-lg hover:bg-stone-100 flex items-center justify-center transition-colors text-stone-400 hover:text-stone-600"
@@ -59,14 +63,14 @@ export const UsersTable = ({
                 >
                     <Pencil size={14} />
                 </button>
-            ),
+            ) : null,
         };
 
         return baseColumns.map((col) => {
             const render = renderers[col.accessor as string];
             return render ? { ...col, render } : col;
         });
-    }, [baseColumns, onEdit]);
+    }, [baseColumns, onEdit, isAdmin]);
 
     return (
         <DataTable<IUser>

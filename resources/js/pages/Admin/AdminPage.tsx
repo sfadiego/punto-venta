@@ -14,7 +14,7 @@ import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/
 import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
 
 function AdminPage() {
-    const { config, isLoading, sellByWeight } = useAdminPage();
+    const { config, isLoading, sellByWeight, isReadOnly } = useAdminPage();
     const printerVisible = import.meta.env.VITE_APP_ENV === "local"
         || config?.printer_enabled === true
         || config?.bluetooth_printing_enabled === true;
@@ -31,6 +31,12 @@ function AdminPage() {
                 </div>
             </div>
 
+            {isReadOnly && (
+                <div className="mb-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
+                    Estás viendo la configuración en modo de solo lectura. Solo un Administrador puede modificarla.
+                </div>
+            )}
+
             {isLoading ? (
                 <div className="flex justify-center py-16">
                     <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
@@ -38,7 +44,7 @@ function AdminPage() {
             ) : (
                 <div className="flex gap-8 items-start">
                     <AdminNav sellByWeight={sellByWeight} printerVisible={printerVisible} />
-                    <div className="flex-1 flex flex-col gap-5 min-w-0">
+                    <fieldset disabled={isReadOnly} className="flex-1 flex flex-col gap-5 min-w-0 border-0 p-0 m-0">
                         <div id="logo"><LogoSection config={config} /></div>
                         <div id="colores"><ColorsSection config={config} /></div>
                         <div id="negocio">
@@ -97,7 +103,7 @@ function AdminPage() {
                                 <SubscriptionInfoSection />
                             </FeatureSpotlight>
                         </div>
-                    </div>
+                    </fieldset>
                 </div>
             )}
         </div>

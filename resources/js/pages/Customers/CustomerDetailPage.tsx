@@ -1,6 +1,8 @@
 import { ChevronLeft, Loader } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AdminRoutes } from "@/enums/RoutesEnum";
+import { RoleEnum } from "@/enums/RoleEnum";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useCustomerDetailPage } from "./useCustomerDetailPage";
 import { CustomerBalanceCard } from "./partials/CustomerBalanceCard";
 import { CustomerPaymentForm } from "./partials/Payment/CustomerPaymentForm";
@@ -11,6 +13,8 @@ export default function CustomerDetailPage() {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const customerId = Number(id);
+    const { hasRole } = usePermissions();
+    const isAdmin = hasRole(RoleEnum.Admin);
 
     const {
         customer,
@@ -45,18 +49,20 @@ export default function CustomerDetailPage() {
                 </div>
             </div>
 
-            <CustomerBalanceCard
-                customer={customer}
-                onToggleCredit={handleToggleCredit}
-                isTogglingCredit={isTogglingCredit}
-            />
+            <fieldset disabled={!isAdmin} className="border-0 p-0 m-0 contents">
+                <CustomerBalanceCard
+                    customer={customer}
+                    onToggleCredit={handleToggleCredit}
+                    isTogglingCredit={isTogglingCredit}
+                />
 
-            <CustomerPaymentForm
-                balance={Number(customer.balance)}
-                formik={paymentFormik}
-                onLiquidarTodo={handleLiquidarTodo}
-                isPaying={isPaying}
-            />
+                <CustomerPaymentForm
+                    balance={Number(customer.balance)}
+                    formik={paymentFormik}
+                    onLiquidarTodo={handleLiquidarTodo}
+                    isPaying={isPaying}
+                />
+            </fieldset>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <CustomerCreditOrdersList orders={customer.credit_orders} />

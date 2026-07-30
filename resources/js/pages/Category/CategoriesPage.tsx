@@ -3,6 +3,8 @@ import { DataTable, DataTableColumn } from "mantine-datatable";
 import { Plus, RefreshCw } from "lucide-react";
 import { ICategory } from "@/models/ICategory";
 import { DynamicIcon } from "@/components/ui/DynamicIcon";
+import { RoleEnum } from "@/enums/RoleEnum";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useCategoriesPage } from "./useCategoriesPage";
 import { AddCategoryModal } from "./partials/CategoryModals/AddCategoryModal";
 import { useAddCategoryModal } from "./partials/CategoryModals/useAddCategoryModal";
@@ -11,6 +13,8 @@ import { useEditCategoryModal } from "./partials/CategoryModals/useEditCategoryM
 import { CategoryTableActions } from "./partials/CategoryTableActions";
 
 export default function CategoriesPage() {
+    const { hasRole } = usePermissions();
+    const isAdmin = hasRole(RoleEnum.Admin);
     const {
         categories,
         total,
@@ -99,13 +103,15 @@ export default function CategoriesPage() {
                         <RefreshCw size={15} />
                         <span className="hidden sm:inline">Actualizar</span>
                     </button>
-                    <button
-                        onClick={openAdd}
-                        className="flex items-center gap-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-xl transition-colors shadow-sm shadow-amber-200"
-                    >
-                        <Plus size={16} />
-                        Nueva categoría
-                    </button>
+                    {isAdmin && (
+                        <button
+                            onClick={openAdd}
+                            className="flex items-center gap-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-xl transition-colors shadow-sm shadow-amber-200"
+                        >
+                            <Plus size={16} />
+                            Nueva categoría
+                        </button>
+                    )}
                 </div>
             </div>
 
