@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class OrderStoreSaleRequest extends FormRequest
 {
@@ -21,12 +22,20 @@ class OrderStoreSaleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+
         return [
-            'sistema_id' => 'required|numeric|exists:main_order_report,id',
+            'sistema_id' => [
+                'required', 'numeric',
+                Rule::exists('main_order_report', 'id')->where('tenant_id', $tenantId),
+            ],
             'nombre_pedido' => 'required|string',
             'costo_domicilio' => 'sometimes|numeric',
             'items' => 'required|array|min:1',
-            'items.*.producto_id' => 'required|numeric|exists:product,id',
+            'items.*.producto_id' => [
+                'required', 'numeric',
+                Rule::exists('product', 'id')->where('tenant_id', $tenantId),
+            ],
             'items.*.cantidad' => 'required|numeric|min:0.001',
             'items.*.precio' => 'required|numeric|min:0',
         ];

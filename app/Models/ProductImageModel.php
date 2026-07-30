@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductImageModel extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTenant;
 
     protected $table = 'product_image';
 
@@ -23,9 +24,12 @@ class ProductImageModel extends Model
 
     const FOTO_ID = 'foto_id';
 
+    const TENANT_ID = 'tenant_id';
+
     protected $fillable = [
         self::NOMBRE_ARCHIVO,
         self::URL,
+        self::TENANT_ID,
     ];
 
     public function product(): BelongsTo

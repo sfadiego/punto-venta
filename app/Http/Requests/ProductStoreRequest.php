@@ -33,9 +33,15 @@ class ProductStoreRequest extends FormRequest
             ],
             ProductModel::PRECIO => 'required|decimal:0,2',
             ProductModel::DESCRIPCION => 'nullable',
-            ProductModel::CATEGORIA_ID => 'required|exists:categories,id',
+            ProductModel::CATEGORIA_ID => [
+                'required',
+                Rule::exists('categories', 'id')->where('tenant_id', $tenantId),
+            ],
             ProductModel::ACTIVO => 'bool',
-            ProductModel::FOTO_ID => 'nullable|exists:product_image',
+            'picture_id' => [
+                'nullable',
+                Rule::exists('product_image', 'id')->where('tenant_id', $tenantId),
+            ],
             ProductModel::UNIDAD_MEDIDA => ['nullable', Rule::enum(UnidadMedidaEnum::class)],
         ];
     }

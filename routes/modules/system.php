@@ -10,14 +10,14 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->group(function () {
-    Route::prefix('payment-methods')->controller(PaymentMethodController::class)->group(function () {
+    Route::prefix('payment-methods')->middleware('role.admin')->controller(PaymentMethodController::class)->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
         Route::put('{paymentMethod}', 'update');
         Route::delete('{paymentMethod}', 'delete');
     });
 
-    Route::prefix('users')->group(function () {
+    Route::prefix('users')->middleware('role.admin')->group(function () {
         Route::controller(UserController::class)->group(function () {
             Route::get('/', 'index');
             Route::get('{user}', 'show');
@@ -41,25 +41,27 @@ Route::prefix('admin')->group(function () {
             Route::post('', 'store');
         });
 
-        Route::prefix('statistics')->group(function () {
+        Route::prefix('statistics')->middleware('role.admin')->group(function () {
             Route::controller(StatisticsController::class)->group(function () {
                 Route::get('best-seller', 'top3BestSeller');
             });
         });
     });
 
-    Route::prefix('role-permissions')->controller(RolePermissionController::class)->group(function () {
+    Route::prefix('role-permissions')->middleware('role.admin')->controller(RolePermissionController::class)->group(function () {
         Route::get('/', 'index');
         Route::put('{role}', 'update');
     });
 
-    Route::prefix('config')->group(function () {
-        Route::controller(BusinessConfigController::class)->group(function () {
+    Route::prefix('config')->controller(BusinessConfigController::class)->group(function () {
+        // Visible en el Dashboard para todos los roles (SubscriptionBanner)
+        Route::get('subscription-status', 'subscriptionStatus');
+
+        Route::middleware('role.admin')->group(function () {
             Route::get('', 'show');
             Route::put('', 'update');
             Route::post('logo', 'uploadLogo');
             Route::delete('logo', 'removeLogo');
-            Route::get('subscription-status', 'subscriptionStatus');
         });
     });
 });
