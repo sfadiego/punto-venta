@@ -39,13 +39,13 @@ export const NewSaleCartItem = ({
     return (
         <div className="
             flex flex-wrap min-w-0 items-center justify-between gap-x-1.5 gap-y-1.5
-            rounded-xl bg-stone-50 border border-stone-200 p-3 mb-2 last:mb-0 sm:gap-x-2
+            rounded-xl bg-stone-50 border border-stone-200 p-3 mb-2 last:mb-0 lg:gap-x-2
         ">
-            <p className="w-full sm:w-auto sm:flex-1 min-w-[6rem] text-xs font-semibold text-stone-900 truncate">
+            <p className="w-full lg:w-auto lg:flex-1 min-w-[6rem] text-xs font-semibold text-stone-900 truncate">
                 {item.product.nombre}
             </p>
 
-            <div className="flex w-full sm:w-auto sm:shrink-0 min-w-0 items-center gap-1 sm:gap-1.5 flex-wrap justify-end">
+            <div className="flex w-full lg:w-auto lg:shrink-0 min-w-0 items-center gap-1 lg:gap-1.5 flex-wrap justify-end">
                 {canToggle && (
                     <WeightModeToggle
                         mode={mode}
