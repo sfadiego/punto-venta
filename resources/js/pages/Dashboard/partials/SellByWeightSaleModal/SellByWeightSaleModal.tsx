@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Loader } from "lucide-react";
 import { useSellByWeightSaleModal } from "./useSellByWeightSaleModal";
 import { IOrder } from "@/models/IOrder";
 import { NewSaleModalHeader } from "./NewSaleModalHeader";
 import { NewSaleProductPanel } from "./NewSaleProductPanel";
 import { NewSaleCartPanel } from "./Cart/NewSaleCartPanel";
+import { NewSaleMobileTabBar } from "./NewSaleMobileTabBar";
 import { SellByWeightPayModal } from "./PayModal/SellByWeightPayModal";
 
 interface SellByWeightSaleModalProps {
@@ -34,6 +36,8 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
         isPaying, handlePay,
     } = useSellByWeightSaleModal(onClose, initialOrder);
 
+    const [mobileTab, setMobileTab] = useState<"products" | "cart">("products");
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 overflow-hidden">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-7xl flex flex-col overflow-hidden max-h-[calc(100dvh-2rem)] min-h-[min(600px,calc(100dvh-2rem))]">
@@ -45,56 +49,120 @@ export const SellByWeightSaleModal = ({ onClose, initialOrder }: SellByWeightSal
                         <Loader size={28} className="animate-spin text-amber-400" />
                     </div>
                 ) : (
-                    <div className="flex flex-col sm:flex-row flex-1 min-h-0 overflow-hidden">
-                        <NewSaleProductPanel
-                            search={search}
-                            setSearch={setSearch}
-                            nombrePedido={nombrePedido}
-                            setNombrePedido={setNombrePedido}
-                            handleNombreBlur={handleNombreBlur}
-                            categories={categories}
-                            selectedCategory={selectedCategory}
-                            setSelectedCategory={setSelectedCategory}
-                            products={products}
-                            productsLoading={productsLoading}
-                            isCreatingOrder={isCreatingOrder}
-                            onAddProduct={addToCart}
-                        />
+                    <>
+                        {/* Desktop: productos y carrito lado a lado */}
+                        <div className="hidden sm:flex flex-1 min-h-0 overflow-hidden">
+                            <NewSaleProductPanel
+                                search={search}
+                                setSearch={setSearch}
+                                nombrePedido={nombrePedido}
+                                setNombrePedido={setNombrePedido}
+                                handleNombreBlur={handleNombreBlur}
+                                categories={categories}
+                                selectedCategory={selectedCategory}
+                                setSelectedCategory={setSelectedCategory}
+                                products={products}
+                                productsLoading={productsLoading}
+                                isCreatingOrder={isCreatingOrder}
+                                onAddProduct={addToCart}
+                            />
 
-                        <NewSaleCartPanel
-                            cart={cart}
-                            sellByWeight={sellByWeight}
-                            domicilioActivo={domicilioActivo}
-                            toggleDomicilio={toggleDomicilio}
-                            costoDomicilio={costoDomicilio}
-                            setCostoDomicilio={setCostoDomicilio}
-                            setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
-                            customerPays={customerPays}
-                            domicilio={domicilio}
-                            total={total}
-                            totalFinal={totalFinal}
-                            getDisplayQty={getDisplayQty}
-                            handleQtyChange={handleQtyChange}
-                            handleQtyBlur={handleQtyBlur}
-                            handleScaleReading={handleScaleReading}
-                            scaleSupported={scaleSupported}
-                            getItemMode={getItemMode}
-                            toggleItemMode={toggleItemMode}
-                            getDisplayPrice={getDisplayPrice}
-                            handlePriceChange={handlePriceChange}
-                            handlePriceBlur={handlePriceBlur}
-                            removeFromCart={removeFromCart}
-                            clearCart={clearCart}
-                            isClearing={isClearing}
-                            onPay={() => {
-                                const first = paymentMethods.find((m) => m.active);
-                                setIsCreditMode(false);
-                                setSelectedCustomerId(null);
-                                setPaymentMethodId(first?.id ?? null);
-                                setShowPayModal(true);
-                            }}
-                        />
-                    </div>
+                            <NewSaleCartPanel
+                                cart={cart}
+                                sellByWeight={sellByWeight}
+                                domicilioActivo={domicilioActivo}
+                                toggleDomicilio={toggleDomicilio}
+                                costoDomicilio={costoDomicilio}
+                                setCostoDomicilio={setCostoDomicilio}
+                                setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
+                                customerPays={customerPays}
+                                domicilio={domicilio}
+                                total={total}
+                                totalFinal={totalFinal}
+                                getDisplayQty={getDisplayQty}
+                                handleQtyChange={handleQtyChange}
+                                handleQtyBlur={handleQtyBlur}
+                                handleScaleReading={handleScaleReading}
+                                scaleSupported={scaleSupported}
+                                getItemMode={getItemMode}
+                                toggleItemMode={toggleItemMode}
+                                getDisplayPrice={getDisplayPrice}
+                                handlePriceChange={handlePriceChange}
+                                handlePriceBlur={handlePriceBlur}
+                                removeFromCart={removeFromCart}
+                                clearCart={clearCart}
+                                isClearing={isClearing}
+                                onPay={() => {
+                                    const first = paymentMethods.find((m) => m.active);
+                                    setIsCreditMode(false);
+                                    setSelectedCustomerId(null);
+                                    setPaymentMethodId(first?.id ?? null);
+                                    setShowPayModal(true);
+                                }}
+                            />
+                        </div>
+
+                        {/* Mobile: un panel a la vez, alternado por tabs */}
+                        <div className="flex sm:hidden flex-col flex-1 min-h-0 overflow-hidden">
+                            <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                                {mobileTab === "products" ? (
+                                    <NewSaleProductPanel
+                                        search={search}
+                                        setSearch={setSearch}
+                                        nombrePedido={nombrePedido}
+                                        setNombrePedido={setNombrePedido}
+                                        handleNombreBlur={handleNombreBlur}
+                                        categories={categories}
+                                        selectedCategory={selectedCategory}
+                                        setSelectedCategory={setSelectedCategory}
+                                        products={products}
+                                        productsLoading={productsLoading}
+                                        isCreatingOrder={isCreatingOrder}
+                                        onAddProduct={addToCart}
+                                    />
+                                ) : (
+                                    <NewSaleCartPanel
+                                        cart={cart}
+                                        sellByWeight={sellByWeight}
+                                        domicilioActivo={domicilioActivo}
+                                        toggleDomicilio={toggleDomicilio}
+                                        costoDomicilio={costoDomicilio}
+                                        setCostoDomicilio={setCostoDomicilio}
+                                        setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
+                                        customerPays={customerPays}
+                                        domicilio={domicilio}
+                                        total={total}
+                                        totalFinal={totalFinal}
+                                        getDisplayQty={getDisplayQty}
+                                        handleQtyChange={handleQtyChange}
+                                        handleQtyBlur={handleQtyBlur}
+                                        handleScaleReading={handleScaleReading}
+                                        scaleSupported={scaleSupported}
+                                        getItemMode={getItemMode}
+                                        toggleItemMode={toggleItemMode}
+                                        getDisplayPrice={getDisplayPrice}
+                                        handlePriceChange={handlePriceChange}
+                                        handlePriceBlur={handlePriceBlur}
+                                        removeFromCart={removeFromCart}
+                                        clearCart={clearCart}
+                                        isClearing={isClearing}
+                                        onPay={() => {
+                                            const first = paymentMethods.find((m) => m.active);
+                                            setIsCreditMode(false);
+                                            setSelectedCustomerId(null);
+                                            setPaymentMethodId(first?.id ?? null);
+                                            setShowPayModal(true);
+                                        }}
+                                    />
+                                )}
+                            </div>
+                            <NewSaleMobileTabBar
+                                activeTab={mobileTab}
+                                cartCount={cart.length}
+                                onTabChange={setMobileTab}
+                            />
+                        </div>
+                    </>
                 )}
             </div>
 

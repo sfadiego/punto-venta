@@ -25,7 +25,7 @@ export const NewSaleProductPanel = ({
     products, productsLoading,
     isCreatingOrder, onAddProduct,
 }: NewSaleProductPanelProps) => (
-    <div className="flex flex-col flex-1 border-r border-stone-100 overflow-hidden">
+    <div className="flex flex-col flex-1 min-h-0 border-r border-stone-100 overflow-hidden">
         {/* Toolbar */}
         <div className="px-4 pt-4 pb-2 shrink-0 space-y-2">
             <div className="flex flex-col gap-2">

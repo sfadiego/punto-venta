@@ -38,8 +38,8 @@ export const NewSaleCartItem = ({
 
     return (
         <div className="
-            flex flex-wrap min-w-0 items-center justify-between gap-x-1.5 gap-y-1.5 px-3 py-2 border-b border-stone-100 last:border-0
-            sm:rounded-xl sm:bg-stone-50 sm:border sm:border-stone-100 sm:p-3 sm:mb-2 sm:last:mb-0 sm:gap-x-2
+            flex flex-wrap min-w-0 items-center justify-between gap-x-1.5 gap-y-1.5
+            rounded-xl bg-stone-50 border border-stone-200 p-3 mb-2 last:mb-0 sm:gap-x-2
         ">
             <p className="w-full sm:w-auto sm:flex-1 min-w-[6rem] text-xs font-semibold text-stone-900 truncate">
                 {item.product.nombre}
