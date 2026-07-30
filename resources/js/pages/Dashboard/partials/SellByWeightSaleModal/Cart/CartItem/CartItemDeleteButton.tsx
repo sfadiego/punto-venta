@@ -9,9 +9,9 @@ export const CartItemDeleteButton = ({ isRemoving, onRemove }: CartItemDeleteBut
     <button
         onClick={onRemove}
         disabled={isRemoving}
-        className="flex items-center justify-center w-8 h-8 lg:w-6 lg:h-6 rounded-md
+        className="flex items-center justify-center w-8 h-8 lg:w-6 lg:h-6 rounded-md shrink-0
             text-red-300 bg-red-50 hover:text-red-500 hover:bg-red-100
-            transition-colors shrink-0 disabled:cursor-not-allowed disabled:opacity-40"
+            transition-colors disabled:cursor-not-allowed disabled:opacity-40"
     >
         {isRemoving ? (
             <Loader size={15} className="animate-spin lg:hidden" />

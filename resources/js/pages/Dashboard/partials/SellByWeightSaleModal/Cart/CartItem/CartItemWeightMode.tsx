@@ -35,6 +35,6 @@ export const CartItemWeightMode = ({
                 focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
         <span className="text-xs text-stone-400">{unitLabel}</span>
-        <span className="text-xs font-bold text-amber-600">${lineTotal}</span>
+        <span className="text-xs font-bold text-amber-600 lg:hidden">${lineTotal}</span>
     </>
 );
