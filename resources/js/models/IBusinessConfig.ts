@@ -23,6 +23,7 @@ export interface IBusinessConfig {
     costo_domicilio_default: number;
     logo_icon: string | null;
     logo_upload_enabled: boolean;
+    effective_max_users?: number;
     created_at: string;
     updated_at: string;
 }

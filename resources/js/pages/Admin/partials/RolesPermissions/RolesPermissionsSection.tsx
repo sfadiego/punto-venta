@@ -1,7 +1,7 @@
 import { RotateCcw, Save, ShieldCheck } from "lucide-react";
 import { RoleEnum } from "@/enums/RoleEnum";
-import { Action, ALL_ACTIONS } from "@/hooks/usePermissions";
-import { CONFIGURABLE_ROLES, useRolesPermissionsSection } from "./useRolesPermissionsSection";
+import { Action } from "@/utils/permissionUtils";
+import { useRolesPermissionsSection } from "./useRolesPermissionsSection";
 
 const ROLE_LABELS: Record<number, string> = {
     [RoleEnum.Employe]: "Empleado",
@@ -32,6 +32,8 @@ const PERMISSION_LABELS: Record<Action, string> = {
 
 export function RolesPermissionsSection() {
     const {
+        configurableRoles,
+        applicableActions,
         activeRole,
         setActiveRole,
         activeActions,
@@ -55,7 +57,7 @@ export function RolesPermissionsSection() {
             </p>
 
             <div className="flex gap-2 mb-5 border-b border-stone-100">
-                {CONFIGURABLE_ROLES.map((role) => (
+                {configurableRoles.map((role) => (
                     <button
                         key={role}
                         type="button"
@@ -77,7 +79,7 @@ export function RolesPermissionsSection() {
             ) : (
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                        {ALL_ACTIONS.map((action) => (
+                        {applicableActions.map((action) => (
                             <label
                                 key={action}
                                 className="flex items-center gap-2.5 text-sm text-stone-600 cursor-pointer"

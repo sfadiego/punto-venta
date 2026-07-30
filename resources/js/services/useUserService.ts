@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { axiosPUT, useGET } from "@/hooks/useApi";
+import { axiosPOST, axiosPUT, useGET } from "@/hooks/useApi";
 import { useAxios } from "@/hooks/useAxios";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IPaginate } from "@/intefaces/IPaginate";
-import { IUser, IUpdateUserPayload } from "@/models/IUser";
+import { IUser, ICreateUserPayload, IUpdateUserPayload } from "@/models/IUser";
 
 const url = ApiRoutes.AdminUsers;
 const QUERY_KEY = url;
@@ -18,6 +18,15 @@ export const useIndexUsers = ({
         nameQuery: QUERY_KEY,
         filters: { page, limit, ...(search ? { search } : {}) },
     });
+
+export const useCreateUser = () => {
+    const { axiosApi } = useAxios();
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: ICreateUserPayload) => axiosPOST(axiosApi, { url, data }),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    });
+};
 
 export const useUpdateUser = () => {
     const { axiosApi } = useAxios();

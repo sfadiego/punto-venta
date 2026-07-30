@@ -2,10 +2,12 @@
 
 namespace Tests\Admin;
 
+use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\Permission;
 use App\Models\RolePermission;
+use App\Models\User;
 use Tests\TestCase;
 
 class RolePermissionTest extends TestCase
@@ -131,6 +133,75 @@ class RolePermissionTest extends TestCase
             'permissions' => ['viewOrders'],
         ], $this->authHeaders())
             ->assertStatus(422);
+    }
+
+    // ── Venta por peso: sin roles Cocina/Caja ──────────────────
+
+    private function crearAdminVentaPorPeso(): User
+    {
+        $tenant = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'tenant-peso-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Carnicería Test',
+            BusinessConfigModel::PRIMARY_COLOR => '#F59E0B',
+            BusinessConfigModel::SIDEBAR_COLOR => '#1C1917',
+            BusinessConfigModel::FONT_COLOR => '#FFFFFF',
+            BusinessConfigModel::LABEL_COLOR => '#1C1917',
+            BusinessConfigModel::SUBSCRIPTION_PLAN => 'lifetime',
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::VentaPorPeso,
+        ]);
+
+        return User::create([
+            User::NOMBRE => 'Admin',
+            User::APELLIDO_PATERNO => 'Peso',
+            User::APELLIDO_MATERNO => '',
+            User::EMAIL => 'admin-peso-'.uniqid().'@test.com',
+            User::USUARIO => 'admin-peso-'.uniqid(),
+            User::PASSWORD => bcrypt('password123'),
+            User::ROL_ID => RoleEnum::ADMIN->value,
+            User::ACTIVO => true,
+            User::TENANT_ID => $tenant->id,
+        ]);
+    }
+
+    public function test_venta_por_peso_no_permite_configurar_rol_cocina(): void
+    {
+        $admin = $this->crearAdminVentaPorPeso();
+
+        $this->putJson('/api/admin/role-permissions/'.RoleEnum::COCINA->value, [
+            'permissions' => ['kitchenView'],
+        ], $this->authHeaders($admin))
+            ->assertStatus(422);
+    }
+
+    public function test_venta_por_peso_no_permite_configurar_rol_caja(): void
+    {
+        $admin = $this->crearAdminVentaPorPeso();
+
+        $this->putJson('/api/admin/role-permissions/'.RoleEnum::CAJA->value, [
+            'permissions' => ['payOrder'],
+        ], $this->authHeaders($admin))
+            ->assertStatus(422);
+    }
+
+    public function test_venta_por_peso_si_permite_configurar_rol_empleado(): void
+    {
+        $admin = $this->crearAdminVentaPorPeso();
+
+        $this->putJson('/api/admin/role-permissions/'.RoleEnum::EMPLOYE->value, [
+            'permissions' => ['viewOrders'],
+        ], $this->authHeaders($admin))
+            ->assertStatus(200);
+    }
+
+    public function test_restaurante_si_permite_configurar_rol_cocina(): void
+    {
+        // El tenant sembrado por defecto es tipo Restaurante — confirma que el
+        // rechazo es específico de venta_por_peso, no una regresión general.
+        $this->putJson('/api/admin/role-permissions/'.RoleEnum::COCINA->value, [
+            'permissions' => ['kitchenView'],
+        ], $this->authHeaders())
+            ->assertStatus(200);
     }
 
     public function test_rechaza_permiso_inexistente(): void
