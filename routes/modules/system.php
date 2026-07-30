@@ -20,6 +20,7 @@ Route::prefix('admin')->group(function () {
     Route::prefix('users')->middleware('role.admin')->group(function () {
         Route::controller(UserController::class)->group(function () {
             Route::get('/', 'index');
+            Route::post('/', 'store');
             Route::get('{user}', 'show');
             Route::put('{user}', 'update');
         });

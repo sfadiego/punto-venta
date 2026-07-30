@@ -1,12 +1,15 @@
-import { RefreshCw, Search } from "lucide-react";
+import { Plus, RefreshCw, Search } from "lucide-react";
 import { UsersTable } from "@/components/Users/UsersTable";
 import { EditUserModal } from "@/components/Users/EditUserModal";
+import { CreateUserModal } from "@/components/Users/CreateUserModal";
 import { useUsersPage } from "./useUsersPage";
 
 export default function UsersPage() {
     const {
         users,
         total,
+        maxUsers,
+        atUserLimit,
         page,
         limit,
         pageSize,
@@ -18,25 +21,40 @@ export default function UsersPage() {
         setSearch,
         editingUser,
         setEditingUser,
+        isCreateModalOpen,
+        openCreateModal,
+        closeCreateModal,
         excludeRoles,
     } = useUsersPage();
 
     return (
         <div className="px-5 py-6 max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-stone-900">Usuarios</h1>
                     <p className="text-stone-500 text-sm mt-0.5">
                         {total} {total === 1 ? "usuario" : "usuarios"} registrados
+                        {maxUsers !== null && ` de ${maxUsers} permitidos`}
                     </p>
                 </div>
-                <button
-                    onClick={() => refetch()}
-                    className="flex items-center gap-2 text-sm font-medium text-stone-500 hover:text-stone-700 bg-white border border-stone-200 px-3 py-2 rounded-xl hover:bg-stone-50 transition-colors"
-                >
-                    <RefreshCw size={15} />
-                    <span className="hidden sm:inline">Actualizar</span>
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => refetch()}
+                        className="flex items-center gap-2 text-sm font-medium text-stone-500 hover:text-stone-700 bg-white border border-stone-200 px-3 py-2 rounded-xl hover:bg-stone-50 transition-colors"
+                    >
+                        <RefreshCw size={15} />
+                        <span className="hidden sm:inline">Actualizar</span>
+                    </button>
+                    {!atUserLimit && (
+                        <button
+                            onClick={openCreateModal}
+                            className="flex items-center gap-2 text-sm font-medium text-white bg-amber-500 px-3 py-2 rounded-xl hover:bg-amber-600 transition-colors"
+                        >
+                            <Plus size={15} />
+                            <span className="hidden sm:inline">Nuevo usuario</span>
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
@@ -71,6 +89,12 @@ export default function UsersPage() {
                 user={editingUser}
                 excludeRoles={excludeRoles}
                 onClose={() => setEditingUser(null)}
+            />
+
+            <CreateUserModal
+                open={isCreateModalOpen}
+                excludeRoles={excludeRoles}
+                onClose={closeCreateModal}
             />
         </div>
     );

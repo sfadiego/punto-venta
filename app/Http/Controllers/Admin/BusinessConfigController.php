@@ -19,6 +19,7 @@ class BusinessConfigController extends Controller
         $tenant = $tenantModel->toArray();
         $tenant['logo_upload_enabled'] = (bool) AppSettingModel::getValue('logo_upload_enabled', '0');
         $tenant['features'] = $tenantModel->tipo_negocio->features();
+        $tenant['effective_max_users'] = $tenantModel->effectiveMaxUsers();
 
         return Response::success($tenant);
     }
