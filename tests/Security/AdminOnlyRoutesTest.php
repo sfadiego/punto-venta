@@ -61,16 +61,20 @@ class AdminOnlyRoutesTest extends TestCase
             ->assertStatus(403);
     }
 
-    public function test_empleado_no_lee_config_del_negocio(): void
+    public function test_empleado_si_lee_config_del_negocio(): void
     {
+        // Colores/branding se usan en toda la app (sidebar, layout) para cualquier rol —
+        // no debe quedar detrás del gate de admin. Solo la escritura es admin-only.
         $this->getJson('/api/admin/config', $this->authHeaders($this->empleado()))
-            ->assertStatus(403);
+            ->assertStatus(200);
     }
 
     public function test_empleado_no_administra_metodos_de_pago(): void
     {
+        // La lectura sí es necesaria (checkout de cualquier rol con permiso payOrder);
+        // solo la escritura (crear/editar/borrar métodos) es admin-only.
         $this->getJson('/api/admin/payment-methods', $this->authHeaders($this->empleado()))
-            ->assertStatus(403);
+            ->assertStatus(200);
 
         $this->postJson('/api/admin/payment-methods', [
             'nombre' => 'Nuevo metodo',
@@ -78,10 +82,12 @@ class AdminOnlyRoutesTest extends TestCase
             ->assertStatus(403);
     }
 
-    public function test_empleado_no_ve_estadisticas(): void
+    public function test_empleado_si_ve_estadisticas_de_mas_vendido(): void
     {
+        // useDashboard.ts lo consume para todos los roles, no solo desde la página
+        // de Estadísticas (esa sí sigue siendo Admin-only vía el router del frontend).
         $this->getJson('/api/admin/system/statistics/best-seller', $this->authHeaders($this->empleado()))
-            ->assertStatus(403);
+            ->assertStatus(200);
     }
 
     public function test_empleado_si_puede_ver_estado_de_suscripcion(): void

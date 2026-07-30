@@ -10,11 +10,16 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->group(function () {
-    Route::prefix('payment-methods')->middleware('role.admin')->controller(PaymentMethodController::class)->group(function () {
+    Route::prefix('payment-methods')->controller(PaymentMethodController::class)->group(function () {
+        // Lectura abierta a todos: se usa al cobrar/pagar una orden (cualquier rol con
+        // permiso payOrder necesita ver los métodos de pago disponibles).
         Route::get('/', 'index');
-        Route::post('/', 'store');
-        Route::put('{paymentMethod}', 'update');
-        Route::delete('{paymentMethod}', 'delete');
+
+        Route::middleware('role.admin')->group(function () {
+            Route::post('/', 'store');
+            Route::put('{paymentMethod}', 'update');
+            Route::delete('{paymentMethod}', 'delete');
+        });
     });
 
     Route::prefix('users')->middleware('role.admin')->group(function () {
@@ -42,7 +47,9 @@ Route::prefix('admin')->group(function () {
             Route::post('', 'store');
         });
 
-        Route::prefix('statistics')->middleware('role.admin')->group(function () {
+        Route::prefix('statistics')->group(function () {
+            // best-seller es de lectura abierta: el Dashboard lo consume para todos los
+            // roles (useDashboard.ts), no solo desde la página de Estadísticas (Admin-only).
             Route::controller(StatisticsController::class)->group(function () {
                 Route::get('best-seller', 'top3BestSeller');
             });
@@ -55,11 +62,13 @@ Route::prefix('admin')->group(function () {
     });
 
     Route::prefix('config')->controller(BusinessConfigController::class)->group(function () {
-        // Visible en el Dashboard para todos los roles (SubscriptionBanner)
+        // Lectura abierta a todos los roles: colores/branding (sidebar, layout completo),
+        // impresora, domicilio default, etc. se consumen en toda la app, no solo en el
+        // panel de administración. Visible también el estado de suscripción (SubscriptionBanner).
+        Route::get('', 'show');
         Route::get('subscription-status', 'subscriptionStatus');
 
         Route::middleware('role.admin')->group(function () {
-            Route::get('', 'show');
             Route::put('', 'update');
             Route::post('logo', 'uploadLogo');
             Route::delete('logo', 'removeLogo');
