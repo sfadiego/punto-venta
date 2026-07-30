@@ -3,6 +3,7 @@
 namespace Tests\Orders;
 
 use App\Enums\MainOrderStatusEnum;
+use App\Enums\OrderStatusEnum;
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
@@ -13,6 +14,8 @@ use App\Models\OrderStatusModel;
 use App\Models\ProductModel;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Contracts\Broadcasting\Factory as BroadcastingFactoryContract;
+use RuntimeException;
 use Tests\TestCase;
 
 class OrderTest extends TestCase
@@ -214,6 +217,52 @@ class OrderTest extends TestCase
             ->assertStatus(200);
 
         $response->assertJsonPath('data.customer.phone', '3119876543');
+    }
+
+    // ── Resiliencia de broadcast (Reverb) ───────────────────────
+    // Regresión: en producción, OrderController::broadcast() (ShouldBroadcastNow)
+    // podía colgar la request de cierre de venta hasta 20s si Reverb estaba caído
+    // o lento, provocando timeout en el cliente aunque la orden ya se hubiera
+    // actualizado en base de datos. broadcast() atrapa el error — estos tests
+    // verifican que la orden se actualiza y la respuesta es 200 aun si el
+    // broadcaster lanza una excepción.
+
+    public function test_actualiza_orden_aunque_falle_el_broadcast(): void
+    {
+        $this->mock(BroadcastingFactoryContract::class, function ($mock) {
+            $mock->shouldReceive('connection')->andThrow(new RuntimeException('Reverb unreachable'));
+        });
+
+        $orden = $this->crearOrden();
+
+        $this->putJson("/api/order/{$orden->id}", [
+            OrderModel::NOMBRE_PEDIDO => 'Mesa Actualizada Sin Reverb',
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonPath('data.nombre_pedido', 'Mesa Actualizada Sin Reverb');
+
+        $this->assertDatabaseHas('order', ['id' => $orden->id, 'nombre_pedido' => 'Mesa Actualizada Sin Reverb']);
+    }
+
+    public function test_cierra_orden_aunque_falle_el_broadcast(): void
+    {
+        $this->mock(BroadcastingFactoryContract::class, function ($mock) {
+            $mock->shouldReceive('connection')->andThrow(new RuntimeException('Reverb unreachable'));
+        });
+
+        $orden = $this->crearOrden();
+
+        $this->putJson("/api/order/{$orden->id}", [
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+
+        $this->assertDatabaseHas('order', [
+            'id' => $orden->id,
+            'estatus_pedido_id' => OrderStatusEnum::CLOSED->value,
+        ]);
     }
 
     // ── Delete ───────────────────────────────────────────────
