@@ -4,6 +4,7 @@ import { useSettingsPage } from "./useSettingsPage";
 import { LogoUploadSection } from "./partials/LogoUploadSection";
 import { PrinterAgentSection } from "./partials/PrinterAgentSection";
 import { PaymentInfoForm } from "./partials/PaymentInfoForm";
+import { SuperAdminUsersSection } from "./partials/SuperAdminUsers/SuperAdminUsersSection";
 
 export default function SettingsPage() {
     const { settings, isLoading, saving, toggleLogoUpload, paymentFormik } = useSettingsPage();
@@ -36,6 +37,8 @@ export default function SettingsPage() {
                         <PrinterAgentSection />
 
                         <PaymentInfoForm formik={paymentFormik} />
+
+                        <SuperAdminUsersSection />
                     </>
                 )}
             </div>

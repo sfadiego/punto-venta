@@ -6,6 +6,7 @@ use App\Http\Controllers\SuperAdmin\AppSettingController;
 use App\Http\Controllers\SuperAdmin\DemoRequestController;
 use App\Http\Controllers\SuperAdmin\SubscriptionController;
 use App\Http\Controllers\SuperAdmin\SuperAdminAuthController;
+use App\Http\Controllers\SuperAdmin\SuperAdminUserController;
 use App\Http\Controllers\SuperAdmin\TenantFeatureSpotlightController;
 use App\Http\Controllers\SuperAdmin\TenantManagementController;
 use App\Http\Controllers\SuperAdmin\TenantUserController;
@@ -28,6 +29,12 @@ Route::prefix('super-admin')->group(function () {
         Route::prefix('settings')->controller(AppSettingController::class)->group(function () {
             Route::get('', 'show');
             Route::put('', 'update');
+        });
+
+        Route::prefix('super-admins')->controller(SuperAdminUserController::class)->group(function () {
+            Route::get('', 'index');
+            Route::post('', 'store');
+            Route::put('{user}', 'update');
         });
 
         Route::prefix('subscription')->controller(SubscriptionController::class)->group(function () {
