@@ -31,10 +31,10 @@ export const CartItemWeightMode = ({
             step={item.product.unidad_medida === UnidadMedidaEnum.Kg ? 0.1 : 1}
             onChange={(e) => onQtyChange(e.target.value)}
             onBlur={onQtyBlur}
-            className="w-14 lg:w-20 px-1 lg:px-1.5 py-2 lg:py-1 border border-stone-200 rounded-lg text-sm lg:text-xs text-center
+            className="w-14 lg:w-20 shrink-0 px-1 lg:px-1.5 py-2 lg:py-1 border border-stone-200 rounded-lg text-sm lg:text-xs text-center
                 focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
-        <span className="text-xs text-stone-400">{unitLabel}</span>
-        <span className="text-xs font-bold text-amber-600 lg:hidden">${lineTotal}</span>
+        <span className="shrink-0 text-xs text-stone-400">{unitLabel}</span>
+        <span className="shrink-0 text-xs font-bold text-amber-600 lg:hidden">${lineTotal}</span>
     </>
 );

@@ -52,14 +52,16 @@ export const NewSaleCartItem = ({
 
             <div className="flex w-full min-w-0 items-center gap-1 lg:gap-1.5 flex-wrap justify-end">
                 {canToggle && (
-                    <WeightModeToggle
-                        mode={mode}
-                        weightLabel={unitLabel}
-                        onSelectWeight={onModeToggle}
-                        onSelectPrice={onModeToggle}
-                        color="amber"
-                        size="sm"
-                    />
+                    <div className="shrink-0">
+                        <WeightModeToggle
+                            mode={mode}
+                            weightLabel={unitLabel}
+                            onSelectWeight={onModeToggle}
+                            onSelectPrice={onModeToggle}
+                            color="amber"
+                            size="sm"
+                        />
+                    </div>
                 )}
 
                 {mode === WeightInputModeEnum.Weight ? (
