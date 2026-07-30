@@ -2,7 +2,7 @@ import { Eraser } from "lucide-react";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
 import { IModalCartItem } from "@/models/IModalCartItem";
-import { NewSaleCartItem } from "./NewSaleCartItem";
+import { NewSaleCartItem } from "./CartItem/NewSaleCartItem";
 import { NewSaleCartFooter } from "./NewSaleCartFooter";
 import { IProduct } from "@/models/IProduct";
 
@@ -46,7 +46,7 @@ export const NewSaleCartPanel = ({
     getItemMode, toggleItemMode, getDisplayPrice, handlePriceChange, handlePriceBlur,
     removeFromCart, clearCart, isClearing, onPay,
 }: NewSaleCartPanelProps) => (
-    <div className="flex flex-col w-full sm:w-80 shrink-0 min-h-0 overflow-hidden bg-stone-50 border-t border-stone-100 sm:border-t-0 sm:bg-white">
+    <div className="flex flex-col w-full sm:w-72 flex-1 sm:flex-none sm:shrink-0 min-h-0 overflow-hidden bg-stone-50 border-t border-stone-100 sm:border-t-0 sm:bg-white">
         <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
             <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
                 Carrito
@@ -63,11 +63,11 @@ export const NewSaleCartPanel = ({
             )}
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto pb-2">
+        <div className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden pb-2">
             {cart.length === 0 ? (
                 <p className="text-xs text-stone-400 text-center pt-8">Sin productos</p>
             ) : (
-                <div className="sm:px-4 sm:space-y-2">
+                <div className="px-3 pt-1 sm:px-4">
                     {cart.map((item) => {
                         const mode = getItemMode(item.productId, item.product);
                         return (
