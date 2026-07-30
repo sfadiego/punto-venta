@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\OrderModel;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class OrderStoreRequest extends FormRequest
 {
@@ -22,11 +23,16 @@ class OrderStoreRequest extends FormRequest
      */
     public function rules(): array
     {
+        $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+
         return [
             OrderModel::TOTAL => 'required|numeric',
             OrderModel::SUBTOTAL => 'required|numeric',
             OrderModel::DESCUENTO => 'numeric|min:0|max:99',
-            OrderModel::SISTEMA_ID => 'required|numeric|exists:main_order_report,id',
+            OrderModel::SISTEMA_ID => [
+                'required', 'numeric',
+                Rule::exists('main_order_report', 'id')->where('tenant_id', $tenantId),
+            ],
             OrderModel::NOMBRE_PEDIDO => 'required|string|max:255',
             OrderModel::ESTATUS_PEDIDO_ID => 'required|exists:order_status,id',
         ];

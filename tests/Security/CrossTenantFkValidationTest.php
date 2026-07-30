@@ -149,4 +149,24 @@ class CrossTenantFkValidationTest extends TestCase
         ], $this->authHeaders())
             ->assertStatus(400);
     }
+
+    public function test_no_se_puede_crear_orden_referenciando_caja_de_otro_tenant(): void
+    {
+        $tenantB = $this->crearTenantB();
+        $reportB = MainOrderReportModel::create([
+            MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN,
+            MainOrderReportModel::EFECTIVO_CAJA_INICIO => 500,
+            MainOrderReportModel::USER_ID => $this->crearAdminParaTenant($tenantB->id)->id,
+            MainOrderReportModel::TENANT_ID => $tenantB->id,
+        ]);
+
+        $this->postJson('/api/order', [
+            'nombre_pedido' => 'Orden Intrusa',
+            'sistema_id' => $reportB->id,
+            'total' => 0,
+            'subtotal' => 0,
+            'estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value,
+        ], $this->authHeaders())
+            ->assertStatus(400);
+    }
 }

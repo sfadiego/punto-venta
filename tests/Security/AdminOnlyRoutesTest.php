@@ -103,4 +103,57 @@ class AdminOnlyRoutesTest extends TestCase
         $this->getJson('/api/admin/config', $this->authHeaders())
             ->assertStatus(200);
     }
+
+    public function test_admin_no_puede_autopromoverse_a_superadmin(): void
+    {
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $this->putJson("/api/admin/users/{$admin->id}", [
+            'nombre' => $admin->nombre,
+            'apellido_paterno' => $admin->apellido_paterno ?? 'Paterno',
+            'email' => $admin->email,
+            'usuario' => $admin->usuario,
+            'rol_id' => RoleEnum::SUPERADMIN->value,
+            'activo' => true,
+        ], $this->authHeaders($admin))
+            ->assertStatus(400);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $admin->id,
+            'rol_id' => RoleEnum::ADMIN->value,
+        ]);
+    }
+
+    public function test_empleado_no_puede_crear_editar_ni_borrar_categorias(): void
+    {
+        $empleado = $this->empleado();
+
+        $this->postJson('/api/category', [
+            'nombre' => 'Categoria Intrusa',
+        ], $this->authHeaders($empleado))
+            ->assertStatus(403);
+
+        $category = \App\Models\CategoryModel::first();
+
+        $this->putJson("/api/category/{$category->id}", [
+            'nombre' => 'Renombrada',
+        ], $this->authHeaders($empleado))
+            ->assertStatus(403);
+
+        $this->deleteJson("/api/category/{$category->id}", [], $this->authHeaders($empleado))
+            ->assertStatus(403);
+    }
+
+    public function test_empleado_si_puede_listar_y_ver_categorias(): void
+    {
+        $empleado = $this->empleado();
+
+        $this->getJson('/api/category', $this->authHeaders($empleado))
+            ->assertStatus(206);
+
+        $category = \App\Models\CategoryModel::first();
+
+        $this->getJson("/api/category/{$category->id}", $this->authHeaders($empleado))
+            ->assertStatus(200);
+    }
 }

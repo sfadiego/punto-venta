@@ -6,7 +6,6 @@ use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
 
 class UserUpdateRequest extends FormRequest
 {
@@ -28,7 +27,15 @@ class UserUpdateRequest extends FormRequest
             'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($userId)],
             'usuario' => ['required', 'string', 'max:80', Rule::unique('users', 'usuario')->ignore($userId)],
             'password' => 'nullable|string|min:8',
-            'rol_id' => ['required', new Enum(RoleEnum::class)],
+            // Esta ruta solo la alcanza un Admin de tenant (gate 'role.admin'). Nunca debe
+            // poder asignar SUPERADMIN — ese rol se gestiona exclusivamente desde el panel
+            // SuperAdmin, fuera del contexto de un tenant.
+            'rol_id' => ['required', Rule::in([
+                RoleEnum::ADMIN->value,
+                RoleEnum::EMPLOYE->value,
+                RoleEnum::COCINA->value,
+                RoleEnum::CAJA->value,
+            ])],
             'activo' => 'required|boolean',
         ];
     }

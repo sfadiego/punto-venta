@@ -29,7 +29,7 @@ class AuthController extends Controller
             password: bcrypt($params->password),
             apellidoPaterno: $params->apellido_paterno,
             apellidoMaterno: $params->apellido_materno ?? '',
-            rolId: $params->rol_id,
+            rolId: RoleEnum::EMPLOYE->value,
         );
 
         return Response::success(
