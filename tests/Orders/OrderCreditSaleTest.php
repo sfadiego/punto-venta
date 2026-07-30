@@ -92,6 +92,30 @@ class OrderCreditSaleTest extends TestCase
         $this->assertEquals(100, (float) $customer->fresh()->balance);
     }
 
+    public function test_no_duplica_credito_con_dos_instancias_cargadas_de_la_misma_orden(): void
+    {
+        // Simula dos requests concurrentes cerrando la misma orden a crédito: cada una
+        // carga su propia instancia de $order (ambas ven credit_applied_at = null en
+        // memoria antes de que cualquiera confirme). El guard debe re-consultar y
+        // lockear la fila real en BD, no confiar en el estado en memoria de cada instancia.
+        $customer = $this->crearCliente(['allow_credit' => true]);
+        $order = $this->crearOrdenConProducto(100);
+        $order->update([
+            OrderModel::TOTAL => 100,
+            OrderModel::IS_CREDIT => true,
+            OrderModel::CUSTOMER_ID => $customer->id,
+        ]);
+
+        $orderInstanciaA = OrderModel::find($order->id);
+        $orderInstanciaB = OrderModel::find($order->id);
+
+        $service = app(\App\Services\OrderCreditService::class);
+        $service->applyIfClosingAsCredit($orderInstanciaA, true);
+        $service->applyIfClosingAsCredit($orderInstanciaB, true);
+
+        $this->assertEquals(100, (float) $customer->fresh()->balance);
+    }
+
     public function test_no_permite_venta_a_credito_si_cliente_no_tiene_credito_habilitado(): void
     {
         $customer = $this->crearCliente(['allow_credit' => false]);

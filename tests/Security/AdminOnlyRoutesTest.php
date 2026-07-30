@@ -156,4 +156,58 @@ class AdminOnlyRoutesTest extends TestCase
         $this->getJson("/api/category/{$category->id}", $this->authHeaders($empleado))
             ->assertStatus(200);
     }
+
+    private function crearCliente(): \App\Models\CustomerModel
+    {
+        return \App\Models\CustomerModel::create([
+            \App\Models\CustomerModel::NAME => 'Cliente Test '.uniqid(),
+            \App\Models\CustomerModel::PHONE => '5512345678',
+            \App\Models\CustomerModel::TENANT_ID => \App\Models\BusinessConfigModel::first()->id,
+        ]);
+    }
+
+    public function test_empleado_si_puede_crear_cliente_inline(): void
+    {
+        // Necesario para la alta inline de cliente en el picker de venta a crédito
+        // (SellByWeightSaleModal), accesible a todos los roles desde el Dashboard.
+        $this->postJson('/api/customer', [
+            'name' => 'Cliente Inline',
+            'phone' => '5512345678',
+        ], $this->authHeaders($this->empleado()))
+            ->assertStatus(200);
+    }
+
+    public function test_empleado_no_puede_editar_borrar_ni_fiar_clientes(): void
+    {
+        $empleado = $this->empleado();
+        $customer = $this->crearCliente();
+
+        $this->putJson("/api/customer/{$customer->id}", [
+            'name' => 'Renombrado',
+        ], $this->authHeaders($empleado))
+            ->assertStatus(403);
+
+        $this->patchJson("/api/customer/{$customer->id}/toggle-credit", [], $this->authHeaders($empleado))
+            ->assertStatus(403);
+
+        $this->postJson("/api/customer/{$customer->id}/payment", [
+            'amount' => 10,
+        ], $this->authHeaders($empleado))
+            ->assertStatus(403);
+
+        $this->deleteJson("/api/customer/{$customer->id}", [], $this->authHeaders($empleado))
+            ->assertStatus(403);
+    }
+
+    public function test_empleado_si_puede_listar_y_ver_clientes(): void
+    {
+        $empleado = $this->empleado();
+        $customer = $this->crearCliente();
+
+        $this->getJson('/api/customer', $this->authHeaders($empleado))
+            ->assertStatus(206);
+
+        $this->getJson("/api/customer/{$customer->id}", $this->authHeaders($empleado))
+            ->assertStatus(200);
+    }
 }
