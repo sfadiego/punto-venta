@@ -12,6 +12,7 @@ import { EditProductModal } from "./partials/ProductModals/EditProductModal";
 import { useEditProductModal } from "./partials/ProductModals/useEditProductModal";
 import { ProductTableActions } from "./partials/ProductTableActions";
 import { ProductSearch } from "@/components/Product/ProductSearch";
+import { formatMoney } from "@/utils/formatCurrency";
 
 export default function ProductsPage() {
     const [editingProduct, setEditingProduct] = useState<IProduct | null>(null);
@@ -81,9 +82,9 @@ export default function ProductsPage() {
                 title: "Precio",
                 render: (p: IProduct) => (
                     <span className="font-semibold text-stone-900 tabular-nums text-sm">
-                        ${Number(p.precio).toFixed(2)}{" "}
-                        <span className="text-xs font-normal text-stone-400">
-                            / {UNIDAD_LABELS[p.unidad_medida]}
+                        ${formatMoney(p.precio)}
+                        <span className="ml-1 font-normal text-stone-400">
+                            /{UNIDAD_LABELS[p.unidad_medida]}
                         </span>
                     </span>
                 ),

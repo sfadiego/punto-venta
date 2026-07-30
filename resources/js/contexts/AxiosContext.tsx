@@ -104,6 +104,10 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         rolePermissions: Record<number, string[]> | null,
         tenantSlug?: string | null,
     ) => {
+        // Limpia el business-config cacheado de una sesión previa (otro tenant en el
+        // mismo navegador) para que nunca se pinte con colores de otro cliente mientras
+        // resuelve la petición fresca — ver useGetBusinessConfig/businessConfigCache.
+        clearCachedBusinessConfig();
         configureAxiosHeaders(accessToken);
         configUser(user);
         configFeatures(features);

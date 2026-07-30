@@ -4,6 +4,7 @@ import { IMenuProduct } from "@/models/IMenu";
 import { isWeightUnit, formatPricePerUnit } from "@/utils/weightUnits";
 import { WeightControls } from "../WeightControls/WeightControls";
 import { UnitControls } from "./UnitControls";
+import { formatMoney } from "@/utils/formatCurrency";
 
 interface ProductCardProps {
     product: IMenuProduct;
@@ -61,7 +62,7 @@ export const ProductCard = ({ product, quantity, primaryColor, onAdd, onRemove, 
                 <div className={`flex gap-2 mt-auto ${byWeight ? "flex-col items-stretch" : "items-center justify-between"}`}>
                     {!byWeight && (
                         <span className="text-sm font-bold text-stone-800 tabular-nums">
-                            {`$${Number(product.precio).toFixed(2)}`}
+                            {`$${formatMoney(product.precio)}`}
                         </span>
                     )}
 

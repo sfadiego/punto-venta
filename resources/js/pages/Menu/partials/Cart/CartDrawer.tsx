@@ -1,6 +1,7 @@
 import { X, ShoppingCart } from "lucide-react";
 import { ICartItem, IMenuProduct } from "@/models/IMenu";
 import { CartItem } from "./CartItem";
+import { formatMoney } from "@/utils/formatCurrency";
 
 interface CartDrawerProps {
     open: boolean;
@@ -80,7 +81,7 @@ export const CartDrawer = ({
                 <div className="flex items-center justify-between mb-4">
                     <span className="text-sm text-stone-500">Total estimado</span>
                     <span className="text-base font-bold text-stone-800 tabular-nums">
-                        ${total.toFixed(2)}
+                        ${formatMoney(total)}
                     </span>
                 </div>
                 <button
