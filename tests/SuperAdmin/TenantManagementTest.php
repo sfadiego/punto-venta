@@ -5,6 +5,7 @@ namespace Tests\SuperAdmin;
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
+use App\Models\TenantActivityLogModel;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -506,5 +507,63 @@ class TenantManagementTest extends TestCase
     {
         $tenant = BusinessConfigModel::first();
         $this->deleteJson("/api/super-admin/tenant/{$tenant->id}/demo-data")->assertStatus(401);
+    }
+
+    // ── Activity ──────────────────────────────────────────────
+
+    public function test_actividad_del_tenant_agrega_por_dia_y_hora(): void
+    {
+        $tenant = BusinessConfigModel::first();
+
+        TenantActivityLogModel::factory()->create([
+            TenantActivityLogModel::TENANT_ID => $tenant->id,
+            TenantActivityLogModel::CREATED_AT => now(),
+        ]);
+        TenantActivityLogModel::factory()->create([
+            TenantActivityLogModel::TENANT_ID => $tenant->id,
+            TenantActivityLogModel::CREATED_AT => now(),
+        ]);
+        TenantActivityLogModel::factory()->create([
+            TenantActivityLogModel::TENANT_ID => $tenant->id,
+            TenantActivityLogModel::CREATED_AT => now()->subDays(2),
+        ]);
+
+        $response = $this->getJson("/api/super-admin/tenant/{$tenant->id}/activity?days=7", $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonStructure(['data' => ['daily' => [['date', 'count']], 'hourly' => [['hour', 'count']]]]);
+
+        $daily = collect($response->json('data.daily'));
+        $hourly = collect($response->json('data.hourly'));
+
+        $this->assertCount(7, $daily);
+        $this->assertCount(24, $hourly);
+        $this->assertSame(2, $daily->firstWhere('date', now()->toDateString())['count']);
+        $this->assertSame(1, $daily->firstWhere('date', now()->subDays(2)->toDateString())['count']);
+        $this->assertSame(3, $hourly->sum('count'));
+    }
+
+    public function test_actividad_del_tenant_no_incluye_otro_tenant(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $otherTenant = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'otro-tenant-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Otro negocio',
+        ]);
+
+        TenantActivityLogModel::factory()->create([TenantActivityLogModel::TENANT_ID => $otherTenant->id]);
+
+        $response = $this->getJson("/api/super-admin/tenant/{$tenant->id}/activity", $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $total = collect($response->json('data.daily'))->sum('count');
+        $this->assertSame(0, $total);
+    }
+
+    public function test_actividad_del_tenant_sin_autenticacion(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $this->getJson("/api/super-admin/tenant/{$tenant->id}/activity")->assertStatus(401);
     }
 }

@@ -12,6 +12,8 @@ import { TenantAdminSection } from "@/components/SuperAdmin/Tenants/Sections/Ten
 import { TenantPrinterSection } from "@/components/SuperAdmin/Tenants/Sections/TenantPrinterSection";
 import { TenantDangerZone } from "@/components/SuperAdmin/Tenants/Sections/TenantDangerZone";
 import { TenantFeatureSpotlightsSection } from "@/components/SuperAdmin/Tenants/TenantFeatureSpotlightsSection/TenantFeatureSpotlightsSection";
+import { TenantActivitySection } from "@/components/SuperAdmin/Tenants/Activity/TenantActivitySection";
+import { TenantFormNav } from "./partials/TenantFormNav";
 import { useGetTenant } from "@/services/useSuperAdminService";
 
 export default function TenantFormPage() {
@@ -23,7 +25,7 @@ export default function TenantFormPage() {
 
     return (
         <SuperAdminLayout>
-            <div className="px-6 py-6 max-w-2xl mx-auto">
+            <div className="px-6 py-6 max-w-4xl mx-auto">
                 <div className="flex items-center justify-between gap-3 mb-6">
                     <div className="flex items-center gap-3">
                         <button
@@ -64,63 +66,95 @@ export default function TenantFormPage() {
                     </div>
                 )}
 
-                <form onSubmit={formik.handleSubmit} className="space-y-6">
-                    <TenantBusinessSection formik={formik} />
+                <div className="flex gap-8 items-start">
+                    <TenantFormNav isEdit={isEdit} showDangerZone={!!tenantDetail?.is_demo} />
 
-                    <TenantColorsSection formik={formik} onResetColors={handleResetColors} />
+                    <form onSubmit={formik.handleSubmit} className="flex-1 min-w-0 space-y-6">
+                        <div id="negocio">
+                            <TenantBusinessSection formik={formik} />
+                        </div>
 
-                    {!isEdit && <TenantAdminSection formik={formik} />}
+                        <div id="colores">
+                            <TenantColorsSection formik={formik} onResetColors={handleResetColors} />
+                        </div>
 
-                    {isEdit && tenantDetail && (
-                        <UserLimitSection
-                            maxUsers={formik.values.max_users}
-                            onMaxUsersChange={(v) => formik.setFieldValue("max_users", v)}
-                            subscriptionPlan={tenantDetail.subscription_plan}
-                            usersCount={tenantDetail.users_count ?? 0}
-                            planDefaultMaxUsers={tenantDetail.plan_default_max_users}
-                        />
-                    )}
+                        {!isEdit && (
+                            <div id="admin">
+                                <TenantAdminSection formik={formik} />
+                            </div>
+                        )}
 
-                    {isEdit && tenantDetail && (
-                        <SubscriptionAmountSection
-                            amount={formik.values.subscription_amount}
-                            onAmountChange={(v) => formik.setFieldValue("subscription_amount", v)}
-                        />
-                    )}
+                        {isEdit && tenantDetail && (
+                            <div id="limite">
+                                <UserLimitSection
+                                    maxUsers={formik.values.max_users}
+                                    onMaxUsersChange={(v) => formik.setFieldValue("max_users", v)}
+                                    subscriptionPlan={tenantDetail.subscription_plan}
+                                    usersCount={tenantDetail.users_count ?? 0}
+                                    planDefaultMaxUsers={tenantDetail.plan_default_max_users}
+                                />
+                            </div>
+                        )}
 
-                    {isEdit && (
-                        <TenantPrinterSection
-                            enabled={formik.values.printer_enabled}
-                            onToggle={() => formik.setFieldValue("printer_enabled", !formik.values.printer_enabled)}
-                            bluetoothEnabled={formik.values.bluetooth_printing_enabled}
-                            onToggleBluetooth={() =>
-                                formik.setFieldValue("bluetooth_printing_enabled", !formik.values.bluetooth_printing_enabled)
-                            }
-                        />
-                    )}
+                        {isEdit && tenantDetail && (
+                            <div id="suscripcion">
+                                <SubscriptionAmountSection
+                                    amount={formik.values.subscription_amount}
+                                    onAmountChange={(v) => formik.setFieldValue("subscription_amount", v)}
+                                />
+                            </div>
+                        )}
 
-                    {isEdit && tenantId && <TenantFeatureSpotlightsSection tenantId={tenantId} />}
+                        {isEdit && (
+                            <div id="impresora">
+                                <TenantPrinterSection
+                                    enabled={formik.values.printer_enabled}
+                                    onToggle={() => formik.setFieldValue("printer_enabled", !formik.values.printer_enabled)}
+                                    bluetoothEnabled={formik.values.bluetooth_printing_enabled}
+                                    onToggleBluetooth={() =>
+                                        formik.setFieldValue("bluetooth_printing_enabled", !formik.values.bluetooth_printing_enabled)
+                                    }
+                                />
+                            </div>
+                        )}
 
-                    {isEdit && tenantId && tenantDetail?.is_demo && <TenantDangerZone tenantId={tenantId} />}
+                        {isEdit && tenantId && (
+                            <div id="actividad">
+                                <TenantActivitySection tenantId={tenantId} />
+                            </div>
+                        )}
 
-                    <div className="flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={() => navigate(SuperAdminRoutes.Tenants)}
-                            className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={formik.isSubmitting}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium transition-colors"
-                        >
-                            {formik.isSubmitting && <Loader size={14} className="animate-spin" />}
-                            {isEdit ? "Guardar cambios" : "Crear cliente"}
-                        </button>
-                    </div>
-                </form>
+                        {isEdit && tenantId && (
+                            <div id="novedades">
+                                <TenantFeatureSpotlightsSection tenantId={tenantId} />
+                            </div>
+                        )}
+
+                        {isEdit && tenantId && tenantDetail?.is_demo && (
+                            <div id="peligro">
+                                <TenantDangerZone tenantId={tenantId} />
+                            </div>
+                        )}
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => navigate(SuperAdminRoutes.Tenants)}
+                                className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={formik.isSubmitting}
+                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium transition-colors"
+                            >
+                                {formik.isSubmitting && <Loader size={14} className="animate-spin" />}
+                                {isEdit ? "Guardar cambios" : "Crear cliente"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </SuperAdminLayout>
     );

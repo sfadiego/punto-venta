@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ActivityTypeEnum;
 use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionStatusEnum;
@@ -11,6 +12,7 @@ use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
 use App\Models\User;
 use App\Services\RolePermissionService;
+use App\Services\TenantActivityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -18,7 +20,10 @@ use Illuminate\Support\Facades\Response;
 
 class AuthController extends Controller
 {
-    public function __construct(private readonly RolePermissionService $rolePermissionService) {}
+    public function __construct(
+        private readonly RolePermissionService $rolePermissionService,
+        private readonly TenantActivityService $activityService,
+    ) {}
 
     public function register(RegisterRequest $params): JsonResponse
     {
@@ -112,6 +117,10 @@ class AuthController extends Controller
                     'code' => 'CONCURRENT_USERS_LIMIT',
                 ], 403);
             }
+        }
+
+        if ($tenant) {
+            $this->activityService->log($tenant->id, ActivityTypeEnum::LOGIN);
         }
 
         $result['features'] = $tenant?->tipo_negocio->features() ?? BusinessTypeEnum::Restaurante->features();
