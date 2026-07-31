@@ -1,11 +1,11 @@
 import { Eye } from "lucide-react";
-import { OrderDeliveryBadge } from "@/components/orders/OrderDeliveryBadge";
 import { IOrder } from "@/models/IOrder";
 import { useOrderPreviewModal } from "./useOrderPreviewModal";
 import { useAxios } from "@/hooks/useAxios";
 import { DetailHeader } from "./partials/DetailHeader";
 import { CustomerInfoSection } from "./partials/CustomerInfo/CustomerInfoSection";
 import { MarkServedAction } from "./partials/MarkServedAction";
+import { OrderTotalSummary } from "./partials/OrderTotalSummary";
 import { ProductList } from "./partials/Products/ProductList";
 
 interface OrderPreviewModalProps {
@@ -74,11 +74,11 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                             />
                         )}
 
-                        {Number(order.costo_domicilio) !== 0 && (
-                            <div className="px-5 py-2.5 border-b border-stone-100 shrink-0">
-                                <OrderDeliveryBadge costoDomicilio={order.costo_domicilio} />
-                            </div>
-                        )}
+                        <OrderTotalSummary
+                            subtotal={order.subtotal}
+                            costoDomicilio={order.costo_domicilio}
+                            total={order.total}
+                        />
 
                         <ProductList
                             isLoading={isLoading}
