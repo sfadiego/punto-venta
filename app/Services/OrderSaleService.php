@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ActivityTypeEnum;
 use App\Enums\OrderStatusEnum;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
@@ -9,6 +10,8 @@ use Carbon\Carbon;
 
 class OrderSaleService
 {
+    public function __construct(private readonly TenantActivityService $activityService) {}
+
     /**
      * Crea y cierra una venta en un solo paso: orden + productos + total, todo Closed.
      *
@@ -39,6 +42,8 @@ class OrderSaleService
         $order->update([
             OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
         ]);
+
+        $this->activityService->log($order->tenant_id, ActivityTypeEnum::SALE_CLOSED);
 
         return $order;
     }

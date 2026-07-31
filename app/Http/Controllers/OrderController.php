@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Core\Data\IndexData;
+use App\Enums\ActivityTypeEnum;
 use App\Enums\OrderStatusEnum;
 use App\Events\OrdersUpdated;
 use App\Http\Requests\OrderStoreRequest;
@@ -12,6 +13,7 @@ use App\Models\OrderModel;
 use App\Services\OrderCreditService;
 use App\Services\OrderSaleService;
 use App\Services\OrderService;
+use App\Services\TenantActivityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
@@ -51,10 +53,15 @@ class OrderController extends Controller
         return Response::success($order->delete());
     }
 
-    public function update(OrderModel $order, OrderUpdateRequest $params, OrderCreditService $creditService): JsonResponse
-    {
+    public function update(
+        OrderModel $order,
+        OrderUpdateRequest $params,
+        OrderCreditService $creditService,
+        TenantActivityService $activityService,
+    ): JsonResponse {
         $data = $params->toArray();
         $orderDetail = $order->totalAndSubTotalOrder();
+        $wasClosed = $order->estatus_pedido_id === OrderStatusEnum::CLOSED->value;
 
         $order->update(array_merge($data, [
             'total' => $orderDetail['total'],
@@ -63,6 +70,10 @@ class OrderController extends Controller
 
         $becomingClosed = (int) ($data['estatus_pedido_id'] ?? 0) === OrderStatusEnum::CLOSED->value;
         $creditService->applyIfClosingAsCredit($order, $becomingClosed);
+
+        if ($becomingClosed && ! $wasClosed) {
+            $activityService->log($order->tenant_id, ActivityTypeEnum::SALE_CLOSED);
+        }
 
         $isServed = (int) ($data['estatus_pedido_id'] ?? 0) === OrderStatusEnum::SERVED->value;
         $this->broadcast($isServed ? 'served' : 'updated', $order->id);

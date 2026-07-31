@@ -2,7 +2,7 @@ import { LayoutDashboard, CreditCard, Settings2, AlertTriangle, PhoneCall } from
 import { NavLink } from "react-router-dom";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 
-const NAV_ITEMS = [
+export const NAV_ITEMS = [
     { to: SuperAdminRoutes.Tenants,       label: "Clientes",           icon: <LayoutDashboard size={16} /> },
     { to: SuperAdminRoutes.DemoRequests,  label: "Solicitudes de demo", icon: <PhoneCall size={16} /> },
     { to: SuperAdminRoutes.Subscriptions, label: "Suscripciones",      icon: <CreditCard size={16} /> },

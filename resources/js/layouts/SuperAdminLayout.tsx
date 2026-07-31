@@ -1,9 +1,11 @@
 import { SuperAdminSidebar } from "./SuperAdminSidebar/SuperAdminSidebar";
+import { SuperAdminSidebarMini } from "./SuperAdminSidebar/SuperAdminSidebarMini";
 import { SuperAdminMobileHeader } from "./SuperAdminSidebar/SuperAdminMobileHeader";
 import { useSuperAdminLayout } from "./useSuperAdminLayout";
 
 export function SuperAdminLayout({ children }: { children: React.ReactNode }) {
-    const { sidebarOpen, openSidebar, closeSidebar } = useSuperAdminLayout();
+    const { sidebarOpen, openSidebar, closeSidebar, desktopCollapsed, handleDesktopToggle, handleMiniExpand } =
+        useSuperAdminLayout();
 
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">
@@ -14,7 +16,14 @@ export function SuperAdminLayout({ children }: { children: React.ReactNode }) {
                 />
             )}
 
-            <SuperAdminSidebar open={sidebarOpen} onClose={closeSidebar} />
+            <SuperAdminSidebarMini desktopVisible={desktopCollapsed} onExpand={handleMiniExpand} />
+
+            <SuperAdminSidebar
+                open={sidebarOpen}
+                desktopHidden={desktopCollapsed}
+                onClose={closeSidebar}
+                onDesktopToggle={handleDesktopToggle}
+            />
 
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 <SuperAdminMobileHeader onMenuOpen={openSidebar} />

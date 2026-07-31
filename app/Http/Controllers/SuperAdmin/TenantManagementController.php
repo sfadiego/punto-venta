@@ -14,9 +14,11 @@ use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
 use App\Models\SubscriptionModel;
 use App\Models\User;
+use App\Services\TenantActivityService;
 use App\Services\TenantService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 
@@ -145,5 +147,12 @@ class TenantManagementController extends Controller
     public function delete(BusinessConfigModel $tenant): JsonResponse
     {
         return Response::success($tenant->delete());
+    }
+
+    public function activity(BusinessConfigModel $tenant, Request $request, TenantActivityService $service): JsonResponse
+    {
+        $days = (int) ($request->query('days') ?? 30);
+
+        return Response::success($service->report($tenant->id, $days));
     }
 }

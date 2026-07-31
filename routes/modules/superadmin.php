@@ -53,6 +53,7 @@ Route::prefix('super-admin')->group(function () {
                 Route::patch('restore', 'restore');
                 Route::delete('', 'delete');
                 Route::delete('demo-data', 'clearDemoData');
+                Route::get('activity', 'activity');
 
                 Route::prefix('feature-spotlights')->controller(TenantFeatureSpotlightController::class)->group(function () {
                     Route::get('', 'index');
