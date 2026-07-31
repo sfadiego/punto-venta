@@ -29,7 +29,7 @@ export const usePrintTicket = (orderId: number) => {
         },
         onSuccess: () => toast.success("Ticket impreso"),
         onError: (err: Error) => {
-            toast.error(`Error: ${err.message}`);
+            toast.error(getUserFacingErrorMessage(err, `Error: ${err.message}`));
             reportClientError({ message: err.message, stack: err.stack, context: "print-agent" });
         },
     });
@@ -42,7 +42,7 @@ export const usePrintTicket = (orderId: number) => {
         },
         onSuccess: () => toast.success("Ticket impreso"),
         onError: (err: Error) => {
-            toast.error(`Error: ${err.message}`);
+            toast.error(getUserFacingErrorMessage(err, `Error: ${err.message}`));
             reportClientError({ message: err.message, stack: err.stack, context: "print-bluetooth" });
         },
     });
