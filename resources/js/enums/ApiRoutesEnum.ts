@@ -18,6 +18,7 @@ export enum ApiRoutes {
     PrintTestBytes = "/api/order/print/test-bytes",
     Tenant = "/api/tenant",
     DemoRequest = "/api/demo-request",
+    AppTheme = "/api/app-theme",
     SuperAdminAuth         = "/api/super-admin/auth",
     SuperAdminTenant       = "/api/super-admin/tenant",
     SuperAdminSubscription = "/api/super-admin/subscription",

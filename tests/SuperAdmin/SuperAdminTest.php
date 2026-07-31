@@ -105,6 +105,52 @@ class SuperAdminTest extends TestCase
             ->assertJsonPath('status', 'OK');
     }
 
+    public function test_settings_incluye_theme_por_defecto(): void
+    {
+        $this->getJson('/api/super-admin/settings', $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.theme', 'amber_orange');
+    }
+
+    public function test_actualiza_theme(): void
+    {
+        $this->putJson('/api/super-admin/settings', [
+            'theme' => 'azul_marino',
+        ], $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.theme', 'azul_marino');
+    }
+
+    public function test_actualiza_theme_invalido_falla(): void
+    {
+        $this->putJson('/api/super-admin/settings', [
+            'theme' => 'no_existe',
+        ], $this->superAdminHeaders())
+            ->assertStatus(400);
+    }
+
+    // ── Public app theme ──────────────────────────────────────
+
+    public function test_app_theme_publico_retorna_default(): void
+    {
+        $this->getJson('/api/app-theme')
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonPath('data.theme', 'amber_orange')
+            ->assertJsonMissingPath('data.payment_info');
+    }
+
+    public function test_app_theme_publico_refleja_cambio(): void
+    {
+        $this->putJson('/api/super-admin/settings', [
+            'theme' => 'azul_marino',
+        ], $this->superAdminHeaders())->assertStatus(200);
+
+        $this->getJson('/api/app-theme')
+            ->assertStatus(200)
+            ->assertJsonPath('data.theme', 'azul_marino');
+    }
+
     // ── Subscription index ────────────────────────────────────
 
     public function test_lista_tenants_con_suscripciones(): void

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\DemoRequestController;
+use App\Http\Controllers\PublicAppSettingController;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,9 @@ Route::post('client-error', [ClientErrorController::class, 'store']);
 
 // Solicitud de demo desde el landing/login — público, sin auth
 Route::post('demo-request', [DemoRequestController::class, 'store']);
+
+// Tema visual activo de la pantalla de login — público, sin auth
+Route::get('app-theme', [PublicAppSettingController::class, 'theme']);
 
 // Archivos estáticos — acceso público, el path actúa como token opaco
 require base_path('routes/modules/files.php');

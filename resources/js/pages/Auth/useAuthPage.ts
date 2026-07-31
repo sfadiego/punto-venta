@@ -5,6 +5,8 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useAxios } from "@/hooks/useAxios";
 import { useCreateDemoRequest } from "@/services/useDemoRequestService";
+import { useGetPublicAppTheme } from "@/services/usePublicAppThemeService";
+import { AppThemeEnum } from "@/enums/AppThemeEnum";
 import { BusinessNicheEnum } from "@/enums/BusinessNicheEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { isValidPhone, phoneValidationMessage } from "@/utils/phoneUtils";
@@ -34,6 +36,8 @@ export const useAuthPage = () => {
     const [submitted, setSubmitted] = useState(false);
 
     const { mutateAsync: createDemoRequest, isPending: isSubmittingDemo } = useCreateDemoRequest();
+    const { data: themeData } = useGetPublicAppTheme();
+    const theme = themeData?.theme ?? AppThemeEnum.AmberOrange;
 
     useEffect(() => {
         localStorage.removeItem("tenantSlug");
@@ -89,5 +93,6 @@ export const useAuthPage = () => {
         demoFormik,
         isSubmittingDemo,
         submitted,
+        theme,
     };
 };

@@ -3,6 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useGetAppSettings, useUpdateAppSettings, IPaymentInfo } from "@/services/useAppSettingService";
+import { AppThemeEnum } from "@/enums/AppThemeEnum";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export type PaymentForm = {
@@ -40,6 +41,16 @@ export const useSettingsPage = () => {
         );
     };
 
+    const setTheme = (theme: AppThemeEnum) => {
+        update(
+            { theme },
+            {
+                onSuccess: () => toast.success("Tema actualizado"),
+                onError: (error) => toast.error(getUserFacingErrorMessage(error, "Error al guardar")),
+            }
+        );
+    };
+
     const paymentFormik = useFormik({
         initialValues: defaultPayment(settings?.payment_info),
         validationSchema: paymentSchema,
@@ -63,5 +74,5 @@ export const useSettingsPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [settings?.payment_info?.account]);
 
-    return { settings, isLoading, saving, toggleLogoUpload, paymentFormik };
+    return { settings, isLoading, saving, toggleLogoUpload, setTheme, paymentFormik };
 };

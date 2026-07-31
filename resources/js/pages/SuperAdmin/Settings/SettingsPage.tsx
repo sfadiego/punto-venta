@@ -4,10 +4,11 @@ import { useSettingsPage } from "./useSettingsPage";
 import { LogoUploadSection } from "./partials/LogoUploadSection";
 import { PrinterAgentSection } from "./partials/PrinterAgentSection";
 import { PaymentInfoForm } from "./partials/PaymentInfoForm";
+import { ThemeSection } from "./partials/ThemeSection";
 import { SuperAdminUsersSection } from "./partials/SuperAdminUsers/SuperAdminUsersSection";
 
 export default function SettingsPage() {
-    const { settings, isLoading, saving, toggleLogoUpload, paymentFormik } = useSettingsPage();
+    const { settings, isLoading, saving, toggleLogoUpload, setTheme, paymentFormik } = useSettingsPage();
 
     return (
         <SuperAdminLayout>
@@ -28,6 +29,8 @@ export default function SettingsPage() {
                     </div>
                 ) : (
                     <>
+                        <ThemeSection theme={settings?.theme} saving={saving} onSelect={setTheme} />
+
                         <LogoUploadSection
                             enabled={!!settings?.logo_upload_enabled}
                             saving={saving}
