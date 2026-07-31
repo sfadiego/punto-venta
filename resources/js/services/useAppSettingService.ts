@@ -1,21 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { superAdminAxios } from "@/contexts/SuperAdminContext";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { IAppSettings, IPaymentInfo } from "@/models/IAppSettings";
 
 const url = ApiRoutes.SuperAdminSettings;
 const QUERY_KEY = "app-settings";
 
-export interface IPaymentInfo {
-    bank: string;
-    account: string;
-    holder: string;
-    concept: string;
-}
-
-export interface IAppSettings {
-    logo_upload_enabled: boolean;
-    payment_info: IPaymentInfo | null;
-}
+export type { IAppSettings, IPaymentInfo };
 
 export const useGetAppSettings = () =>
     useQuery<IAppSettings>({

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
+import { BusinessThemePreset } from "@/enums/businessThemePresets";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 const DEFAULTS = {
@@ -68,6 +69,13 @@ export const useColorsSection = (config: IBusinessConfig | undefined) => {
         );
     };
 
+    const applyPreset = (preset: BusinessThemePreset) => {
+        setPrimaryColor(preset.primary_color);
+        setSidebarColor(preset.sidebar_color);
+        setFontColor(preset.font_color);
+        setLabelColor(preset.label_color);
+    };
+
     const handleReset = () => {
         setPrimaryColor(DEFAULTS.primary_color);
         setSidebarColor(DEFAULTS.sidebar_color);
@@ -112,5 +120,6 @@ export const useColorsSection = (config: IBusinessConfig | undefined) => {
         saving,
         handleSubmit,
         handleReset,
+        applyPreset,
     };
 };

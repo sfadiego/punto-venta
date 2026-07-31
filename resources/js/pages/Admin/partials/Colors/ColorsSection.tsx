@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { RotateCcw, Save } from "lucide-react";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { useColorsSection } from "./useColorsSection";
+import { ThemePresetPicker } from "./ThemePresetPicker";
 
 interface ColorsSectionProps {
     config: IBusinessConfig | undefined;
@@ -85,6 +86,7 @@ export function ColorsSection({ config }: ColorsSectionProps) {
         saving,
         handleSubmit,
         handleReset,
+        applyPreset,
     } = useColorsSection(config);
 
     return (
@@ -107,6 +109,16 @@ export function ColorsSection({ config }: ColorsSectionProps) {
                         className="w-full max-w-sm border border-stone-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
                     />
                 </div>
+
+                <div className="h-px bg-stone-100" />
+
+                <ThemePresetPicker
+                    primaryColor={primaryColor}
+                    sidebarColor={sidebarColor}
+                    fontColor={fontColor}
+                    labelColor={labelColor}
+                    onApply={applyPreset}
+                />
 
                 <div className="h-px bg-stone-100" />
 
