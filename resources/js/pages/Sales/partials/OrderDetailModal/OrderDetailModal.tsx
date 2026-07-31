@@ -90,18 +90,25 @@ export const OrderDetailModal = ({ isOpen, order, onClose }: OrderDetailModalPro
                             <span>Total</span>
                             <span>{formatCurrency(order.total)}</span>
                         </div>
-                        {Number(order.costo_domicilio) !== 0 && (
-                            <>
-                                <div className="flex justify-between text-sm text-red-500">
-                                    <span>Domicilio</span>
-                                    <span>-{formatCurrency(Math.abs(Number(order.costo_domicilio)))}</span>
-                                </div>
-                                <div className="flex justify-between font-bold text-violet-700 text-base pt-2 border-t border-stone-200">
-                                    <span>Ingreso neto</span>
-                                    <span>{formatCurrency(order.total - Math.abs(Number(order.costo_domicilio)))}</span>
-                                </div>
-                            </>
-                        )}
+                        {Number(order.costo_domicilio) !== 0 && (() => {
+                            const domicilio = Number(order.costo_domicilio);
+                            const customerPays = domicilio >= 0;
+                            const businessCost = customerPays ? 0 : Math.abs(domicilio);
+                            return (
+                                <>
+                                    <div className="flex justify-between text-sm text-stone-500">
+                                        <span>{customerPays ? "Domicilio (cliente paga)" : "Domicilio (a cuenta del negocio)"}</span>
+                                        <span className={customerPays ? "text-amber-600" : "text-red-500"}>
+                                            {customerPays ? "+" : "-"}{formatCurrency(Math.abs(domicilio))}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between font-bold text-violet-700 text-base pt-2 border-t border-stone-200">
+                                        <span>Ingreso neto</span>
+                                        <span>{formatCurrency(order.total - businessCost)}</span>
+                                    </div>
+                                </>
+                            );
+                        })()}
                     </div>
                 </div>
             )}
