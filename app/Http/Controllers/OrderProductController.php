@@ -141,7 +141,15 @@ class OrderProductController extends Controller
     }
 
     /**
-     * toggleReady — marks/unmarks an order_product as ready to serve by order_product.id
+     * toggleReady — marks/unmarks an order_product as ready to serve by order_product.id.
+     *
+     * Also decides here (server-side, under a row lock) whether this toggle completes
+     * or breaks the "all products ready" condition for the order, promoting/reverting
+     * its status accordingly. This used to be computed in the frontend from the local
+     * products snapshot, which raced when two products were checked near-simultaneously
+     * (common on slow networks): each request evaluated a stale snapshot of the other's
+     * in-flight change and neither detected "all ready". Doing it here per-request against
+     * the committed DB state, serialized by the lock, makes it race-proof.
      */
     public function toggleReady(int $orderId, int $item): JsonResponse
     {
@@ -153,9 +161,20 @@ class OrderProductController extends Controller
             return Response::error('elemento no encontrado');
         }
 
+        $order = OrderModel::lockForUpdate()->find($orderId);
+        if (! $order) {
+            return Response::error('no existe la orden');
+        }
+
         $orderProduct->update([
             OrderProductModel::IS_READY => ! $orderProduct->is_ready,
         ]);
+
+        if ($orderProduct->is_ready) {
+            $this->restoreServedIfAllReady($order);
+        } else {
+            $this->resetStatusIfReady($order);
+        }
 
         try {
             OrdersUpdated::dispatch('product_updated', (int) $orderId);

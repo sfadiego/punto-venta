@@ -442,6 +442,92 @@ class OrderProductTest extends TestCase
             ->assertStatus(422);
     }
 
+    public function test_toggle_ready_marca_servida_cuando_completa_todos_listos(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::IN_PROCESS->value);
+        $prod1 = $this->crearProducto();
+        $prod2 = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod1->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => true,
+        ]);
+
+        $item2 = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod2->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 30,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => false,
+        ]);
+
+        // Marcar el último producto pendiente debe promover la orden a Servida,
+        // sin depender de que el frontend calcule "todos listos" (fix de la carrera
+        // en red lenta: dos toggles casi simultáneos ya no dependen de un snapshot
+        // stale del cliente, el backend re-evalúa contra la DB bajo lock).
+        $this->patchJson("/api/order/{$orden->id}/product/{$item2->id}/ready", [], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.is_ready', true);
+
+        $this->assertEquals(OrderStatusEnum::SERVED->value, $orden->fresh()->estatus_pedido_id);
+    }
+
+    public function test_toggle_ready_no_marca_servida_si_quedan_pendientes(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::IN_PROCESS->value);
+        $prod1 = $this->crearProducto();
+        $prod2 = $this->crearProducto();
+
+        $item1 = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod1->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => false,
+        ]);
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod2->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 30,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => false,
+        ]);
+
+        $this->patchJson("/api/order/{$orden->id}/product/{$item1->id}/ready", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertEquals(OrderStatusEnum::IN_PROCESS->value, $orden->fresh()->estatus_pedido_id);
+    }
+
+    public function test_toggle_ready_desmarcar_en_orden_servida_la_regresa_a_en_proceso(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::SERVED->value);
+        $prod = $this->crearProducto();
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $prod->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => true,
+        ]);
+
+        $this->patchJson("/api/order/{$orden->id}/product/{$item->id}/ready", [], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.is_ready', false);
+
+        $this->assertEquals(OrderStatusEnum::IN_PROCESS->value, $orden->fresh()->estatus_pedido_id);
+    }
+
     // ── is_ready preserved when same product added again ──────
 
     public function test_agregar_mismo_producto_preserva_is_ready_del_primero(): void

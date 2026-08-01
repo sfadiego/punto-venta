@@ -88,21 +88,14 @@ export const useOrderPreviewModal = (orderId: number) => {
     const toggleProductReady = async (orderProductId: number) => {
         if (isPending(orderProductId)) return;
 
-        const item = products.find((p) => p.id === orderProductId);
-        const willBeReady = !item?.is_ready;
-
         try {
+            // El backend decide si esto completa o rompe "todos listos" y
+            // promueve/revierte el estatus de la orden (ver toggleReady en
+            // OrderProductController) — invalidar la orden aquí solo refresca
+            // la UI con lo que el servidor ya resolvió.
             await withPending([orderProductId], () =>
                 toggleReady(orderProductId, { onSuccess: invalidateOrder }),
             );
-
-            // Auto-trigger Served when the last pending item gets marked ready
-            if (willBeReady && !isServed) {
-                const allWillBeReady = products.every((p) =>
-                    p.id === orderProductId ? true : p.is_ready,
-                );
-                if (allWillBeReady) markServed();
-            }
         } catch (error) {
             logUnexpectedError(
                 error,
