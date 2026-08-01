@@ -12,9 +12,9 @@ interface UseWeightControlsParams {
 }
 
 const formatWeightInput = (cantidad: number, unit: WeightUnit): string =>
-    unit === UnidadMedidaEnum.Kg
-        ? cantidad.toFixed(1)
-        : String(Math.round(cantidad));
+    unit === UnidadMedidaEnum.Gr
+        ? String(Math.round(cantidad))
+        : cantidad.toFixed(1);
 
 export const useWeightControls = ({ cantidad, unit, precio, onChangeWeight }: UseWeightControlsParams) => {
     const [mode, setModeState] = useState<WeightInputModeEnum>(WeightInputModeEnum.Weight);
@@ -40,7 +40,7 @@ export const useWeightControls = ({ cantidad, unit, precio, onChangeWeight }: Us
     };
 
     const handleWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const allowed = unit === UnidadMedidaEnum.Kg ? /[^0-9.]/g : /[^0-9]/g;
+        const allowed = unit === UnidadMedidaEnum.Gr ? /[^0-9]/g : /[^0-9.]/g;
         const cleaned = e.target.value.replace(allowed, "");
         const parsed = parseFloat(cleaned);
         if (!isNaN(parsed) && parsed > weightMax(unit)) {

@@ -34,7 +34,7 @@ const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Toolti
             <p className="text-sm font-semibold text-stone-800">{item.payload.product}</p>
             <p className="text-xs text-stone-500 mt-0.5">
                 <span className="font-bold text-amber-600 text-base">{item.value}</span>{" "}
-                {unidad === "kg" || unidad === "gr" ? `${unidad} vendidos` : "unidades vendidas"}
+                {unidad === "kg" || unidad === "gr" || unidad === "litro" ? `${unidad} vendidos` : "unidades vendidas"}
             </p>
         </div>
     );

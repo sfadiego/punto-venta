@@ -14,7 +14,7 @@ export interface IMenuProduct {
     nombre: string;
     descripcion: string | null;
     precio: number;
-    unidad_medida: "unidad" | "kg" | "gr" | null;
+    unidad_medida: "unidad" | "kg" | "gr" | "litro" | null;
     image_url: string | null;
 }
 

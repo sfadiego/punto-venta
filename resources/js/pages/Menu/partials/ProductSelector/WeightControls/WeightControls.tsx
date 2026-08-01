@@ -54,11 +54,17 @@ export const WeightControls = ({
                                 value={weightInput}
                                 onChange={handleWeightChange}
                                 onKeyDown={(e) => {
-                                    const allowed = unit === UnidadMedidaEnum.Kg ? /[0-9.]/ : /[0-9]/;
+                                    const allowed = unit === UnidadMedidaEnum.Gr ? /[0-9]/ : /[0-9.]/;
                                     if (e.key.length === 1 && !allowed.test(e.key)) e.preventDefault();
                                     if (e.key === "Enter") applyWeight();
                                 }}
-                                placeholder={unit === UnidadMedidaEnum.Kg ? "Ingresa kg" : "Ingresa gr"}
+                                placeholder={
+                                    unit === UnidadMedidaEnum.Gr
+                                        ? "Ingresa gr"
+                                        : unit === UnidadMedidaEnum.Litro
+                                            ? "Ingresa L"
+                                            : "Ingresa kg"
+                                }
                                 className="text-center tabular-nums"
                             />
                         </div>

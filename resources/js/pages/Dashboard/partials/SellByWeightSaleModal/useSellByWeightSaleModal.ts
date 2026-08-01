@@ -132,7 +132,8 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             items.forEach((item) => {
                 const isWeightUnit =
                     item.product.unidad_medida === UnidadMedidaEnum.Kg ||
-                    item.product.unidad_medida === UnidadMedidaEnum.Gr;
+                    item.product.unidad_medida === UnidadMedidaEnum.Gr ||
+                    item.product.unidad_medida === UnidadMedidaEnum.Litro;
                 if (isWeightUnit && item.precioEfectivo !== item.product.precio) {
                     modes[item.productId] = WeightInputModeEnum.Price;
                 }
@@ -174,10 +175,12 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
             : totalFinal > 0);
 
     const defaultCantidad = (product: IProduct) =>
-        product.unidad_medida === UnidadMedidaEnum.Kg ? 0.5 : 1;
+        product.unidad_medida === UnidadMedidaEnum.Kg || product.unidad_medida === UnidadMedidaEnum.Litro ? 0.5 : 1;
 
     const isPesoProduct = (product: IProduct) =>
-        product.unidad_medida === UnidadMedidaEnum.Kg || product.unidad_medida === UnidadMedidaEnum.Gr;
+        product.unidad_medida === UnidadMedidaEnum.Kg ||
+        product.unidad_medida === UnidadMedidaEnum.Gr ||
+        product.unidad_medida === UnidadMedidaEnum.Litro;
 
     const getItemMode = (productId: number, product: IProduct): WeightInputModeEnum =>
         isPesoProduct(product) ? (itemModes[productId] ?? WeightInputModeEnum.Weight) : WeightInputModeEnum.Weight;
