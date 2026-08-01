@@ -49,13 +49,13 @@ export const RecentSales = ({ onSelect }: RecentSalesProps) => {
                                 <div
                                     key={sale.id}
                                     onClick={clickable ? () => onSelect!(sale) : undefined}
-                                    className={`flex items-center justify-between px-4 py-3 rounded-xl bg-stone-50 border transition-colors ${
+                                    className={`flex flex-wrap items-center justify-between gap-x-2 gap-y-1 px-3 sm:px-4 py-3 rounded-xl bg-stone-50 border transition-colors ${
                                         clickable
                                             ? "border-amber-200 cursor-pointer hover:bg-amber-50 hover:border-amber-300"
                                             : "border-stone-100"
                                     }`}
                                 >
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                                             isPending ? "bg-amber-100" : "bg-emerald-100"
                                         }`}>
@@ -64,17 +64,17 @@ export const RecentSales = ({ onSelect }: RecentSalesProps) => {
                                                 : <ReceiptText size={14} className="text-emerald-600" />
                                             }
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-stone-900">
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-semibold text-stone-900 truncate">
                                                 {sale.nombre_pedido ?? `Pedido #${sale.id}`}
                                             </p>
-                                            <p className="text-xs text-stone-400">
+                                            <p className="text-xs text-stone-400 whitespace-nowrap">
                                                 {formatOrderTime(sale.created_at)}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <span className={`text-sm font-bold mr-1 ${
+                                    <div className="flex items-center gap-1 shrink-0 ml-auto">
+                                        <span className={`text-sm font-bold mr-1 whitespace-nowrap ${
                                             isPending ? "text-amber-600" : "text-emerald-600"
                                         }`}>
                                             ${sale.total.toFixed(2)}
