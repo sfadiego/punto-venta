@@ -1,7 +1,7 @@
 import { IModalCartItem } from "@/models/IModalCartItem";
 import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
 import { WeightModeToggle } from "@/components/ui/WeightModeToggle";
-import { isPeso, useNewSaleCartItem } from "./useNewSaleCartItem";
+import { isPeso, isScaleWeighable, useNewSaleCartItem } from "./useNewSaleCartItem";
 import { CartItemWeightMode } from "./CartItemWeightMode";
 import { CartItemPriceMode } from "./CartItemPriceMode";
 import { CartItemDeleteButton } from "./CartItemDeleteButton";
@@ -72,6 +72,7 @@ export const NewSaleCartItem = ({
                         onQtyBlur={onQtyBlur}
                         unitLabel={unitLabel}
                         isPeso={isPeso(item)}
+                        canUseScale={isScaleWeighable(item)}
                         scaleSupported={scaleSupported}
                         isReadingScale={isReadingScale}
                         onReadScale={handleReadScale}

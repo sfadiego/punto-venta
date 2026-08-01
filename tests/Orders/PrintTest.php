@@ -2,9 +2,13 @@
 
 namespace Tests\Orders;
 
+use App\Enums\UnidadMedidaEnum;
 use App\Models\BusinessConfigModel;
+use App\Models\CategoryModel;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
+use App\Models\OrderProductModel;
+use App\Models\ProductModel;
 use App\Printer\Formatters\VentaFormatter;
 use Tests\TestCase;
 
@@ -122,5 +126,61 @@ class PrintTest extends TestCase
     public function test_chars_for_paper_width_valor_desconocido_retorna_32_por_defecto(): void
     {
         $this->assertEquals(32, VentaFormatter::charsForPaperWidth('999'));
+    }
+
+    // ── Unidad de medida en el ticket ───────────────────────────
+
+    public function test_bytes_producto_en_litros_se_imprime_con_decimales(): void
+    {
+        $orden = $this->crearOrden();
+
+        $producto = ProductModel::factory()->create([
+            ProductModel::CATEGORIA_ID => CategoryModel::first()->id,
+            ProductModel::PRECIO => 20,
+            ProductModel::UNIDAD_MEDIDA => UnidadMedidaEnum::Litro,
+        ]);
+
+        OrderProductModel::factory()->create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $producto->id,
+            OrderProductModel::CANTIDAD => 1.5,
+            OrderProductModel::PRECIO => 20,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        // Unidad continua (litro) → cantidad con 3 decimales, no como entero.
+        $this->assertStringContainsString('1.500 litro x $20.00', $response->getContent());
+    }
+
+    public function test_bytes_producto_por_unidad_se_imprime_como_entero(): void
+    {
+        $orden = $this->crearOrden();
+
+        $producto = ProductModel::factory()->create([
+            ProductModel::CATEGORIA_ID => CategoryModel::first()->id,
+            ProductModel::PRECIO => 45,
+            ProductModel::UNIDAD_MEDIDA => UnidadMedidaEnum::Unidad,
+        ]);
+
+        OrderProductModel::factory()->create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $producto->id,
+            OrderProductModel::CANTIDAD => 3,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        $this->assertStringContainsString('3 x $45.00', $response->getContent());
+        $this->assertStringNotContainsString('3.000', $response->getContent());
     }
 }

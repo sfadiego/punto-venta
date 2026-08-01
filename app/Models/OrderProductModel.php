@@ -67,7 +67,7 @@ class OrderProductModel extends Model
 
         return $query->map(function ($item) {
             $unidad = $item->product?->unidad_medida?->value ?? 'unidad';
-            $esPeso = in_array($unidad, ['kg', 'gr']);
+            $esPeso = in_array($unidad, ['kg', 'gr', 'litro']);
 
             return [
                 'id' => $item->producto_id,

@@ -5,6 +5,12 @@ import { formatMoney } from "@/utils/formatCurrency";
 
 export const isPeso = (item: IModalCartItem) =>
     item.product.unidad_medida === UnidadMedidaEnum.Kg ||
+    item.product.unidad_medida === UnidadMedidaEnum.Gr ||
+    item.product.unidad_medida === UnidadMedidaEnum.Litro;
+
+// Un scale físico solo mide masa (kg/gr) — no aplica a unidades de volumen como Litro.
+export const isScaleWeighable = (item: IModalCartItem) =>
+    item.product.unidad_medida === UnidadMedidaEnum.Kg ||
     item.product.unidad_medida === UnidadMedidaEnum.Gr;
 
 interface UseNewSaleCartItemParams {

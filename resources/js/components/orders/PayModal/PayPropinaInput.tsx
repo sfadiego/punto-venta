@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import { Input } from "@/components/ui/form/Input";
 
 const PRESETS = [10, 15, 20];
@@ -30,10 +31,30 @@ export const PayPropinaInput = ({ isCash, subtotal, propina, setPropina }: PayPr
         if (val === "" || (!isNaN(num) && num >= 0)) setPropina(val);
     };
 
+    const handleClear = () => {
+        setSelectedPct(null);
+        setPropina("");
+    };
+
+    const propinaNum = parseFloat(propina) || 0;
+    const totalConPropina = subtotal + propinaNum;
+
     return (
         <div className={`fade-collapse ${!isCash ? "is-visible" : "is-hidden"}`}>
             <div className="space-y-2">
-                <p className="text-xs text-stone-500">Propina (opcional)</p>
+                <div className="flex items-center justify-between">
+                    <p className="text-xs text-stone-500">Propina (opcional)</p>
+                    {propinaNum > 0 && (
+                        <button
+                            type="button"
+                            onClick={handleClear}
+                            className="flex items-center gap-1 text-xs text-stone-400 hover:text-red-500 transition-colors"
+                        >
+                            <X size={12} />
+                            Quitar propina
+                        </button>
+                    )}
+                </div>
 
                 <div className="flex gap-2">
                     {PRESETS.map((pct) => (
@@ -61,6 +82,13 @@ export const PayPropinaInput = ({ isCash, subtotal, propina, setPropina }: PayPr
                     value={propina}
                     onChange={(e) => handleChange(e.target.value)}
                 />
+
+                {propinaNum > 0 && (
+                    <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
+                        <span className="text-xs text-amber-700">Cobrar en terminal (con propina)</span>
+                        <span className="text-sm font-bold text-amber-700">${totalConPropina.toFixed(2)}</span>
+                    </div>
+                )}
             </div>
         </div>
     );

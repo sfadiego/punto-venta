@@ -158,7 +158,7 @@ class VentaFormatter implements TicketFormatterInterface
             .str_pad($total, $this->colTotal, ' ', STR_PAD_LEFT);
 
         $unidad = $item['unidad_medida'] ?? 'unidad';
-        $esPeso = in_array($unidad, ['kg', 'gr']);
+        $esPeso = in_array($unidad, ['kg', 'gr', 'litro']);
         $cantidadStr = $esPeso
             ? number_format($item['cantidad'], 3).' '.$unidad
             : (int) $item['cantidad'];
