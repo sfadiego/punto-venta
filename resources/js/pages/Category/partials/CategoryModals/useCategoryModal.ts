@@ -18,7 +18,7 @@ const schema = Yup.object({
     icon_name: Yup.string().max(100, "Máximo 100 caracteres"),
 });
 
-export const useCategoryModal = (category: ICategory | null, onSuccess: () => void, onClose: () => void) => {
+export const useCategoryModal = (category: ICategory | null, nextOrder: number, onSuccess: () => void, onClose: () => void) => {
     const isEdit = !!category;
     const { mutateAsync: storeCategory } = useStoreCategory();
     const { mutateAsync: updateCategory } = useUpdateCategory(category?.id ?? 0);
@@ -27,7 +27,7 @@ export const useCategoryModal = (category: ICategory | null, onSuccess: () => vo
         enableReinitialize: true,
         initialValues: {
             nombre: category?.nombre ?? "",
-            orden: category?.orden?.toString() ?? "",
+            orden: category ? category.orden?.toString() ?? "" : nextOrder.toString(),
             icon_name: category?.icon_name ?? "",
         },
         validationSchema: schema,

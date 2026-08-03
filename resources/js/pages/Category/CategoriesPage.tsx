@@ -31,7 +31,7 @@ export default function CategoriesPage() {
         invalidateCategories,
     } = useCategoriesPage();
 
-    const { isEdit, formik } = useCategoryModal(editingCategory, invalidateCategories, handleCloseModal);
+    const { isEdit, formik } = useCategoryModal(editingCategory, total + 1, invalidateCategories, handleCloseModal);
 
     const columns = useMemo<DataTableColumn<ICategory>[]>(
         () => [
