@@ -6,7 +6,6 @@ use App\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SuperAdminUserStoreRequest;
 use App\Http\Requests\SuperAdminUserUpdateRequest;
-use App\Models\BusinessConfigModel;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
@@ -35,7 +34,7 @@ class SuperAdminUserController extends Controller
             User::PASSWORD => Hash::make($param->password),
             User::ROL_ID => RoleEnum::SUPERADMIN->value,
             User::ACTIVO => true,
-            User::TENANT_ID => BusinessConfigModel::query()->orderBy('id')->value('id'),
+            User::TENANT_ID => null,
         ]);
 
         return Response::success($user);

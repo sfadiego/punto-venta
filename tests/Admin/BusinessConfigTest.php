@@ -309,6 +309,11 @@ class BusinessConfigTest extends TestCase
             'amount' => 999.99,
         ], $this->authHeaders($superAdmin));
 
+        // RequestGuard memoiza el usuario resuelto en la primera llamada dentro del
+        // mismo test (mismo AuthManager) — sin esto, esta request seguiría
+        // autenticada como el SuperAdmin de la llamada anterior en vez del admin.
+        $this->app['auth']->forgetGuards();
+
         $this->getJson('/api/admin/config/subscription-status', $this->authHeaders())
             ->assertStatus(200)
             ->assertJsonPath('data.amount_due', 200.25);

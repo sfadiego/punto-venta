@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
             User::APELLIDO_MATERNO => '',
             User::ROL_ID => RoleEnum::SUPERADMIN,
             User::ACTIVO => 1,
-            User::TENANT_ID => 1,
+            User::TENANT_ID => null,
         ]);
 
         User::updateOrCreate([
