@@ -1,10 +1,11 @@
-import { Building2, Plus, Search, Pencil, Trash2, Users, Loader, PowerOff, Power, RotateCcw, ExternalLink } from "lucide-react";
+import { Building2, Plus, Search, Pencil, Trash2, Users, Loader, PowerOff, Power, RotateCcw, ExternalLink, UtensilsCrossed, Scale } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { useTenantList } from "./useTenantList";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
 import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
+import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 import { ITenant } from "@/models/ITenant";
 import { ActiveUsersWidget } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersWidget";
 import { ActiveUsersBadge } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersBadge";
@@ -24,6 +25,11 @@ const DEMO_FILTERS: { label: string; value: TenantDemoFilterEnum }[] = [
 
 const STATUS_PREFIX = "status:";
 const DEMO_PREFIX = "demo:";
+
+const BUSINESS_TYPE_SHORT_LABELS: Record<BusinessTypeEnum, string> = {
+    [BusinessTypeEnum.Restaurante]:  "Restaurante",
+    [BusinessTypeEnum.VentaPorPeso]: "Venta por peso",
+};
 
 export default function TenantListPage() {
     const navigate = useNavigate();
@@ -176,6 +182,14 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
                             Demo
                         </span>
                     )}
+                    <span className="shrink-0 flex items-center gap-1 text-xs font-medium px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                        {tenant.tipo_negocio === BusinessTypeEnum.VentaPorPeso ? (
+                            <Scale size={11} />
+                        ) : (
+                            <UtensilsCrossed size={11} />
+                        )}
+                        {BUSINESS_TYPE_SHORT_LABELS[tenant.tipo_negocio]}
+                    </span>
                     <ActiveUsersBadge count={tenant.active_users_count ?? 0} />
                     <InactivityBadge lastActivityAt={tenant.last_activity_at} />
                 </div>

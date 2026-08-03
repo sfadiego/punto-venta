@@ -50,7 +50,7 @@ export const TenantSidePanel = ({ tenant, isLoading }: Props) => {
                     )}
                 </div>
 
-                <h1 onClick={() => navigate('/auth')} className="text-white text-4xl font-bold tracking-tight mb-3 cursor-pointer">
+                <h1 className="text-white text-4xl font-bold tracking-tight mb-3 cursor-pointer">
                     {isLoading ? (
                         <span className="inline-block w-36 h-9 bg-white/30 rounded-lg animate-pulse" />
                     ) : (
