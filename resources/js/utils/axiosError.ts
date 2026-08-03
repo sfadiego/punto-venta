@@ -32,3 +32,19 @@ export const getUserFacingErrorMessage = (error: unknown, fallback: string): str
 
     return error.response?.data?.message ?? fallback;
 };
+
+// Extrae errores de validación por campo (400, {data: {campo: [mensaje]}}) para
+// pasarlos a formik.setErrors — el componente Input ya sabe pintar formik.errors[name].
+// Devuelve null si el error no trae ese formato (ej. error de red, 401, 500).
+export const getFieldErrors = (error: unknown): Record<string, string> | null => {
+    if (!isAxiosError<{ data?: Record<string, string[] | string> }>(error)) return null;
+
+    const fieldErrors = error.response?.data?.data;
+    if (!fieldErrors) return null;
+
+    const errors: Record<string, string> = {};
+    Object.entries(fieldErrors).forEach(([field, message]) => {
+        errors[field] = Array.isArray(message) ? message[0] : message;
+    });
+    return errors;
+};

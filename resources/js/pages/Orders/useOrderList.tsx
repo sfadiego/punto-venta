@@ -6,6 +6,7 @@ import { IOrder } from "@/models/IOrder";
 import { getStatusStyle } from "@/utils/orderStatus";
 import { formatOrderTime } from "@/utils/dateUtils";
 import { DataTableColumn } from "mantine-datatable";
+import { Bike } from "lucide-react";
 import { OrderActionButtons } from "@/components/orders/OrderActions/OrderActionButtons";
 import { SaleActions } from "@/components/orders/OrderActions/SaleActions";
 import { getActiveStatuses } from "./partials/OrderFilters";
@@ -13,6 +14,16 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
 
 const renderersMap: DataTableRenderersMap = {
+    nombre_pedido: (o: IOrder) => (
+        <span className="flex items-center gap-1.5">
+            {o.nombre_pedido}
+            {o.is_delivery && (
+                <span title="Domicilio" className="shrink-0">
+                    <Bike size={14} className="text-blue-500" />
+                </span>
+            )}
+        </span>
+    ),
     total: (o: IOrder) => `$${o.total.toFixed(2)}`,
     subtotal: (o: IOrder) => `$${o.subtotal.toFixed(2)}`,
     descuento: (o: IOrder) => (o.descuento > 0 ? `${o.descuento}%` : "—"),

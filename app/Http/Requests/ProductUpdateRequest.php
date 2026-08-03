@@ -42,4 +42,29 @@ class ProductUpdateRequest extends FormRequest
             ProductModel::UNIDAD_MEDIDA => ['nullable', Rule::enum(UnidadMedidaEnum::class)],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'nombre.required' => 'El nombre es requerido.',
+            'nombre.string' => 'El nombre debe ser texto.',
+            'nombre.max' => 'El nombre no puede superar los 255 caracteres.',
+            'precio.required' => 'El precio es requerido.',
+            'precio.decimal' => 'El precio debe ser un número válido con hasta 2 decimales.',
+            'categoria_id.required' => 'La categoría es requerida.',
+            'categoria_id.exists' => 'La categoría seleccionada no es válida.',
+            'activo.boolean' => 'El campo disponible debe ser verdadero o falso.',
+            'picture_id.exists' => 'La imagen seleccionada no es válida.',
+            'unidad_medida.enum' => 'La unidad de medida seleccionada no es válida.',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'categoria_id' => 'categoría',
+            'picture_id' => 'imagen',
+            'unidad_medida' => 'unidad de medida',
+        ];
+    }
 }

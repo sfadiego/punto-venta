@@ -1,24 +1,22 @@
 import { X, Package, Loader } from "lucide-react";
 import { FormikProps } from "formik";
 import { ICategory } from "@/models/ICategory";
-import { ProductForm } from "./useAddProductModal";
+import { ProductForm } from "./useProductModal";
 import { UnidadMedidaEnum, UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
+import { Input } from "@/components/ui/form/Input";
+import { Select } from "@/components/ui/form/Select";
+import { Textarea } from "@/components/ui/form/textarea";
 
-interface AddProductModalProps {
+interface ProductModalProps {
     isOpen: boolean;
+    isEdit: boolean;
     formik: FormikProps<ProductForm>;
     categories: ICategory[];
     sellByWeight: boolean;
     onClose: () => void;
 }
 
-export const AddProductModal = ({
-    isOpen,
-    formik,
-    categories,
-    sellByWeight,
-    onClose,
-}: AddProductModalProps) => {
+export const ProductModal = ({ isOpen, isEdit, formik, categories, sellByWeight, onClose }: ProductModalProps) => {
     if (!isOpen) return null;
 
     return (
@@ -32,7 +30,16 @@ export const AddProductModal = ({
                         <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
                             <Package size={16} className="text-amber-600" />
                         </div>
-                        <h2 className="font-semibold text-stone-900 text-sm">Nuevo producto</h2>
+                        <div>
+                            <h2 className="font-semibold text-stone-900 text-sm">
+                                {isEdit ? "Editar producto" : "Nuevo producto"}
+                            </h2>
+                            {isEdit && (
+                                <p className="text-xs text-stone-400 mt-0.5 truncate max-w-[220px]">
+                                    {formik.values.nombre}
+                                </p>
+                            )}
+                        </div>
                     </div>
                     <button
                         onClick={onClose}
@@ -43,92 +50,46 @@ export const AddProductModal = ({
                 </div>
 
                 <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
-                    {/* Nombre */}
-                    <div>
-                        <label className="block text-xs font-medium text-stone-600 mb-1.5">
-                            Nombre <span className="text-red-400">*</span>
-                        </label>
-                        <input
-                            name="nombre"
-                            value={formik.values.nombre}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            placeholder={sellByWeight ? "Ej: Lomo de res" : "Ej: Café americano"}
-                            maxLength={255}
-                            autoFocus
-                            className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-                        />
-                        {formik.touched.nombre && formik.errors.nombre && (
-                            <p className="text-xs text-red-500 mt-1">{formik.errors.nombre}</p>
-                        )}
-                    </div>
+                    <Input<ProductForm>
+                        name="nombre"
+                        label="Nombre *"
+                        formik={formik}
+                        placeholder={sellByWeight ? "Ej: Lomo de res" : "Ej: Café americano"}
+                        maxLength={255}
+                    />
 
-                    {/* Descripción */}
-                    <div>
-                        <label className="block text-xs font-medium text-stone-600 mb-1.5">
-                            Descripción
-                        </label>
-                        <textarea
-                            name="descripcion"
-                            value={formik.values.descripcion}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            placeholder="Descripción del producto (opcional)"
-                            rows={2}
-                            className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none"
-                        />
-                    </div>
+                    <Textarea<ProductForm>
+                        name="descripcion"
+                        label="Descripción"
+                        placeholder="Descripción del producto (opcional)"
+                        formik={formik}
+                        rows={2}
+                    />
 
                     <div className="grid grid-cols-2 gap-3">
-                        {/* Precio */}
                         <div>
-                            <label className="block text-xs font-medium text-stone-600 mb-1.5">
-                                Precio <span className="text-red-400">*</span>
-                            </label>
+                            <label className="block text-sm font-medium text-stone-700 mb-1.5">Precio *</label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">
-                                    $
-                                </span>
-                                <input
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">$</span>
+                                <Input<ProductForm>
                                     name="precio"
-                                    type="number"
-                                    min="0"
-                                    step="0.50"
+                                    inputType="number"
+                                    min={0}
+                                    step={0.5}
                                     placeholder="0.00"
-                                    value={formik.values.precio}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    className="w-full pl-7 pr-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent tabular-nums"
+                                    formik={formik}
+                                    className="pl-7 tabular-nums"
                                 />
                             </div>
-                            {formik.touched.precio && formik.errors.precio && (
-                                <p className="text-xs text-red-500 mt-1">{formik.errors.precio}</p>
-                            )}
                         </div>
 
-                        {/* Categoría */}
-                        <div>
-                            <label className="block text-xs font-medium text-stone-600 mb-1.5">
-                                Categoría <span className="text-red-400">*</span>
-                            </label>
-                            <select
-                                name="categoria_id"
-                                value={formik.values.categoria_id}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white"
-                            >
-                                <option value="">Seleccionar...</option>
-                                {categories.map((cat) => (
-                                    <option key={cat.id} value={cat.id}>
-                                        {cat.nombre}
-                                    </option>
-                                ))}
-                            </select>
-                            {formik.touched.categoria_id && formik.errors.categoria_id && (
-                                <p className="text-xs text-red-500 mt-1">{formik.errors.categoria_id}</p>
-                            )}
-                        </div>
+                        <Select<ProductForm>
+                            name="categoria_id"
+                            label="Categoría *"
+                            formik={formik}
+                            placeholder="Seleccionar..."
+                            options={categories.map((cat) => ({ value: String(cat.id), label: cat.nombre }))}
+                        />
                     </div>
 
                     {/* Unidad de medida */}
@@ -199,7 +160,7 @@ export const AddProductModal = ({
                             ) : (
                                 <>
                                     <Package size={14} />
-                                    Crear producto
+                                    {isEdit ? "Guardar cambios" : "Crear producto"}
                                 </>
                             )}
                         </button>
