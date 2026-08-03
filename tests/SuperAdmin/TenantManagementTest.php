@@ -7,6 +7,7 @@ use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
 use App\Models\TenantActivityLogModel;
 use App\Models\User;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 class TenantManagementTest extends TestCase
@@ -52,6 +53,117 @@ class TenantManagementTest extends TestCase
     public function test_lista_tenants_sin_rol_superadmin(): void
     {
         $this->getJson('/api/super-admin/tenant', $this->authHeaders())->assertStatus(403);
+    }
+
+    public function test_lista_tenants_filtra_solo_activos(): void
+    {
+        $activo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'activo-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Activo',
+        ]);
+        $inactivo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'inactivo-'.uniqid(),
+            BusinessConfigModel::ACTIVO => false,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Inactivo',
+        ]);
+        $demo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'demo-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Demo',
+        ]);
+
+        $response = $this->getJson('/api/super-admin/tenant?status=active&limit=100', $this->superAdminHeaders())
+            ->assertStatus(206);
+
+        $ids = collect($response->json('data'))->pluck('id');
+
+        $this->assertTrue($ids->contains($activo->id));
+        $this->assertFalse($ids->contains($inactivo->id));
+        $this->assertFalse($ids->contains($demo->id));
+    }
+
+    public function test_lista_tenants_activos_excluye_eliminados(): void
+    {
+        $eliminado = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'eliminado-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Eliminado',
+        ]);
+        $eliminado->delete();
+
+        $response = $this->getJson('/api/super-admin/tenant?status=active&limit=100', $this->superAdminHeaders())
+            ->assertStatus(206);
+
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertFalse($ids->contains($eliminado->id));
+    }
+
+    // ── Monitoreo de actividad (last_activity_at) ───────────────
+
+    public function test_lista_tenants_incluye_last_activity_at(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $recent = now()->subHour();
+
+        TenantActivityLogModel::factory()->create([
+            TenantActivityLogModel::TENANT_ID => $tenant->id,
+            TenantActivityLogModel::CREATED_AT => now()->subDays(3),
+        ]);
+        TenantActivityLogModel::factory()->create([
+            TenantActivityLogModel::TENANT_ID => $tenant->id,
+            TenantActivityLogModel::CREATED_AT => $recent,
+        ]);
+
+        $response = $this->getJson('/api/super-admin/tenant?limit=100', $this->superAdminHeaders())
+            ->assertStatus(206);
+
+        $row = collect($response->json('data'))->firstWhere('id', $tenant->id);
+
+        $this->assertNotNull($row['last_activity_at']);
+        $this->assertSame($recent->toDateTimeString(), Carbon::parse($row['last_activity_at'])->toDateTimeString());
+    }
+
+    public function test_lista_tenants_last_activity_at_null_sin_actividad(): void
+    {
+        $tenant = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'sin-actividad-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Sin Actividad',
+        ]);
+
+        $response = $this->getJson('/api/super-admin/tenant?limit=100', $this->superAdminHeaders())
+            ->assertStatus(206);
+
+        $row = collect($response->json('data'))->firstWhere('id', $tenant->id);
+        $this->assertNull($row['last_activity_at']);
+    }
+
+    public function test_muestra_tenant_incluye_last_activity_at_mas_reciente(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $recent = now()->subHour();
+
+        TenantActivityLogModel::factory()->create([
+            TenantActivityLogModel::TENANT_ID => $tenant->id,
+            TenantActivityLogModel::CREATED_AT => now()->subDays(5),
+        ]);
+        TenantActivityLogModel::factory()->create([
+            TenantActivityLogModel::TENANT_ID => $tenant->id,
+            TenantActivityLogModel::CREATED_AT => $recent,
+        ]);
+
+        $response = $this->getJson("/api/super-admin/tenant/{$tenant->id}", $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertSame(
+            $recent->toDateTimeString(),
+            Carbon::parse($response->json('data.last_activity_at'))->toDateTimeString()
+        );
     }
 
     // ── Store ─────────────────────────────────────────────────
