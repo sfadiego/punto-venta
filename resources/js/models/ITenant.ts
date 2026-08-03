@@ -18,6 +18,7 @@ export interface ITenant {
     features?: IBusinessFeatures;
     users_count?: number;
     active_users_count?: number;
+    last_activity_at?: string | null;
     subscription_plan?: string | null;
     subscription_amount?: number | null;
     max_users?: number | null;
