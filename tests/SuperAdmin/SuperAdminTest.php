@@ -310,6 +310,85 @@ class SuperAdminTest extends TestCase
             ->assertStatus(403);
     }
 
+    public function test_lista_suscripciones_incluye_is_demo(): void
+    {
+        $this->getJson('/api/super-admin/subscription', $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonStructure(['data' => [['id', 'business_name', 'subscription_status', 'is_demo']]]);
+    }
+
+    public function test_lista_suscripciones_filtra_por_is_demo_true(): void
+    {
+        $demo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'demo-sub-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Demo Suscripcion',
+        ]);
+        $noDemo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'no-demo-sub-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio No Demo Suscripcion',
+        ]);
+
+        $response = $this->getJson('/api/super-admin/subscription?is_demo=true', $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $ids = collect($response->json('data'))->pluck('id');
+
+        $this->assertTrue($ids->contains($demo->id));
+        $this->assertFalse($ids->contains($noDemo->id));
+    }
+
+    public function test_lista_suscripciones_filtra_por_is_demo_false(): void
+    {
+        $demo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'demo-sub2-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Demo Suscripcion 2',
+        ]);
+        $noDemo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'no-demo-sub2-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio No Demo Suscripcion 2',
+        ]);
+
+        $response = $this->getJson('/api/super-admin/subscription?is_demo=false', $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $ids = collect($response->json('data'))->pluck('id');
+
+        $this->assertTrue($ids->contains($noDemo->id));
+        $this->assertFalse($ids->contains($demo->id));
+    }
+
+    public function test_lista_suscripciones_sin_filtro_excluye_demo_por_defecto(): void
+    {
+        $demo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'demo-sub3-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Demo Suscripcion 3',
+        ]);
+        $noDemo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'no-demo-sub3-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio No Demo Suscripcion 3',
+        ]);
+
+        $response = $this->getJson('/api/super-admin/subscription', $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $ids = collect($response->json('data'))->pluck('id');
+
+        $this->assertFalse($ids->contains($demo->id));
+        $this->assertTrue($ids->contains($noDemo->id));
+    }
+
     public function test_actualiza_payment_info(): void
     {
         $this->putJson('/api/super-admin/settings', [

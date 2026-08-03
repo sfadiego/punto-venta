@@ -5,6 +5,7 @@ import { RegisterPaymentModal } from "@/components/SuperAdmin/Subscriptions/Regi
 import { PaymentHistoryModal } from "@/components/SuperAdmin/Subscriptions/PaymentHistoryModal";
 import { useSubscriptionsPage } from "./useSubscriptionsPage";
 import { SubscriptionStatusEnum } from "@/enums/SubscriptionStatusEnum";
+import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
 
 const FILTERS = [
     { label: "Todos",           value: "" },
@@ -14,12 +15,21 @@ const FILTERS = [
     { label: "Sin suscripción", value: SubscriptionStatusEnum.Pending },
 ];
 
+const DEMO_FILTERS: { label: string; value: TenantDemoFilterEnum }[] = [
+    { label: "Demo", value: TenantDemoFilterEnum.Demo },
+];
+
+const STATUS_PREFIX = "status:";
+const DEMO_PREFIX = "demo:";
+
 export default function SubscriptionsPage() {
     const {
         filtered,
         isLoading,
         statusFilter,
         setStatusFilter,
+        demoFilter,
+        setDemoFilter,
         selectedTenant,
         openModal,
         closeModal,
@@ -69,12 +79,24 @@ export default function SubscriptionsPage() {
                 <div className="flex items-center gap-3 mb-4">
                     <CreditCard size={16} className="text-slate-400" />
                     <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as SubscriptionStatusEnum | "")}
+                        value={demoFilter !== TenantDemoFilterEnum.All ? `${DEMO_PREFIX}${demoFilter}` : `${STATUS_PREFIX}${statusFilter}`}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (value.startsWith(DEMO_PREFIX)) {
+                                setDemoFilter(value.slice(DEMO_PREFIX.length) as TenantDemoFilterEnum);
+                                setStatusFilter("");
+                            } else {
+                                setStatusFilter(value.slice(STATUS_PREFIX.length) as SubscriptionStatusEnum | "");
+                                setDemoFilter(TenantDemoFilterEnum.All);
+                            }
+                        }}
                         className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700"
                     >
                         {FILTERS.map((f) => (
-                            <option key={f.value} value={f.value}>{f.label}</option>
+                            <option key={f.value} value={`${STATUS_PREFIX}${f.value}`}>{f.label}</option>
+                        ))}
+                        {DEMO_FILTERS.map((f) => (
+                            <option key={f.value} value={`${DEMO_PREFIX}${f.value}`}>{f.label}</option>
                         ))}
                     </select>
                     <span className="text-xs text-slate-400">{filtered.length} cliente{filtered.length !== 1 ? "s" : ""}</span>

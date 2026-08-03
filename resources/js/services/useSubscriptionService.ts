@@ -8,11 +8,13 @@ import { ITenantWithSubscription, ISubscription } from "@/models/ISubscription";
 const url = ApiRoutes.SuperAdminSubscription;
 const QUERY_KEY = "super-admin-subscriptions";
 
-export const useListSubscriptions = (status?: SubscriptionStatusEnum) =>
+export const useListSubscriptions = (status?: SubscriptionStatusEnum, isDemo?: boolean) =>
     useQuery<ITenantWithSubscription[]>({
-        queryKey: [QUERY_KEY, status],
+        queryKey: [QUERY_KEY, status, isDemo],
         queryFn: async () => {
-            const params = status ? { status } : {};
+            const params: Record<string, unknown> = {};
+            if (status) params.status = status;
+            if (isDemo !== undefined) params.is_demo = isDemo;
             const res = await superAdminAxios.get(url, { params });
             return res.data.data as ITenantWithSubscription[];
         },

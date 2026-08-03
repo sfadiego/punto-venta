@@ -18,10 +18,17 @@ class SubscriptionController extends Controller
      */
     public function index(): JsonResponse
     {
-        $tenants = BusinessConfigModel::withoutTrashed()
+        $query = BusinessConfigModel::withoutTrashed()
             ->withCount('users')
-            ->orderBy(BusinessConfigModel::BUSINESS_NAME)
-            ->get();
+            ->orderBy(BusinessConfigModel::BUSINESS_NAME);
+
+        // Por defecto se excluyen los clientes demo (business_config.is_demo, id = tenant_id
+        // referenciado en subscriptions.tenant_id): las suscripciones de clientes demo no
+        // deben mezclarse con las de clientes reales salvo que se pidan explícitamente.
+        $isDemo = request()->query('is_demo');
+        $query->where(BusinessConfigModel::IS_DEMO, $isDemo !== null ? filter_var($isDemo, FILTER_VALIDATE_BOOLEAN) : false);
+
+        $tenants = $query->get();
 
         return Response::success($tenants->map(fn ($t) => $this->formatTenant($t)));
     }
@@ -74,6 +81,7 @@ class SubscriptionController extends Controller
             'business_name' => $tenant->business_name,
             'slug' => $tenant->slug,
             'activo' => $tenant->activo,
+            'is_demo' => $tenant->is_demo,
             'primary_color' => $tenant->primary_color,
             'users_count' => $tenant->users_count,
             'subscription_plan' => $tenant->subscription_plan,
