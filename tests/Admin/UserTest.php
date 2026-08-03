@@ -24,7 +24,7 @@ class UserTest extends TestCase
 
     public function test_admin_muestra_usuario(): void
     {
-        $user = User::first();
+        $user = User::where(User::ROL_ID, '!=', RoleEnum::SUPERADMIN->value)->first();
 
         $response = $this->getJson("/api/admin/users/{$user->id}", $this->authHeaders());
 
@@ -36,7 +36,7 @@ class UserTest extends TestCase
 
     public function test_show_retorna_objeto_no_lista(): void
     {
-        $user = User::first();
+        $user = User::where(User::ROL_ID, '!=', RoleEnum::SUPERADMIN->value)->first();
 
         $response = $this->getJson("/api/admin/users/{$user->id}", $this->authHeaders());
 
@@ -48,7 +48,7 @@ class UserTest extends TestCase
 
     public function test_ruta_users_sin_admin_prefix_no_existe(): void
     {
-        $user = User::first();
+        $user = User::where(User::ROL_ID, '!=', RoleEnum::SUPERADMIN->value)->first();
 
         $this->getJson("/api/users/{$user->id}", $this->authHeaders())
             ->assertStatus(404);

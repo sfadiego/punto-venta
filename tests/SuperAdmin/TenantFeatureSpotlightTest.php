@@ -117,6 +117,11 @@ class TenantFeatureSpotlightTest extends TestCase
             'enabled_keys' => $enabledKeys->all(),
         ], $superAdminHeaders)->assertStatus(200);
 
+        // RequestGuard memoiza el usuario resuelto en la primera llamada dentro del
+        // mismo test (mismo AuthManager) — sin esto, esta request seguiría
+        // autenticada como el SuperAdmin de la llamada anterior en vez del admin.
+        $this->app['auth']->forgetGuards();
+
         $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
         $response = $this->getJson('/api/feature-spotlights/seen', $this->authHeaders($admin));
 
