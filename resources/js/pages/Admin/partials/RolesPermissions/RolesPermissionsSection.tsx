@@ -56,13 +56,13 @@ export function RolesPermissionsSection() {
                 Elige qué puede hacer cada rol dentro del sistema
             </p>
 
-            <div className="flex gap-2 mb-5 border-b border-stone-100">
+            <div className="flex flex-wrap gap-x-2 gap-y-1 mb-5 border-b border-stone-100">
                 {configurableRoles.map((role) => (
                     <button
                         key={role}
                         type="button"
                         onClick={() => setActiveRole(role)}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeRole === role
+                        className={`px-3 sm:px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeRole === role
                             ? "border-amber-500 text-amber-600"
                             : "border-transparent text-stone-400 hover:text-stone-600"
                             }`}
@@ -95,12 +95,12 @@ export function RolesPermissionsSection() {
                         ))}
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                         <button
                             type="button"
                             onClick={handleSave}
                             disabled={saving}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+                            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
                         >
                             <Save size={15} />
                             {saving ? "Guardando…" : "Guardar cambios"}
@@ -110,7 +110,7 @@ export function RolesPermissionsSection() {
                             type="button"
                             onClick={resetToDefault}
                             disabled={saving}
-                            className="flex items-center gap-2 px-5 py-2.5 border border-stone-200 hover:bg-stone-50 disabled:opacity-60 text-stone-600 text-sm font-medium rounded-lg transition-colors"
+                            className="flex items-center justify-center gap-2 px-5 py-2.5 border border-stone-200 hover:bg-stone-50 disabled:opacity-60 text-stone-600 text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
                         >
                             <RotateCcw size={15} />
                             Restaurar por defecto
