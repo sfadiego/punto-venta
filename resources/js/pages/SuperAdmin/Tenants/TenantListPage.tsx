@@ -189,6 +189,16 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
                     /{tenant.slug}/login
                     <ExternalLink size={11} />
                 </a>
+                <a
+                    href={`${import.meta.env.VITE_APP_URL}/${tenant.slug}/menu`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-xs text-indigo-400 font-mono mt-0.5 hover:text-indigo-600 transition-colors w-fit"
+                    title="Abrir panel del cliente"
+                >
+                    /{tenant.slug}/menu
+                    <ExternalLink size={11} />
+                </a>
             </div>
         </div>
 

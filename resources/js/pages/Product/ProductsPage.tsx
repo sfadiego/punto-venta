@@ -6,15 +6,14 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { useProductsPage } from "./useProductsPage";
 import { CategoryFilter } from "./partials/CategoryFilter";
-import { AddProductModal } from "./partials/ProductModals/AddProductModal";
-import { useAddProductModal } from "./partials/ProductModals/useAddProductModal";
-import { EditProductModal } from "./partials/ProductModals/EditProductModal";
-import { useEditProductModal } from "./partials/ProductModals/useEditProductModal";
+import { ProductModal } from "./partials/ProductModals/ProductModal";
+import { useProductModal } from "./partials/ProductModals/useProductModal";
 import { ProductTableActions } from "./partials/ProductTableActions";
 import { ProductSearch } from "@/components/Product/ProductSearch";
 import { formatMoney } from "@/utils/formatCurrency";
 
 export default function ProductsPage() {
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<IProduct | null>(null);
 
     const {
@@ -35,14 +34,23 @@ export default function ProductsPage() {
         invalidateProducts,
     } = useProductsPage();
 
-    const { isOpen: addOpen, openModal: openAdd, handleClose: closeAdd, formik: addFormik, categories: addCategories, sellByWeight } =
-        useAddProductModal(invalidateProducts);
+    const handleCloseModal = () => setIsModalOpen(false);
 
-    const { formik: editFormik, categories: editCategories, sellByWeight: editSellByWeight } = useEditProductModal(
+    const { isEdit, formik, categories: modalCategories, sellByWeight } = useProductModal(
         editingProduct,
         invalidateProducts,
-        () => setEditingProduct(null),
+        handleCloseModal,
     );
+
+    const openAddModal = () => {
+        setEditingProduct(null);
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (product: IProduct) => {
+        setEditingProduct(product);
+        setIsModalOpen(true);
+    };
 
     const columns = useMemo<DataTableColumn<IProduct>[]>(
         () => [
@@ -110,7 +118,7 @@ export default function ProductsPage() {
                 width: 90,
                 textAlign: "center",
                 render: (p: IProduct) => (
-                    <ProductTableActions product={p} onEdit={setEditingProduct} />
+                    <ProductTableActions product={p} onEdit={openEditModal} />
                 ),
             },
         ],
@@ -136,7 +144,7 @@ export default function ProductsPage() {
                         <span className="hidden sm:inline">Actualizar</span>
                     </button>
                     <button
-                        onClick={openAdd}
+                        onClick={openAddModal}
                         className="flex items-center gap-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-xl transition-colors shadow-sm shadow-amber-200"
                     >
                         <Plus size={16} />
@@ -191,21 +199,13 @@ export default function ProductsPage() {
                 </div>
             </div>
 
-            <AddProductModal
-                isOpen={addOpen}
-                formik={addFormik}
-                categories={addCategories}
+            <ProductModal
+                isOpen={isModalOpen}
+                isEdit={isEdit}
+                formik={formik}
+                categories={modalCategories}
                 sellByWeight={sellByWeight}
-                onClose={closeAdd}
-            />
-
-            <EditProductModal
-                isOpen={editingProduct !== null}
-                product={editingProduct}
-                formik={editFormik}
-                categories={editCategories}
-                sellByWeight={editSellByWeight}
-                onClose={() => setEditingProduct(null)}
+                onClose={handleCloseModal}
             />
         </div>
     );

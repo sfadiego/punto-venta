@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { getFieldErrors, getUserFacingErrorMessage } from "@/utils/axiosError";
 import {
     useShowCustomer,
     useToggleCustomerCredit,
@@ -16,8 +16,6 @@ export type PaymentForm = {
     amount: string;
     note: string;
 };
-
-type ApiError = { response?: { data?: { data?: Record<string, string[] | string>; message?: string } } };
 
 const paymentSchema = Yup.object({
     amount: Yup.number()
@@ -80,15 +78,10 @@ export const useCustomerDetailPage = (customerId: number) => {
                 toast.success("Pago registrado correctamente");
                 helpers.resetForm();
             } catch (error) {
-                const apiError = error as ApiError;
-                const fieldErrors = apiError.response?.data?.data;
+                const fieldErrors = getFieldErrors(error);
 
                 if (fieldErrors) {
-                    const errors: Record<string, string> = {};
-                    Object.entries(fieldErrors).forEach(([field, message]) => {
-                        errors[field] = Array.isArray(message) ? message[0] : String(message);
-                    });
-                    helpers.setErrors(errors);
+                    helpers.setErrors(fieldErrors);
                 } else {
                     logUnexpectedError(error, "useCustomerDetailPage.handleRegisterPayment");
                     toast.error(getUserFacingErrorMessage(error, "No se pudo registrar el pago"));

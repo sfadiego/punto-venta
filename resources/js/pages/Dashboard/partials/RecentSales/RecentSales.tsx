@@ -1,4 +1,4 @@
-import { ReceiptText, Clock, Loader } from "lucide-react";
+import { ReceiptText, Clock, Loader, Bike } from "lucide-react";
 import { useRecentSales } from "./useRecentSales";
 import { formatOrderTime } from "@/utils/dateUtils";
 import { EmptyState } from "@/components/ui/interactions/EmptyState";
@@ -65,8 +65,13 @@ export const RecentSales = ({ onSelect }: RecentSalesProps) => {
                                             }
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-sm font-semibold text-stone-900 truncate">
+                                            <p className="flex items-center gap-1.5 text-sm font-semibold text-stone-900 truncate">
                                                 {sale.nombre_pedido ?? `Pedido #${sale.id}`}
+                                                {sale.is_delivery && (
+                                                    <span title="Domicilio" className="shrink-0">
+                                                        <Bike size={14} className="text-blue-500" />
+                                                    </span>
+                                                )}
                                             </p>
                                             <p className="text-xs text-stone-400 whitespace-nowrap">
                                                 {formatOrderTime(sale.created_at)}

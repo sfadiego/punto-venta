@@ -6,6 +6,7 @@ import { ICategory } from "@/models/ICategory";
 
 export const useCategoriesPage = () => {
     const queryClient = useQueryClient();
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<ICategory | null>(null);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
@@ -25,6 +26,18 @@ export const useCategoriesPage = () => {
 
     const pageSize = [10, 20, 50];
 
+    const handleCloseModal = () => setIsModalOpen(false);
+
+    const openAddModal = () => {
+        setEditingCategory(null);
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (category: ICategory) => {
+        setEditingCategory(category);
+        setIsModalOpen(true);
+    };
+
     return {
         categories: data?.data ?? [],
         total: data?.total ?? 0,
@@ -35,8 +48,11 @@ export const useCategoriesPage = () => {
         refetch,
         setPage,
         setLimit,
+        isModalOpen,
         editingCategory,
-        setEditingCategory,
+        openAddModal,
+        openEditModal,
+        handleCloseModal,
         invalidateCategories,
     };
 };

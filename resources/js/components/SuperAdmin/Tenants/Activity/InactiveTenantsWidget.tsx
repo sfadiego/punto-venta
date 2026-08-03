@@ -10,7 +10,8 @@ interface InactiveTenantsWidgetProps {
 }
 
 export const InactiveTenantsWidget = ({ tenants }: InactiveTenantsWidgetProps) => {
-    const daysList = tenants.map((t) => daysSince(t.last_activity_at));
+    const eligibleTenants = tenants.filter((t) => t.activo && !t.is_demo && !t.deleted_at);
+    const daysList = eligibleTenants.map((t) => daysSince(t.last_activity_at));
     const atRisk = daysList.filter((d) => d !== null && d >= WARNING_DAYS).length;
     const critical = daysList.filter((d) => d !== null && d >= CRITICAL_DAYS).length;
 

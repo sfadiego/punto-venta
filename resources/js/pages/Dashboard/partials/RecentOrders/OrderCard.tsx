@@ -1,5 +1,5 @@
 import { IOrder } from "@/models/IOrder";
-import { Clock, Receipt } from "lucide-react";
+import { Clock, Receipt, Bike } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
 import { formatOrderTime } from "@/utils/dateUtils";
@@ -53,8 +53,13 @@ export const OrderCard = ({ order }: OrderCardProps) => {
                             className="w-full text-sm font-semibold text-stone-900 bg-white border border-amber-400 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-amber-300"
                         />
                     ) : (
-                        <p className="text-sm font-semibold text-stone-900 truncate">
+                        <p className="flex items-center gap-1.5 text-sm font-semibold text-stone-900 truncate">
                             {order.nombre_pedido}
+                            {order.is_delivery && (
+                                <span title="Domicilio" className="shrink-0">
+                                    <Bike size={14} className="text-blue-500" />
+                                </span>
+                            )}
                         </p>
                     )}
                     <div className="flex items-center gap-2 mt-0.5">

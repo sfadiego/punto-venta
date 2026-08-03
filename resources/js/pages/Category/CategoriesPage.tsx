@@ -6,10 +6,8 @@ import { DynamicIcon } from "@/components/ui/DynamicIcon";
 import { RoleEnum } from "@/enums/RoleEnum";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useCategoriesPage } from "./useCategoriesPage";
-import { AddCategoryModal } from "./partials/CategoryModals/AddCategoryModal";
-import { useAddCategoryModal } from "./partials/CategoryModals/useAddCategoryModal";
-import { EditCategoryModal } from "./partials/CategoryModals/EditCategoryModal";
-import { useEditCategoryModal } from "./partials/CategoryModals/useEditCategoryModal";
+import { CategoryModal } from "./partials/CategoryModals/CategoryModal";
+import { useCategoryModal } from "./partials/CategoryModals/useCategoryModal";
 import { CategoryTableActions } from "./partials/CategoryTableActions";
 
 export default function CategoriesPage() {
@@ -25,19 +23,15 @@ export default function CategoriesPage() {
         refetch,
         setPage,
         setLimit,
+        isModalOpen,
         editingCategory,
-        setEditingCategory,
+        openAddModal,
+        openEditModal,
+        handleCloseModal,
         invalidateCategories,
     } = useCategoriesPage();
 
-    const { isOpen: addOpen, openModal: openAdd, handleClose: closeAdd, formik: addFormik } =
-        useAddCategoryModal(invalidateCategories);
-
-    const { formik: editFormik } = useEditCategoryModal(
-        editingCategory,
-        invalidateCategories,
-        () => setEditingCategory(null),
-    );
+    const { isEdit, formik } = useCategoryModal(editingCategory, total + 1, invalidateCategories, handleCloseModal);
 
     const columns = useMemo<DataTableColumn<ICategory>[]>(
         () => [
@@ -78,11 +72,11 @@ export default function CategoriesPage() {
                 width: 90,
                 textAlign: "center",
                 render: (cat: ICategory) => (
-                    <CategoryTableActions category={cat} onEdit={setEditingCategory} />
+                    <CategoryTableActions category={cat} onEdit={openEditModal} />
                 ),
             },
         ],
-        [setEditingCategory],
+        [openEditModal],
     );
 
     return (
@@ -105,7 +99,7 @@ export default function CategoriesPage() {
                     </button>
                     {isAdmin && (
                         <button
-                            onClick={openAdd}
+                            onClick={openAddModal}
                             className="flex items-center gap-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-xl transition-colors shadow-sm shadow-amber-200"
                         >
                             <Plus size={16} />
@@ -141,17 +135,11 @@ export default function CategoriesPage() {
                 </div>
             </div>
 
-            <AddCategoryModal
-                isOpen={addOpen}
-                formik={addFormik}
-                onClose={closeAdd}
-            />
-
-            <EditCategoryModal
-                isOpen={editingCategory !== null}
-                category={editingCategory}
-                formik={editFormik}
-                onClose={() => setEditingCategory(null)}
+            <CategoryModal
+                isOpen={isModalOpen}
+                isEdit={isEdit}
+                formik={formik}
+                onClose={handleCloseModal}
             />
         </div>
     );
