@@ -8,9 +8,12 @@ import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
 import { ITenant } from "@/models/ITenant";
 import { ActiveUsersWidget } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersWidget";
 import { ActiveUsersBadge } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersBadge";
+import { InactiveTenantsWidget } from "@/components/SuperAdmin/Tenants/Activity/InactiveTenantsWidget";
+import { InactivityBadge } from "@/components/SuperAdmin/Tenants/Activity/InactivityBadge";
 
 const FILTERS: { label: string; value: TenantStatusEnum }[] = [
     { label: "Todos",      value: TenantStatusEnum.All },
+    { label: "Activos",  value: TenantStatusEnum.Active },
     { label: "Inactivos",  value: TenantStatusEnum.Inactive },
     { label: "Eliminados", value: TenantStatusEnum.Deleted },
 ];
@@ -58,7 +61,10 @@ export default function TenantListPage() {
                     </button>
                 </div>
 
-                <ActiveUsersWidget tenants={allTenants} onRefresh={refetch} isRefreshing={isRefetching} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                    <ActiveUsersWidget tenants={allTenants} onRefresh={refetch} isRefreshing={isRefetching} />
+                    <InactiveTenantsWidget tenants={allTenants} />
+                </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 mb-5">
                     <div className="relative flex-1">
@@ -171,6 +177,7 @@ const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onDelete }
                         </span>
                     )}
                     <ActiveUsersBadge count={tenant.active_users_count ?? 0} />
+                    <InactivityBadge lastActivityAt={tenant.last_activity_at} />
                 </div>
                 <a
                     href={`${import.meta.env.VITE_APP_URL}/${tenant.slug}/auth`}

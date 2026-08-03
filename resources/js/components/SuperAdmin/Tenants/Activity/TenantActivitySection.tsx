@@ -2,13 +2,17 @@ import { Activity, Loader } from "lucide-react";
 import { ACTIVITY_RANGE_OPTIONS, useTenantActivitySection } from "./useTenantActivitySection";
 import { TenantActivityLineChart } from "./TenantActivityLineChart";
 import { TenantActivityHourlyChart } from "./TenantActivityHourlyChart";
+import { InactivityBadge } from "./InactivityBadge";
+import { daysSince } from "@/utils/dateUtils";
 
 interface TenantActivitySectionProps {
     tenantId: number;
+    lastActivityAt?: string | null;
 }
 
-export const TenantActivitySection = ({ tenantId }: TenantActivitySectionProps) => {
+export const TenantActivitySection = ({ tenantId, lastActivityAt }: TenantActivitySectionProps) => {
     const { days, setDays, data, isLoading } = useTenantActivitySection(tenantId);
+    const daysWithoutActivity = daysSince(lastActivityAt);
 
     return (
         <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
@@ -18,8 +22,17 @@ export const TenantActivitySection = ({ tenantId }: TenantActivitySectionProps) 
                         <Activity size={17} className="text-slate-500" />
                     </div>
                     <div>
-                        <h2 className="text-sm font-semibold text-slate-900">Actividad del cliente</h2>
-                        <p className="text-xs text-slate-400 mt-0.5">Logins y ventas cerradas a lo largo del tiempo.</p>
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-sm font-semibold text-slate-900">Actividad del cliente</h2>
+                            <InactivityBadge lastActivityAt={lastActivityAt} />
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                            {daysWithoutActivity === null
+                                ? "Logins y ventas cerradas a lo largo del tiempo."
+                                : daysWithoutActivity === 0
+                                ? "Actividad hoy."
+                                : `Última actividad hace ${daysWithoutActivity} día${daysWithoutActivity !== 1 ? "s" : ""}.`}
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">

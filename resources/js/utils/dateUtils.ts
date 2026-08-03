@@ -98,6 +98,13 @@ const PLAN_OFFSET: Partial<Record<SubscriptionPlanEnum, DateMutator | null>> = {
     [SubscriptionPlanEnum.Annual]:   (d) => d.setMonth(d.getMonth() + 12),
 };
 
+/** Días transcurridos desde una fecha ISO hasta ahora (null si no hay fecha). */
+export const daysSince = (dateStr: string | null | undefined): number | null => {
+    if (!dateStr) return null;
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+};
+
 /** Calcula la fecha de expiración de una suscripción a partir del plan y la fecha de inicio. */
 export const computeExpiresAt = (plan: string, startsAt: string): string | null => {
     const d = parseDateLocal(startsAt);

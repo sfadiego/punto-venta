@@ -120,7 +120,7 @@ export default function TenantFormPage() {
 
                         {isEdit && tenantId && (
                             <div id="actividad">
-                                <TenantActivitySection tenantId={tenantId} />
+                                <TenantActivitySection tenantId={tenantId} lastActivityAt={tenantDetail?.last_activity_at} />
                             </div>
                         )}
 

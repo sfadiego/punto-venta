@@ -9,6 +9,8 @@ enum BusinessNicheEnum: string
     case Cafeteria = 'cafeteria';
     case Pasteleria = 'pasteleria';
     case Carniceria = 'carniceria';
+    case Cremeria = 'cremeria';
+    case Verduleria = 'verduleria';
     case BarCantina = 'bar_cantina';
     case Otro = 'otro';
 
@@ -20,6 +22,8 @@ enum BusinessNicheEnum: string
             self::Cafeteria => 'Cafetería',
             self::Pasteleria => 'Pastelería',
             self::Carniceria => 'Carnicería',
+            self::Cremeria => 'Cremería',
+            self::Verduleria => 'Verdulería',
             self::BarCantina => 'Bar / Cantina',
             self::Otro => 'Otro',
         };

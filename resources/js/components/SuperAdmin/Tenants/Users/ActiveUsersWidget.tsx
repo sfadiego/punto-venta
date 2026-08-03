@@ -12,7 +12,7 @@ export const ActiveUsersWidget = ({ tenants, onRefresh, isRefreshing }: ActiveUs
     const tenantsWithActivity = tenants.filter((t) => (t.active_users_count ?? 0) > 0).length;
 
     return (
-        <div className="bg-white border border-slate-100 rounded-2xl p-4 flex items-center gap-4 shadow-sm mb-5">
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
                 <Activity size={18} className="text-emerald-600" />
             </div>

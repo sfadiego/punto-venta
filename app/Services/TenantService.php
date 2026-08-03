@@ -8,6 +8,7 @@ use App\Enums\TenantStatusEnum;
 use App\Http\Middleware\TrackActivity;
 use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
+use App\Models\TenantActivityLogModel;
 use Illuminate\Http\JsonResponse;
 
 class TenantService extends DataTable
@@ -41,6 +42,17 @@ class TenantService extends DataTable
             'users',
             'activeSessions as active_users_count' => fn ($q) => $q->where(PersonalAccessToken::LAST_USED_AT, '>=', $activeWindow),
         ]);
+
+        $query->addSelect([
+            'last_activity_at' => TenantActivityLogModel::query()
+                ->selectRaw('MAX('.TenantActivityLogModel::CREATED_AT.')')
+                ->whereColumn(TenantActivityLogModel::TENANT_ID, $this->model->getTable().'.id'),
+        ]);
+
+        if ($status === TenantStatusEnum::Active) {
+            $query->where(BusinessConfigModel::ACTIVO, true)
+                ->where(BusinessConfigModel::IS_DEMO, false);
+        }
 
         if ($status === TenantStatusEnum::Inactive) {
             $query->where(BusinessConfigModel::ACTIVO, false);
