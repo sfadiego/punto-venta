@@ -37,6 +37,7 @@ export interface ITenantWithSubscription {
     business_name: string;
     slug: string;
     activo: boolean;
+    is_demo: boolean;
     primary_color: string;
     users_count: number;
     subscription_plan: SubscriptionPlanEnum | null;
