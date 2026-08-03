@@ -60,7 +60,7 @@ export function IconSelector({ selected, saving, onSelect }: IconSelectorProps) 
                                 }`}
                         >
                             <Icon size={22} />
-                            <span className="leading-none">{label}</span>
+                            <span className="hidden sm:inline leading-none">{label}</span>
                         </button>
                     );
                 })}
