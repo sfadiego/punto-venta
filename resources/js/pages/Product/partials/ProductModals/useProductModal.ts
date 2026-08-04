@@ -32,7 +32,7 @@ export type ProductForm = {
 };
 
 const schema = Yup.object({
-    nombre: Yup.string().trim().required("El nombre es requerido").max(255, "Máximo 255 caracteres"),
+    nombre: Yup.string().trim().required("El nombre es requerido").max(70, "Máximo 70 caracteres"),
     descripcion: Yup.string(),
     precio: Yup.number()
         .typeError("Ingresa un precio válido")
@@ -43,7 +43,7 @@ const schema = Yup.object({
     activo: Yup.boolean(),
     variants: Yup.array().of(
         Yup.object({
-            nombre: Yup.string().trim().required("El nombre de la variante es requerido").max(100),
+            nombre: Yup.string().trim().required("El nombre de la variante es requerido").max(70, "Máximo 70 caracteres"),
             precio: Yup.number()
                 .typeError("Ingresa un precio válido")
                 .min(0, "El precio no puede ser negativo")

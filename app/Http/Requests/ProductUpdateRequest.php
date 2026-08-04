@@ -24,10 +24,14 @@ class ProductUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $productId = $this->route('product')?->id;
         $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
 
         return [
-            ProductModel::NOMBRE => 'required|string|max:255',
+            ProductModel::NOMBRE => [
+                'required', 'string', 'max:70',
+                Rule::unique('product', 'nombre')->where('tenant_id', $tenantId)->ignore($productId),
+            ],
             ProductModel::PRECIO => 'required|decimal:0,2',
             ProductModel::DESCRIPCION => 'nullable',
             ProductModel::CATEGORIA_ID => [
@@ -48,7 +52,8 @@ class ProductUpdateRequest extends FormRequest
         return [
             'nombre.required' => 'El nombre es requerido.',
             'nombre.string' => 'El nombre debe ser texto.',
-            'nombre.max' => 'El nombre no puede superar los 255 caracteres.',
+            'nombre.max' => 'El nombre no puede superar los 70 caracteres.',
+            'nombre.unique' => 'Ya existe un producto con este nombre.',
             'precio.required' => 'El precio es requerido.',
             'precio.decimal' => 'El precio debe ser un número válido con hasta 2 decimales.',
             'categoria_id.required' => 'La categoría es requerida.',

@@ -13,9 +13,15 @@ export type CategoryForm = {
 };
 
 const schema = Yup.object({
-    nombre: Yup.string().trim().required("El nombre es requerido").max(255, "Máximo 255 caracteres"),
-    orden: Yup.number().typeError("Debe ser un número entero").integer("Debe ser un número entero").min(0, "Debe ser mayor a 0").max(2147483647, "Valor fuera de rango").nullable(),
-    icon_name: Yup.string().max(100, "Máximo 100 caracteres"),
+    nombre: Yup.string().trim().required("El nombre es requerido")
+        .max(70, "Máximo 70 caracteres"),
+    orden: Yup.number().typeError("Debe ser un número entero")
+        .integer("Debe ser un número entero")
+        .min(0, "Debe ser mayor a 0")
+        .max(2147483647, "Valor fuera de rango")
+        .nullable(),
+    icon_name: Yup.string()
+        .max(70, "Máximo 70 caracteres"),
 });
 
 export const useCategoryModal = (category: ICategory | null, nextOrder: number, onSuccess: () => void, onClose: () => void) => {
