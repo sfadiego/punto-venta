@@ -17,14 +17,11 @@ export default function SalesPage() {
         fecha,
         semana,
         mes,
-        categoriaId,
-        categories,
         sellByWeight,
         handleReportModeChange,
         handleFechaChange,
         handleSemanaChange,
         handleMesChange,
-        handleCategoriaChange,
         handleClear,
         modal,
     } = useSalesPage();
@@ -61,16 +58,12 @@ export default function SalesPage() {
                     semana={semana}
                     mes={mes}
                     reportMode={reportMode}
-                    categoriaId={categoriaId}
-                    categories={categories}
-                    sellByWeight={sellByWeight}
                     showCategoryReport={true}
                     categoryReportLabel={sellByWeight ? "Reporte por categoría" : "Resumen de ventas"}
                     onReportModeChange={handleReportModeChange}
                     onFechaChange={handleFechaChange}
                     onSemanaChange={handleSemanaChange}
                     onMesChange={handleMesChange}
-                    onCategoriaChange={handleCategoriaChange}
                     onCategoryReport={categoryModal.open}
                     onClear={handleClear}
                 />
