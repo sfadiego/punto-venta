@@ -11,6 +11,7 @@ import {
 } from "@/services/useProductService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getFieldErrors, getUserFacingErrorMessage } from "@/utils/axiosError";
+import { capitalizeFirstLetter } from "@/utils/textCase";
 import { useAxios } from "@/hooks/useAxios";
 import { IProduct } from "@/models/IProduct";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
@@ -80,7 +81,7 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
         validationSchema: schema,
         onSubmit: async (values, helpers) => {
             const payload = {
-                nombre: values.nombre.trim(),
+                nombre: capitalizeFirstLetter(values.nombre),
                 descripcion: values.descripcion.trim(),
                 precio: Number(values.precio),
                 categoria_id: Number(values.categoria_id),

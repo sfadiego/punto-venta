@@ -31,6 +31,8 @@ interface InputProps<T> {
     onChange?: React.ChangeEventHandler<HTMLInputElement>;
     onBlur?: React.FocusEventHandler<HTMLInputElement>;
     onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
+    /** Mensaje de error para uso controlado (sin `formik`). Se ignora si se pasa `formik`. */
+    error?: string;
 }
 
 export const Input = <T = Record<string, string>,>({
@@ -52,13 +54,15 @@ export const Input = <T = Record<string, string>,>({
     onChange,
     onBlur,
     onKeyDown,
+    error,
 }: InputProps<T>) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = inputType === "password";
 
     const touched = Boolean(formik?.touched[name as keyof T]);
-    const hasError = Boolean(formik?.errors[name as keyof T]);
-    const showError = (touched || (formik?.submitCount ?? 0) > 0) && hasError;
+    const hasFormikError = Boolean(formik?.errors[name as keyof T]);
+    const showError = formik ? (touched || (formik.submitCount ?? 0) > 0) && hasFormikError : Boolean(error);
+    const errorMessage = formik ? String(formik!.errors[name]) : error;
 
     const styleVariant = inputVariant[showError ? "error" : inputStyle] || "";
     const fieldProps = formik
@@ -112,7 +116,7 @@ export const Input = <T = Record<string, string>,>({
             </div>
             {showError && (
                 <p className="text-red-500 text-xs mt-1">
-                    {String(formik!.errors[name])}
+                    {errorMessage}
                 </p>
             )}
         </div>

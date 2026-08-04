@@ -36,7 +36,9 @@ export const CategoryTableActions = ({ category, onEdit }: CategoryTableActionsP
         });
         if (!result.isConfirmed) return;
         await deleteCategory({});
-        queryClient.invalidateQueries({ queryKey: [ApiRoutes.Category] });
+        queryClient.invalidateQueries({
+            predicate: (query) => typeof query.queryKey[0] === "string" && query.queryKey[0].startsWith(ApiRoutes.Category),
+        });
         toast.success("Categoría eliminada");
     };
 

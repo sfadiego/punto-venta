@@ -1,29 +1,16 @@
 import { FormikProps } from "formik";
 import { Plus, Trash2 } from "lucide-react";
-import { ProductForm, ProductVariantFormValue } from "./useProductModal";
+import { ProductForm } from "./useProductModal";
+import { useProductVariantsField } from "./useProductVariantsField";
+import { Input } from "@/components/ui/form/Input";
 
 interface ProductVariantsFieldProps {
     formik: FormikProps<ProductForm>;
 }
 
 export const ProductVariantsField = ({ formik }: ProductVariantsFieldProps) => {
-    const { variants } = formik.values;
-
-    const updateVariant = (index: number, patch: Partial<ProductVariantFormValue>) => {
-        const next = variants.map((v, i) => (i === index ? { ...v, ...patch } : v));
-        formik.setFieldValue("variants", next);
-    };
-
-    const addVariant = () => {
-        formik.setFieldValue("variants", [...variants, { nombre: "", precio: "" }]);
-    };
-
-    const removeVariant = (index: number) => {
-        formik.setFieldValue(
-            "variants",
-            variants.filter((_, i) => i !== index),
-        );
-    };
+    const { variants, updateVariant, addVariant, removeVariant, touchVariantField, getVariantError } =
+        useProductVariantsField(formik);
 
     return (
         <div className="space-y-2">
@@ -40,27 +27,31 @@ export const ProductVariantsField = ({ formik }: ProductVariantsFieldProps) => {
                 {variants.map((variant, index) => (
                     <div key={index} className="flex items-start gap-2">
                         <div className="flex-1">
-                            <input
-                                type="text"
+                            <Input
+                                name={`variant-nombre-${index}`}
                                 placeholder="Ej: Chica, 250ml..."
                                 value={variant.nombre}
                                 onChange={(e) => updateVariant(index, { nombre: e.target.value })}
-                                className="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 focus:border-amber-400 focus:outline-none"
+                                onBlur={() => touchVariantField(index, "nombre")}
+                                error={getVariantError(index, "nombre")}
                             />
                         </div>
-                        <div className="w-28 relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">
-                                $
-                            </span>
-                            <input
-                                type="number"
-                                min={0}
-                                step={0.5}
-                                placeholder="0.00"
-                                value={variant.precio}
-                                onChange={(e) => updateVariant(index, { precio: e.target.value })}
-                                className="w-full pl-7 pr-2 py-2 text-sm rounded-xl border border-stone-200 focus:border-amber-400 focus:outline-none tabular-nums"
-                            />
+                        <div className="w-28">
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">$</span>
+                                <Input
+                                    name={`variant-precio-${index}`}
+                                    inputType="number"
+                                    min={0}
+                                    step={0.5}
+                                    placeholder="0.00"
+                                    value={variant.precio}
+                                    onChange={(e) => updateVariant(index, { precio: e.target.value })}
+                                    onBlur={() => touchVariantField(index, "precio")}
+                                    error={getVariantError(index, "precio")}
+                                    className="pl-7 tabular-nums"
+                                />
+                            </div>
                         </div>
                         <button
                             type="button"
