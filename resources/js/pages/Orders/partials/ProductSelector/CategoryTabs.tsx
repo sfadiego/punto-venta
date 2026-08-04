@@ -48,7 +48,7 @@ export const CategoryTabs = ({ categories, activeCategory, onSelect }: CategoryT
                             }`}
                         >
                             <DynamicIcon
-                                name={cat.icon ?? "Tag"}
+                                name={cat.icon || "Tag"}
                                 size={12}
                                 className={isActive ? "text-white" : "text-stone-400"}
                             />

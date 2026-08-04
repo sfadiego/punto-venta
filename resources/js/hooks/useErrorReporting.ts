@@ -14,16 +14,16 @@ export const useErrorReporting = () => {
             sendError(error?.message ?? String(error), error?.stack);
         };
 
-        const onError = (_msg: Event | string, _src?: string, _line?: number, _col?: number, error?: Error) => {
-            sendError(error?.message ?? String(_msg), error?.stack);
+        const onError = (event: ErrorEvent) => {
+            sendError(event.error?.message ?? event.message, event.error?.stack);
         };
 
         window.addEventListener("unhandledrejection", onUnhandledRejection);
-        window.addEventListener("error", onError as EventListener);
+        window.addEventListener("error", onError);
 
         return () => {
             window.removeEventListener("unhandledrejection", onUnhandledRejection);
-            window.removeEventListener("error", onError as EventListener);
+            window.removeEventListener("error", onError);
         };
     }, []);
 };

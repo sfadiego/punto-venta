@@ -42,7 +42,7 @@ export default function CategoriesPage() {
                 render: (cat: ICategory) => (
                     <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-amber-50 border border-amber-100">
                         <DynamicIcon
-                            name={cat.icon_name ?? "Tag"}
+                            name={cat.icon_name || "Tag"}
                             size={18}
                             className="text-amber-600"
                         />
