@@ -59,6 +59,7 @@ class VentaTicketData implements TicketDataInterface
             'descuento' => (float) $order->descuento,
             'total' => (float) $order->total,
             'costo_domicilio' => (float) ($order->costo_domicilio ?? 0),
+            'is_delivery' => (bool) $order->is_delivery,
             'created_at' => $order->created_at,
             'fecha_string' => self::fechaString($order->created_at),
             'hora' => Carbon::parse($order->created_at)->setTimezone(config('app.timezone'))->format('H:i'),
