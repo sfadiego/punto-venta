@@ -1,5 +1,6 @@
 import { Loader } from "lucide-react";
 import { IMenuCategory, IMenuProduct } from "@/models/IMenu";
+import { IProductVariant } from "@/models/IProductVariant";
 import { ProductCard } from "./ProductCard/ProductCard";
 
 interface ProductGridProps {
@@ -8,8 +9,8 @@ interface ProductGridProps {
     isFetchingNextPage: boolean;
     hasNextPage: boolean;
     sentinelRef: React.RefObject<HTMLDivElement | null>;
-    quantityOf: (id: number) => number;
-    onAdd: (product: IMenuProduct) => void;
+    totalQuantityOf: (id: number) => number;
+    onAdd: (product: IMenuProduct, variant?: IProductVariant) => void;
     onRemove: (productId: number) => void;
     onAddWithWeight: (product: IMenuProduct, weight: number) => void;
 }
@@ -20,7 +21,7 @@ export const ProductGrid = ({
     isFetchingNextPage,
     hasNextPage,
     sentinelRef,
-    quantityOf,
+    totalQuantityOf,
     onAdd,
     onRemove,
     onAddWithWeight,
@@ -48,7 +49,7 @@ export const ProductGrid = ({
                             <ProductCard
                                 key={product.id}
                                 product={product}
-                                quantity={quantityOf(product.id)}
+                                quantity={totalQuantityOf(product.id)}
                                 primaryColor={primaryColor}
                                 onAdd={onAdd}
                                 onRemove={onRemove}

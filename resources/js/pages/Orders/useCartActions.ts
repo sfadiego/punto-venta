@@ -40,15 +40,17 @@ export const useCartActions = (
     const addToCart = async (
         productId: number,
         _name: string,
-        price: number,
+        _price: number,
+        variantId?: number | null,
+        _variantName?: string | null,
     ) => {
         if (isReadOnly || isPending(productId)) return;
 
-        // Merge only if the existing entry is still pending (not ready).
-        // A ready item means it was already prepared by the kitchen — new clicks
-        // must create a separate entry so staff can distinguish new from served.
+        // Merge only if the existing entry is still pending (not ready) AND
+        // matches the same variant — different variants of the same product
+        // are distinct lines in the cart.
         const existingItem = cart.find(
-            (item) => item.id === productId && !item.isReady,
+            (item) => item.id === productId && item.variantId === (variantId ?? null) && !item.isReady,
         );
 
         if (existingItem && isPending(existingItem.orderProductId)) return;
@@ -70,8 +72,8 @@ export const useCartActions = (
                     : addProduct(
                           {
                               producto_id: productId,
+                              variant_id: variantId ?? null,
                               cantidad: 1,
-                              precio: price,
                               descuento: 0,
                           },
                           { onSuccess: invalidateOrder },

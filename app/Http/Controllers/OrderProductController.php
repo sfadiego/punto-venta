@@ -8,6 +8,8 @@ use App\Http\Requests\OrderProductStoreRequest;
 use App\Http\Requests\OrderProductUpdateRequest;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
+use App\Models\ProductModel;
+use App\Models\ProductVariantModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +24,7 @@ class OrderProductController extends Controller
     public function index(OrderModel $order): JsonResponse
     {
         return Response::success(
-            OrderProductModel::with('product')
+            OrderProductModel::with(['product', 'variant'])
                 ->where('pedido_id', $order->id)
                 ->get()
         );
@@ -34,7 +36,7 @@ class OrderProductController extends Controller
     public function show(OrderModel $order, string $productId): JsonResponse
     {
         return Response::success(
-            OrderProductModel::with('product')->where('pedido_id', $order->id)
+            OrderProductModel::with(['product', 'variant'])->where('pedido_id', $order->id)
                 ->where('producto_id', $productId)
                 ->get()
         );
@@ -57,25 +59,28 @@ class OrderProductController extends Controller
         OrderModel::lockForUpdate()->find($orderId);
 
         if ($params->nombre_extra) {
+            $precio = (float) $params->precio;
             $data = OrderProductModel::create([
                 OrderProductModel::PEDIDO_ID => $orderId,
                 OrderProductModel::NOMBRE_EXTRA => $params->nombre_extra,
                 OrderProductModel::CANTIDAD => $params->cantidad,
-                OrderProductModel::PRECIO => $params->precio,
+                OrderProductModel::PRECIO => $precio,
                 OrderProductModel::DESCUENTO => $itemDescuento,
             ]);
         } else {
+            $precio = $this->resolveCatalogPrice($params->producto_id, $params->variant_id ?? null);
             $data = OrderProductModel::create([
                 OrderProductModel::PRODUCTO_ID => $params->producto_id,
+                OrderProductModel::VARIANT_ID => $params->variant_id ?? null,
                 OrderProductModel::PEDIDO_ID => $orderId,
                 OrderProductModel::CANTIDAD => $params->cantidad,
-                OrderProductModel::PRECIO => $params->precio,
+                OrderProductModel::PRECIO => $precio,
                 OrderProductModel::DESCUENTO => $itemDescuento,
                 OrderProductModel::IS_READY => false,
             ]);
         }
 
-        $delta = round($params->precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
+        $delta = round($precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
         $deltaTotal = round($delta * (1 - $orderDiscount / 100), 2);
 
         DB::table('order')->where('id', $orderId)->update([
@@ -117,7 +122,10 @@ class OrderProductController extends Controller
         if (isset($params->descuento)) {
             $data[OrderProductModel::DESCUENTO] = $params->descuento;
         }
-        if (isset($params->precio)) {
+        if (isset($params->variant_id)) {
+            $data[OrderProductModel::VARIANT_ID] = $params->variant_id;
+            $data[OrderProductModel::PRECIO] = ProductVariantModel::findOrFail($params->variant_id)->precio;
+        } elseif ($orderProduct->nombre_extra && isset($params->precio)) {
             $data[OrderProductModel::PRECIO] = $params->precio;
         }
 
@@ -295,6 +303,21 @@ class OrderProductController extends Controller
         $this->restoreServedIfAllReady($order->fresh());
 
         return Response::success('elemento borrado de la orden');
+    }
+
+    /**
+     * resolveCatalogPrice — el precio de un producto de catálogo nunca se toma del
+     * cliente: se resuelve aquí desde la variante seleccionada, o desde el precio
+     * base del producto si no tiene variante. Cierra el hueco de que el cliente
+     * pudiera mandar un precio arbitrario en el payload.
+     */
+    private function resolveCatalogPrice(int $productId, ?int $variantId): float
+    {
+        if ($variantId) {
+            return (float) ProductVariantModel::findOrFail($variantId)->precio;
+        }
+
+        return (float) ProductModel::findOrFail($productId)->precio;
     }
 
     /**

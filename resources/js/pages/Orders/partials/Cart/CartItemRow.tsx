@@ -46,6 +46,11 @@ export const CartItemRow = ({
                         <p className="text-stone-900 text-sm font-medium truncate">
                             {item.name}
                         </p>
+                        {item.variantName && (
+                            <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                                {item.variantName}
+                            </span>
+                        )}
                         {item.isExtra && (
                             <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-600">
                                 Extra

@@ -17,6 +17,8 @@ class OrderProductModel extends Model
 
     const PRODUCTO_ID = 'producto_id';
 
+    const VARIANT_ID = 'variant_id';
+
     const PEDIDO_ID = 'pedido_id';
 
     const DESCUENTO = 'descuento';
@@ -33,6 +35,7 @@ class OrderProductModel extends Model
 
     protected $fillable = [
         self::PRODUCTO_ID,
+        self::VARIANT_ID,
         self::PEDIDO_ID,
         self::DESCUENTO,
         self::CANTIDAD,
@@ -49,6 +52,11 @@ class OrderProductModel extends Model
     public function product(): HasOne
     {
         return $this->hasOne(ProductModel::class, 'id', self::PRODUCTO_ID);
+    }
+
+    public function variant(): HasOne
+    {
+        return $this->hasOne(ProductVariantModel::class, 'id', self::VARIANT_ID);
     }
 
     public static function top3BestSeller(?Carbon $start = null, ?Carbon $end = null, ?int $sistemaId = null)

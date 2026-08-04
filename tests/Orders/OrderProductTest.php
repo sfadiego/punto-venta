@@ -12,6 +12,7 @@ use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\OrderStatusModel;
 use App\Models\ProductModel;
+use App\Models\ProductVariantModel;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -1041,5 +1042,106 @@ class OrderProductTest extends TestCase
     public function test_sin_token_no_accede(): void
     {
         $this->getJson('/api/order/1/product')->assertStatus(401);
+    }
+
+    // ── Seguridad de precio: variantes ────────────────────────
+
+    private function crearVariante(ProductModel $product, float $precio = 150): ProductVariantModel
+    {
+        return ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
+            ProductVariantModel::PRECIO => $precio,
+            'tenant_id' => BusinessConfigModel::first()->id,
+        ]);
+    }
+
+    public function test_agregar_producto_sin_variante_ignora_precio_del_cliente_y_usa_precio_base(): void
+    {
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto(); // precio = 45
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 1, // precio manipulado por el cliente
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.precio', 45);
+
+        $orden->refresh();
+        $this->assertEquals(45.0, (float) $orden->total);
+    }
+
+    public function test_agregar_producto_con_variante_usa_precio_de_variante_ignorando_el_del_cliente(): void
+    {
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto(); // precio base = 45
+        $variant = $this->crearVariante($product, 150);
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::VARIANT_ID => $variant->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 1, // precio manipulado por el cliente
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.precio', 150)
+            ->assertJsonPath('data.variant_id', $variant->id);
+
+        $orden->refresh();
+        $this->assertEquals(150.0, (float) $orden->total);
+    }
+
+    public function test_agregar_extra_sigue_aceptando_precio_libre(): void
+    {
+        $orden = $this->crearOrden();
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::NOMBRE_EXTRA => 'Queso extra',
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 25,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.precio', 25);
+    }
+
+    public function test_variante_que_no_pertenece_al_producto_falla_validacion(): void
+    {
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto();
+        $otherProduct = $this->crearProducto();
+        $variant = $this->crearVariante($otherProduct);
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::VARIANT_ID => $variant->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_actualizar_variante_de_item_en_orden_recalcula_precio(): void
+    {
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto(); // precio base 45
+        $variant = $this->crearVariante($product, 200);
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->putJson("/api/order/{$orden->id}/product/{$item->id}", [
+            OrderProductModel::VARIANT_ID => $variant->id,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.precio', 200);
     }
 }

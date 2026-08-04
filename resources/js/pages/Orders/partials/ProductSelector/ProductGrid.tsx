@@ -10,7 +10,13 @@ interface ProductGridProps {
     cart: ICartItem[];
     isReadOnly?: boolean;
     pendingProductIds?: Set<number>;
-    onAdd: (productId: number, name: string, price: number) => void;
+    onAdd: (
+        productId: number,
+        name: string,
+        price: number,
+        variantId?: number | null,
+        variantName?: string | null,
+    ) => void;
 }
 
 export const ProductGrid = ({ cart, isReadOnly = false, pendingProductIds, onAdd }: ProductGridProps) => {

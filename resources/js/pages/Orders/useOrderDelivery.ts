@@ -30,7 +30,7 @@ export const useOrderDelivery = (
         initializedRef.current = true;
         const raw = Number(order.costo_domicilio ?? 0);
         const amount = Math.abs(raw);
-        setDomicilioActivo(amount > 0);
+        setDomicilioActivo(!!order.is_delivery || amount > 0);
         setCostoDomicilio(amount > 0 ? String(amount) : "");
         setOrderDeliveryPaidByState(raw >= 0 ? DeliveryPaidByEnum.Customer : DeliveryPaidByEnum.Business);
     }, [order]);
@@ -42,7 +42,10 @@ export const useOrderDelivery = (
         if (isReadOnly) return;
         try {
             await updateOrder(
-                { costo_domicilio: nextActivo ? calcCostoDomicilio(nextDomicilio, nextActivo, nextCustomerPays) : 0 },
+                {
+                    costo_domicilio: nextActivo ? calcCostoDomicilio(nextDomicilio, nextActivo, nextCustomerPays) : 0,
+                    is_delivery: nextActivo,
+                },
                 { onSuccess: invalidateOrder },
             );
         } catch (error) {
