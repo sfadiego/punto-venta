@@ -9,6 +9,8 @@ export interface IMenuBusiness {
     sell_by_weight: boolean;
 }
 
+import { IProductVariant } from "@/models/IProductVariant";
+
 export interface IMenuProduct {
     id: number;
     nombre: string;
@@ -16,6 +18,7 @@ export interface IMenuProduct {
     precio: number;
     unidad_medida: "unidad" | "kg" | "gr" | "litro" | null;
     image_url: string | null;
+    variants?: IProductVariant[];
 }
 
 export interface IMenuCategory {
@@ -35,6 +38,7 @@ export interface IMenuProductsPage {
 
 export interface IPublicOrderItem {
     product_id: number;
+    variant_id?: number | null;
     cantidad: number;
     observacion?: string | null;
 }
@@ -50,6 +54,7 @@ export interface IPublicOrderPayload {
 
 export interface ICartItem {
     product: IMenuProduct;
+    variant?: IProductVariant | null;
     cantidad: number;
     observacion?: string | null;
 }

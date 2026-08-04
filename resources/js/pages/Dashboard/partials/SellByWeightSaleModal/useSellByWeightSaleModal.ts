@@ -99,7 +99,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
 
     const rawInitialDomicilio = Number(initialOrder?.costo_domicilio ?? 0);
     const initialDomicilio = Math.abs(rawInitialDomicilio);
-    const initialDeliveryActive = initialDomicilio > 0;
+    const initialDeliveryActive = !!initialOrder?.is_delivery || initialDomicilio > 0;
     const initialPaidBy = rawInitialDomicilio >= 0 ? DeliveryPaidByEnum.Customer : DeliveryPaidByEnum.Business;
 
     const [domicilioActivo, setDomicilioActivo] = useState(initialDeliveryActive);
@@ -537,6 +537,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
                     costo_domicilio: domicilioActivo
                         ? calcCostoDomicilio(domicilio, domicilioActivo, customerPays)
                         : 0,
+                    is_delivery: domicilioActivo,
                 },
             });
         } catch (error) {
@@ -564,6 +565,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
                 data: {
                     estatus_pedido_id: OrderStatusEnum.Closed,
                     costo_domicilio: calcCostoDomicilio(domicilio, domicilioActivo, customerPays),
+                    is_delivery: domicilioActivo,
                     ...paymentData,
                 },
             });

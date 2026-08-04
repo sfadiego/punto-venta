@@ -80,7 +80,7 @@ function MenuPage() {
                         isFetchingNextPage={isFetchingNextPage}
                         hasNextPage={!!hasNextPage}
                         sentinelRef={sentinelRef}
-                        quantityOf={cart.quantityOf}
+                        totalQuantityOf={cart.totalQuantityOf}
                         onAdd={cart.add}
                         onRemove={cart.remove}
                         onAddWithWeight={cart.addWithWeight}

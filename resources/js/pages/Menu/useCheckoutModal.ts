@@ -7,6 +7,7 @@ import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { ICartItem } from "@/models/IMenu";
 import { isValidPhone, phoneValidationMessage } from "@/utils/phoneUtils";
+import { getCartItemUnitPrice } from "@/utils/menuCartCalc";
 
 interface CheckoutModalParams {
     slug: string;
@@ -52,6 +53,7 @@ export const useCheckoutModal = ({ slug, items, deliveryCost, onSuccess }: Check
                     delivery_reference: values.is_delivery ? values.delivery_reference || null : null,
                     items: items.map((i) => ({
                         product_id: i.product.id,
+                        variant_id: i.variant?.id ?? null,
                         cantidad: i.cantidad,
                         observacion: i.observacion ?? null,
                     })),
@@ -94,7 +96,7 @@ export const useCheckoutModal = ({ slug, items, deliveryCost, onSuccess }: Check
         }
     }, [phone]);
 
-    const subtotal = items.reduce((sum, i) => sum + Number(i.product.precio) * i.cantidad, 0);
+    const subtotal = items.reduce((sum, i) => sum + getCartItemUnitPrice(i) * i.cantidad, 0);
     const total = subtotal + (formik.values.is_delivery ? Number(deliveryCost) : 0);
 
     return { formik, subtotal, total, deliveryCost };

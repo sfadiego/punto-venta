@@ -101,7 +101,7 @@ class OrderModel extends Model
                 $query->whereHas('product')
                     ->orWhereNotNull('nombre_extra');
             })
-            ->with('product');
+            ->with(['product', 'variant']);
     }
 
     public function status(): HasOne

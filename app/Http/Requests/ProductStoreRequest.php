@@ -28,7 +28,7 @@ class ProductStoreRequest extends FormRequest
 
         return [
             ProductModel::NOMBRE => [
-                'required', 'string', 'max:255',
+                'required', 'string', 'max:70',
                 Rule::unique('product', 'nombre')->where('tenant_id', $tenantId),
             ],
             ProductModel::PRECIO => 'required|decimal:0,2',
@@ -51,7 +51,7 @@ class ProductStoreRequest extends FormRequest
         return [
             'nombre.required' => 'El nombre es requerido.',
             'nombre.string' => 'El nombre debe ser texto.',
-            'nombre.max' => 'El nombre no puede superar los 255 caracteres.',
+            'nombre.max' => 'El nombre no puede superar los 70 caracteres.',
             'nombre.unique' => 'Ya existe un producto con este nombre.',
             'precio.required' => 'El precio es requerido.',
             'precio.decimal' => 'El precio debe ser un número válido con hasta 2 decimales.',

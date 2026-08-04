@@ -2,6 +2,7 @@
 
 namespace Tests\Catalog;
 
+use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use App\Models\ProductModel;
 use Tests\TestCase;
@@ -64,6 +65,31 @@ class ProductTest extends TestCase
         foreach ($data as $item) {
             $this->assertEquals($category->id, $item['categoria_id']);
         }
+    }
+
+    public function test_filtra_productos_por_nombre_de_categoria(): void
+    {
+        $tenantId = BusinessConfigModel::first()->id;
+        $pizzaCategory = CategoryModel::create([
+            CategoryModel::NOMBRE => 'Pizza',
+            CategoryModel::TENANT_ID => $tenantId,
+        ]);
+        $otherCategory = CategoryModel::create([
+            CategoryModel::NOMBRE => 'Bebidas',
+            CategoryModel::TENANT_ID => $tenantId,
+        ]);
+        ProductModel::factory()->create(['nombre' => 'Peperoni', 'categoria_id' => $pizzaCategory->id]);
+        ProductModel::factory()->create(['nombre' => 'Hawaiana', 'categoria_id' => $pizzaCategory->id]);
+        ProductModel::factory()->create(['nombre' => 'Refresco', 'categoria_id' => $otherCategory->id]);
+
+        $response = $this->getJson('/api/product?page=1&limit=10&nombre=Pizza', $this->authHeaders())
+            ->assertStatus(206);
+
+        $data = $response->json('data');
+        $nombres = array_column($data, 'nombre');
+        $this->assertContains('Peperoni', $nombres);
+        $this->assertContains('Hawaiana', $nombres);
+        $this->assertNotContains('Refresco', $nombres);
     }
 
     public function test_filtra_por_nombre_inexistente_retorna_vacio(): void

@@ -106,6 +106,7 @@ export const PendingOrderCard = ({ order, isPending, onAccept, onReject }: Pendi
                                 <span className="flex-1">
                                     <span className="font-medium text-stone-700">{parseFloat(String(op.cantidad))}×</span>{" "}
                                     {op.product?.nombre ?? "Producto"}
+                                    {op.variant && <span className="text-stone-400"> ({op.variant.nombre})</span>}
                                     {op.observacion && (
                                         <p className="text-stone-400 mt-0.5 leading-tight">{op.observacion}</p>
                                     )}

@@ -70,11 +70,13 @@ export const useMenuPage = () => {
         return byCategory
             .map((c) => ({
                 ...c,
-                products: c.products.filter(
-                    (p) =>
-                        p.nombre.toLowerCase().includes(q) ||
-                        (p.descripcion ?? "").toLowerCase().includes(q)
-                ),
+                products: c.nombre.toLowerCase().includes(q)
+                    ? c.products
+                    : c.products.filter(
+                          (p) =>
+                              p.nombre.toLowerCase().includes(q) ||
+                              (p.descripcion ?? "").toLowerCase().includes(q)
+                      ),
             }))
             .filter((c) => c.products.length > 0);
     }, [categories, activeCategoryId, search]);

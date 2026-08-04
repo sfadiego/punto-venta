@@ -7,6 +7,7 @@ use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -124,5 +125,20 @@ class ProductModel extends Model
     public function category(): HasOne
     {
         return $this->hasOne(CategoryModel::class, 'id', 'categoria_id');
+    }
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariantModel::class, ProductVariantModel::PRODUCT_ID, 'id')
+            ->orderBy(ProductVariantModel::ORDEN);
+    }
+
+    public function hasVariants(): bool
+    {
+        if ($this->relationLoaded('variants')) {
+            return $this->variants->where(ProductVariantModel::ACTIVO, true)->isNotEmpty();
+        }
+
+        return $this->variants()->where(ProductVariantModel::ACTIVO, true)->exists();
     }
 }

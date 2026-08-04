@@ -36,8 +36,11 @@ class OrderStoreSaleRequest extends FormRequest
                 'required', 'numeric',
                 Rule::exists('product', 'id')->where('tenant_id', $tenantId),
             ],
+            'items.*.variant_id' => [
+                'nullable', 'numeric',
+                Rule::exists('product_variants', 'id')->where('tenant_id', $tenantId),
+            ],
             'items.*.cantidad' => 'required|numeric|min:0.001',
-            'items.*.precio' => 'required|numeric|min:0',
         ];
     }
 }

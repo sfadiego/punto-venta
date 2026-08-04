@@ -79,12 +79,8 @@ class VentaFormatter implements TicketFormatterInterface
         $printer->text($this->totalRow('TOTAL:', '$'.number_format($d['total'], 2))."\n");
         $printer->setEmphasis(false);
 
-        if (! empty($d['costo_domicilio']) && $d['costo_domicilio'] > 0) {
+        if (! empty($d['is_delivery']) && $d['costo_domicilio'] > 0) {
             $printer->text($this->totalRow('Domicilio:', '-$'.number_format($d['costo_domicilio'], 2))."\n");
-            $neto = $d['total'] - $d['costo_domicilio'];
-            $printer->setEmphasis(true);
-            $printer->text($this->totalRow('INGRESO NETO:', '$'.number_format($neto, 2))."\n");
-            $printer->setEmphasis(false);
         }
 
         $propina = round($d['total'] * 0.10, 2);

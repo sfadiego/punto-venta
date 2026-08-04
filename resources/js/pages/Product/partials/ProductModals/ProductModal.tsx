@@ -2,6 +2,7 @@ import { X, Package, Loader } from "lucide-react";
 import { FormikProps } from "formik";
 import { ICategory } from "@/models/ICategory";
 import { ProductForm } from "./useProductModal";
+import { ProductVariantsField } from "./ProductVariantsField";
 import { UnidadMedidaEnum, UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { Input } from "@/components/ui/form/Input";
 import { Select } from "@/components/ui/form/Select";
@@ -23,7 +24,7 @@ export const ProductModal = ({ isOpen, isEdit, formik, categories, sellByWeight,
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-stone-100">
                     <div className="flex items-center gap-2.5">
@@ -49,7 +50,7 @@ export const ProductModal = ({ isOpen, isEdit, formik, categories, sellByWeight,
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
+                <form onSubmit={formik.handleSubmit} className="p-5 space-y-4 overflow-y-auto">
                     <Input<ProductForm>
                         name="nombre"
                         label="Nombre *"
@@ -91,6 +92,8 @@ export const ProductModal = ({ isOpen, isEdit, formik, categories, sellByWeight,
                             options={categories.map((cat) => ({ value: String(cat.id), label: cat.nombre }))}
                         />
                     </div>
+
+                    {!sellByWeight && <ProductVariantsField formik={formik} />}
 
                     {/* Unidad de medida */}
                     {sellByWeight && (

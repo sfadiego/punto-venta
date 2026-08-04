@@ -1,34 +1,40 @@
 import { useState } from "react";
 import { IMenuProduct, ICartItem } from "@/models/IMenu";
+import { IProductVariant } from "@/models/IProductVariant";
 import { isWeightUnit, weightStep, weightMin } from "@/utils/weightUnits";
+import { getCartItemUnitPrice } from "@/utils/menuCartCalc";
 
 export type { ICartItem };
 
 const round3 = (n: number) => parseFloat(n.toFixed(3));
 
+const matchesLine = (item: ICartItem, productId: number, variantId?: number | null) =>
+    item.product.id === productId && (item.variant?.id ?? null) === (variantId ?? null);
+
 export const useCart = () => {
     const [items, setItems] = useState<ICartItem[]>([]);
 
-    const add = (product: IMenuProduct) => {
+    const add = (product: IMenuProduct, variant?: IProductVariant) => {
         const unit = product.unidad_medida;
         const step = isWeightUnit(unit) ? weightStep(unit) : 1;
+        const variantId = variant?.id ?? null;
 
         setItems((prev) => {
-            const existing = prev.find((i) => i.product.id === product.id);
+            const existing = prev.find((i) => matchesLine(i, product.id, variantId));
             if (existing) {
                 return prev.map((i) =>
-                    i.product.id === product.id
+                    matchesLine(i, product.id, variantId)
                         ? { ...i, cantidad: round3(i.cantidad + step) }
                         : i
                 );
             }
-            return [...prev, { product, cantidad: step, observacion: null }];
+            return [...prev, { product, variant: variant ?? null, cantidad: step, observacion: null }];
         });
     };
 
-    const remove = (productId: number) => {
+    const remove = (productId: number, variantId?: number | null) => {
         setItems((prev) => {
-            const existing = prev.find((i) => i.product.id === productId);
+            const existing = prev.find((i) => matchesLine(i, productId, variantId));
             if (!existing) return prev;
 
             const unit = existing.product.unidad_medida;
@@ -36,31 +42,31 @@ export const useCart = () => {
             const min = isWeightUnit(unit) ? weightMin(unit) : 1;
             const newQty = round3(existing.cantidad - step);
 
-            if (newQty < min) return prev.filter((i) => i.product.id !== productId);
+            if (newQty < min) return prev.filter((i) => !matchesLine(i, productId, variantId));
             return prev.map((i) =>
-                i.product.id === productId ? { ...i, cantidad: newQty } : i
+                matchesLine(i, productId, variantId) ? { ...i, cantidad: newQty } : i
             );
         });
     };
 
     const setWeight = (productId: number, weight: number) => {
         setItems((prev) => {
-            const existing = prev.find((i) => i.product.id === productId);
+            const existing = prev.find((i) => matchesLine(i, productId, null));
             if (!existing) return prev;
             const min = isWeightUnit(existing.product.unidad_medida)
                 ? weightMin(existing.product.unidad_medida)
                 : 1;
-            if (weight < min) return prev.filter((i) => i.product.id !== productId);
+            if (weight < min) return prev.filter((i) => !matchesLine(i, productId, null));
             return prev.map((i) =>
-                i.product.id === productId ? { ...i, cantidad: round3(weight) } : i
+                matchesLine(i, productId, null) ? { ...i, cantidad: round3(weight) } : i
             );
         });
     };
 
-    const setNote = (productId: number, note: string) => {
+    const setNote = (productId: number, note: string, variantId?: number | null) => {
         setItems((prev) =>
             prev.map((i) =>
-                i.product.id === productId
+                matchesLine(i, productId, variantId)
                     ? { ...i, observacion: note.trim() || null }
                     : i
             )
@@ -69,29 +75,45 @@ export const useCart = () => {
 
     const addWithWeight = (product: IMenuProduct, weight: number) => {
         setItems((prev) => {
-            const existing = prev.find((i) => i.product.id === product.id);
+            const existing = prev.find((i) => matchesLine(i, product.id, null));
             if (existing) {
                 return prev.map((i) =>
-                    i.product.id === product.id ? { ...i, cantidad: round3(weight) } : i
+                    matchesLine(i, product.id, null) ? { ...i, cantidad: round3(weight) } : i
                 );
             }
-            return [...prev, { product, cantidad: round3(weight), observacion: null }];
+            return [...prev, { product, variant: null, cantidad: round3(weight), observacion: null }];
         });
     };
 
-    const deleteItem = (productId: number) =>
-        setItems((prev) => prev.filter((i) => i.product.id !== productId));
+    const deleteItem = (productId: number, variantId?: number | null) =>
+        setItems((prev) => prev.filter((i) => !matchesLine(i, productId, variantId)));
 
     const clear = () => setItems([]);
 
-    const quantityOf = (productId: number) =>
-        items.find((i) => i.product.id === productId)?.cantidad ?? 0;
+    const quantityOf = (productId: number, variantId?: number | null) =>
+        items.find((i) => matchesLine(i, productId, variantId))?.cantidad ?? 0;
 
-    const total = items.reduce((sum, i) => sum + Number(i.product.precio) * i.cantidad, 0);
+    const totalQuantityOf = (productId: number) =>
+        items.filter((i) => i.product.id === productId).reduce((sum, i) => sum + i.cantidad, 0);
+
+    const total = items.reduce((sum, i) => sum + getCartItemUnitPrice(i) * i.cantidad, 0);
 
     const count = items.reduce((sum, i) => {
         return isWeightUnit(i.product.unidad_medida) ? sum + 1 : sum + i.cantidad;
     }, 0);
 
-    return { items, add, addWithWeight, remove, deleteItem, setWeight, clear, quantityOf, total, count, setNote };
+    return {
+        items,
+        add,
+        addWithWeight,
+        remove,
+        deleteItem,
+        setWeight,
+        clear,
+        quantityOf,
+        totalQuantityOf,
+        total,
+        count,
+        setNote,
+    };
 };

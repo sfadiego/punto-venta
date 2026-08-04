@@ -6,6 +6,8 @@ use App\Enums\ActivityTypeEnum;
 use App\Enums\OrderStatusEnum;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
+use App\Models\ProductModel;
+use App\Models\ProductVariantModel;
 use Carbon\Carbon;
 
 class OrderSaleService
@@ -19,7 +21,13 @@ class OrderSaleService
      */
     public function createDirectSale(array $data): OrderModel
     {
-        $subtotal = collect($data['items'])->sum(fn ($i) => $i['precio'] * $i['cantidad']);
+        $items = collect($data['items'])->map(function ($item) {
+            $item['precio'] = $this->resolveCatalogPrice($item['producto_id'], $item['variant_id'] ?? null);
+
+            return $item;
+        });
+
+        $subtotal = $items->sum(fn ($i) => $i['precio'] * $i['cantidad']);
 
         $order = OrderModel::create([
             OrderModel::SISTEMA_ID => $data['sistema_id'],
@@ -30,10 +38,11 @@ class OrderSaleService
             OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS->value,
         ]);
 
-        foreach ($data['items'] as $item) {
+        foreach ($items as $item) {
             OrderProductModel::create([
                 OrderProductModel::PEDIDO_ID => $order->id,
                 OrderProductModel::PRODUCTO_ID => $item['producto_id'],
+                OrderProductModel::VARIANT_ID => $item['variant_id'] ?? null,
                 OrderProductModel::CANTIDAD => $item['cantidad'],
                 OrderProductModel::PRECIO => $item['precio'],
             ]);
@@ -46,6 +55,20 @@ class OrderSaleService
         $this->activityService->log($order->tenant_id, ActivityTypeEnum::SALE_CLOSED);
 
         return $order;
+    }
+
+    /**
+     * resolveCatalogPrice — el precio de un item de venta directa nunca se toma
+     * del cliente: se resuelve desde la variante seleccionada o desde el precio
+     * base del producto.
+     */
+    private function resolveCatalogPrice(int $productId, ?int $variantId): float
+    {
+        if ($variantId) {
+            return (float) ProductVariantModel::findOrFail($variantId)->precio;
+        }
+
+        return (float) ProductModel::findOrFail($productId)->precio;
     }
 
     /**

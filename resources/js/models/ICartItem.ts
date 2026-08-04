@@ -8,4 +8,6 @@ export interface ICartItem {
     isExtra: boolean;
     observacion: string | null;
     isReady: boolean;
+    variantId: number | null;
+    variantName: string | null;
 }
