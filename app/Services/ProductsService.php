@@ -29,13 +29,18 @@ class ProductsService extends DataTable
 
     public function makeQuery(): Builder
     {
-        $query = $this->model->newQuery()->with(['category']);
+        $query = $this->model->newQuery()->with(['category', 'variants']);
 
         $nombre = request()->query('nombre');
         $categoriaId = request()->query('categoria_id');
 
         if ($nombre) {
-            $query->where('nombre', 'like', "%{$nombre}%");
+            $query->where(function (Builder $query) use ($nombre) {
+                $query->where('nombre', 'like', "%{$nombre}%")
+                    ->orWhereHas('category', function ($query) use ($nombre) {
+                        $query->where('nombre', 'like', "%{$nombre}%");
+                    });
+            });
         }
 
         if ($categoriaId) {

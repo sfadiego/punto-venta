@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\OrderProductModel;
+use App\Models\ProductVariantModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -35,7 +36,13 @@ class OrderProductStoreRequest extends FormRequest
                 'nullable',
                 Rule::exists('product', 'id')->where('tenant_id', $tenantId),
             ],
-            OrderProductModel::PRECIO => 'required|numeric|min:0|max:99999',
+            OrderProductModel::VARIANT_ID => [
+                'nullable',
+                Rule::exists('product_variants', 'id')->where('tenant_id', $tenantId),
+            ],
+            OrderProductModel::PRECIO => $this->nombre_extra
+                ? 'required|numeric|min:0|max:99999'
+                : 'nullable|numeric|min:0|max:99999',
             OrderProductModel::NOMBRE_EXTRA => 'nullable|string|max:255',
             OrderProductModel::OBSERVACION => 'nullable|string|max:200',
         ];
@@ -46,6 +53,16 @@ class OrderProductStoreRequest extends FormRequest
         $validator->after(function ($validator) {
             if (! $this->producto_id && ! $this->nombre_extra) {
                 $validator->errors()->add('producto_id', 'Se requiere un producto o un nombre de extra.');
+            }
+
+            if ($this->variant_id && $this->producto_id) {
+                $belongsToProduct = ProductVariantModel::where('id', $this->variant_id)
+                    ->where(ProductVariantModel::PRODUCT_ID, $this->producto_id)
+                    ->exists();
+
+                if (! $belongsToProduct) {
+                    $validator->errors()->add('variant_id', 'La variante no pertenece al producto seleccionado.');
+                }
             }
         });
     }

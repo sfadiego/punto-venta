@@ -1,5 +1,7 @@
 import { IProduct } from "@/models/IProduct";
-import { axiosGET, useDELETE, useGET, usePOST, usePUT } from "../hooks/useApi";
+import { IProductVariant } from "@/models/IProductVariant";
+import { axiosGET, axiosPOST, axiosPUT, axiosDELETE, useDELETE, useGET, usePOST, usePUT } from "../hooks/useApi";
+import { useMutation } from "@tanstack/react-query";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IPaginateServiceProps } from "@/intefaces/IPaginateServiceProps";
 import { IPaginate } from "@/intefaces/IPaginate";
@@ -71,3 +73,42 @@ export const useUpdateProduct = (productId: number) =>
 export const useStoreProduct = () => usePOST({ url: adminUrl });
 export const useDeleteProduct = (productId: number) =>
     useDELETE({ url: `${adminUrl}/${productId}` });
+
+// Variantes de producto — el product_id/variant_id se conocen recién en submit
+// (producto puede crearse en el mismo flujo), por eso van en las variables del mutate.
+export const useIndexProductVariants = (productId: number) =>
+    useGET<IProductVariant[]>({
+        url: `${adminUrl}/${productId}/variant`,
+        enable: !!productId,
+    });
+
+export const useStoreProductVariant = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({ productId, data }: { productId: number; data: Record<string, unknown> }) =>
+            axiosPOST(axiosApi, { url: `${adminUrl}/${productId}/variant`, data }),
+    });
+};
+
+export const useUpdateProductVariant = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({
+            productId,
+            variantId,
+            data,
+        }: {
+            productId: number;
+            variantId: number;
+            data: Record<string, unknown>;
+        }) => axiosPUT(axiosApi, { url: `${adminUrl}/${productId}/variant/${variantId}`, data }),
+    });
+};
+
+export const useDeleteProductVariant = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({ productId, variantId }: { productId: number; variantId: number }) =>
+            axiosDELETE(axiosApi, { url: `${adminUrl}/${productId}/variant/${variantId}` }),
+    });
+};

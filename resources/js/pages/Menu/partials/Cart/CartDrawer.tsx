@@ -1,5 +1,6 @@
 import { X, ShoppingCart } from "lucide-react";
 import { ICartItem, IMenuProduct } from "@/models/IMenu";
+import { IProductVariant } from "@/models/IProductVariant";
 import { CartItem } from "./CartItem";
 import { formatMoney } from "@/utils/formatCurrency";
 
@@ -9,11 +10,11 @@ interface CartDrawerProps {
     total: number;
     primaryColor: string;
     onClose: () => void;
-    onAdd: (product: IMenuProduct) => void;
-    onRemove: (productId: number) => void;
-    onDelete: (productId: number) => void;
+    onAdd: (product: IMenuProduct, variant?: IProductVariant) => void;
+    onRemove: (productId: number, variantId?: number | null) => void;
+    onDelete: (productId: number, variantId?: number | null) => void;
     onSetWeight: (productId: number, weight: number) => void;
-    onNote: (productId: number, note: string) => void;
+    onNote: (productId: number, note: string, variantId?: number | null) => void;
     onCheckout: () => void;
 }
 
@@ -62,7 +63,7 @@ export const CartDrawer = ({
             <div className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-4">
                 {items.map((item) => (
                     <CartItem
-                        key={item.product.id}
+                        key={`${item.product.id}-${item.variant?.id ?? "base"}`}
                         item={item}
                         primaryColor={primaryColor}
                         onAdd={onAdd}

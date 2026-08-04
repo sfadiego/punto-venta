@@ -1,5 +1,6 @@
 import { ICategory } from "@/models/ICategory";
 import { IFileProps } from "@/intefaces/IFileProps";
+import { IProductVariant } from "@/models/IProductVariant";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 
 export interface IProduct {
@@ -13,4 +14,5 @@ export interface IProduct {
     category: ICategory;
     activo: boolean;
     unidad_medida: UnidadMedidaEnum;
+    variants?: IProductVariant[];
 }

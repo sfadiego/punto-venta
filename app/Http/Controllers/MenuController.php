@@ -13,6 +13,7 @@ use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
+use App\Models\ProductVariantModel;
 use App\Services\MenuService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -157,11 +158,23 @@ class MenuController extends Controller
                 ->where(ProductModel::ACTIVO, true)
                 ->firstOrFail();
 
+            $precio = $product->precio;
+            $variantId = $item['variant_id'] ?? null;
+            if ($variantId) {
+                $variant = ProductVariantModel::withoutGlobalScopes()
+                    ->where('id', $variantId)
+                    ->where(ProductVariantModel::PRODUCT_ID, $product->id)
+                    ->where('tenant_id', $tenant->id)
+                    ->firstOrFail();
+                $precio = $variant->precio;
+            }
+
             OrderProductModel::create([
                 'pedido_id' => $order->id,
                 'producto_id' => $product->id,
+                OrderProductModel::VARIANT_ID => $variantId,
                 'cantidad' => $item['cantidad'],
-                'precio' => $product->precio,
+                'precio' => $precio,
                 'descuento' => 0,
                 OrderProductModel::OBSERVACION => $item['observacion'] ?? null,
             ]);

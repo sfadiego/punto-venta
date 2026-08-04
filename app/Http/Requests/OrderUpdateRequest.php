@@ -34,6 +34,7 @@ class OrderUpdateRequest extends FormRequest
             OrderModel::PAYMENT_METHOD_ID => 'nullable|exists:payment_methods,id',
             OrderModel::PROPINA => 'nullable|numeric|min:0',
             OrderModel::COSTO_DOMICILIO => 'sometimes|nullable|numeric',
+            OrderModel::IS_DELIVERY => 'sometimes|boolean',
             OrderModel::IS_CREDIT => 'sometimes|boolean',
             OrderModel::CUSTOMER_ID => [
                 'nullable',

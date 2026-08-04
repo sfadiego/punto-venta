@@ -201,6 +201,45 @@ class OrderTest extends TestCase
         $this->assertDatabaseHas('order', ['id' => $orden->id, 'costo_domicilio' => -35]);
     }
 
+    public function test_actualiza_orden_is_delivery(): void
+    {
+        $orden = $this->crearOrden();
+
+        $this->putJson("/api/order/{$orden->id}", [
+            OrderModel::COSTO_DOMICILIO => 35,
+            OrderModel::IS_DELIVERY => true,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+
+        $this->assertDatabaseHas('order', ['id' => $orden->id, 'costo_domicilio' => 35, 'is_delivery' => true]);
+    }
+
+    public function test_actualiza_orden_desactiva_is_delivery(): void
+    {
+        $orden = $this->crearOrden();
+        $orden->update([OrderModel::COSTO_DOMICILIO => 35, OrderModel::IS_DELIVERY => true]);
+
+        $this->putJson("/api/order/{$orden->id}", [
+            OrderModel::COSTO_DOMICILIO => 0,
+            OrderModel::IS_DELIVERY => false,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+
+        $this->assertDatabaseHas('order', ['id' => $orden->id, 'costo_domicilio' => 0, 'is_delivery' => false]);
+    }
+
+    public function test_actualiza_orden_is_delivery_invalido_falla(): void
+    {
+        $orden = $this->crearOrden();
+
+        $this->putJson("/api/order/{$orden->id}", [
+            OrderModel::IS_DELIVERY => 'no-es-booleano',
+        ], $this->authHeaders())
+            ->assertStatus(400);
+    }
+
     public function test_actualiza_orden_incluye_telefono_del_cliente(): void
     {
         $customer = CustomerModel::create([

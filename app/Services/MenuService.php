@@ -38,7 +38,7 @@ class MenuService extends DataTable
         $perPage = min($data->perPage ?? 4, 100);
         $paginator = $this->queryBuilder->paginate($perPage, ['*'], 'page', $data->page);
 
-        $productsMap = ProductModel::with('picture')
+        $productsMap = ProductModel::with(['picture', 'variants'])
             ->where(ProductModel::ACTIVO, true)
             ->whereIn('categoria_id', $paginator->pluck('id'))
             ->get()
@@ -55,6 +55,7 @@ class MenuService extends DataTable
                 'precio' => $p->precio,
                 'unidad_medida' => $p->unidad_medida?->value,
                 'image_url' => $p->picture?->url ? "/api/files/{$p->picture->url}" : null,
+                'variants' => $p->variants->where('activo', true)->values(),
             ])->values(),
         ]);
 

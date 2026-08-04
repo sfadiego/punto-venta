@@ -9,6 +9,7 @@ use App\Models\CategoryModel;
 use App\Models\CustomerModel;
 use App\Models\MainOrderReportModel;
 use App\Models\ProductModel;
+use App\Models\ProductVariantModel;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -419,6 +420,38 @@ class MenuTest extends TestCase
             'is_delivery' => false,
             'items' => [['product_id' => 99999, 'cantidad' => 1]],
         ])->assertStatus(404);
+    }
+
+    public function test_pedido_publico_con_variante_usa_precio_de_variante(): void
+    {
+        $this->crearSesionActiva();
+        $product = $this->crearProducto(); // precio base = 55
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
+            ProductVariantModel::PRECIO => 150,
+            'tenant_id' => BusinessConfigModel::first()->id,
+        ]);
+
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::MENU_ENABLED => true]);
+
+        $slug = $this->getSlug();
+
+        $this->postJson("/api/menu/{$slug}/order", [
+            'customer_name' => 'Cliente Variante',
+            'customer_phone' => '3008888888',
+            'is_delivery' => false,
+            'items' => [
+                ['product_id' => $product->id, 'variant_id' => $variant->id, 'cantidad' => 1],
+            ],
+        ])->assertStatus(201)
+            ->assertJsonPath('data.total', 150);
+
+        $this->assertDatabaseHas('order_product', [
+            'producto_id' => $product->id,
+            'variant_id' => $variant->id,
+            'precio' => 150,
+        ]);
     }
 
     public function test_pedido_publico_slug_invalido_retorna_404(): void
