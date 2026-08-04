@@ -3,7 +3,6 @@ import { DataTableColumn } from "mantine-datatable";
 import { Eye } from "lucide-react";
 import { useDataTable, DataTableRenderersMap } from "@/hooks/useDatatable";
 import { useIndexOrder } from "@/services/useOrderService";
-import { useIndexCategories } from "@/services/useCategoriesService";
 import { useAxios } from "@/hooks/useAxios";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
@@ -40,10 +39,7 @@ export const useSalesPage = () => {
     const [fecha, setFecha] = useState<string | null>(today());
     const [semana, setSemana] = useState<string | null>(getWeekStart());
     const [mes, setMes] = useState<string | null>(currentMonth());
-    const [categoriaId, setCategoriaId] = useState<number | null>(null);
     const modal = useOrderDetailModal();
-
-    const { data: categories } = useIndexCategories();
 
     const actionsColumn: DataTableColumn<IOrder> = useMemo(
         () => ({
@@ -78,9 +74,8 @@ export const useSalesPage = () => {
             ...(reportMode === SalesReportModeEnum.Day
                 ? (fecha ? { fecha } : {})
                 : reportMode === SalesReportModeEnum.Week
-                ? (semana ? { semana } : {})
-                : (mes ? { mes } : {})),
-            ...(categoriaId !== null ? { categoria_id: categoriaId } : {}),
+                    ? (semana ? { semana } : {})
+                    : (mes ? { mes } : {})),
         },
         renderersMap,
     });
@@ -91,22 +86,22 @@ export const useSalesPage = () => {
             columns:
                 dataTableProps.columns.length > 0
                     ? ([
-                          ...dataTableProps.columns.map((col) =>
-                              (col.accessor as string) === "estatus_pedido_id"
-                                  ? {
-                                        ...col,
-                                        render: (o: IOrder) => (
-                                            <span
-                                                className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(o.estatus_pedido_id)}`}
-                                            >
-                                                {getStatusLabel(o.estatus_pedido_id)}
-                                            </span>
-                                        ),
-                                    }
-                                  : col,
-                          ),
-                          actionsColumn,
-                      ] as DataTableColumn<IOrder>[])
+                        ...dataTableProps.columns.map((col) =>
+                            (col.accessor as string) === "estatus_pedido_id"
+                                ? {
+                                    ...col,
+                                    render: (o: IOrder) => (
+                                        <span
+                                            className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(o.estatus_pedido_id)}`}
+                                        >
+                                            {getStatusLabel(o.estatus_pedido_id)}
+                                        </span>
+                                    ),
+                                }
+                                : col,
+                        ),
+                        actionsColumn,
+                    ] as DataTableColumn<IOrder>[])
                     : [],
         }),
         [dataTableProps, actionsColumn],
@@ -132,17 +127,11 @@ export const useSalesPage = () => {
         setPage(1);
     };
 
-    const handleCategoriaChange = (id: number | null) => {
-        setCategoriaId(id);
-        setPage(1);
-    };
-
     const handleClear = () => {
         setReportMode(SalesReportModeEnum.Day);
         setFecha(today());
         setSemana(getWeekStart());
         setMes(currentMonth());
-        setCategoriaId(null);
         setPage(1);
     };
 
@@ -154,14 +143,11 @@ export const useSalesPage = () => {
         fecha,
         semana,
         mes,
-        categoriaId,
-        categories,
         sellByWeight,
         handleReportModeChange,
         handleFechaChange,
         handleSemanaChange,
         handleMesChange,
-        handleCategoriaChange,
         handleClear,
         modal,
     };

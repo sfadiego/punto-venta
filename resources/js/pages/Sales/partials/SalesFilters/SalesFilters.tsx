@@ -1,10 +1,8 @@
 import { SlidersHorizontal } from "lucide-react";
-import { ICategory } from "@/models/ICategory";
 import { SalesReportModeEnum } from "@/enums/SalesReportModeEnum";
 import { SalesByCategoryButton } from "../SalesByCategoryModal/SalesByCategoryModal";
 import { ReportModeToggle } from "./ReportModeToggle";
 import { SalesPeriodInput } from "./SalesPeriodInput";
-import { SalesCategoryFilter } from "./SalesCategoryFilter";
 import { ClearFiltersButton } from "./ClearFiltersButton";
 
 interface SalesFiltersProps {
@@ -12,16 +10,12 @@ interface SalesFiltersProps {
     semana: string | null;
     mes: string | null;
     reportMode: SalesReportModeEnum;
-    categoriaId?: number | null;
-    categories?: ICategory[];
-    sellByWeight?: boolean;
     showCategoryReport?: boolean;
     categoryReportLabel?: string;
     onReportModeChange: (mode: SalesReportModeEnum) => void;
     onFechaChange: (value: string | null) => void;
     onSemanaChange: (value: string | null) => void;
     onMesChange: (value: string | null) => void;
-    onCategoriaChange?: (id: number | null) => void;
     onCategoryReport?: () => void;
     onClear: () => void;
 }
@@ -31,25 +25,21 @@ export const SalesFilters = ({
     semana,
     mes,
     reportMode,
-    categoriaId = null,
-    categories = [],
-    sellByWeight = false,
     showCategoryReport = false,
     categoryReportLabel,
     onReportModeChange,
     onFechaChange,
     onSemanaChange,
     onMesChange,
-    onCategoriaChange,
     onCategoryReport,
     onClear,
 }: SalesFiltersProps) => {
     const hasActive =
-        (reportMode === SalesReportModeEnum.Day
+        reportMode === SalesReportModeEnum.Day
             ? !!fecha
             : reportMode === SalesReportModeEnum.Week
             ? !!semana
-            : !!mes) || categoriaId !== null;
+            : !!mes;
 
     return (
         <div className="flex flex-col gap-3 mb-5">
@@ -77,14 +67,6 @@ export const SalesFilters = ({
                     onSemanaChange={onSemanaChange}
                     onMesChange={onMesChange}
                 />
-
-                {sellByWeight && categories.length > 0 && onCategoriaChange && (
-                    <SalesCategoryFilter
-                        categoriaId={categoriaId}
-                        categories={categories}
-                        onChange={onCategoriaChange}
-                    />
-                )}
 
                 {hasActive && <ClearFiltersButton onClick={onClear} />}
 
