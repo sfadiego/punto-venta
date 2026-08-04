@@ -2,6 +2,7 @@
 
 namespace Tests\Catalog;
 
+use App\Enums\BusinessTypeEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
@@ -127,5 +128,23 @@ class ProductVariantTest extends TestCase
         )->assertStatus(400);
 
         $this->assertDatabaseHas('product_variants', ['id' => $variant->id]);
+    }
+
+    public function test_venta_por_peso_no_crea_variante(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::VentaPorPeso]);
+
+        $product = $this->crearProducto();
+
+        $this->postJson(
+            "/api/product/{$product->id}/variant",
+            ['nombre' => 'Chica', 'precio' => 80],
+            $this->authHeaders()
+        )->assertStatus(400);
+
+        $this->assertDatabaseMissing('product_variants', [
+            'product_id' => $product->id,
+        ]);
     }
 }

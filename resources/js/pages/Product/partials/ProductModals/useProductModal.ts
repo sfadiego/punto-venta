@@ -100,11 +100,16 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
                     toast.success("Producto creado exitosamente");
                 }
 
-                await syncVariants(productId, initialVariants, values.variants, {
-                    storeVariant,
-                    updateVariant,
-                    deleteVariant,
-                });
+                // Venta por peso ya resuelve su propio precio variable vía unidad_medida
+                // (kg/gr/litro) — no tiene sentido de negocio mezclarlo con variantes de
+                // precio fijo, así que el campo ni se muestra ni se sincroniza para estos.
+                if (!sellByWeight) {
+                    await syncVariants(productId, initialVariants, values.variants, {
+                        storeVariant,
+                        updateVariant,
+                        deleteVariant,
+                    });
+                }
 
                 if (!isEdit) {
                     helpers.resetForm();

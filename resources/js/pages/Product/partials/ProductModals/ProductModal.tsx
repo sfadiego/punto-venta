@@ -93,7 +93,7 @@ export const ProductModal = ({ isOpen, isEdit, formik, categories, sellByWeight,
                         />
                     </div>
 
-                    <ProductVariantsField formik={formik} />
+                    {!sellByWeight && <ProductVariantsField formik={formik} />}
 
                     {/* Unidad de medida */}
                     {sellByWeight && (
