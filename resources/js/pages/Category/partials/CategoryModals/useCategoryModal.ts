@@ -5,6 +5,7 @@ import { ICategory } from "@/models/ICategory";
 import { useStoreCategory, useUpdateCategory } from "@/services/useCategoriesService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getFieldErrors, getUserFacingErrorMessage } from "@/utils/axiosError";
+import { capitalizeFirstLetter } from "@/utils/textCase";
 
 export type CategoryForm = {
     nombre: string;
@@ -39,7 +40,7 @@ export const useCategoryModal = (category: ICategory | null, nextOrder: number, 
         validationSchema: schema,
         onSubmit: async (values, helpers) => {
             const payload = {
-                nombre: values.nombre.trim(),
+                nombre: capitalizeFirstLetter(values.nombre),
                 ...(values.orden !== "" ? { orden: Number(values.orden) } : {}),
                 icon_name: values.icon_name.trim(),
             };

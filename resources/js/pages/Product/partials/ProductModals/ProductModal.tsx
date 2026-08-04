@@ -5,7 +5,7 @@ import { ProductForm } from "./useProductModal";
 import { ProductVariantsField } from "./ProductVariantsField";
 import { UnidadMedidaEnum, UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { Input } from "@/components/ui/form/Input";
-import { Select } from "@/components/ui/form/Select";
+import { CategorySelect } from "@/components/ui/form/CategorySelect";
 import { Textarea } from "@/components/ui/form/textarea";
 
 interface ProductModalProps {
@@ -84,12 +84,12 @@ export const ProductModal = ({ isOpen, isEdit, formik, categories, sellByWeight,
                             </div>
                         </div>
 
-                        <Select<ProductForm>
+                        <CategorySelect<ProductForm>
                             name="categoria_id"
                             label="Categoría *"
                             formik={formik}
+                            categories={categories}
                             placeholder="Seleccionar..."
-                            options={categories.map((cat) => ({ value: String(cat.id), label: cat.nombre }))}
                         />
                     </div>
 

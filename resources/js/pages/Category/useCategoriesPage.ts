@@ -21,7 +21,9 @@ export const useCategoriesPage = () => {
     }, [data, isLoading, page]);
 
     const invalidateCategories = () => {
-        queryClient.invalidateQueries({ queryKey: [ApiRoutes.Category] });
+        queryClient.invalidateQueries({
+            predicate: (query) => typeof query.queryKey[0] === "string" && query.queryKey[0].startsWith(ApiRoutes.Category),
+        });
     };
 
     const pageSize = [10, 20, 50];
