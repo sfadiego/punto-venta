@@ -1,5 +1,5 @@
 import { IProviderPurchase } from "@/models/IProvider";
-import { formatCurrency, formatMoney } from "@/utils/formatCurrency";
+import { formatMoney } from "@/utils/formatCurrency";
 import { formatOrderDateTime } from "@/utils/dateUtils";
 
 interface ProviderPurchaseListProps {
