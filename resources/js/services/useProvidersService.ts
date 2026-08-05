@@ -1,4 +1,4 @@
-import { axiosGET, useDELETE, useGET, usePOST, usePUT } from "@/hooks/useApi";
+import { axiosGET, useDELETE, useGET, usePATCH, usePOST, usePUT } from "@/hooks/useApi";
 import { IProvider } from "@/models/IProvider";
 import { IPaginate } from "@/intefaces/IPaginate";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -11,12 +11,14 @@ export const useIndexProvidersPaginated = ({
     page = 1,
     limit = 10,
     search = "",
+    active = "",
     orderParam = "name",
     order = "asc",
 }: {
     page?: number;
     limit?: number;
     search?: string;
+    active?: string;
     orderParam?: string;
     order?: string;
 } = {}) =>
@@ -26,6 +28,7 @@ export const useIndexProvidersPaginated = ({
         filters: {
             page, limit, orderParam, order,
             ...(search ? { search } : {}),
+            ...(active ? { active } : {}),
         },
     });
 
@@ -45,3 +48,5 @@ export const useUpdateProvider = (id: number) =>
     usePUT<IProvider>({ url: `${url}/${id}` });
 export const useDeleteProvider = (id: number) =>
     useDELETE({ url: `${url}/${id}` });
+export const useToggleProviderActive = (id: number) =>
+    usePATCH<IProvider>({ url: `${url}/${id}/toggle-active` });

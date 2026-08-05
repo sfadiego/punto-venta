@@ -24,6 +24,7 @@ class ProvidersController extends Controller
     public function list(): JsonResponse
     {
         $providers = ProviderModel::select('id', 'name', 'phone', 'contact_name')
+            ->where(ProviderModel::ACTIVE, true)
             ->orderBy('name')
             ->get();
 
@@ -37,6 +38,7 @@ class ProvidersController extends Controller
             ProviderModel::PHONE => $params->phone,
             ProviderModel::CONTACT_NAME => $params->contact_name,
             ProviderModel::NOTES => $params->notes,
+            ProviderModel::ACTIVE => true,
         ]);
 
         return Response::success($provider);
@@ -64,6 +66,15 @@ class ProvidersController extends Controller
         return Response::success($provider->delete());
     }
 
+    public function toggleActive(ProviderModel $provider): JsonResponse
+    {
+        $provider->update([
+            ProviderModel::ACTIVE => ! $provider->active,
+        ]);
+
+        return Response::success($provider);
+    }
+
     public function purchases(Request $request, ProviderModel $provider, ProviderPurchaseService $service): JsonResponse
     {
         $purchases = $service->purchasesByProvider(
@@ -81,6 +92,7 @@ class ProvidersController extends Controller
         $purchase = ProviderPurchaseModel::create([
             ProviderPurchaseModel::PROVIDER_ID => $provider->id,
             ProviderPurchaseModel::AMOUNT => $params->amount,
+            ProviderPurchaseModel::IS_CREDIT => $params->boolean('is_credit'),
             ProviderPurchaseModel::CREATED_BY => auth()->id(),
             ProviderPurchaseModel::NOTE => $params->note,
         ]);

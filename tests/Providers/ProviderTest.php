@@ -72,6 +72,58 @@ class ProviderTest extends TestCase
             ->assertJsonStructure(['status', 'data' => [['id', 'name', 'phone', 'contact_name']]]);
     }
 
+    public function test_filtra_listado_paginado_por_activos(): void
+    {
+        $activo = $this->crearProveedor(['name' => 'Proveedor Activo']);
+        $this->crearProveedor(['name' => 'Proveedor Oculto', 'active' => false]);
+
+        $response = $this->getJson('/api/provider?limit=50&active=true', $this->authHeaders())
+            ->assertStatus(206);
+
+        $names = array_column($response->json('data'), 'name');
+        $this->assertContains($activo->name, $names);
+        $this->assertNotContains('Proveedor Oculto', $names);
+    }
+
+    public function test_filtra_listado_paginado_por_ocultos(): void
+    {
+        $this->crearProveedor(['name' => 'Proveedor Activo']);
+        $oculto = $this->crearProveedor(['name' => 'Proveedor Oculto', 'active' => false]);
+
+        $response = $this->getJson('/api/provider?limit=50&active=false', $this->authHeaders())
+            ->assertStatus(206);
+
+        $names = array_column($response->json('data'), 'name');
+        $this->assertContains($oculto->name, $names);
+        $this->assertNotContains('Proveedor Activo', $names);
+    }
+
+    public function test_sin_filtro_de_activo_lista_todos(): void
+    {
+        $activo = $this->crearProveedor(['name' => 'Proveedor Activo']);
+        $oculto = $this->crearProveedor(['name' => 'Proveedor Oculto', 'active' => false]);
+
+        $response = $this->getJson('/api/provider?limit=50', $this->authHeaders())
+            ->assertStatus(206);
+
+        $names = array_column($response->json('data'), 'name');
+        $this->assertContains($activo->name, $names);
+        $this->assertContains($oculto->name, $names);
+    }
+
+    public function test_lista_proveedores_simple_no_incluye_inactivos(): void
+    {
+        $activo = $this->crearProveedor(['name' => 'Proveedor Activo']);
+        $this->crearProveedor(['name' => 'Proveedor Oculto', 'active' => false]);
+
+        $response = $this->getJson('/api/provider/list', $this->authHeaders())
+            ->assertStatus(200);
+
+        $names = array_column($response->json('data'), 'name');
+        $this->assertContains($activo->name, $names);
+        $this->assertNotContains('Proveedor Oculto', $names);
+    }
+
     // ── Store ────────────────────────────────────────────────
 
     public function test_crea_proveedor(): void
@@ -85,9 +137,10 @@ class ProviderTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('status', 'OK')
             ->assertJsonPath('data.name', 'Distribuidora Norte')
-            ->assertJsonPath('data.contact_name', 'Juan Pérez');
+            ->assertJsonPath('data.contact_name', 'Juan Pérez')
+            ->assertJsonPath('data.active', true);
 
-        $this->assertDatabaseHas('providers', ['name' => 'Distribuidora Norte']);
+        $this->assertDatabaseHas('providers', ['name' => 'Distribuidora Norte', 'active' => true]);
     }
 
     public function test_no_crea_proveedor_con_nombre_duplicado(): void
@@ -163,6 +216,44 @@ class ProviderTest extends TestCase
             ->assertJsonPath('status', 'OK');
     }
 
+    // ── Toggle active ────────────────────────────────────────
+
+    public function test_alterna_proveedor_activo(): void
+    {
+        $provider = $this->crearProveedor();
+        $this->assertTrue((bool) $provider->fresh()->active);
+
+        $this->patchJson("/api/provider/{$provider->id}/toggle-active", [], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.active', false);
+
+        $this->assertDatabaseHas('providers', ['id' => $provider->id, 'active' => false]);
+
+        $this->patchJson("/api/provider/{$provider->id}/toggle-active", [], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.active', true);
+    }
+
+    public function test_empleado_no_puede_alternar_proveedor_activo(): void
+    {
+        $provider = $this->crearProveedor();
+        $empleado = User::where('rol_id', RoleEnum::EMPLOYE->value)->first();
+
+        $this->patchJson("/api/provider/{$provider->id}/toggle-active", [], $this->authHeaders($empleado))
+            ->assertStatus(403);
+    }
+
+    public function test_proveedor_oculto_sigue_visible_en_listado_paginado(): void
+    {
+        $provider = $this->crearProveedor(['name' => 'Proveedor Oculto', 'active' => false]);
+
+        $response = $this->getJson('/api/provider?limit=50', $this->authHeaders())
+            ->assertStatus(206);
+
+        $names = array_column($response->json('data'), 'name');
+        $this->assertContains($provider->name, $names);
+    }
+
     // ── Delete ───────────────────────────────────────────────
 
     public function test_elimina_proveedor(): void
@@ -200,6 +291,7 @@ class ProviderTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('status', 'OK')
             ->assertJsonPath('data.amount', '750.50')
+            ->assertJsonPath('data.is_credit', false)
             ->assertJsonPath('data.note', 'Compra de carne')
             ->assertJsonPath('data.provider_id', $provider->id)
             ->assertJsonPath('data.created_by', $admin->id);
@@ -207,6 +299,25 @@ class ProviderTest extends TestCase
         $this->assertDatabaseHas('provider_purchases', [
             'provider_id' => $provider->id,
             'note' => 'Compra de carne',
+            'is_credit' => false,
+        ]);
+    }
+
+    public function test_compra_a_credito_se_marca_correctamente(): void
+    {
+        $provider = $this->crearProveedor();
+
+        $response = $this->postJson("/api/provider/{$provider->id}/purchase", [
+            'amount' => 300,
+            'is_credit' => true,
+        ], $this->authHeaders());
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.is_credit', true);
+
+        $this->assertDatabaseHas('provider_purchases', [
+            'provider_id' => $provider->id,
+            'is_credit' => true,
         ]);
     }
 

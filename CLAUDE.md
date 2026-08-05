@@ -268,6 +268,29 @@ OrderFilters.tsx ← solitario, sin carpeta propia
 - No utilizar tablas con html directamente, utiliza el componente DataTable y su hook para cargar informacion
 - utiliza el componente "Input" ubicado en components/ui/form/input para todos los inputs especificados, esto contiene validaciones y funcionalidades utiles
 
+### Selectores (`<Select>` con opciones fijas)
+Nunca declarar un `<Select options={...}>` inline con un array de opciones armado en el archivo que lo usa (ya sea derivado de un enum/labels o hardcodeado). Envolver siempre `components/ui/form/Select` en un componente propio con las opciones ya resueltas — patrón `SelectBusinessType` (`components/SuperAdmin/Tenants/Sections/SelectBusinessType.tsx`):
+
+```tsx
+interface SelectXxxProps<T> {
+    name: Extract<keyof T, string>;
+    formik?: FormikProps<T>;       // omitir si el selector se usa controlado (value/onChange) en vez de Formik
+    label?: string;
+    placeholder?: string;
+    disabled?: boolean;
+    className?: string;
+}
+
+export const SelectXxx = <T,>({ name, formik, label, disabled, className }: SelectXxxProps<T>) => (
+    <Select<T> name={name} options={XXX_OPTIONS} formik={formik} label={label} disabled={disabled} className={className} />
+);
+```
+
+- Aplica tanto si las opciones salen de un enum/labels (`Object.entries(XXX_LABELS).map(...)`) como si van hardcodeadas — en ambos casos el array de opciones vive dentro del wrapper, no en el componente que lo consume.
+- Si el selector se usa controlado (`value`/`onChange`, sin Formik — ej. filtros de listado) en vez del modo `formik`, omitir la prop `formik` de la interfaz y exponer `value`/`onChange` en su lugar (ver `SelectProviderActiveFilter` en `pages/Providers/partials/`).
+- Ubicación del archivo: junto al/los componente(s) que lo consumen (`partials/` de la page, o la carpeta del componente si es fuera de `pages/`) — no hace falta que el selector se reutilice en más de un lugar para justificar el wrapper.
+- Ejemplos ya aplicados: `SelectBusinessType`, `SelectDemoRequestStatus` y `SelectSubscriptionPlan` (`components/SuperAdmin/DemoRequests/` y `components/SuperAdmin/Subscriptions/`), `SelectBusinessNiche` (`pages/Auth/partials/`), `SelectProviderActiveFilter` (`pages/Providers/partials/`), `SelectSubscriptionFilter` (`pages/SuperAdmin/Subscriptions/partials/`) y `SelectTenantFilter` (`pages/SuperAdmin/Tenants/partials/`) — estas dos últimas son la variante controlada que combina dos estados en un único valor codificado con prefijos; también reemplazan un `<select>` HTML crudo por el componente `Select` compartido.
+
 ### Pages
 - en la carpeta pages solo debe existir un componente el cual debe llamar componenes reutilizables ubicados en la carpeta Components/{module}/component.tsx
 - crea hooks si es necesario en la carpeta de pages donde contendra la logica solo de esta pagina en especifico

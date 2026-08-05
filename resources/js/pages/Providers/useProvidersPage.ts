@@ -8,9 +8,10 @@ export const useProvidersPage = () => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [search, setSearch] = useState("");
+    const [active, setActive] = useState("");
 
     const { data, isLoading, refetch } = useIndexProvidersPaginated({
-        page, limit, search,
+        page, limit, search, active,
     });
 
     useEffect(() => {
@@ -22,6 +23,11 @@ export const useProvidersPage = () => {
     const invalidateProviders = () => {
         queryClient.invalidateQueries({ queryKey: [ApiRoutes.Provider] });
         queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Provider}/list`] });
+    };
+
+    const handleActiveChange = (value: string) => {
+        setActive(value);
+        setPage(1);
     };
 
     const pageSize = [10, 20, 50];
@@ -38,6 +44,8 @@ export const useProvidersPage = () => {
         setLimit,
         search,
         setSearch,
+        active,
+        setActive: handleActiveChange,
         invalidateProviders,
     };
 };

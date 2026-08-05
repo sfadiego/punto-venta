@@ -15,6 +15,7 @@ Route::prefix('provider')->group(function () {
                 Route::get('', 'show');
                 Route::put('', 'update');
                 Route::delete('', 'delete');
+                Route::patch('toggle-active', 'toggleActive');
                 Route::get('purchase', 'purchases');
                 Route::post('purchase', 'storePurchase');
             });

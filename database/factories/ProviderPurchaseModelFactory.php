@@ -18,6 +18,7 @@ class ProviderPurchaseModelFactory extends Factory
         return [
             ProviderPurchaseModel::PROVIDER_ID => ProviderModel::factory(),
             ProviderPurchaseModel::AMOUNT => $this->faker->randomFloat(2, 100, 5000),
+            ProviderPurchaseModel::IS_CREDIT => false,
             ProviderPurchaseModel::CREATED_BY => null,
             ProviderPurchaseModel::NOTE => $this->faker->sentence(),
         ];

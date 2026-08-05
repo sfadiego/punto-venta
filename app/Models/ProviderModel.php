@@ -22,6 +22,8 @@ class ProviderModel extends Model
 
     const NOTES = 'notes';
 
+    const ACTIVE = 'active';
+
     const TENANT_ID = 'tenant_id';
 
     protected $fillable = [
@@ -29,7 +31,12 @@ class ProviderModel extends Model
         self::PHONE,
         self::CONTACT_NAME,
         self::NOTES,
+        self::ACTIVE,
         self::TENANT_ID,
+    ];
+
+    protected $casts = [
+        self::ACTIVE => 'boolean',
     ];
 
     public function purchases(): HasMany

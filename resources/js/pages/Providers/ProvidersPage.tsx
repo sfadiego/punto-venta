@@ -4,6 +4,7 @@ import { Plus, RefreshCw, Search } from "lucide-react";
 import { IProvider } from "@/models/IProvider";
 import { Input } from "@/components/ui/form/Input";
 import { useProvidersPage } from "./useProvidersPage";
+import { SelectProviderActiveFilter } from "./partials/SelectProviderActiveFilter";
 import { ProviderModal } from "./partials/ProviderModals/ProviderModal";
 import { useProviderModal } from "./partials/ProviderModals/useProviderModal";
 import { ProviderTableActions } from "./partials/ProviderTableActions";
@@ -21,6 +22,8 @@ export default function ProvidersPage() {
         setLimit,
         search,
         setSearch,
+        active,
+        setActive,
         invalidateProviders,
     } = useProvidersPage();
 
@@ -53,6 +56,18 @@ export default function ProvidersPage() {
                 title: "Contacto",
                 render: (provider: IProvider) => (
                     <span className="text-sm text-stone-600">{provider.contact_name || "—"}</span>
+                ),
+            },
+            {
+                accessor: "active",
+                title: "Estado",
+                render: (provider: IProvider) => (
+                    <span
+                        className={`inline-flex text-xs font-medium px-2 py-1 rounded-full ${provider.active ? "bg-green-50 text-green-700" : "bg-stone-100 text-stone-500"
+                        }`}
+                    >
+                        {provider.active ? "Activo" : "Oculto"}
+                    </span>
                 ),
             },
             {
@@ -106,6 +121,9 @@ export default function ProvidersPage() {
                         placeholder="Buscar por nombre o teléfono..."
                         className="pl-9"
                     />
+                </div>
+                <div className="w-full sm:w-48">
+                    <SelectProviderActiveFilter value={active} onChange={setActive} />
                 </div>
             </div>
 

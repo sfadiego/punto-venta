@@ -29,7 +29,14 @@ export const ProviderPurchaseList = ({ purchases, isLoading }: ProviderPurchaseL
                     {purchases.map((purchase) => (
                         <div key={purchase.id} className="flex items-center justify-between text-sm py-1.5 border-b border-stone-50 last:border-0">
                             <div className="min-w-0">
-                                <p className="text-stone-700">{formatOrderTime(purchase.created_at)}</p>
+                                <div className="flex items-center gap-1.5">
+                                    <p className="text-stone-700">{formatOrderTime(purchase.created_at)}</p>
+                                    {purchase.is_credit && (
+                                        <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold shrink-0">
+                                            Crédito
+                                        </span>
+                                    )}
+                                </div>
                                 {purchase.note && <p className="text-xs text-stone-400 truncate">{purchase.note}</p>}
                             </div>
                             <span className="font-semibold text-stone-700 tabular-nums shrink-0 ml-2">
