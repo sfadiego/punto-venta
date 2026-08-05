@@ -44,7 +44,7 @@ class ProductController extends Controller
             $product->updateProduct(
                 nombre: $param->has('nombre') ? $param->nombre : null,
                 precio: $param->has('precio') ? $param->precio : null,
-                descripcion: $param->has('descripcion') ? $param->descripcion : null,
+                descripcion: $param->has('descripcion') ? ($param->descripcion !== null ? $param->descripcion : '')   : null,
                 categoriaId: $param->has('categoria_id') ? $param->categoria_id : null,
                 pictureId: $param->has('picture_id') ? $param->picture_id : null,
                 active: $param->has('activo') ? (bool) $param->activo : null,
