@@ -1,6 +1,7 @@
-import { Users, Settings, HandCoins } from "lucide-react";
+import { Users, Settings, HandCoins, Truck } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";
+import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/FeatureSpotlight";
 import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
 import { navItems } from "./navItems";
@@ -13,7 +14,9 @@ interface SidebarNavProps {
 export function SidebarNav({ onItemClick }: SidebarNavProps) {
     const { can } = usePermissions();
     const { features } = useAxios();
+    const { data: config } = useGetBusinessConfig();
     const sellByWeight = features?.sell_by_weight === true;
+    const providersEnabled = can("viewProviders") && config?.purchases_enabled === true;
 
     return (
         <nav className="flex-1 px-3 py-5 overflow-y-auto flex flex-col">
@@ -45,8 +48,14 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
                     })}
             </div>
 
-            {(can("viewUsers") || can("viewAdmin") || can("viewCustomers")) && (
+            {(can("viewUsers") || can("viewAdmin") || can("viewCustomers") || providersEnabled) && (
                 <div className="pt-3 border-t border-white/10 mt-3 space-y-0.5">
+                    {providersEnabled && (
+                        <SidebarNavItem
+                            item={{ label: "Proveedores", icon: Truck, path: "/providers", permission: "viewProviders" }}
+                            onClick={onItemClick}
+                        />
+                    )}
                     {can("viewCustomers") && (
                         <FeatureSpotlight
                             featureKey={FeatureSpotlightKey.CustomerSection}

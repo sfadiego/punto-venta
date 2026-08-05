@@ -76,6 +76,26 @@ class BusinessConfigTest extends TestCase
             ->assertJsonPath('data.menu_enabled', true);
     }
 
+    public function test_actualiza_purchases_enabled(): void
+    {
+        $this->putJson('/api/admin/config', [
+            'business_name' => 'Cafe Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'purchases_enabled' => true,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.purchases_enabled', true);
+
+        $tenant = BusinessConfigModel::first();
+        $this->assertDatabaseHas('business_config', [
+            'id' => $tenant->id,
+            'purchases_enabled' => true,
+        ]);
+    }
+
     public function test_actualiza_paper_width_a_80mm(): void
     {
         $this->putJson('/api/admin/config', [

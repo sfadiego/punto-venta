@@ -17,6 +17,7 @@ interface TextareaProps<T> {
     disabled?: boolean;
     label?: string;
     rows?: number;
+    maxLength?: number;
 }
 
 export const Textarea = <T,>({
@@ -28,6 +29,7 @@ export const Textarea = <T,>({
     className = "",
     disabled = false,
     rows = 3,
+    maxLength,
 }: TextareaProps<T>) => {
     const touched = Boolean(formik?.touched[name as keyof T]);
     const hasError = Boolean(formik?.errors[name as keyof T]);
@@ -51,6 +53,7 @@ export const Textarea = <T,>({
                 rows={rows}
                 disabled={disabled}
                 placeholder={placeholder}
+                maxLength={maxLength}
                 {...fieldProps}
                 className={`w-full px-4 py-3 border rounded-xl text-sm text-stone-900
                     placeholder-stone-400 focus:outline-none focus:ring-2

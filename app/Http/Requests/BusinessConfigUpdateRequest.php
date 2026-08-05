@@ -32,6 +32,7 @@ class BusinessConfigUpdateRequest extends FormRequest
             'logo_icon' => 'nullable|string|max:50',
             'costo_domicilio_default' => 'nullable|numeric|min:0',
             'menu_enabled' => 'nullable|boolean',
+            'purchases_enabled' => 'nullable|boolean',
         ];
     }
 }

@@ -1,0 +1,77 @@
+import { Eye, Pencil, Trash2, Loader } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
+import { IProvider } from "@/models/IProvider";
+import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { AdminRoutes } from "@/enums/RoutesEnum";
+import { RoleEnum } from "@/enums/RoleEnum";
+import { useDeleteProvider } from "@/services/useProvidersService";
+import { usePermissions } from "@/hooks/usePermissions";
+
+interface ProviderTableActionsProps {
+    provider: IProvider;
+    onEdit: (provider: IProvider) => void;
+}
+
+export const ProviderTableActions = ({ provider, onEdit }: ProviderTableActionsProps) => {
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const { hasRole } = usePermissions();
+    const isAdmin = hasRole(RoleEnum.Admin);
+    const { mutateAsync: deleteProvider, isPending: isDeleting } = useDeleteProvider(provider.id);
+
+    const handleDelete = async () => {
+        const result = await Swal.fire({
+            title: "¿Eliminar proveedor?",
+            text: `"${provider.name}" se eliminará. Su historial de compras se conserva.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef4444",
+            cancelButtonColor: "#78716c",
+            cancelButtonText: "Cancelar",
+            confirmButtonText: "Sí, eliminar",
+            reverseButtons: true,
+        });
+        if (!result.isConfirmed) return;
+        await deleteProvider({});
+        queryClient.invalidateQueries({ queryKey: [ApiRoutes.Provider] });
+        queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Provider}/list`] });
+        toast.success("Proveedor eliminado");
+    };
+
+    return (
+        <div className="flex items-center justify-center gap-1">
+            <button
+                onClick={() => navigate(AdminRoutes.ProviderDetail.replace(":id", String(provider.id)))}
+                title="Ver detalle"
+                className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-200 transition-all"
+            >
+                <Eye size={20} />
+            </button>
+            {isAdmin && (
+                <button
+                    onClick={() => onEdit(provider)}
+                    title="Editar proveedor"
+                    className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-all"
+                >
+                    <Pencil size={20} />
+                </button>
+            )}
+            {isAdmin && (
+                <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    title="Eliminar proveedor"
+                    className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all disabled:opacity-50"
+                >
+                    {isDeleting
+                        ? <Loader size={20} className="animate-spin text-red-500" />
+                        : <Trash2 size={20} />
+                    }
+                </button>
+            )}
+        </div>
+    );
+};

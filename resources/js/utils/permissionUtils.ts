@@ -19,6 +19,7 @@ export type Action =
     | "managePendingOrders"
     | "viewUsers"
     | "viewCustomers"
+    | "viewProviders"
     | "registerExpense";
 
 export const ALL_ACTIONS: Action[] = [
@@ -39,6 +40,7 @@ export const ALL_ACTIONS: Action[] = [
     "managePendingOrders",
     "viewUsers",
     "viewCustomers",
+    "viewProviders",
     "registerExpense",
 ];
 
@@ -61,6 +63,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "managePendingOrders",
         "viewUsers",
         "viewCustomers",
+        "viewProviders",
         "registerExpense",
     ]),
     [RoleEnum.Employe]: new Set<Action>([

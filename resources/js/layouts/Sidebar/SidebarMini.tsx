@@ -11,6 +11,7 @@ import {
     Settings,
     Users,
     HandCoins,
+    Truck,
     LucideIcon,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -51,6 +52,7 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
     const { data: config } = useGetBusinessConfig();
     const { can: canAction } = usePermissions();
     const sellByWeight = features?.sell_by_weight === true;
+    const providersEnabled = canAction("viewProviders") && config?.purchases_enabled === true;
 
     const logoUrl = config?.logo_path
         ? `${ApisEnum.BaseUrl}${ApiRoutes.Files}/${config.logo_path}`
@@ -124,8 +126,29 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
                         );
                     })}
 
-                {(canAction("viewCustomers") || canAction("viewUsers") || canAction("viewAdmin")) && (
+                {(canAction("viewCustomers") || canAction("viewUsers") || canAction("viewAdmin") || providersEnabled) && (
                     <div className="mt-auto pt-3 w-full flex flex-col items-center gap-1 border-t border-white/10">
+                        {providersEnabled && (
+                            <MiniTooltipItem label="Proveedores" side="right">
+                                <NavLink
+                                    to="/providers"
+                                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+                                    style={({ isActive }) =>
+                                        isActive
+                                            ? {
+                                                  backgroundColor: "var(--color-primary)",
+                                                  color: "var(--color-font)",
+                                              }
+                                            : {
+                                                  color: "color-mix(in srgb, var(--color-font) 60%, transparent)",
+                                              }
+                                    }
+                                    aria-label="Proveedores"
+                                >
+                                    <Truck size={18} />
+                                </NavLink>
+                            </MiniTooltipItem>
+                        )}
                         {canAction("viewCustomers") && (
                             <MiniTooltipItem label="Clientes" side="right">
                                 <NavLink
