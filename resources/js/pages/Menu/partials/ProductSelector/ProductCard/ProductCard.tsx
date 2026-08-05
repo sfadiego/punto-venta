@@ -13,6 +13,7 @@ interface ProductCardProps {
     product: IMenuProduct;
     quantity: number;
     primaryColor: string;
+    readonly?: boolean;
     onAdd: (product: IMenuProduct, variant?: IProductVariant) => void;
     onRemove: (productId: number) => void;
     onAddWithWeight: (product: IMenuProduct, weight: number) => void;
@@ -24,7 +25,7 @@ const Placeholder = () => (
     </div>
 );
 
-export const ProductCard = ({ product, quantity, primaryColor, onAdd, onRemove, onAddWithWeight }: ProductCardProps) => {
+export const ProductCard = ({ product, quantity, primaryColor, readonly = false, onAdd, onRemove, onAddWithWeight }: ProductCardProps) => {
     const unit = product.unidad_medida;
     const byWeight = isWeightUnit(unit);
     const [imgError, setImgError] = useState(false);
@@ -73,7 +74,7 @@ export const ProductCard = ({ product, quantity, primaryColor, onAdd, onRemove, 
                         </span>
                     )}
 
-                    {byWeight ? (<WeightControls
+                    {readonly ? null : byWeight ? (<WeightControls
                         cantidad={quantity}
                         unit={unit}
                         precio={product.precio}

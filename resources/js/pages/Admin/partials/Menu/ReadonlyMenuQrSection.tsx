@@ -1,22 +1,25 @@
-import { Globe, Loader, Copy, Check, QrCode } from "lucide-react";
 import { useState } from "react";
+import { QrCode, Loader, Copy, Check } from "lucide-react";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
-import { useMenuSection } from "./useMenuSection";
 import { useQrDownload } from "./useQrDownload";
 
-interface MenuSectionProps {
+interface ReadonlyMenuQrSectionProps {
     config: IBusinessConfig | undefined;
 }
 
-export const MenuSection = ({ config }: MenuSectionProps) => {
-    const { toggle, isSubmitting } = useMenuSection(config);
+export const ReadonlyMenuQrSection = ({ config }: ReadonlyMenuQrSectionProps) => {
     const [copied, setCopied] = useState(false);
 
     const menuUrl = config?.slug
-        ? `${window.location.origin}/${config.slug}/menu`
+        ? `${window.location.origin}/${config.slug}/menu?readonly=true`
         : null;
 
-    const { downloadQr, isGenerating } = useQrDownload(menuUrl, config?.business_name ?? "Menu");
+    const { downloadQr, isGenerating } = useQrDownload(
+        menuUrl,
+        config?.business_name ?? "Menu",
+        "Escanea para ver el menú",
+        "qr-menu-readonly",
+    );
 
     const handleCopy = () => {
         if (!menuUrl) return;
@@ -26,42 +29,13 @@ export const MenuSection = ({ config }: MenuSectionProps) => {
         });
     };
 
-    const enabled = !!config?.menu_enabled;
-
     return (
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-5">
             <div>
-                <h2 className="text-sm font-semibold text-stone-700 mb-0.5">Pedidos en línea</h2>
+                <h2 className="text-sm font-semibold text-stone-700 mb-0.5">Menú de solo lectura</h2>
                 <p className="text-xs text-stone-400">
-                    Permite a tus clientes ver el menú y hacer pedidos desde un enlace público
+                    Descarga un código QR que muestra el menú sin permitir hacer pedidos, ideal para imprimir y colocar en mesas
                 </p>
-            </div>
-
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2.5">
-                    <Globe size={16} className={enabled ? "text-amber-500" : "text-stone-300"} />
-                    <span className="text-sm font-medium text-stone-700">
-                        {enabled ? "Pedidos activados" : "Pedidos desactivados"}
-                    </span>
-                </div>
-
-                <button
-                    type="button"
-                    onClick={toggle}
-                    disabled={isSubmitting || !config}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
-                        enabled ? "bg-amber-500" : "bg-stone-200"
-                    }`}
-                >
-                    {isSubmitting && (
-                        <Loader size={10} className="absolute left-1/2 -translate-x-1/2 text-white animate-spin" />
-                    )}
-                    <span
-                        className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                            enabled ? "translate-x-6" : "translate-x-1"
-                        }`}
-                    />
-                </button>
             </div>
 
             {menuUrl && (
@@ -95,7 +69,7 @@ export const MenuSection = ({ config }: MenuSectionProps) => {
                             ? <Loader size={13} className="animate-spin" />
                             : <QrCode size={13} />
                         }
-                        {isGenerating ? "Generando..." : "Descargar código QR"}
+                        {isGenerating ? "Generando..." : "Descargar código QR de solo lectura"}
                     </button>
                 </div>
             )}

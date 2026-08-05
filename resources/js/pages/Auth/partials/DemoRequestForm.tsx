@@ -1,13 +1,8 @@
 import { Loader } from "lucide-react";
 import { FormikProps } from "formik";
 import { Input } from "@/components/ui/form/Input";
-import { Select, SelectOption } from "@/components/ui/form/Select";
-import { BUSINESS_NICHE_LABELS } from "@/enums/BusinessNicheEnum";
 import { DemoRequestForm as DemoRequestFormValues } from "../useAuthPage";
-
-const NICHE_OPTIONS: SelectOption[] = Object.entries(BUSINESS_NICHE_LABELS).map(
-    ([value, label]) => ({ value, label }),
-);
+import { SelectBusinessNiche } from "./SelectBusinessNiche";
 
 interface DemoRequestFormProps {
     formik: FormikProps<DemoRequestFormValues>;
@@ -38,12 +33,7 @@ export const DemoRequestForm = ({ formik, isSubmitting }: DemoRequestFormProps) 
                 formik={formik}
                 maxLength={12}
             />
-            <Select
-                name="business_niche"
-                options={NICHE_OPTIONS}
-                placeholder="Giro de tu negocio"
-                formik={formik}
-            />
+            <SelectBusinessNiche name="business_niche" formik={formik} />
             <button
                 type="submit"
                 disabled={isSubmitting}

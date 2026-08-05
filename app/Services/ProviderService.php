@@ -37,6 +37,11 @@ class ProviderService extends DataTable
             });
         }
 
+        $active = request()->query('active');
+        if ($active !== null && $active !== '') {
+            $query->where(ProviderModel::ACTIVE, filter_var($active, FILTER_VALIDATE_BOOLEAN));
+        }
+
         return $query;
     }
 

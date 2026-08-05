@@ -43,6 +43,33 @@ export const ProviderPurchaseModal = ({ isOpen, formik, isSubmitting, onClose }:
                             formik={formik}
                             placeholder="0.00"
                         />
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-medium text-stone-500">Tipo de pago</label>
+                            <div className="flex h-9 rounded-xl border border-stone-200 overflow-hidden text-xs">
+                                <button
+                                    type="button"
+                                    onClick={() => formik.setFieldValue("is_credit", false)}
+                                    className={`flex-1 font-medium transition-colors ${
+                                        !formik.values.is_credit
+                                            ? "bg-amber-500 text-white"
+                                            : "bg-stone-50 text-stone-500 hover:bg-stone-100"
+                                    }`}
+                                >
+                                    Contado
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => formik.setFieldValue("is_credit", true)}
+                                    className={`flex-1 font-medium transition-colors border-l border-stone-200 ${
+                                        formik.values.is_credit
+                                            ? "bg-amber-500 text-white"
+                                            : "bg-stone-50 text-stone-500 hover:bg-stone-100"
+                                    }`}
+                                >
+                                    Crédito
+                                </button>
+                            </div>
+                        </div>
                         <Input
                             name="note"
                             label="Nota (opcional)"

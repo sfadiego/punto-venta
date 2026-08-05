@@ -4,27 +4,13 @@ import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { useTenantList } from "./useTenantList";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
-import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 import { ITenant } from "@/models/ITenant";
 import { ActiveUsersWidget } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersWidget";
 import { ActiveUsersBadge } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersBadge";
 import { InactiveTenantsWidget } from "@/components/SuperAdmin/Tenants/Activity/InactiveTenantsWidget";
 import { InactivityBadge } from "@/components/SuperAdmin/Tenants/Activity/InactivityBadge";
-
-const FILTERS: { label: string; value: TenantStatusEnum }[] = [
-    { label: "Todos",      value: TenantStatusEnum.All },
-    { label: "Activos",  value: TenantStatusEnum.Active },
-    { label: "Inactivos",  value: TenantStatusEnum.Inactive },
-    { label: "Eliminados", value: TenantStatusEnum.Deleted },
-];
-
-const DEMO_FILTERS: { label: string; value: TenantDemoFilterEnum }[] = [
-    { label: "Demo", value: TenantDemoFilterEnum.Demo },
-];
-
-const STATUS_PREFIX = "status:";
-const DEMO_PREFIX = "demo:";
+import { SelectTenantFilter } from "./partials/SelectTenantFilter";
 
 const BUSINESS_TYPE_SHORT_LABELS: Record<BusinessTypeEnum, string> = {
     [BusinessTypeEnum.Restaurante]:  "Restaurante",
@@ -84,27 +70,14 @@ export default function TenantListPage() {
                         />
                     </div>
 
-                    <select
-                        value={demoFilter !== TenantDemoFilterEnum.All ? `${DEMO_PREFIX}${demoFilter}` : `${STATUS_PREFIX}${status}`}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            if (value.startsWith(DEMO_PREFIX)) {
-                                setDemoFilter(value.slice(DEMO_PREFIX.length) as TenantDemoFilterEnum);
-                                setStatus(TenantStatusEnum.All);
-                            } else {
-                                setStatus(value.slice(STATUS_PREFIX.length) as TenantStatusEnum);
-                                setDemoFilter(TenantDemoFilterEnum.All);
-                            }
-                        }}
-                        className="px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700"
-                    >
-                        {FILTERS.map((f) => (
-                            <option key={f.value} value={`${STATUS_PREFIX}${f.value}`}>{f.label}</option>
-                        ))}
-                        {DEMO_FILTERS.map((f) => (
-                            <option key={f.value} value={`${DEMO_PREFIX}${f.value}`}>{f.label}</option>
-                        ))}
-                    </select>
+                    <div className="w-full sm:w-52">
+                        <SelectTenantFilter
+                            status={status}
+                            demoFilter={demoFilter}
+                            onStatusChange={setStatus}
+                            onDemoFilterChange={setDemoFilter}
+                        />
+                    </div>
                 </div>
 
                 {isLoading ? (

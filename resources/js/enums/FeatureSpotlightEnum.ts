@@ -14,4 +14,7 @@ export enum FeatureSpotlightKey {
     OrderListSection = "order_list_section",
     TicketSection = "ticket_section",
     FilterSalesByDateMonth = "filter_sales_by_date_month",
+    ReadonlyMenuSection = "readonly_menu_section",
+    ProvidersNavItem = "providers_nav_item",
+    ProvidersSettingsSection = "providers_settings_section",
 }

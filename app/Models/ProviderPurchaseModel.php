@@ -17,6 +17,8 @@ class ProviderPurchaseModel extends Model
 
     const AMOUNT = 'amount';
 
+    const IS_CREDIT = 'is_credit';
+
     const CREATED_BY = 'created_by';
 
     const NOTE = 'note';
@@ -26,6 +28,7 @@ class ProviderPurchaseModel extends Model
     protected $fillable = [
         self::PROVIDER_ID,
         self::AMOUNT,
+        self::IS_CREDIT,
         self::CREATED_BY,
         self::NOTE,
         self::TENANT_ID,
@@ -33,6 +36,7 @@ class ProviderPurchaseModel extends Model
 
     protected $casts = [
         self::AMOUNT => 'decimal:2',
+        self::IS_CREDIT => 'boolean',
     ];
 
     public function provider(): BelongsTo

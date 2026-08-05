@@ -6,6 +6,7 @@ import { PrinterSection } from "./partials/Printer/PrinterSection";
 import { DeliverySection } from "./partials/Delivery/DeliverySection";
 import { ScaleSection } from "./partials/Scale/ScaleSection";
 import { MenuSection } from "./partials/Menu/MenuSection";
+import { ReadonlyMenuQrSection } from "./partials/Menu/ReadonlyMenuQrSection";
 import { ProvidersSection } from "./partials/Purchases/ProvidersSection";
 import { RolesPermissionsSection } from "./partials/RolesPermissions/RolesPermissionsSection";
 import { AdminNav } from "./partials/AdminNav";
@@ -82,8 +83,27 @@ function AdminPage() {
                                 <MenuSection config={config} />
                             </FeatureSpotlight>
                         </div>
+                        <div id="menu-readonly">
+                            <FeatureSpotlight
+                                featureKey={FeatureSpotlightKey.ReadonlyMenuSection}
+                                title="Menú de solo lectura"
+                                description="Descarga un código QR para que tus clientes vean el menú sin poder hacer pedidos, ideal para imprimir y colocar en mesas."
+                                variant="block"
+                                placement="top-start"
+                            >
+                                <ReadonlyMenuQrSection config={config} />
+                            </FeatureSpotlight>
+                        </div>
                         <div id="proveedores">
-                            <ProvidersSection config={config} />
+                            <FeatureSpotlight
+                                featureKey={FeatureSpotlightKey.ProvidersSettingsSection}
+                                title="Sección de proveedores"
+                                description="Activa o desactiva el registro de proveedores y compras para tu negocio."
+                                variant="block"
+                                placement="top-start"
+                            >
+                                <ProvidersSection config={config} />
+                            </FeatureSpotlight>
                         </div>
                         <div id="permisos">
                             <FeatureSpotlight

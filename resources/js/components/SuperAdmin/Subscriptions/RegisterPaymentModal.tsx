@@ -1,7 +1,7 @@
 import { X, Loader, CreditCard, CalendarDays } from "lucide-react";
 import { ITenantWithSubscription } from "@/models/ISubscription";
-import { SubscriptionPlanEnum, PLAN_LABELS } from "@/enums/SubscriptionPlanEnum";
 import { useRegisterPaymentModal } from "./useRegisterPaymentModal";
+import { SelectSubscriptionPlan } from "./SelectSubscriptionPlan";
 
 interface RegisterPaymentModalProps {
     tenant: ITenantWithSubscription | null;
@@ -30,19 +30,7 @@ export const RegisterPaymentModal = ({ tenant, onClose }: RegisterPaymentModalPr
                 </div>
 
                 <form onSubmit={formik.handleSubmit} className="px-6 py-5 space-y-4">
-                    <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1.5">Plan</label>
-                        <select
-                            name="plan"
-                            value={formik.values.plan}
-                            onChange={(e) => formik.setFieldValue("plan", e.target.value)}
-                            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
-                        >
-                            {Object.values(SubscriptionPlanEnum).map((p) => (
-                                <option key={p} value={p}>{PLAN_LABELS[p]}</option>
-                            ))}
-                        </select>
-                    </div>
+                    <SelectSubscriptionPlan name="plan" label="Plan" formik={formik} />
 
                     <div>
                         <label className="block text-xs font-medium text-slate-600 mb-1.5">Fecha de inicio</label>

@@ -2,7 +2,12 @@ import { useState } from "react";
 import QRCode from "qrcode";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 
-export const useQrDownload = (menuUrl: string | null, businessName: string) => {
+export const useQrDownload = (
+    menuUrl: string | null,
+    businessName: string,
+    caption: string = "Escanea para ver el menú",
+    filenamePrefix: string = "qr-menu",
+) => {
     const [isGenerating, setIsGenerating] = useState(false);
 
     const downloadQr = async () => {
@@ -37,10 +42,10 @@ export const useQrDownload = (menuUrl: string | null, businessName: string) => {
 
             ctx.fillStyle = "#78716c";
             ctx.font = "13px sans-serif";
-            ctx.fillText("Escanea para ver el menú", size / 2, size + 52);
+            ctx.fillText(caption, size / 2, size + 52);
 
             const link = document.createElement("a");
-            link.download = `qr-menu-${businessName.toLowerCase().replace(/\s+/g, "-")}.png`;
+            link.download = `${filenamePrefix}-${businessName.toLowerCase().replace(/\s+/g, "-")}.png`;
             link.href = output.toDataURL("image/png");
             link.click();
         } catch (error) {

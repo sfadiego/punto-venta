@@ -13,6 +13,7 @@ import { useProviderPurchases, useStoreProviderPurchase } from "@/services/usePr
 
 export type ProviderPurchaseForm = {
     amount: string;
+    is_credit: boolean;
     note: string;
 };
 
@@ -58,12 +59,13 @@ export const useProviderDetailPage = (providerId: number) => {
     };
 
     const purchaseFormik = useFormik<ProviderPurchaseForm>({
-        initialValues: { amount: "", note: "" },
+        initialValues: { amount: "", is_credit: false, note: "" },
         validationSchema: purchaseSchema,
         onSubmit: async (values, helpers) => {
             try {
                 await purchaseMutation.mutateAsync({
                     amount: Number(values.amount),
+                    is_credit: values.is_credit,
                     note: values.note.trim() || undefined,
                 });
                 invalidatePurchases();

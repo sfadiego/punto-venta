@@ -4,23 +4,7 @@ import { SubscriptionTable } from "@/components/SuperAdmin/Subscriptions/Subscri
 import { RegisterPaymentModal } from "@/components/SuperAdmin/Subscriptions/RegisterPaymentModal";
 import { PaymentHistoryModal } from "@/components/SuperAdmin/Subscriptions/PaymentHistoryModal";
 import { useSubscriptionsPage } from "./useSubscriptionsPage";
-import { SubscriptionStatusEnum } from "@/enums/SubscriptionStatusEnum";
-import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
-
-const FILTERS = [
-    { label: "Todos",           value: "" },
-    { label: "Activos",         value: SubscriptionStatusEnum.Active },
-    { label: "Vencidos",        value: SubscriptionStatusEnum.Expired },
-    { label: "Período de gracia", value: SubscriptionStatusEnum.Grace },
-    { label: "Sin suscripción", value: SubscriptionStatusEnum.Pending },
-];
-
-const DEMO_FILTERS: { label: string; value: TenantDemoFilterEnum }[] = [
-    { label: "Demo", value: TenantDemoFilterEnum.Demo },
-];
-
-const STATUS_PREFIX = "status:";
-const DEMO_PREFIX = "demo:";
+import { SelectSubscriptionFilter } from "./partials/SelectSubscriptionFilter";
 
 export default function SubscriptionsPage() {
     const {
@@ -78,27 +62,14 @@ export default function SubscriptionsPage() {
                 {/* Filtro */}
                 <div className="flex items-center gap-3 mb-4">
                     <CreditCard size={16} className="text-slate-400" />
-                    <select
-                        value={demoFilter !== TenantDemoFilterEnum.All ? `${DEMO_PREFIX}${demoFilter}` : `${STATUS_PREFIX}${statusFilter}`}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            if (value.startsWith(DEMO_PREFIX)) {
-                                setDemoFilter(value.slice(DEMO_PREFIX.length) as TenantDemoFilterEnum);
-                                setStatusFilter("");
-                            } else {
-                                setStatusFilter(value.slice(STATUS_PREFIX.length) as SubscriptionStatusEnum | "");
-                                setDemoFilter(TenantDemoFilterEnum.All);
-                            }
-                        }}
-                        className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700"
-                    >
-                        {FILTERS.map((f) => (
-                            <option key={f.value} value={`${STATUS_PREFIX}${f.value}`}>{f.label}</option>
-                        ))}
-                        {DEMO_FILTERS.map((f) => (
-                            <option key={f.value} value={`${DEMO_PREFIX}${f.value}`}>{f.label}</option>
-                        ))}
-                    </select>
+                    <div className="w-52">
+                        <SelectSubscriptionFilter
+                            statusFilter={statusFilter}
+                            demoFilter={demoFilter}
+                            onStatusFilterChange={setStatusFilter}
+                            onDemoFilterChange={setDemoFilter}
+                        />
+                    </div>
                     <span className="text-xs text-slate-400">{filtered.length} cliente{filtered.length !== 1 ? "s" : ""}</span>
                 </div>
 

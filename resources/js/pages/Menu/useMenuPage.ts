@@ -1,10 +1,12 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useGetMenuBusiness, useInfiniteMenuProducts } from "@/services/useMenuService";
 import { useCart } from "./useCart";
 
 export const useMenuPage = () => {
     const { slug = "" } = useParams<{ slug: string }>();
+    const [searchParams] = useSearchParams();
+    const readonly = searchParams.get("readonly") === "true";
 
     const { data: business, isLoading: loadingBusiness } = useGetMenuBusiness(slug);
 
@@ -91,6 +93,7 @@ export const useMenuPage = () => {
 
     return {
         slug,
+        readonly,
         business,
         isLoading: loadingBusiness || loadingProducts,
         categories: allCategories,

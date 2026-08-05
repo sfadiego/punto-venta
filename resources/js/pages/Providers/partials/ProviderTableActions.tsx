@@ -1,14 +1,6 @@
-import { Eye, Pencil, Trash2, Loader } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
-import Swal from "sweetalert2";
-import { toast } from "react-toastify";
+import { Eye, Pencil, Trash2, Loader, ToggleLeft, ToggleRight } from "lucide-react";
 import { IProvider } from "@/models/IProvider";
-import { ApiRoutes } from "@/enums/ApiRoutesEnum";
-import { AdminRoutes } from "@/enums/RoutesEnum";
-import { RoleEnum } from "@/enums/RoleEnum";
-import { useDeleteProvider } from "@/services/useProvidersService";
-import { usePermissions } from "@/hooks/usePermissions";
+import { useProviderTableActions } from "./useProviderTableActions";
 
 interface ProviderTableActionsProps {
     provider: IProvider;
@@ -16,35 +8,19 @@ interface ProviderTableActionsProps {
 }
 
 export const ProviderTableActions = ({ provider, onEdit }: ProviderTableActionsProps) => {
-    const navigate = useNavigate();
-    const queryClient = useQueryClient();
-    const { hasRole } = usePermissions();
-    const isAdmin = hasRole(RoleEnum.Admin);
-    const { mutateAsync: deleteProvider, isPending: isDeleting } = useDeleteProvider(provider.id);
-
-    const handleDelete = async () => {
-        const result = await Swal.fire({
-            title: "¿Eliminar proveedor?",
-            text: `"${provider.name}" se eliminará. Su historial de compras se conserva.`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#ef4444",
-            cancelButtonColor: "#78716c",
-            cancelButtonText: "Cancelar",
-            confirmButtonText: "Sí, eliminar",
-            reverseButtons: true,
-        });
-        if (!result.isConfirmed) return;
-        await deleteProvider({});
-        queryClient.invalidateQueries({ queryKey: [ApiRoutes.Provider] });
-        queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Provider}/list`] });
-        toast.success("Proveedor eliminado");
-    };
+    const {
+        isAdmin,
+        isDeleting,
+        isToggling,
+        goToDetail,
+        handleToggleActive,
+        handleDelete,
+    } = useProviderTableActions(provider);
 
     return (
         <div className="flex items-center justify-center gap-1">
             <button
-                onClick={() => navigate(AdminRoutes.ProviderDetail.replace(":id", String(provider.id)))}
+                onClick={goToDetail}
                 title="Ver detalle"
                 className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-200 transition-all"
             >
@@ -57,6 +33,19 @@ export const ProviderTableActions = ({ provider, onEdit }: ProviderTableActionsP
                     className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-all"
                 >
                     <Pencil size={20} />
+                </button>
+            )}
+            {isAdmin && (
+                <button
+                    onClick={handleToggleActive}
+                    disabled={isToggling}
+                    title={provider.active ? "Ocultar proveedor" : "Mostrar proveedor"}
+                    className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 border border-transparent hover:border-stone-200 transition-all disabled:opacity-50"
+                >
+                    {isToggling
+                        ? <Loader size={20} className="animate-spin text-stone-500" />
+                        : provider.active ? <ToggleRight size={20} className="text-green-600" /> : <ToggleLeft size={20} />
+                    }
                 </button>
             )}
             {isAdmin && (

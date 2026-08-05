@@ -1,14 +1,9 @@
 import { X, Building2, Mail, Phone, Tag, Loader } from "lucide-react";
-import { Select, SelectOption } from "@/components/ui/form/Select";
 import { Textarea } from "@/components/ui/form/textarea";
 import { IDemoRequest, IUpdateDemoRequestPayload } from "@/models/IDemoRequest";
 import { BUSINESS_NICHE_LABELS } from "@/enums/BusinessNicheEnum";
-import { DEMO_REQUEST_STATUS_LABELS } from "@/enums/DemoRequestStatusEnum";
 import { useDemoRequestDetailModal } from "./useDemoRequestDetailModal";
-
-const STATUS_OPTIONS: SelectOption[] = Object.entries(DEMO_REQUEST_STATUS_LABELS).map(
-    ([value, label]) => ({ value, label }),
-);
+import { SelectDemoRequestStatus } from "./SelectDemoRequestStatus";
 
 const Field = ({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) => (
     <div className="flex items-center gap-2.5 text-sm text-slate-700">
@@ -59,12 +54,7 @@ export const DemoRequestDetailModal = ({
                         </Field>
                     </div>
 
-                    <Select
-                        name="status"
-                        label="Estatus"
-                        options={STATUS_OPTIONS}
-                        formik={formik}
-                    />
+                    <SelectDemoRequestStatus name="status" formik={formik} />
 
                     <Textarea
                         name="notes"

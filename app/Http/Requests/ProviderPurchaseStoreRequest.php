@@ -15,6 +15,7 @@ class ProviderPurchaseStoreRequest extends FormRequest
     {
         return [
             'amount' => 'required|numeric|min:0.01',
+            'is_credit' => 'nullable|boolean',
             'note' => 'nullable|string|max:500',
         ];
     }

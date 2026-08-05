@@ -51,10 +51,18 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
             {(can("viewUsers") || can("viewAdmin") || can("viewCustomers") || providersEnabled) && (
                 <div className="pt-3 border-t border-white/10 mt-3 space-y-0.5">
                     {providersEnabled && (
-                        <SidebarNavItem
-                            item={{ label: "Proveedores", icon: Truck, path: "/providers", permission: "viewProviders" }}
-                            onClick={onItemClick}
-                        />
+                        <FeatureSpotlight
+                            featureKey={FeatureSpotlightKey.ProvidersNavItem}
+                            title="Sección de Proveedores"
+                            description="Descubre la nueva sección de proveedores, donde podrás gestionar y visualizar el registro de tus proveedores y compras."
+                            variant="block"
+                            placement="right-start"
+                        >
+                            <SidebarNavItem
+                                item={{ label: "Proveedores", icon: Truck, path: "/providers", permission: "viewProviders" }}
+                                onClick={onItemClick}
+                            />
+                        </FeatureSpotlight>
                     )}
                     {can("viewCustomers") && (
                         <FeatureSpotlight
