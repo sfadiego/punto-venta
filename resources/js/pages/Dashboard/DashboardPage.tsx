@@ -80,7 +80,7 @@ export default function DashboardPage() {
                                         className="flex items-center justify-center gap-2 bg-stone-100 hover:bg-red-100 text-stone-600 hover:text-red-600 font-medium px-3 sm:px-4 py-2.5 rounded-xl transition-colors text-sm w-full sm:w-auto"
                                     >
                                         <Lock size={16} />
-                                        <span className="hidden md:hidden lg:inline">Cerrar caja</span>
+                                        <span className="hidden md:inline lg:inline">Cerrar caja</span>
                                     </button>
                                 )}
                             </div>
