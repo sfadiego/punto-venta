@@ -1,13 +1,10 @@
 import {
     Coffee,
     Utensils,
-    UtensilsCrossed,
-    ShoppingBag,
     ShoppingCart,
     ChefHat,
     Pizza,
     Sandwich,
-    Package,
     type LucideIcon,
     Beef,
     Beer,
