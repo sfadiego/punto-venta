@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { superAdminRoutes } from "./modules/superadmin.routes";
 import AppLayout from "@/layouts/AppLayout";
 import PrivateRoute from "@/components/PrivateRoute/PrivateRoute";
+import { ChunkErrorElement } from "@/components/ErrorBoundary/ChunkErrorElement";
 import IRoute from "@/intefaces/IRoutes";
 
 const AuthPage         = lazy(() => import("@/pages/Auth/AuthPage"));
@@ -56,58 +57,65 @@ const privateRoutes: IRoute[] = [
 ];
 
 export const router = createBrowserRouter([
+    // Ruta raíz sin path — su único fin es proveer un errorElement común a todas las rutas
+    // hijas (incluye chunks JS obsoletos tras un deploy, ver ChunkErrorElement).
     {
-        path: "/auth",
-        element: (
-            <Suspense fallback={<FullPageLoader />}>
-                <AuthPage />
-            </Suspense>
-        ),
-    },
-    {
-        path: "/:slug/auth",
-        element: (
-            <Suspense fallback={<FullPageLoader />}>
-                <TenantAuthPage />
-            </Suspense>
-        ),
-    },
-    {
-        path: "/:slug/menu",
-        element: (
-            <Suspense fallback={<FullPageLoader />}>
-                <MenuPage />
-            </Suspense>
-        ),
-    },
-    // Layout route — AppLayout monta una sola vez y persiste entre rutas
-    {
-        element: <AppLayout />,
-        children: privateRoutes.map((route) => ({
-            path: route.path,
-            element: (
-                <PrivateRoute
-                    element={
-                        <Suspense fallback={<PageLoader />}>
-                            {route.element}
-                        </Suspense>
-                    }
-                    route={route}
-                />
-            ),
-        })),
-    },
-    ...superAdminRoutes,
-    {
-        path: "/forbidden",
-        element: (
-            <Suspense fallback={<FullPageLoader />}>
-                <ForbiddenPage />
-            </Suspense>
-        ),
-    },
-    {
-        path: "*",
-        element: <Navigate to="/" replace />,
+        errorElement: <ChunkErrorElement />,
+        children: [
+            {
+                path: "/auth",
+                element: (
+                    <Suspense fallback={<FullPageLoader />}>
+                        <AuthPage />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "/:slug/auth",
+                element: (
+                    <Suspense fallback={<FullPageLoader />}>
+                        <TenantAuthPage />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "/:slug/menu",
+                element: (
+                    <Suspense fallback={<FullPageLoader />}>
+                        <MenuPage />
+                    </Suspense>
+                ),
+            },
+            // Layout route — AppLayout monta una sola vez y persiste entre rutas
+            {
+                element: <AppLayout />,
+                children: privateRoutes.map((route) => ({
+                    path: route.path,
+                    element: (
+                        <PrivateRoute
+                            element={
+                                <Suspense fallback={<PageLoader />}>
+                                    {route.element}
+                                </Suspense>
+                            }
+                            route={route}
+                        />
+                    ),
+                })),
+            },
+            ...superAdminRoutes,
+            {
+                path: "/forbidden",
+                element: (
+                    <Suspense fallback={<FullPageLoader />}>
+                        <ForbiddenPage />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "*",
+                element: <Navigate to="/" replace />,
+            },
+        ],
     },
 ]);
