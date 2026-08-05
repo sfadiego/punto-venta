@@ -65,14 +65,16 @@ export const RecentSales = ({ onSelect }: RecentSalesProps) => {
                                             }
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="flex items-center gap-1.5 text-sm font-semibold text-stone-900 truncate">
-                                                {sale.nombre_pedido ?? `Pedido #${sale.id}`}
+                                            <div className="flex items-center gap-1.5 min-w-0">
+                                                <p className="text-xs sm:text-sm font-semibold text-stone-900 truncate">
+                                                    {sale.nombre_pedido ?? `Pedido #${sale.id}`}
+                                                </p>
                                                 {sale.is_delivery && (
                                                     <span title="Domicilio" className="shrink-0">
                                                         <Bike size={14} className="text-blue-500" />
                                                     </span>
                                                 )}
-                                            </p>
+                                            </div>
                                             <p className="text-xs text-stone-400 whitespace-nowrap">
                                                 {formatOrderTime(sale.created_at)}
                                             </p>

@@ -20,7 +20,7 @@ export const ExpensesButton = ({ className }: ExpensesButtonProps) => {
                 className={className ?? "flex items-center gap-2 bg-stone-100 hover:bg-red-100 text-stone-600 hover:text-red-600 font-medium px-4 py-2.5 rounded-xl transition-colors text-sm"}
             >
                 <ReceiptText size={16} />
-                Gastos Del Dia
+                <span className="hidden md:hidden lg:inline">Gastos Del Dia</span>
             </button>
 
             <ExpensesModal
