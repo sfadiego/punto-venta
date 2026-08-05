@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { isRouteErrorResponse, useRouteError } from "react-router-dom";
 
 const RELOAD_FLAG_KEY = "chunk-error-reload-at";
@@ -20,14 +21,18 @@ export const ChunkErrorElement = () => {
     const error = useRouteError();
     const isChunkError = CHUNK_ERROR_PATTERN.test(getErrorMessage(error));
 
-    if (isChunkError) {
+    useEffect(() => {
+        if (!isChunkError) return;
+
         const lastReloadAt = Number(sessionStorage.getItem(RELOAD_FLAG_KEY) ?? 0);
         const now = Date.now();
         if (now - lastReloadAt >= RELOAD_COOLDOWN_MS) {
             sessionStorage.setItem(RELOAD_FLAG_KEY, String(now));
             window.location.reload();
         }
+    }, [isChunkError]);
 
+    if (isChunkError) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-stone-50">
                 <div className="flex flex-col items-center gap-3 text-stone-500">
