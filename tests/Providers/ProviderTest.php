@@ -216,6 +216,24 @@ class ProviderTest extends TestCase
             ->assertJsonPath('status', 'OK');
     }
 
+    // Regresión: a diferencia de Product (ver ProductTest), el update de Provider sobrescribe
+    // siempre todos los campos con el valor recibido — sin el patrón has()-gated que causó que
+    // vaciar la descripción de un producto no se guardara. Este test protege ese comportamiento.
+    public function test_actualiza_proveedor_permite_vaciar_las_notas(): void
+    {
+        $provider = $this->crearProveedor(['notes' => 'Nota original']);
+
+        $this->putJson("/api/provider/{$provider->id}", [
+            'name' => $provider->name,
+            'phone' => $provider->phone,
+            'notes' => '',
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.notes', null);
+
+        $this->assertDatabaseHas('providers', ['id' => $provider->id, 'notes' => null]);
+    }
+
     // ── Toggle active ────────────────────────────────────────
 
     public function test_alterna_proveedor_activo(): void

@@ -112,4 +112,69 @@ class ProductTest extends TestCase
         $this->assertEquals(3, $response->json('per_page'));
         $this->assertEquals(ProductModel::count(), $response->json('total'));
     }
+
+    // ── Update ───────────────────────────────────────────────
+
+    public function test_actualiza_producto(): void
+    {
+        $product = ProductModel::factory()->create();
+
+        $this->putJson("/api/product/{$product->id}", [
+            'nombre' => 'Producto Actualizado',
+            'precio' => 99.50,
+            'descripcion' => 'Nueva descripción',
+            'categoria_id' => $product->categoria_id,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonPath('data.nombre', 'Producto Actualizado')
+            ->assertJsonPath('data.descripcion', 'Nueva descripción');
+
+        $this->assertDatabaseHas('product', [
+            'id' => $product->id,
+            'nombre' => 'Producto Actualizado',
+            'descripcion' => 'Nueva descripción',
+        ]);
+    }
+
+    // Regresión: Laravel convierte "" a null vía el middleware global
+    // ConvertEmptyStringsToNull antes de llegar al controller. El controller usaba
+    // `$param->has('descripcion') ? $param->descripcion : null` para distinguir "campo no
+    // enviado" de "no tocar la columna" — pero al vaciar el campo, ambos casos colapsaban en
+    // null y la descripción vieja nunca se sobrescribía. Ver ProductController::update().
+    public function test_actualiza_producto_permite_vaciar_la_descripcion(): void
+    {
+        $product = ProductModel::factory()->create(['descripcion' => 'Descripción original']);
+
+        $this->putJson("/api/product/{$product->id}", [
+            'nombre' => $product->nombre,
+            'precio' => $product->precio,
+            'descripcion' => '',
+            'categoria_id' => $product->categoria_id,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.descripcion', '');
+
+        $this->assertDatabaseHas('product', [
+            'id' => $product->id,
+            'descripcion' => '',
+        ]);
+    }
+
+    public function test_actualiza_producto_sin_descripcion_no_la_modifica(): void
+    {
+        $product = ProductModel::factory()->create(['descripcion' => 'Descripción que debe permanecer']);
+
+        $this->putJson("/api/product/{$product->id}", [
+            'nombre' => $product->nombre,
+            'precio' => $product->precio,
+            'categoria_id' => $product->categoria_id,
+        ], $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertDatabaseHas('product', [
+            'id' => $product->id,
+            'descripcion' => 'Descripción que debe permanecer',
+        ]);
+    }
 }

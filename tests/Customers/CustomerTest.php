@@ -126,6 +126,24 @@ class CustomerTest extends TestCase
         $this->assertDatabaseHas('customers', ['id' => $customer->id, 'name' => 'Nombre Actualizado']);
     }
 
+    // Regresión: a diferencia de Product (ver ProductTest), el update de Customer sobrescribe
+    // siempre todos los campos con el valor recibido — sin el patrón has()-gated que causó que
+    // vaciar la descripción de un producto no se guardara. Este test protege ese comportamiento.
+    public function test_actualiza_cliente_permite_vaciar_las_notas(): void
+    {
+        $customer = $this->crearCliente(['notes' => 'Nota original']);
+
+        $this->putJson("/api/customer/{$customer->id}", [
+            'name' => $customer->name,
+            'phone' => $customer->phone,
+            'notes' => '',
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.notes', null);
+
+        $this->assertDatabaseHas('customers', ['id' => $customer->id, 'notes' => null]);
+    }
+
     // ── Toggle credit ────────────────────────────────────────
 
     public function test_alterna_permite_credito(): void
