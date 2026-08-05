@@ -54,7 +54,7 @@ function MenuPage() {
         return <OrderingDisabled business={business} />;
     }
 
-    if (!business.has_active_session) {
+    if (!readonly && !business.has_active_session) {
         return <BusinessClosed business={business} />;
     }
 
