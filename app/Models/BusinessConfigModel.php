@@ -63,6 +63,8 @@ class BusinessConfigModel extends Model
 
     const PURCHASES_ENABLED = 'purchases_enabled';
 
+    const EMPLOYEES_ENABLED = 'employees_enabled';
+
     const LOGO_ICON = 'logo_icon';
 
     const TIPO_NEGOCIO = 'tipo_negocio';
@@ -86,6 +88,7 @@ class BusinessConfigModel extends Model
         self::BLUETOOTH_PRINTING_ENABLED => 'boolean',
         self::MENU_ENABLED => 'boolean',
         self::PURCHASES_ENABLED => 'boolean',
+        self::EMPLOYEES_ENABLED => 'boolean',
         self::TIPO_NEGOCIO => BusinessTypeEnum::class,
         self::SUBSCRIPTION_EXPIRES_AT => 'date',
         self::SUBSCRIPTION_AMOUNT => 'float',
@@ -115,6 +118,7 @@ class BusinessConfigModel extends Model
         self::BLUETOOTH_PRINTING_ENABLED,
         self::MENU_ENABLED,
         self::PURCHASES_ENABLED,
+        self::EMPLOYEES_ENABLED,
         self::LOGO_ICON,
         self::TIPO_NEGOCIO,
         self::COSTO_DOMICILIO_DEFAULT,

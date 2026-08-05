@@ -33,6 +33,7 @@ class BusinessConfigUpdateRequest extends FormRequest
             'costo_domicilio_default' => 'nullable|numeric|min:0',
             'menu_enabled' => 'nullable|boolean',
             'purchases_enabled' => 'nullable|boolean',
+            'employees_enabled' => 'nullable|boolean',
         ];
     }
 }

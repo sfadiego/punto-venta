@@ -28,6 +28,7 @@ const PERMISSION_LABELS: Record<Action, string> = {
     viewUsers: "Ver usuarios",
     viewCustomers: "Ver clientes",
     viewProviders: "Ver proveedores",
+    viewEmployees: "Ver empleados",
     registerExpense: "Registrar gastos",
 };
 

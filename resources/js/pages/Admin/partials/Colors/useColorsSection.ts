@@ -62,6 +62,7 @@ export const useColorsSection = (config: IBusinessConfig | undefined) => {
                 printer_enabled:           config?.printer_enabled ?? false,
                 menu_enabled:              config?.menu_enabled ?? false,
                 purchases_enabled:         config?.purchases_enabled ?? false,
+                employees_enabled:         config?.employees_enabled ?? false,
             },
             {
                 onSuccess: () => toast.success("Configuración guardada"),
@@ -105,6 +106,7 @@ export const useColorsSection = (config: IBusinessConfig | undefined) => {
                 printer_enabled:           config?.printer_enabled ?? false,
                 menu_enabled:              config?.menu_enabled ?? false,
                 purchases_enabled:         config?.purchases_enabled ?? false,
+                employees_enabled:         config?.employees_enabled ?? false,
             },
             {
                 onSuccess: () => toast.success("Colores restablecidos"),

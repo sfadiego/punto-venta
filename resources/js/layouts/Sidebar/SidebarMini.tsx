@@ -12,6 +12,7 @@ import {
     Users,
     HandCoins,
     Truck,
+    UserRound,
     LucideIcon,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -53,6 +54,7 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
     const { can: canAction } = usePermissions();
     const sellByWeight = features?.sell_by_weight === true;
     const providersEnabled = canAction("viewProviders") && config?.purchases_enabled === true;
+    const employeesEnabled = canAction("viewEmployees") && config?.employees_enabled === true;
 
     const logoUrl = config?.logo_path
         ? `${ApisEnum.BaseUrl}${ApiRoutes.Files}/${config.logo_path}`
@@ -126,7 +128,7 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
                         );
                     })}
 
-                {(canAction("viewCustomers") || canAction("viewUsers") || canAction("viewAdmin") || providersEnabled) && (
+                {(canAction("viewCustomers") || canAction("viewUsers") || canAction("viewAdmin") || providersEnabled || employeesEnabled) && (
                     <div className="mt-auto pt-3 w-full flex flex-col items-center gap-1 border-t border-white/10">
                         {providersEnabled && (
                             <MiniTooltipItem label="Proveedores" side="right">
@@ -146,6 +148,27 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
                                     aria-label="Proveedores"
                                 >
                                     <Truck size={18} />
+                                </NavLink>
+                            </MiniTooltipItem>
+                        )}
+                        {employeesEnabled && (
+                            <MiniTooltipItem label="Empleados" side="right">
+                                <NavLink
+                                    to="/employees"
+                                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+                                    style={({ isActive }) =>
+                                        isActive
+                                            ? {
+                                                  backgroundColor: "var(--color-primary)",
+                                                  color: "var(--color-font)",
+                                              }
+                                            : {
+                                                  color: "color-mix(in srgb, var(--color-font) 60%, transparent)",
+                                              }
+                                    }
+                                    aria-label="Empleados"
+                                >
+                                    <UserRound size={18} />
                                 </NavLink>
                             </MiniTooltipItem>
                         )}
