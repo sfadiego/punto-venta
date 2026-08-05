@@ -20,6 +20,8 @@ const FEATURE_LABELS: Record<FeatureSpotlightKey, string> = {
     [FeatureSpotlightKey.ReadonlyMenuSection]: "Sección de QR de menú de solo lectura",
     [FeatureSpotlightKey.ProvidersNavItem]: "Ítem de proveedores en el sidebar",
     [FeatureSpotlightKey.ProvidersSettingsSection]: "Sección de configuración de proveedores",
+    [FeatureSpotlightKey.EmployeesNavItem]: "Ítem de empleados en el sidebar",
+    [FeatureSpotlightKey.EmployeesSettingsSection]: "Sección de configuración de empleados",
 };
 
 interface TenantFeatureSpotlightsSectionProps {

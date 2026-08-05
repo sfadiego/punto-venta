@@ -9,6 +9,8 @@ export enum AdminRoutes {
     CustomerDetail = "/customers/:id",
     ProviderList = "/providers",
     ProviderDetail = "/providers/:id",
+    EmployeeList = "/employees",
+    EmployeeDetail = "/employees/:id",
     Statistics   = "/statistics",
     SaleList     = "/sales",
     Users        = "/users",

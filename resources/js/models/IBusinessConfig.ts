@@ -21,6 +21,7 @@ export interface IBusinessConfig {
     bluetooth_printing_enabled: boolean;
     menu_enabled: boolean;
     purchases_enabled: boolean;
+    employees_enabled: boolean;
     costo_domicilio_default: number;
     logo_icon: string | null;
     logo_upload_enabled: boolean;

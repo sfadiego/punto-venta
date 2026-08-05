@@ -22,3 +22,5 @@ yarn-error.log
 composer.lock
 pnpm-lock.yaml
 notes.txt
+
+/database/sql/

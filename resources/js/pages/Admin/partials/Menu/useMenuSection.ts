@@ -34,6 +34,7 @@ export const useMenuSection = (config: IBusinessConfig | undefined) => {
                 costo_domicilio_default: config.costo_domicilio_default,
                 menu_enabled:            !config.menu_enabled,
                 purchases_enabled:       config.purchases_enabled,
+                employees_enabled:       config.employees_enabled,
             });
             toast.success(
                 !config.menu_enabled

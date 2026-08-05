@@ -33,6 +33,7 @@ Route::middleware(['auth:sanctum', ResolveTenant::class, 'check.subscription', '
     require base_path('routes/modules/categories.php');
     require base_path('routes/modules/customers.php');
     require base_path('routes/modules/providers.php');
+    require base_path('routes/modules/employees.php');
     require base_path('routes/modules/orders.php');
     require base_path('routes/modules/products.php');
     require base_path('routes/modules/orderstatus.php');

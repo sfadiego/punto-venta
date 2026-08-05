@@ -1,4 +1,4 @@
-import { Users, Settings, HandCoins, Truck } from "lucide-react";
+import { Users, Settings, HandCoins, Truck, UserRound } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
@@ -17,6 +17,7 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
     const { data: config } = useGetBusinessConfig();
     const sellByWeight = features?.sell_by_weight === true;
     const providersEnabled = can("viewProviders") && config?.purchases_enabled === true;
+    const employeesEnabled = can("viewEmployees") && config?.employees_enabled === true;
 
     return (
         <nav className="flex-1 px-3 py-5 overflow-y-auto flex flex-col">
@@ -48,7 +49,7 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
                     })}
             </div>
 
-            {(can("viewUsers") || can("viewAdmin") || can("viewCustomers") || providersEnabled) && (
+            {(can("viewUsers") || can("viewAdmin") || can("viewCustomers") || providersEnabled || employeesEnabled) && (
                 <div className="pt-3 border-t border-white/10 mt-3 space-y-0.5">
                     {providersEnabled && (
                         <FeatureSpotlight
@@ -60,6 +61,20 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
                         >
                             <SidebarNavItem
                                 item={{ label: "Proveedores", icon: Truck, path: "/providers", permission: "viewProviders" }}
+                                onClick={onItemClick}
+                            />
+                        </FeatureSpotlight>
+                    )}
+                    {employeesEnabled && (
+                        <FeatureSpotlight
+                            featureKey={FeatureSpotlightKey.EmployeesNavItem}
+                            title="Sección de Empleados"
+                            description="Descubre la nueva sección de empleados, donde podrás gestionar y visualizar el registro de tu plantilla."
+                            variant="block"
+                            placement="right-start"
+                        >
+                            <SidebarNavItem
+                                item={{ label: "Empleados", icon: UserRound, path: "/employees", permission: "viewEmployees" }}
                                 onClick={onItemClick}
                             />
                         </FeatureSpotlight>

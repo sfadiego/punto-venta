@@ -22,4 +22,6 @@ enum FeatureSpotlightEnum: string
     case READONLY_MENU_SECTION = 'readonly_menu_section';
     case PROVIDERS_NAV_ITEM = 'providers_nav_item';
     case PROVIDERS_SETTINGS_SECTION = 'providers_settings_section';
+    case EMPLOYEES_NAV_ITEM = 'employees_nav_item';
+    case EMPLOYEES_SETTINGS_SECTION = 'employees_settings_section';
 }
