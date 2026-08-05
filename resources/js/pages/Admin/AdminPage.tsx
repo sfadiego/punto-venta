@@ -6,6 +6,7 @@ import { PrinterSection } from "./partials/Printer/PrinterSection";
 import { DeliverySection } from "./partials/Delivery/DeliverySection";
 import { ScaleSection } from "./partials/Scale/ScaleSection";
 import { MenuSection } from "./partials/Menu/MenuSection";
+import { ProvidersSection } from "./partials/Purchases/ProvidersSection";
 import { RolesPermissionsSection } from "./partials/RolesPermissions/RolesPermissionsSection";
 import { AdminNav } from "./partials/AdminNav";
 import { SubscriptionInfoSection } from "@/components/Admin/SubscriptionInfoSection";
@@ -80,6 +81,9 @@ function AdminPage() {
                             >
                                 <MenuSection config={config} />
                             </FeatureSpotlight>
+                        </div>
+                        <div id="proveedores">
+                            <ProvidersSection config={config} />
                         </div>
                         <div id="permisos">
                             <FeatureSpotlight

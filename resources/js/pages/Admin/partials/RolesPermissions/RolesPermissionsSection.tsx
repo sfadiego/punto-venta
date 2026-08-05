@@ -27,6 +27,7 @@ const PERMISSION_LABELS: Record<Action, string> = {
     managePendingOrders: "Gestionar órdenes pendientes",
     viewUsers: "Ver usuarios",
     viewCustomers: "Ver clientes",
+    viewProviders: "Ver proveedores",
     registerExpense: "Registrar gastos",
 };
 

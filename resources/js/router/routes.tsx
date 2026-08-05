@@ -15,6 +15,8 @@ const ProductsPage     = lazy(() => import("@/pages/Product/ProductsPage"));
 const CategoriesPage   = lazy(() => import("@/pages/Category/CategoriesPage"));
 const CustomersPage       = lazy(() => import("@/pages/Customers/CustomersPage"));
 const CustomerDetailPage  = lazy(() => import("@/pages/Customers/CustomerDetailPage"));
+const ProvidersPage       = lazy(() => import("@/pages/Providers/ProvidersPage"));
+const ProviderDetailPage  = lazy(() => import("@/pages/Providers/ProviderDetailPage"));
 const CloseSalesPage   = lazy(() => import("@/pages/Sales/partials/CloseSales/CloseSalesPage"));
 const SalesPage        = lazy(() => import("@/pages/Sales/SalesPage"));
 const StatisticsPage   = lazy(() => import("@/pages/Statistics/StatisticsPage"));
@@ -42,6 +44,8 @@ const privateRoutes: IRoute[] = [
     { path: "/categories",     element: <CategoriesPage />, private: true, permission: "viewCategories" },
     { path: "/customers",      element: <CustomersPage />,      private: true, permission: "viewCustomers" },
     { path: "/customers/:id",  element: <CustomerDetailPage />, private: true, permission: "viewCustomers" },
+    { path: "/providers",      element: <ProvidersPage />,      private: true, permission: "viewProviders" },
+    { path: "/providers/:id",  element: <ProviderDetailPage />, private: true, permission: "viewProviders" },
     { path: "/take-order/:id", element: <TakeOrderPage />,  private: true, permission: "takeOrder" },
     { path: "/close-sales",    element: <CloseSalesPage />, private: true, permission: "viewCloseSales" },
     { path: "/sales",          element: <SalesPage />,      private: true, permission: "viewSales" },

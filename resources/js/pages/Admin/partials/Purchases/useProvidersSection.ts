@@ -5,7 +5,7 @@ import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
-export const useMenuSection = (config: IBusinessConfig | undefined) => {
+export const useProvidersSection = (config: IBusinessConfig | undefined) => {
     const updateMutation = useUpdateBusinessConfig();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -32,16 +32,16 @@ export const useMenuSection = (config: IBusinessConfig | undefined) => {
                 paper_width:             config.paper_width,
                 printer_enabled:         config.printer_enabled,
                 costo_domicilio_default: config.costo_domicilio_default,
-                menu_enabled:            !config.menu_enabled,
-                purchases_enabled:       config.purchases_enabled,
+                menu_enabled:            config.menu_enabled,
+                purchases_enabled:       !config.purchases_enabled,
             });
             toast.success(
-                !config.menu_enabled
-                    ? "Pedidos en línea activados."
-                    : "Pedidos en línea desactivados.",
+                !config.purchases_enabled
+                    ? "Proveedores activados."
+                    : "Proveedores desactivados.",
             );
         } catch (error) {
-            logUnexpectedError(error, "useMenuSection.toggle");
+            logUnexpectedError(error, "useProvidersSection.toggle");
             toast.error(getUserFacingErrorMessage(error, "No se pudo guardar la configuración."));
         } finally {
             setIsSubmitting(false);

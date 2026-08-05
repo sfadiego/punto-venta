@@ -46,6 +46,7 @@ export const useDeliverySection = (config: IBusinessConfig | undefined) => {
                     costo_domicilio_default: values.costo_domicilio_default,
                     printer_enabled:         config.printer_enabled,
                     menu_enabled:            config.menu_enabled,
+                    purchases_enabled:            config.purchases_enabled,
                 });
                 toast.success("Configuración de domicilio guardada.");
             } catch (error) {
