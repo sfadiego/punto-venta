@@ -1,15 +1,15 @@
 import {
     Coffee,
     Utensils,
-    UtensilsCrossed,
-    ShoppingBag,
     ShoppingCart,
     ChefHat,
     Pizza,
     Sandwich,
-    Package,
     type LucideIcon,
     Beef,
+    Beer,
+    Store,
+    Hamburger,
 } from "lucide-react";
 
 export interface IconOption {
@@ -19,16 +19,16 @@ export interface IconOption {
 }
 
 export const BUSINESS_ICONS: IconOption[] = [
-    { name: "Beef",           label: "Carnes",          component: Beef },
-    { name: "Coffee",          label: "Café",        component: Coffee },
-    { name: "Utensils",        label: "Restaurante", component: Utensils },
-    { name: "UtensilsCrossed", label: "Comedor",     component: UtensilsCrossed },
-    { name: "ShoppingBag",     label: "Boutique",    component: ShoppingBag },
-    { name: "ShoppingCart",    label: "Mercado",     component: ShoppingCart },
-    { name: "ChefHat",         label: "Chef",        component: ChefHat },
-    { name: "Pizza",           label: "Pizzería",    component: Pizza },
-    { name: "Sandwich",        label: "Sandwich",    component: Sandwich },
-    { name: "Package",         label: "Paquetería",  component: Package },
+    { name: "Beef", label: "Carnes", component: Beef },
+    { name: "Coffee", label: "Café", component: Coffee },
+    { name: "Utensils", label: "Restaurante", component: Utensils },
+    { name: "Beer", label: "Bar", component: Beer },
+    { name: "Hamburger", label: "Hamburguesas", component: Hamburger },
+    { name: "ShoppingCart", label: "Mercado", component: ShoppingCart },
+    { name: "ChefHat", label: "Chef", component: ChefHat },
+    { name: "Pizza", label: "Pizzería", component: Pizza },
+    { name: "Sandwich", label: "Pastelería", component: Sandwich },
+    { name: "Store", label: "Mercado", component: Store },
 ];
 
 interface IconSelectorProps {
