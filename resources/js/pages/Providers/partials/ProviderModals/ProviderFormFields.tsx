@@ -10,7 +10,7 @@ interface ProviderFormFieldsProps {
 
 export const ProviderFormFields = ({ formik }: ProviderFormFieldsProps) => (
     <div className="space-y-4">
-        <Input name="name" label="Nombre" placeholder="Ej: Distribuidora El Buen Precio" maxLength={255} formik={formik} />
+        <Input name="name" label="Proveedor" placeholder="Ej: Distribuidora El Buen Precio" maxLength={255} formik={formik} />
         <Input
             name="phone"
             label="Teléfono"
