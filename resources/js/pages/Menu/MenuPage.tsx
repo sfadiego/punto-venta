@@ -12,6 +12,7 @@ import { OrderConfirmed } from "./partials/OrderConfirmed";
 function MenuPage() {
     const {
         slug,
+        readonly,
         business,
         isLoading,
         categories,
@@ -81,6 +82,7 @@ function MenuPage() {
                         hasNextPage={!!hasNextPage}
                         sentinelRef={sentinelRef}
                         totalQuantityOf={cart.totalQuantityOf}
+                        readonly={readonly}
                         onAdd={cart.add}
                         onRemove={cart.remove}
                         onAddWithWeight={cart.addWithWeight}
@@ -88,36 +90,40 @@ function MenuPage() {
                 </div>
             </main>
 
-            <CartButton
-                count={cart.count}
-                total={cart.total}
-                primaryColor={business.primary_color}
-                onClick={() => setCartOpen(true)}
-            />
+            {!readonly && (
+                <>
+                    <CartButton
+                        count={cart.count}
+                        total={cart.total}
+                        primaryColor={business.primary_color}
+                        onClick={() => setCartOpen(true)}
+                    />
 
-            <CartDrawer
-                open={cartOpen}
-                items={cart.items}
-                total={cart.total}
-                primaryColor={business.primary_color}
-                onClose={() => setCartOpen(false)}
-                onAdd={cart.add}
-                onRemove={cart.remove}
-                onDelete={cart.deleteItem}
-                onSetWeight={cart.setWeight}
-                onNote={cart.setNote}
-                onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }}
-            />
+                    <CartDrawer
+                        open={cartOpen}
+                        items={cart.items}
+                        total={cart.total}
+                        primaryColor={business.primary_color}
+                        onClose={() => setCartOpen(false)}
+                        onAdd={cart.add}
+                        onRemove={cart.remove}
+                        onDelete={cart.deleteItem}
+                        onSetWeight={cart.setWeight}
+                        onNote={cart.setNote}
+                        onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }}
+                    />
 
-            <CheckoutModal
-                open={checkoutOpen}
-                slug={slug}
-                items={cart.items}
-                deliveryCost={business.costo_domicilio_default}
-                primaryColor={business.primary_color}
-                onClose={() => setCheckoutOpen(false)}
-                onSuccess={handleOrderSuccess}
-            />
+                    <CheckoutModal
+                        open={checkoutOpen}
+                        slug={slug}
+                        items={cart.items}
+                        deliveryCost={business.costo_domicilio_default}
+                        primaryColor={business.primary_color}
+                        onClose={() => setCheckoutOpen(false)}
+                        onSuccess={handleOrderSuccess}
+                    />
+                </>
+            )}
         </div>
     );
 }

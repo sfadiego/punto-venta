@@ -17,6 +17,9 @@ const FEATURE_LABELS: Record<FeatureSpotlightKey, string> = {
     [FeatureSpotlightKey.TicketSection]: "Sección de tickets",
     [FeatureSpotlightKey.FilterSalesByDateMonth]: "Filtro de ventas por mes",
     [FeatureSpotlightKey.DeliverySectionButton]: "Botón de sección de domicilio",
+    [FeatureSpotlightKey.ReadonlyMenuSection]: "Sección de QR de menú de solo lectura",
+    [FeatureSpotlightKey.ProvidersNavItem]: "Ítem de proveedores en el sidebar",
+    [FeatureSpotlightKey.ProvidersSettingsSection]: "Sección de configuración de proveedores",
 };
 
 interface TenantFeatureSpotlightsSectionProps {

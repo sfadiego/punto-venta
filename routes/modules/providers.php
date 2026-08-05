@@ -5,8 +5,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('provider')->group(function () {
     Route::controller(ProvidersController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::get('/list', 'list');
+        Route::middleware('permission:viewProviders')->group(function () {
+            Route::get('/', 'index');
+            Route::get('/list', 'list');
+        });
 
         Route::middleware('role.admin')->group(function () {
             Route::post('', 'store');
