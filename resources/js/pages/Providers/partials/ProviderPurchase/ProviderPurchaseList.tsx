@@ -1,6 +1,6 @@
 import { IProviderPurchase } from "@/models/IProvider";
-import { formatCurrency } from "@/utils/formatCurrency";
-import { formatOrderTime } from "@/utils/dateUtils";
+import { formatCurrency, formatMoney } from "@/utils/formatCurrency";
+import { formatOrderDateTime } from "@/utils/dateUtils";
 
 interface ProviderPurchaseListProps {
     purchases?: IProviderPurchase[];
@@ -16,7 +16,7 @@ export const ProviderPurchaseList = ({ purchases, isLoading }: ProviderPurchaseL
                 <h2 className="text-sm font-semibold text-amber-900">Historial de compras</h2>
                 {!!purchases?.length && (
                     <span className="text-sm font-semibold text-amber-700 tabular-nums">
-                        {formatCurrency(total)}
+                        ${formatMoney(total)}
                     </span>
                 )}
             </div>
@@ -30,7 +30,7 @@ export const ProviderPurchaseList = ({ purchases, isLoading }: ProviderPurchaseL
                         <div key={purchase.id} className="flex items-center justify-between text-sm py-1.5 border-b border-stone-50 last:border-0">
                             <div className="min-w-0">
                                 <div className="flex items-center gap-1.5">
-                                    <p className="text-stone-700">{formatOrderTime(purchase.created_at)}</p>
+                                    <p className="text-stone-700">{formatOrderDateTime(purchase.created_at)}</p>
                                     {purchase.is_credit && (
                                         <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold shrink-0">
                                             Crédito
@@ -40,7 +40,7 @@ export const ProviderPurchaseList = ({ purchases, isLoading }: ProviderPurchaseL
                                 {purchase.note && <p className="text-xs text-stone-400 truncate">{purchase.note}</p>}
                             </div>
                             <span className="font-semibold text-stone-700 tabular-nums shrink-0 ml-2">
-                                {formatCurrency(Number(purchase.amount))}
+                                ${formatMoney(Number(purchase.amount))}
                             </span>
                         </div>
                     ))}
