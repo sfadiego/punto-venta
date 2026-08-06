@@ -30,7 +30,7 @@ class ProductUpdateRequest extends FormRequest
         return [
             ProductModel::NOMBRE => [
                 'required', 'string', 'max:70',
-                Rule::unique('product', 'nombre')->where('tenant_id', $tenantId)->ignore($productId),
+                Rule::unique('product', 'nombre')->where('tenant_id', $tenantId)->ignore($productId)->whereNull('deleted_at'),
             ],
             ProductModel::PRECIO => 'required|decimal:0,2',
             ProductModel::DESCRIPCION => 'nullable',

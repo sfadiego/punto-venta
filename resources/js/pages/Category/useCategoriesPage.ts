@@ -10,8 +10,24 @@ export const useCategoriesPage = () => {
     const [editingCategory, setEditingCategory] = useState<ICategory | null>(null);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
+    const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
-    const { data, isLoading, refetch } = useIndexCategoriesPaginated({ page, limit });
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(search), 400);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    const { data, isLoading, refetch } = useIndexCategoriesPaginated({
+        page,
+        limit,
+        search: debouncedSearch || undefined,
+    });
+
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        setPage(1);
+    };
 
     // If the current page is empty after a deletion and we're not on page 1, go back
     useEffect(() => {
@@ -50,6 +66,8 @@ export const useCategoriesPage = () => {
         refetch,
         setPage,
         setLimit,
+        search,
+        handleSearchChange,
         isModalOpen,
         editingCategory,
         openAddModal,
