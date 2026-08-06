@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Core\Data\IndexData;
+use App\Http\Requests\EmployeePayrollSummaryRequest;
 use App\Http\Requests\EmployeeStoreRequest;
 use App\Http\Requests\EmployeeUpdateRequest;
 use App\Models\EmployeeModel;
+use App\Services\EmployeePayrollService;
 use App\Services\EmployeeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Response;
@@ -25,6 +27,11 @@ class EmployeesController extends Controller
             ->get();
 
         return Response::success($employees);
+    }
+
+    public function payrollSummary(EmployeePayrollSummaryRequest $params, EmployeePayrollService $service): JsonResponse
+    {
+        return Response::success($service->summary($params->period()));
     }
 
     public function store(EmployeeStoreRequest $params): JsonResponse

@@ -1,12 +1,10 @@
-import { Bike, CreditCard, Globe, Image, Lock, Palette, Phone, Printer, ShieldCheck, Truck, UserRound } from "lucide-react";
+import { Bike, CreditCard, Globe, Image, Lock, Palette, Phone, Printer, ShieldCheck } from "lucide-react";
 
 const BASE_SECTIONS = [
     { id: "logo",         label: "Logo",             icon: <Image size={20} /> },
     { id: "colores",      label: "Colores",          icon: <Palette size={20} /> },
     { id: "negocio",      label: "Info del negocio", icon: <Phone size={20} /> },
     { id: "menu",         label: "Pedidos en línea", icon: <Globe size={20} /> },
-    { id: "proveedores",  label: "Proveedores",      icon: <Truck size={20} /> },
-    { id: "empleados",    label: "Empleados",        icon: <UserRound size={20} /> },
     { id: "permisos",     label: "Roles y permisos", icon: <ShieldCheck size={20} /> },
     { id: "suscripcion",  label: "Suscripción",      icon: <CreditCard size={20} /> },
 ];

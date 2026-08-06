@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EmployeeAbsenceController;
 use App\Http\Controllers\EmployeesController;
 use Illuminate\Support\Facades\Route;
 
@@ -8,6 +9,7 @@ Route::prefix('employee')->group(function () {
         Route::middleware('permission:viewEmployees')->group(function () {
             Route::get('/', 'index');
             Route::get('/list', 'list');
+            Route::get('/payroll-summary', 'payrollSummary');
         });
 
         Route::middleware('role.admin')->group(function () {
@@ -20,5 +22,11 @@ Route::prefix('employee')->group(function () {
                 Route::patch('toggle-active', 'toggleActive');
             });
         });
+    });
+
+    Route::middleware('role.admin')->prefix('{employee}/absence')->controller(EmployeeAbsenceController::class)->group(function () {
+        Route::get('', 'index');
+        Route::post('', 'store');
+        Route::delete('{absence}', 'delete');
     });
 });

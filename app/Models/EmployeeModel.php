@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EmployeeModel extends Model
@@ -42,4 +43,9 @@ class EmployeeModel extends Model
         self::SALARY => 'decimal:2',
         self::WORK_DAYS => 'array',
     ];
+
+    public function absences(): HasMany
+    {
+        return $this->hasMany(EmployeeAbsenceModel::class, EmployeeAbsenceModel::EMPLOYEE_ID);
+    }
 }

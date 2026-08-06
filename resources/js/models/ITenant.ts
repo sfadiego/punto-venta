@@ -15,6 +15,8 @@ export interface ITenant {
     tipo_negocio: BusinessTypeEnum;
     printer_enabled: boolean;
     bluetooth_printing_enabled: boolean;
+    purchases_enabled: boolean;
+    employees_enabled: boolean;
     features?: IBusinessFeatures;
     users_count?: number;
     active_users_count?: number;
@@ -58,6 +60,8 @@ export interface IUpdateTenantPayload {
     tipo_negocio: BusinessTypeEnum;
     printer_enabled: boolean;
     bluetooth_printing_enabled: boolean;
+    purchases_enabled: boolean;
+    employees_enabled: boolean;
     max_users?: number | null;
     subscription_amount?: number | null;
 }

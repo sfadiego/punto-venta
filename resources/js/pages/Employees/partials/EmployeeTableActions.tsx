@@ -1,13 +1,14 @@
-import { Eye, Pencil, Trash2, Loader, ToggleLeft, ToggleRight } from "lucide-react";
+import { Eye, Pencil, Trash2, Loader, ToggleLeft, ToggleRight, CalendarOff } from "lucide-react";
 import { IEmployee } from "@/models/IEmployee";
 import { useEmployeeTableActions } from "./useEmployeeTableActions";
 
 interface EmployeeTableActionsProps {
     employee: IEmployee;
     onEdit: (employee: IEmployee) => void;
+    onAddAbsence: (employee: IEmployee) => void;
 }
 
-export const EmployeeTableActions = ({ employee, onEdit }: EmployeeTableActionsProps) => {
+export const EmployeeTableActions = ({ employee, onEdit, onAddAbsence }: EmployeeTableActionsProps) => {
     const {
         isAdmin,
         isDeleting,
@@ -33,6 +34,15 @@ export const EmployeeTableActions = ({ employee, onEdit }: EmployeeTableActionsP
                     className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-all"
                 >
                     <Pencil size={20} />
+                </button>
+            )}
+            {isAdmin && (
+                <button
+                    onClick={() => onAddAbsence(employee)}
+                    title="Registrar falta"
+                    className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all"
+                >
+                    <CalendarOff size={20} />
                 </button>
             )}
             {isAdmin && (

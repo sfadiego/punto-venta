@@ -7,8 +7,6 @@ import { DeliverySection } from "./partials/Delivery/DeliverySection";
 import { ScaleSection } from "./partials/Scale/ScaleSection";
 import { MenuSection } from "./partials/Menu/MenuSection";
 import { ReadonlyMenuQrSection } from "./partials/Menu/ReadonlyMenuQrSection";
-import { ProvidersSection } from "./partials/Purchases/ProvidersSection";
-import { EmployeesSection } from "./partials/Employees/EmployeesSection";
 import { RolesPermissionsSection } from "./partials/RolesPermissions/RolesPermissionsSection";
 import { AdminNav } from "./partials/AdminNav";
 import { SubscriptionInfoSection } from "@/components/Admin/SubscriptionInfoSection";
@@ -93,28 +91,6 @@ function AdminPage() {
                                 placement="top-start"
                             >
                                 <ReadonlyMenuQrSection config={config} />
-                            </FeatureSpotlight>
-                        </div>
-                        <div id="proveedores">
-                            <FeatureSpotlight
-                                featureKey={FeatureSpotlightKey.ProvidersSettingsSection}
-                                title="Sección de proveedores"
-                                description="Activa o desactiva el registro de proveedores y compras para tu negocio."
-                                variant="block"
-                                placement="top-start"
-                            >
-                                <ProvidersSection config={config} />
-                            </FeatureSpotlight>
-                        </div>
-                        <div id="empleados">
-                            <FeatureSpotlight
-                                featureKey={FeatureSpotlightKey.EmployeesSettingsSection}
-                                title="Sección de empleados"
-                                description="Activa o desactiva la administración de empleados para tu negocio."
-                                variant="block"
-                                placement="top-start"
-                            >
-                                <EmployeesSection config={config} />
                             </FeatureSpotlight>
                         </div>
                         <div id="permisos">

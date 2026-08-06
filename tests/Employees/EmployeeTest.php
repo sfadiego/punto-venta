@@ -140,6 +140,20 @@ class EmployeeTest extends TestCase
             ->assertJsonPath('data.work_days', ['fri', 'sat', 'sun']);
     }
 
+    public function test_crea_empleado_mensual_sin_dias_laborales(): void
+    {
+        $response = $this->postJson('/api/employee', [
+            'name' => 'Juan Pérez',
+            'salary' => 8000,
+            'salary_period' => 'monthly',
+            'work_days' => [],
+        ], $this->authHeaders());
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.salary_period', 'monthly')
+            ->assertJsonPath('data.work_days', []);
+    }
+
     public function test_no_crea_empleado_con_periodicidad_invalida(): void
     {
         $this->postJson('/api/employee', [

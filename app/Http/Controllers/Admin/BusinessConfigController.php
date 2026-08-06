@@ -46,8 +46,6 @@ class BusinessConfigController extends Controller
             'logo_icon' => $request->logo_icon,
             'costo_domicilio_default' => $request->costo_domicilio_default ?? 0,
             'menu_enabled' => $request->boolean('menu_enabled'),
-            'purchases_enabled' => $request->boolean('purchases_enabled'),
-            'employees_enabled' => $request->boolean('employees_enabled'),
         ]);
 
         return Response::success($tenant->fresh());

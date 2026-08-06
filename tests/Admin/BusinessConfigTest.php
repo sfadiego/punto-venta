@@ -76,8 +76,13 @@ class BusinessConfigTest extends TestCase
             ->assertJsonPath('data.menu_enabled', true);
     }
 
-    public function test_actualiza_purchases_enabled(): void
+    public function test_purchases_enabled_no_se_puede_modificar_desde_el_tenant(): void
     {
+        // purchases_enabled/employees_enabled se gestionan exclusivamente desde SuperAdmin
+        // (ver TenantManagementController) — el cliente ya no puede activarlos por su cuenta.
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::PURCHASES_ENABLED => false]);
+
         $this->putJson('/api/admin/config', [
             'business_name' => 'Cafe Test',
             'primary_color' => '#F59E0B',
@@ -87,12 +92,33 @@ class BusinessConfigTest extends TestCase
             'purchases_enabled' => true,
         ], $this->authHeaders())
             ->assertStatus(200)
-            ->assertJsonPath('data.purchases_enabled', true);
+            ->assertJsonPath('data.purchases_enabled', false);
 
-        $tenant = BusinessConfigModel::first();
         $this->assertDatabaseHas('business_config', [
             'id' => $tenant->id,
-            'purchases_enabled' => true,
+            'purchases_enabled' => false,
+        ]);
+    }
+
+    public function test_employees_enabled_no_se_puede_modificar_desde_el_tenant(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::EMPLOYEES_ENABLED => false]);
+
+        $this->putJson('/api/admin/config', [
+            'business_name' => 'Cafe Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'employees_enabled' => true,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.employees_enabled', false);
+
+        $this->assertDatabaseHas('business_config', [
+            'id' => $tenant->id,
+            'employees_enabled' => false,
         ]);
     }
 
