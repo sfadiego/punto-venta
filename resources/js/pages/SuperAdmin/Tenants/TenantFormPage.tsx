@@ -10,6 +10,7 @@ import { TenantBusinessSection } from "@/components/SuperAdmin/Tenants/Sections/
 import { TenantColorsSection } from "@/components/SuperAdmin/Tenants/Sections/TenantColorsSection";
 import { TenantAdminSection } from "@/components/SuperAdmin/Tenants/Sections/TenantAdminSection";
 import { TenantPrinterSection } from "@/components/SuperAdmin/Tenants/Sections/TenantPrinterSection";
+import { TenantProvidersEmployeesSection } from "@/components/SuperAdmin/Tenants/Sections/TenantProvidersEmployeesSection";
 import { TenantDangerZone } from "@/components/SuperAdmin/Tenants/Sections/TenantDangerZone";
 import { TenantFeatureSpotlightsSection } from "@/components/SuperAdmin/Tenants/TenantFeatureSpotlightsSection/TenantFeatureSpotlightsSection";
 import { TenantActivitySection } from "@/components/SuperAdmin/Tenants/Activity/TenantActivitySection";
@@ -113,6 +114,21 @@ export default function TenantFormPage() {
                                     bluetoothEnabled={formik.values.bluetooth_printing_enabled}
                                     onToggleBluetooth={() =>
                                         formik.setFieldValue("bluetooth_printing_enabled", !formik.values.bluetooth_printing_enabled)
+                                    }
+                                />
+                            </div>
+                        )}
+
+                        {isEdit && (
+                            <div id="proveedores-empleados">
+                                <TenantProvidersEmployeesSection
+                                    purchasesEnabled={formik.values.purchases_enabled}
+                                    onTogglePurchases={() =>
+                                        formik.setFieldValue("purchases_enabled", !formik.values.purchases_enabled)
+                                    }
+                                    employeesEnabled={formik.values.employees_enabled}
+                                    onToggleEmployees={() =>
+                                        formik.setFieldValue("employees_enabled", !formik.values.employees_enabled)
                                     }
                                 />
                             </div>

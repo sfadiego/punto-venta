@@ -1,6 +1,7 @@
 import * as Yup from "yup";
 import { SalaryPeriod, WorkDay } from "@/models/IEmployee";
 import { isValidPhone, phoneValidationMessage } from "@/utils/phoneUtils";
+import { isPerDaySalaryPeriod } from "@/utils/salaryPeriodUtils";
 
 export type EmployeeForm = {
     name: string;
@@ -32,6 +33,9 @@ export const employeeSchema = Yup.object({
         .required("La periodicidad es requerida"),
     work_days: Yup.array()
         .of(Yup.mixed<WorkDay>().required())
-        .min(1, "Selecciona al menos un día")
-        .required("Selecciona al menos un día"),
+        .when("salary_period", {
+            is: (period: SalaryPeriod) => isPerDaySalaryPeriod(period),
+            then: (schema) => schema.min(1, "Selecciona al menos un día").required("Selecciona al menos un día"),
+            otherwise: (schema) => schema.notRequired(),
+        }),
 });

@@ -24,6 +24,7 @@ export const sortWorkDays = (days: WorkDay[]): WorkDay[] =>
     WORK_DAYS_ORDER.filter((day) => days.includes(day));
 
 export const formatWorkDays = (days: WorkDay[]): string => {
+    if (days.length === 0) return "—";
     if (days.length === 7) return "Toda la semana";
     if (sameDays(days, WEEKDAYS)) return "Lunes a viernes";
     if (sameDays(days, WEEKEND_DAYS) || sameDays(days, SHORT_WEEKEND)) return "Fines de semana";

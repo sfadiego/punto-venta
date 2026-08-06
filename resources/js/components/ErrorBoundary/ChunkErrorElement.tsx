@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { isRouteErrorResponse, useRouteError } from "react-router-dom";
+import { reportClientError } from "@/utils/reportClientError";
 
 const RELOAD_FLAG_KEY = "chunk-error-reload-at";
 const RELOAD_COOLDOWN_MS = 10_000;
@@ -22,14 +23,22 @@ export const ChunkErrorElement = () => {
     const isChunkError = CHUNK_ERROR_PATTERN.test(getErrorMessage(error));
 
     useEffect(() => {
-        if (!isChunkError) return;
-
-        const lastReloadAt = Number(sessionStorage.getItem(RELOAD_FLAG_KEY) ?? 0);
-        const now = Date.now();
-        if (now - lastReloadAt >= RELOAD_COOLDOWN_MS) {
-            sessionStorage.setItem(RELOAD_FLAG_KEY, String(now));
-            window.location.reload();
+        if (isChunkError) {
+            const lastReloadAt = Number(sessionStorage.getItem(RELOAD_FLAG_KEY) ?? 0);
+            const now = Date.now();
+            if (now - lastReloadAt >= RELOAD_COOLDOWN_MS) {
+                sessionStorage.setItem(RELOAD_FLAG_KEY, String(now));
+                window.location.reload();
+            }
+            return;
         }
+
+        reportClientError({
+            message: getErrorMessage(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            context: "ChunkErrorElement",
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isChunkError]);
 
     if (isChunkError) {

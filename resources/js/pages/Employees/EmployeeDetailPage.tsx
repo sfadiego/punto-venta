@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { useEmployeeDetailPage } from "./useEmployeeDetailPage";
 import { EmployeeFormFields } from "./partials/EmployeeModals/EmployeeFormFields";
+import { AbsencesSection } from "./partials/Absences/AbsencesSection";
 
 export default function EmployeeDetailPage() {
     const navigate = useNavigate();
@@ -62,6 +63,10 @@ export default function EmployeeDetailPage() {
                         </button>
                     </div>
                 </form>
+            </div>
+
+            <div className="mt-5">
+                <AbsencesSection employee={employee} />
             </div>
         </div>
     );

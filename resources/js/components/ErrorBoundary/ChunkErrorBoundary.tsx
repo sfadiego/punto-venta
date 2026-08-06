@@ -1,4 +1,5 @@
 import React, { Component, ReactNode } from "react";
+import { reportClientError } from "@/utils/reportClientError";
 
 const RELOAD_FLAG_KEY = "chunk-error-reload-at";
 const RELOAD_COOLDOWN_MS = 10_000;
@@ -27,8 +28,11 @@ export class ChunkErrorBoundary extends Component<ChunkErrorBoundaryProps, Chunk
         return { hasChunkError: false, hasOtherError: true };
     }
 
-    componentDidCatch(): void {
-        if (!this.state.hasChunkError) return;
+    componentDidCatch(error: Error, info: React.ErrorInfo): void {
+        if (!this.state.hasChunkError) {
+            reportClientError({ message: error.message, stack: error.stack ?? info.componentStack ?? undefined, context: "ChunkErrorBoundary" });
+            return;
+        }
 
         const lastReloadAt = Number(sessionStorage.getItem(RELOAD_FLAG_KEY) ?? 0);
         const now = Date.now();
