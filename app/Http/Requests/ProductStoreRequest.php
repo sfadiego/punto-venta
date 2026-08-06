@@ -29,7 +29,7 @@ class ProductStoreRequest extends FormRequest
         return [
             ProductModel::NOMBRE => [
                 'required', 'string', 'max:70',
-                Rule::unique('product', 'nombre')->where('tenant_id', $tenantId),
+                Rule::unique('product', 'nombre')->where('tenant_id', $tenantId)->whereNull('deleted_at'),
             ],
             ProductModel::PRECIO => 'required|decimal:0,2',
             ProductModel::DESCRIPCION => 'nullable',

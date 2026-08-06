@@ -89,6 +89,7 @@ class OrderProductController extends Controller
         ]);
 
         $this->resetStatusIfReady($order->fresh());
+        $this->dispatchProductUpdated($orderId);
 
         return Response::success($data);
     }
@@ -144,6 +145,7 @@ class OrderProductController extends Controller
         ]);
 
         $this->resetStatusIfReady($order->fresh());
+        $this->dispatchProductUpdated($orderId);
 
         return Response::success($orderProduct->refresh());
     }
@@ -184,15 +186,7 @@ class OrderProductController extends Controller
             $this->resetStatusIfReady($order);
         }
 
-        // afterCommit: el broadcast es una llamada HTTP a Reverb — no debe correr mientras
-        // el lockForUpdate() de arriba sigue sosteniendo la fila de la orden, o requests
-        // concurrentes sobre la misma orden se encolan detrás del lock además del broadcast.
-        DB::afterCommit(function () use ($orderId) {
-            try {
-                OrdersUpdated::dispatch('product_updated', (int) $orderId);
-            } catch (\Throwable) {
-            }
-        });
+        $this->dispatchProductUpdated($orderId);
 
         return Response::success($orderProduct->refresh());
     }
@@ -250,6 +244,7 @@ class OrderProductController extends Controller
         ]);
 
         $this->restoreServedIfAllReady($order->fresh());
+        $this->dispatchProductUpdated($orderId);
 
         return Response::success('elemento borrado de la orden');
     }
@@ -270,6 +265,8 @@ class OrderProductController extends Controller
             'subtotal' => 0,
             'total' => 0,
         ]);
+
+        $this->dispatchProductUpdated($orderId);
 
         return Response::success('carrito vaciado');
     }
@@ -306,6 +303,7 @@ class OrderProductController extends Controller
         ]);
 
         $this->restoreServedIfAllReady($order->fresh());
+        $this->dispatchProductUpdated($orderId);
 
         return Response::success('elemento borrado de la orden');
     }
@@ -342,6 +340,21 @@ class OrderProductController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * afterCommit: el broadcast es una llamada HTTP a Reverb — no debe correr mientras
+     * el lockForUpdate() sigue sosteniendo la fila de la orden, o requests concurrentes
+     * sobre la misma orden se encolan detrás del lock además del broadcast.
+     */
+    private function dispatchProductUpdated(int|string $orderId): void
+    {
+        DB::afterCommit(function () use ($orderId) {
+            try {
+                OrdersUpdated::dispatch('product_updated', (int) $orderId);
+            } catch (\Throwable) {
+            }
+        });
     }
 
     private function resetStatusIfReady(OrderModel $order): void

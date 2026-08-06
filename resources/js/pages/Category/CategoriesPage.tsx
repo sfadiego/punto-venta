@@ -3,6 +3,7 @@ import { DataTable, DataTableColumn } from "mantine-datatable";
 import { Plus, RefreshCw } from "lucide-react";
 import { ICategory } from "@/models/ICategory";
 import { DynamicIcon } from "@/components/ui/DynamicIcon";
+import { CategorySearch } from "@/components/Category/CategorySearch";
 import { RoleEnum } from "@/enums/RoleEnum";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useCategoriesPage } from "./useCategoriesPage";
@@ -23,6 +24,8 @@ export default function CategoriesPage() {
         refetch,
         setPage,
         setLimit,
+        search,
+        handleSearchChange,
         isModalOpen,
         editingCategory,
         openAddModal,
@@ -110,6 +113,9 @@ export default function CategoriesPage() {
             </div>
 
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                <div className="px-4 pt-4">
+                    <CategorySearch value={search} onChange={handleSearchChange} />
+                </div>
                 <div className="p-4">
                     <DataTable<ICategory>
                         columns={columns}
