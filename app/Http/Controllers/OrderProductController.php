@@ -184,10 +184,15 @@ class OrderProductController extends Controller
             $this->resetStatusIfReady($order);
         }
 
-        try {
-            OrdersUpdated::dispatch('product_updated', (int) $orderId);
-        } catch (\Throwable) {
-        }
+        // afterCommit: el broadcast es una llamada HTTP a Reverb — no debe correr mientras
+        // el lockForUpdate() de arriba sigue sosteniendo la fila de la orden, o requests
+        // concurrentes sobre la misma orden se encolan detrás del lock además del broadcast.
+        DB::afterCommit(function () use ($orderId) {
+            try {
+                OrdersUpdated::dispatch('product_updated', (int) $orderId);
+            } catch (\Throwable) {
+            }
+        });
 
         return Response::success($orderProduct->refresh());
     }
@@ -343,10 +348,12 @@ class OrderProductController extends Controller
     {
         if ($order->estatus_pedido_id === OrderStatusEnum::SERVED->value) {
             $order->update(['estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value]);
-            try {
-                OrdersUpdated::dispatch('updated', $order->id);
-            } catch (\Throwable) {
-            }
+            DB::afterCommit(function () use ($order) {
+                try {
+                    OrdersUpdated::dispatch('updated', $order->id);
+                } catch (\Throwable) {
+                }
+            });
         }
     }
 
@@ -371,10 +378,12 @@ class OrderProductController extends Controller
 
         if (! $hasUnready) {
             $order->update(['estatus_pedido_id' => OrderStatusEnum::SERVED->value]);
-            try {
-                OrdersUpdated::dispatch('restored_served', $order->id);
-            } catch (\Throwable) {
-            }
+            DB::afterCommit(function () use ($order) {
+                try {
+                    OrdersUpdated::dispatch('restored_served', $order->id);
+                } catch (\Throwable) {
+                }
+            });
         }
     }
 }

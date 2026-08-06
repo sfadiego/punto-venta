@@ -16,6 +16,7 @@ use App\Services\OrderService;
 use App\Services\TenantActivityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 
 class OrderController extends Controller
@@ -107,12 +108,19 @@ class OrderController extends Controller
         return Response::success($saleService->salesByCategory($sistemaId, $date, $month, $week));
     }
 
+    // Se difiere con DB::afterCommit para que el broadcast (llamada HTTP síncrona a Reverb)
+    // no se ejecute mientras la fila de la orden sigue bloqueada por lockForUpdate() — de lo
+    // contrario, otras requests concurrentes sobre la misma orden (agregar producto, marcar
+    // listo, etc.) se encolan detrás del lock además de la latencia del broadcast, pudiendo
+    // superar el timeout de axios en el cliente.
     private function broadcast(string $type = 'updated', ?int $orderId = null): void
     {
-        try {
-            OrdersUpdated::dispatch($type, $orderId);
-        } catch (\Throwable) {
-            // Reverb unavailable — order operation must not fail
-        }
+        DB::afterCommit(function () use ($type, $orderId) {
+            try {
+                OrdersUpdated::dispatch($type, $orderId);
+            } catch (\Throwable) {
+                // Reverb unavailable — order operation must not fail
+            }
+        });
     }
 }
