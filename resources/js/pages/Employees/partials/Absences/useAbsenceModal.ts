@@ -4,7 +4,7 @@ import { useModal } from "@/hooks/useModal";
 import { SalaryPeriod } from "@/models/IEmployee";
 import { useStoreEmployeeAbsence } from "@/services/useEmployeeAbsenceService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { getFieldErrors, getUserFacingErrorMessage } from "@/utils/axiosError";
 import { localDateString } from "@/utils/dateUtils";
 import { getSuggestedDeductionAmount } from "@/utils/absenceDeductionUtils";
 import { AbsenceForm, absenceSchema } from "./absenceForm";
@@ -36,8 +36,14 @@ export const useAbsenceModal = (employeeId: number, salary: number | string, sal
                 closeModal();
                 onSuccess();
             } catch (error) {
-                logUnexpectedError(error, "useAbsenceModal.onSubmit");
-                toast.error(getUserFacingErrorMessage(error, "Error al registrar la falta"));
+                const fieldErrors = getFieldErrors(error);
+
+                if (fieldErrors) {
+                    helpers.setErrors(fieldErrors);
+                } else {
+                    logUnexpectedError(error, "useAbsenceModal.onSubmit");
+                    toast.error(getUserFacingErrorMessage(error, "Error al registrar la falta"));
+                }
             }
         },
     });
