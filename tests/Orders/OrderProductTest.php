@@ -5,6 +5,7 @@ namespace Tests\Orders;
 use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
 use App\Enums\RoleEnum;
+use App\Events\OrdersUpdated;
 use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use App\Models\MainOrderReportModel;
@@ -14,6 +15,7 @@ use App\Models\OrderStatusModel;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 class OrderProductTest extends TestCase
@@ -1122,6 +1124,152 @@ class OrderProductTest extends TestCase
             OrderProductModel::DESCUENTO => 0,
         ], $this->authHeaders())
             ->assertStatus(400);
+    }
+
+    // ── Broadcast: OrdersUpdated ──────────────────────────────
+    // Cocina/otros usuarios se sincronizan en tiempo real vía Reverb escuchando
+    // el canal "orders". Estos tests verifican que cada endpoint que modifica
+    // los productos de una orden dispara el evento — sin esto, la vista de
+    // cocina se queda con productos/totales desactualizados hasta recargar.
+
+    public function test_agregar_producto_dispara_orders_updated(): void
+    {
+        Event::fake([OrdersUpdated::class]);
+
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto();
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => $product->precio,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())->assertStatus(200);
+
+        Event::assertDispatched(OrdersUpdated::class, fn (OrdersUpdated $event) => $event->orderId === $orden->id);
+    }
+
+    public function test_agregar_producto_a_orden_servida_dispara_orders_updated(): void
+    {
+        // Caso reportado: la orden ya está Servida y se le agrega un producto
+        // nuevo — debe notificar al otro usuario aunque el status regrese a
+        // InProcess (resetStatusIfReady) además del propio product_updated.
+        Event::fake([OrdersUpdated::class]);
+
+        $orden = $this->crearOrden(OrderStatusEnum::SERVED->value);
+        $product = $this->crearProducto();
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => $product->precio,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())->assertStatus(200);
+
+        Event::assertDispatched(
+            OrdersUpdated::class,
+            fn (OrdersUpdated $event) => $event->orderId === $orden->id && $event->type === 'product_updated'
+        );
+    }
+
+    public function test_actualizar_producto_dispara_orders_updated(): void
+    {
+        Event::fake([OrdersUpdated::class]);
+
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto();
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->putJson("/api/order/{$orden->id}/product/{$item->id}", [
+            OrderProductModel::CANTIDAD => 2,
+        ], $this->authHeaders())->assertStatus(200);
+
+        Event::assertDispatched(OrdersUpdated::class, fn (OrdersUpdated $event) => $event->orderId === $orden->id);
+    }
+
+    public function test_eliminar_producto_dispara_orders_updated(): void
+    {
+        Event::fake([OrdersUpdated::class]);
+
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->deleteJson("/api/order/{$orden->id}/product/{$product->id}", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        Event::assertDispatched(OrdersUpdated::class, fn (OrdersUpdated $event) => $event->orderId === $orden->id);
+    }
+
+    public function test_eliminar_extra_dispara_orders_updated(): void
+    {
+        Event::fake([OrdersUpdated::class]);
+
+        $orden = $this->crearOrden();
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::NOMBRE_EXTRA => 'Salsa extra',
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 15,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->deleteJson("/api/order/{$orden->id}/extra/{$item->id}", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        Event::assertDispatched(OrdersUpdated::class, fn (OrdersUpdated $event) => $event->orderId === $orden->id);
+    }
+
+    public function test_clear_cart_dispara_orders_updated(): void
+    {
+        Event::fake([OrdersUpdated::class]);
+
+        $orden = $this->crearOrden();
+        $product = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->deleteJson("/api/order/{$orden->id}/clear-cart", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        Event::assertDispatched(OrdersUpdated::class, fn (OrdersUpdated $event) => $event->orderId === $orden->id);
+    }
+
+    public function test_agregar_producto_a_orden_cerrada_no_dispara_orders_updated(): void
+    {
+        Event::fake([OrdersUpdated::class]);
+
+        $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
+        $product = $this->crearProducto();
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => $product->precio,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())->assertStatus(422);
+
+        Event::assertNotDispatched(OrdersUpdated::class);
     }
 
     public function test_actualizar_variante_de_item_en_orden_recalcula_precio(): void
