@@ -9,6 +9,7 @@ Route::prefix('employee')->group(function () {
         Route::middleware('permission:viewEmployees')->group(function () {
             Route::get('/', 'index');
             Route::get('/list', 'list');
+            Route::get('/payroll-summary', 'payrollSummary');
         });
 
         Route::middleware('role.admin')->group(function () {

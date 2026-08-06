@@ -1,5 +1,5 @@
 import { axiosGET, useDELETE, useGET, usePATCH, usePOST, usePUT } from "@/hooks/useApi";
-import { IEmployee } from "@/models/IEmployee";
+import { IEmployee, IEmployeePayrollSummary, PayrollFilterPeriod } from "@/models/IEmployee";
 import { IPaginate } from "@/intefaces/IPaginate";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { useQuery } from "@tanstack/react-query";
@@ -42,6 +42,13 @@ export const useEmployeeList = () => {
 
 export const useShowEmployee = (id: number) =>
     useGET<IEmployee>({ url: `${url}/${id}`, enable: !!id });
+
+export const useEmployeePayrollSummary = (period: PayrollFilterPeriod) =>
+    useGET<IEmployeePayrollSummary>({
+        url: `${url}/payroll-summary`,
+        nameQuery: `${url}/payroll-summary`,
+        filters: { period },
+    });
 
 export const useStoreEmployee = () => usePOST<IEmployee>({ url });
 export const useUpdateEmployee = (id: number) =>

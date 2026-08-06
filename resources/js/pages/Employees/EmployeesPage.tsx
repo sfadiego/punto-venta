@@ -6,6 +6,7 @@ import { useEmployeeAbsenceQuickAdd } from "./partials/Absences/useEmployeeAbsen
 import { EmployeesPageHeader } from "./partials/EmployeesPageHeader";
 import { EmployeesFilters } from "./partials/EmployeesFilters";
 import { EmployeesTable } from "./partials/EmployeesTable";
+import { PayrollSummaryCard } from "./partials/PayrollSummaryCard";
 
 export default function EmployeesPage() {
     const {
@@ -40,6 +41,8 @@ export default function EmployeesPage() {
     return (
         <div className="px-5 py-6 max-w-4xl mx-auto">
             <EmployeesPageHeader total={total} onRefresh={refetch} onCreate={openCreateModal} />
+
+            <PayrollSummaryCard />
 
             <EmployeesFilters search={search} onSearchChange={setSearch} active={active} onActiveChange={setActive} />
 

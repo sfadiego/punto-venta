@@ -2,6 +2,14 @@ export type SalaryPeriod = "daily" | "weekly" | "weekend" | "biweekly" | "monthl
 
 export type WorkDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
+export type PayrollFilterPeriod = "week" | "month";
+
+export interface IEmployeePayrollSummary {
+    period: PayrollFilterPeriod;
+    total: number;
+    employees_count: number;
+}
+
 export interface IEmployee {
     id: number;
     name: string;
