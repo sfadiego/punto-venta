@@ -206,3 +206,67 @@ jobs:
           else
             echo "✅ Sin carpetas con exceso de archivos sueltos"
           fi
+
+      - name: Verificar que components/ no consume contexto de página
+        run: |
+          ERRORS=0
+          echo "── Verificando aislamiento de components/ (CLAUDE.md: 'Contextos: globales vs. de página') ──"
+
+          # components/ es global y debe recibir todo por props — no puede importar el
+          # contexto de una página específica (pages/<Feature>/<Feature>Context.tsx),
+          # eso lo ataría a esa página y rompería su portabilidad/testeabilidad aislada.
+          while IFS= read -r file; do
+            if grep -qE "from [\"']@/pages/[^\"']*Context[\"']" "$file" 2>/dev/null; then
+              echo "❌ $file importa un contexto de página (@/pages/.../*Context). components/ debe recibir todo por props (CLAUDE.md: 'Contextos: globales vs. de página')"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done < <(find resources/js/components -name "*.tsx" -o -name "*.ts" 2>/dev/null)
+
+          if [ $ERRORS -gt 0 ]; then
+            exit 1
+          else
+            echo "✅ components/ no consume contexto de página"
+          fi
+
+      - name: Verificar que los Context de página vivan en la raíz de pages/<Feature>/
+        run: |
+          ERRORS=0
+          echo "── Verificando ubicación de *Context.tsx (CLAUDE.md: 'Contextos: globales vs. de página') ──"
+
+          # <Feature>Context.tsx debe vivir junto al hook de la página (pages/<Feature>/),
+          # no dentro de partials/ — ahí es donde los partials lo consumen, no donde vive.
+          while IFS= read -r file; do
+            echo "❌ $file — un *Context.tsx de página debe vivir en pages/<Feature>/, no dentro de partials/"
+            ERRORS=$((ERRORS + 1))
+          done < <(find resources/js/pages -iname "*Context.tsx" -path "*/partials/*" 2>/dev/null)
+
+          if [ $ERRORS -gt 0 ]; then
+            exit 1
+          else
+            echo "✅ Contextos de página bien ubicados"
+          fi
+
+      - name: Verificar tamaño del hook principal de página
+        run: |
+          echo "── Verificando tamaño de use<Feature>Page.ts (CLAUDE.md: 'Cuándo dividir un hook') ──"
+          MAX_LINES=80
+          FOUND=0
+
+          # Solo el hook principal de cada página (pages/<Feature>/use<Feature>Page.ts),
+          # no sus sub-hooks de dominio (esos ya viven divididos y pueden ser más largos
+          # si son cohesivos — la señal aplica al hook que los orquesta).
+          while IFS= read -r file; do
+            lines=$(wc -l < "$file" | tr -d ' ')
+            if [ "$lines" -gt "$MAX_LINES" ]; then
+              echo "⚠️  $file tiene $lines líneas (límite sugerido: $MAX_LINES)"
+              FOUND=$((FOUND + 1))
+            fi
+          done < <(find resources/js/pages -maxdepth 2 -iname "use*Page.ts")
+
+          if [ "$FOUND" -gt 0 ]; then
+            echo ""
+            echo "Considera dividir en sub-hooks por dominio en la misma carpeta (CLAUDE.md: 'Cuándo dividir un hook')."
+            # Warning, no bloquea el PR — es una señal, no todos los casos ameritan split inmediato.
+          else
+            echo "✅ Todos los hooks principales de página dentro del límite sugerido"
+          fi
