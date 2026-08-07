@@ -6,6 +6,7 @@ import { formatOrderTime } from "@/utils/dateUtils";
 import { useOrderActions } from "@/components/orders/OrderActions/useOrderActions";
 import { usePermissions } from "@/hooks/usePermissions";
 import { OrderActionGroup, OrderEditControls } from "@/components/orders/OrderActions/OrderActionGroup";
+import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 
 interface OrderCardProps {
     order: IOrder;
@@ -55,7 +56,7 @@ export const OrderCard = ({ order }: OrderCardProps) => {
                     ) : (
                         <p className="flex items-center gap-1.5 text-sm font-semibold text-stone-900 truncate">
                             {order.nombre_pedido}
-                            {order.is_delivery && (
+                            {!!order.is_delivery && (
                                 <span title="Domicilio" className="shrink-0">
                                     <Bike size={14} className="text-blue-500" />
                                 </span>
@@ -80,7 +81,7 @@ export const OrderCard = ({ order }: OrderCardProps) => {
                 onClick={(e) => e.stopPropagation()}
             >
                 <span className="text-sm font-bold text-stone-900 tabular-nums shrink-0">
-                    ${order.total.toFixed(2)}
+                    ${calcOrderDisplayTotal(order).toFixed(2)}
                 </span>
 
                 <div className="flex items-center gap-1 shrink-0">

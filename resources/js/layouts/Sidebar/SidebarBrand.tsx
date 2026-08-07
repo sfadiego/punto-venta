@@ -7,9 +7,11 @@ import { BusinessLogo } from "@/components/BusinessLogo/BusinessLogo";
 interface SidebarBrandProps {
     onClose: () => void;
     onDesktopToggle?: () => void;
+    /** true cuando el sidebar se muestra como overlay también en desktop (rutas de pantalla completa) — ahí el botón de cerrar debe verse en cualquier tamaño de pantalla, no solo en móvil. */
+    alwaysShowClose?: boolean;
 }
 
-export function SidebarBrand({ onClose, onDesktopToggle }: SidebarBrandProps) {
+export function SidebarBrand({ onClose, onDesktopToggle, alwaysShowClose = false }: SidebarBrandProps) {
     const { data: config } = useGetBusinessConfig();
     const appName = config?.business_name ?? import.meta.env.VITE_APP_NAME;
     const logoUrl = config?.logo_path
@@ -36,10 +38,10 @@ export function SidebarBrand({ onClose, onDesktopToggle }: SidebarBrandProps) {
                     {appName}
                 </span>
             </div>
-            {/* Cerrar en móvil */}
+            {/* Cerrar — visible siempre en móvil; en desktop solo cuando el sidebar se muestra como overlay */}
             <button
                 onClick={onClose}
-                className="lg:hidden p-1 rounded transition-colors"
+                className={`${alwaysShowClose ? "" : "lg:hidden"} p-1 rounded transition-colors`}
                 style={{ color: "color-mix(in srgb, var(--color-font) 50%, transparent)" }}
                 aria-label="Cerrar menú"
             >

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\MainOrderStatusEnum;
+use App\Enums\OrderStatusEnum;
 use App\Models\CustomerModel;
 use App\Models\OrderModel;
 use Illuminate\Foundation\Http\FormRequest;
@@ -51,6 +53,17 @@ class OrderUpdateRequest extends FormRequest
                 $customer = CustomerModel::find($this->input(OrderModel::CUSTOMER_ID));
                 if (! $customer || ! $customer->allow_credit) {
                     $validator->errors()->add(OrderModel::CUSTOMER_ID, 'Este cliente no tiene crédito habilitado.');
+                }
+            }
+
+            // Cerrar (cobrar) una orden retomada contra una caja que ya se cerró dejaría
+            // una venta huérfana fuera de cualquier sesión activa, rompiendo el cuadre de
+            // caja — solo se valida al intentar cerrar, no en ediciones menores en curso.
+            $becomingClosed = (int) $this->input(OrderModel::ESTATUS_PEDIDO_ID) === OrderStatusEnum::CLOSED->value;
+            if ($becomingClosed) {
+                $order = $this->route('order');
+                if ($order instanceof OrderModel && $order->sistema && $order->sistema->estatus_caja !== MainOrderStatusEnum::OPEN->value) {
+                    $validator->errors()->add('sistema_id', 'La caja de esta venta ya está cerrada.');
                 }
             }
         });

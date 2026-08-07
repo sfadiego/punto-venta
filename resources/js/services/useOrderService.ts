@@ -73,6 +73,8 @@ export const useInfiniteIndexOrder = (sistemaId: number | null) => {
 };
 
 export const useStoreOrder = () => usePOST({ url });
+// Venta directa — crea la orden + productos + la cierra en un solo paso (OrderSaleService::createDirectSale).
+export const useStoreOrderSale = () => usePOST({ url: `${url}/sale` });
 export const useShowOrder = (orderId: number) =>
     useGET<IOrder>({ url: `${url}/${orderId}`, enable: !!orderId });
 

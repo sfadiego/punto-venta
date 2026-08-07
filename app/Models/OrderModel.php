@@ -94,6 +94,11 @@ class OrderModel extends Model
         return $this->belongsTo(CustomerModel::class, self::CUSTOMER_ID);
     }
 
+    public function sistema(): BelongsTo
+    {
+        return $this->belongsTo(MainOrderReportModel::class, self::SISTEMA_ID);
+    }
+
     public function orderProducts(): HasMany
     {
         return $this->hasMany(OrderProductModel::class, 'pedido_id')

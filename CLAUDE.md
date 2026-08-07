@@ -69,6 +69,16 @@ resources/js/
 └── types/                    # assets.d.ts
 ```
 
+### Contextos: globales vs. de página
+
+- `contexts/` — exclusivo para contextos globales accesibles en toda la app (ej. AxiosContext, LayoutContext). No agregar aquí contextos de features específicas.
+- Contextos de página — viven en `pages/<Feature>/` junto al hook de la página, nombrados `<Feature>Context.tsx`. Envuelven solo esa página y desaparecen al navegar fuera.
+
+Patrón de contexto de página:
+- `<Feature>Context.tsx` declara el contexto, el Provider y el hook `use<Feature>Context()`.
+- El Provider envuelve el componente raíz de la página.
+- Los partials en `pages/<Feature>/partials/` consumen `use<Feature>Context()` directamente.
+
 ---
 
 ## Rutas del frontend (`RoutesEnum.ts`)
@@ -292,8 +302,13 @@ export const SelectXxx = <T,>({ name, formik, label, disabled, className }: Sele
 - Ejemplos ya aplicados: `SelectBusinessType`, `SelectDemoRequestStatus` y `SelectSubscriptionPlan` (`components/SuperAdmin/DemoRequests/` y `components/SuperAdmin/Subscriptions/`), `SelectBusinessNiche` (`pages/Auth/partials/`), `SelectProviderActiveFilter` (`pages/Providers/partials/`), `SelectSubscriptionFilter` (`pages/SuperAdmin/Subscriptions/partials/`) y `SelectTenantFilter` (`pages/SuperAdmin/Tenants/partials/`) — estas dos últimas son la variante controlada que combina dos estados en un único valor codificado con prefijos; también reemplazan un `<select>` HTML crudo por el componente `Select` compartido.
 
 ### Pages
-- en la carpeta pages solo debe existir un componente el cual debe llamar componenes reutilizables ubicados en la carpeta Components/{module}/component.tsx
-- crea hooks si es necesario en la carpeta de pages donde contendra la logica solo de esta pagina en especifico
+Cada página vive en `pages/<Feature>/` y contiene exactamente:
+- `<Feature>Page.tsx` — componente raíz. Solo orquesta: llama al hook o Provider y renderiza los partials. Sin lógica ni JSX de detalle propio.
+- `use<Feature>Page.ts` — hook principal de la página. Si crece, se divide en sub-hooks dentro de la misma carpeta.
+- `<Feature>Context.tsx` — solo si la página usa el patrón de contexto.
+- `partials/` — componentes visuales de la página, siguiendo las reglas de partials ya documentadas.
+
+Componentes reutilizables entre páginas van en `components/`.
 
 ### Cuándo dividir un componente de página en `partials/`
 Señales de que un `<FeaturePage>.tsx` ya debe partirse (no esperar a que "se sienta grande"):
@@ -302,7 +317,9 @@ Señales de que un `<FeaturePage>.tsx` ya debe partirse (no esperar a que "se si
 - Tiene un estado condicional (`submitted ? ... : ...`) donde cada rama es un bloque grande — cada rama es candidata a su propio componente.
 
 Al dividir:
-- Cada sección independiente pasa a `partials/<NombreSeccion>.tsx`, recibiendo sus datos/callbacks por props (nunca importando el hook de la página directamente, para mantenerla reutilizable/testeable sola).
+- Cada sección independiente pasa a `partials/<NombreSeccion>.tsx`. El flujo de datos depende de dónde vive el componente:
+  - Partials en `components/` reciben sus datos exclusivamente por props — son globales y deben ser portables y testeables en aislamiento.
+  - Partials en `pages/<Feature>/partials/` pueden consumir el contexto de su página (`use<Feature>Context`) directamente. El contexto se declara junto al hook de la página, envuelve solo esa página, y desaparece al navegar fuera. Si un partial de `partials/` se promueve a `components/`, se migra a props en ese momento.
 - Si una sección tiene su propio tipo de formulario (Formik), exportar el tipo de valores desde el hook de la página (`export type <Nombre>Form = {...}`) e importarlo en el partial para tipar `FormikProps<...>` — no redefinir el shape en el componente.
 - Constantes puramente locales a una sección (ej. `FEATURES`, `NICHE_OPTIONS`) se quedan en el archivo del partial que las usa, no en la page.
 - La page resultante solo debe: llamar al hook, y renderizar los partials pasando props — sin lógica ni JSX de detalle propio.
@@ -317,6 +334,18 @@ partials/
 ├── DemoRequestForm.tsx    ← form de solicitud de demo (Formik + Select de giro)
 └── DemoRequestSuccess.tsx ← estado de confirmación tras enviar
 ```
+
+### Cuándo dividir un hook
+
+Señales de que un hook debe partirse en sub-hooks:
+- Exporta más de ~10 valores.
+- Supera ~80 líneas de lógica.
+- Mezcla 2+ dominios independientes (ej. carrito + balanza + pagos en un solo hook).
+
+Al dividir:
+- Crear un sub-hook por dominio en la misma carpeta (`useCart.ts`, `usePayment.ts`, etc.).
+- El hook principal los compone y re-exporta: `const cart = useCart(); const payment = usePayment(); return { ...cart, ...payment }`.
+- Los sub-hooks no se importan directamente desde componentes — solo el hook principal los orquesta.
 
 ### Tipos
 - Definir tipos de dominio en `models/` (interfaces `IXxx`).

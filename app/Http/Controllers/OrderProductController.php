@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
 use App\Events\OrdersUpdated;
 use App\Http\Requests\OrderProductStoreRequest;
@@ -337,6 +338,10 @@ class OrderProductController extends Controller
         $editableStatuses = [OrderStatusEnum::IN_PROCESS->value, OrderStatusEnum::SERVED->value];
         if (! in_array($order->estatus_pedido_id, $editableStatuses, true)) {
             return Response::error('La orden ya fue cerrada y no se puede modificar');
+        }
+
+        if ($order->sistema && $order->sistema->estatus_caja !== MainOrderStatusEnum::OPEN->value) {
+            return Response::error('La caja de esta venta ya está cerrada.');
         }
 
         return null;

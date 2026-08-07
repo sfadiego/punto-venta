@@ -2,11 +2,15 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesOpenSistema;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class OrderStoreSaleRequest extends FormRequest
 {
+    use ValidatesOpenSistema;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -42,5 +46,13 @@ class OrderStoreSaleRequest extends FormRequest
             ],
             'items.*.cantidad' => 'required|numeric|min:0.001',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+            $this->assertSistemaAbierto($validator, $tenantId);
+        });
     }
 }

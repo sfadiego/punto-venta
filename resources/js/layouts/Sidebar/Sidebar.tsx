@@ -21,7 +21,7 @@ export function Sidebar({ open, desktopHidden = false, onClose, onLogout, userNa
                 ${open ? "translate-x-0" : "-translate-x-full"}
                 ${desktopHidden ? "" : "lg:relative lg:translate-x-0"}`}
         >
-            <SidebarBrand onClose={onClose} onDesktopToggle={onDesktopToggle} />
+            <SidebarBrand onClose={onClose} onDesktopToggle={onDesktopToggle} alwaysShowClose={desktopHidden} />
             <SidebarNav onItemClick={onClose} />
             <SidebarUser name={userName} role={userRole} onLogout={onLogout} />
         </aside>

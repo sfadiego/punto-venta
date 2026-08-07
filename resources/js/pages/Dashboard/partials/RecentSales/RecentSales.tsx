@@ -7,6 +7,7 @@ import { OrderPreviewModal } from "@/components/orders/OrderPreviewModal/OrderPr
 import { SaleActions } from "@/components/orders/OrderActions/SaleActions";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
+import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 
 interface RecentSalesProps {
     onSelect?: (order: IOrder) => void;
@@ -69,7 +70,7 @@ export const RecentSales = ({ onSelect }: RecentSalesProps) => {
                                                 <p className="text-xs sm:text-sm font-semibold text-stone-900 truncate">
                                                     {sale.nombre_pedido ?? `Pedido #${sale.id}`}
                                                 </p>
-                                                {sale.is_delivery && (
+                                                {!!sale.is_delivery && (
                                                     <span title="Domicilio" className="shrink-0">
                                                         <Bike size={14} className="text-blue-500" />
                                                     </span>
@@ -84,7 +85,7 @@ export const RecentSales = ({ onSelect }: RecentSalesProps) => {
                                         <span className={`text-sm font-bold mr-1 whitespace-nowrap ${
                                             isPending ? "text-amber-600" : "text-emerald-600"
                                         }`}>
-                                            ${sale.total.toFixed(2)}
+                                            ${calcOrderDisplayTotal(sale).toFixed(2)}
                                         </span>
                                         {sellByWeight
                                             ? <SaleActions order={sale} />
