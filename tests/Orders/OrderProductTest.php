@@ -20,10 +20,10 @@ use Tests\TestCase;
 
 class OrderProductTest extends TestCase
 {
-    private function crearOrden(?int $estatusPedidoId = null): OrderModel
+    private function crearOrden(?int $estatusPedidoId = null, ?MainOrderStatusEnum $estatusCaja = null): OrderModel
     {
         $report = MainOrderReportModel::create([
-            MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN,
+            MainOrderReportModel::ESTATUS_CAJA => $estatusCaja ?? MainOrderStatusEnum::OPEN,
             MainOrderReportModel::EFECTIVO_CAJA_INICIO => 500,
             MainOrderReportModel::USER_ID => User::where('rol_id', RoleEnum::ADMIN->value)->first()->id,
             MainOrderReportModel::TENANT_ID => BusinessConfigModel::first()->id,
@@ -393,6 +393,119 @@ class OrderProductTest extends TestCase
             ->assertJsonPath('status', 'error');
 
         $this->assertDatabaseHas('order_product', ['id' => $item->id]);
+    }
+
+    // ── Caja cerrada — no se puede modificar aunque la orden siga InProcess ────
+    // Cierra el hueco de crear/editar productos en una orden que quedó InProcess
+    // (ej. venta guardada y no cobrada) después de que la caja ya se cerró.
+
+    public function test_agregar_producto_a_orden_con_caja_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(estatusCaja: MainOrderStatusEnum::CLOSED);
+        $product = $this->crearProducto();
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => $product->precio,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error')
+            ->assertJsonPath('message', 'La caja de esta venta ya está cerrada.');
+
+        $this->assertDatabaseMissing('order_product', [
+            'pedido_id' => $orden->id,
+            'producto_id' => $product->id,
+        ]);
+    }
+
+    public function test_actualizar_producto_en_orden_con_caja_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(estatusCaja: MainOrderStatusEnum::CLOSED);
+        $product = $this->crearProducto();
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->putJson("/api/order/{$orden->id}/product/{$item->id}", [
+            OrderProductModel::CANTIDAD => 5,
+        ], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseHas('order_product', [
+            'id' => $item->id,
+            'cantidad' => 1,
+        ]);
+    }
+
+    public function test_eliminar_producto_de_orden_con_caja_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(estatusCaja: MainOrderStatusEnum::CLOSED);
+        $product = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->deleteJson("/api/order/{$orden->id}/product/{$product->id}", [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseHas('order_product', [
+            'pedido_id' => $orden->id,
+            'producto_id' => $product->id,
+        ]);
+    }
+
+    public function test_vaciar_carrito_de_orden_con_caja_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(estatusCaja: MainOrderStatusEnum::CLOSED);
+        $product = $this->crearProducto();
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $this->deleteJson("/api/order/{$orden->id}/clear-cart", [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseHas('order_product', ['pedido_id' => $orden->id]);
+    }
+
+    public function test_agregar_producto_a_orden_con_caja_abierta_funciona(): void
+    {
+        $orden = $this->crearOrden(estatusCaja: MainOrderStatusEnum::OPEN);
+        $product = $this->crearProducto();
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => $product->precio,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+
+        $this->assertDatabaseHas('order_product', [
+            'pedido_id' => $orden->id,
+            'producto_id' => $product->id,
+        ]);
     }
 
     // ── ToggleReady ──────────────────────────────────────────

@@ -16,13 +16,18 @@ export const useAppLayout = () => {
     const { data: activeSale } = useGetActiveSale();
     const { data: config } = useGetBusinessConfig();
 
+    // Rutas de pantalla completa — ocultan el sidebar para maximizar el área táctil.
     const isTakeOrderRoute = !!useMatch(AdminRoutes.TakeOrder);
-    const [desktopSidebarHidden, setDesktopSidebarHidden] = useState(isTakeOrderRoute);
+    const matchesQuickSale = !!useMatch(AdminRoutes.QuickSale);
+    const matchesQuickSaleResume = !!useMatch(`${AdminRoutes.QuickSale}/:id`);
+    const isQuickSaleRoute = matchesQuickSale || matchesQuickSaleResume;
+    const isFullscreenRoute = isTakeOrderRoute || isQuickSaleRoute;
+    const [desktopSidebarHidden, setDesktopSidebarHidden] = useState(isFullscreenRoute);
 
     useEffect(() => {
-        setDesktopSidebarHidden(isTakeOrderRoute);
+        setDesktopSidebarHidden(isFullscreenRoute);
         setSidebarOpen(false);
-    }, [isTakeOrderRoute]);
+    }, [isFullscreenRoute]);
 
     useEffect(() => {
         setSistema(activeSale?.id ?? null);

@@ -6,6 +6,7 @@ import { formatOrderTime } from "@/utils/dateUtils";
 import { useOrderActions } from "@/components/orders/OrderActions/useOrderActions";
 import { usePermissions } from "@/hooks/usePermissions";
 import { OrderActionGroup, OrderEditControls } from "@/components/orders/OrderActions/OrderActionGroup";
+import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 
 interface OrderCardProps {
     order: IOrder;
@@ -80,7 +81,7 @@ export const OrderCard = ({ order }: OrderCardProps) => {
                 onClick={(e) => e.stopPropagation()}
             >
                 <span className="text-sm font-bold text-stone-900 tabular-nums shrink-0">
-                    ${order.total.toFixed(2)}
+                    ${calcOrderDisplayTotal(order).toFixed(2)}
                 </span>
 
                 <div className="flex items-center gap-1 shrink-0">

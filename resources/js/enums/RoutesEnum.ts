@@ -1,5 +1,6 @@
 export enum AdminRoutes {
     Dashboard    = "/",
+    QuickSale    = "/quick-sale",
     CloseSales   = "/close-sales",
     ProductsPage = "/products",
     OrderList    = "/orders",

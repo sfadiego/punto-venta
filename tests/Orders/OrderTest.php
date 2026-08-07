@@ -20,19 +20,19 @@ use Tests\TestCase;
 
 class OrderTest extends TestCase
 {
-    private function crearReporte(): MainOrderReportModel
+    private function crearReporte(?MainOrderStatusEnum $estatusCaja = null): MainOrderReportModel
     {
         return MainOrderReportModel::create([
-            MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN,
+            MainOrderReportModel::ESTATUS_CAJA => $estatusCaja ?? MainOrderStatusEnum::OPEN,
             MainOrderReportModel::EFECTIVO_CAJA_INICIO => 500,
             MainOrderReportModel::USER_ID => User::where('rol_id', RoleEnum::ADMIN->value)->first()->id,
             MainOrderReportModel::TENANT_ID => BusinessConfigModel::first()->id,
         ]);
     }
 
-    private function crearOrden(): OrderModel
+    private function crearOrden(?MainOrderStatusEnum $estatusCaja = null): OrderModel
     {
-        $report = $this->crearReporte();
+        $report = $this->crearReporte($estatusCaja);
 
         return OrderModel::create([
             OrderModel::TOTAL => 100,
@@ -142,6 +142,25 @@ class OrderTest extends TestCase
             ->assertStatus(400);
     }
 
+    public function test_no_crea_orden_con_caja_cerrada(): void
+    {
+        $report = $this->crearReporte(MainOrderStatusEnum::CLOSED);
+        $status = OrderStatusModel::first();
+
+        $this->postJson('/api/order', [
+            OrderModel::TOTAL => 150,
+            OrderModel::SUBTOTAL => 150,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::SISTEMA_ID => $report->id,
+            OrderModel::NOMBRE_PEDIDO => 'Mesa con caja cerrada',
+            OrderModel::ESTATUS_PEDIDO_ID => $status->id,
+        ], $this->authHeaders())
+            ->assertStatus(400)
+            ->assertJsonPath('data.sistema_id.0', 'La caja de esta venta ya está cerrada.');
+
+        $this->assertDatabaseMissing('order', ['nombre_pedido' => 'Mesa con caja cerrada']);
+    }
+
     // ── Show ─────────────────────────────────────────────────
 
     public function test_muestra_orden(): void
@@ -238,6 +257,37 @@ class OrderTest extends TestCase
             OrderModel::IS_DELIVERY => 'no-es-booleano',
         ], $this->authHeaders())
             ->assertStatus(400);
+    }
+
+    public function test_no_cierra_orden_con_caja_cerrada(): void
+    {
+        $orden = $this->crearOrden(MainOrderStatusEnum::CLOSED);
+
+        $this->putJson("/api/order/{$orden->id}", [
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
+        ], $this->authHeaders())
+            ->assertStatus(400)
+            ->assertJsonPath('data.sistema_id.0', 'La caja de esta venta ya está cerrada.');
+
+        $this->assertDatabaseHas('order', [
+            'id' => $orden->id,
+            'estatus_pedido_id' => OrderStatusModel::first()->id,
+        ]);
+    }
+
+    public function test_edita_datos_de_orden_aunque_la_caja_ya_este_cerrada(): void
+    {
+        // El guard de caja solo bloquea CERRAR (cobrar) la venta — corregir datos
+        // menores (ej. nombre) de una orden que quedó InProcess sigue permitido.
+        $orden = $this->crearOrden(MainOrderStatusEnum::CLOSED);
+
+        $this->putJson("/api/order/{$orden->id}", [
+            OrderModel::NOMBRE_PEDIDO => 'Mesa Corregida',
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+
+        $this->assertDatabaseHas('order', ['id' => $orden->id, 'nombre_pedido' => 'Mesa Corregida']);
     }
 
     public function test_actualiza_orden_incluye_telefono_del_cliente(): void
