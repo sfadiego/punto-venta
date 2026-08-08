@@ -148,7 +148,7 @@ export default function TenantFormPage() {
 
                         {isEdit && tenantId && tenantDetail?.is_demo && (
                             <div id="peligro">
-                                <TenantDangerZone tenantId={tenantId} />
+                                <TenantDangerZone tenantId={tenantId} tenantName={tenantDetail.business_name} />
                             </div>
                         )}
 
