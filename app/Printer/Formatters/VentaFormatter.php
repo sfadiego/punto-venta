@@ -44,8 +44,9 @@ class VentaFormatter implements TicketFormatterInterface
         // ─── Info del pedido ──────────────────────────────────
         $printer->setJustification(Printer::JUSTIFY_LEFT);
         $printer->setEmphasis(true);
-        $printer->text((empty($business['sell_by_weight']) ? 'Pedido: ' : 'Mesa : ').$d['nombre_pedido']."\n");
+        $printer->text((empty($business['sell_by_weight']) ? 'Mesa : ' : 'Pedido: ').$d['nombre_pedido']."\n");
         $printer->setEmphasis(false);
+
         $prefix = $this->folioPrefix($business['name']);
         $printer->text('Folio: '.$prefix.'-'.str_pad($d['id'], 4, '0', STR_PAD_LEFT)."\n");
         $printer->feed(1);
@@ -165,7 +166,7 @@ class VentaFormatter implements TicketFormatterInterface
         $unidad = $item['unidad_medida'] ?? 'unidad';
         $esPeso = in_array($unidad, ['kg', 'gr', 'litro']);
         $cantidadStr = $esPeso
-            ? number_format($item['cantidad'], 3).' '.$unidad
+            ? $this->trimTrailingZeros($item['cantidad'], 3).' '.$unidad
             : (int) $item['cantidad'];
 
         $line2 = '  '.$cantidadStr.' x $'.number_format($item['precio'], 2);
@@ -183,6 +184,15 @@ class VentaFormatter implements TicketFormatterInterface
         }
 
         return $lines;
+    }
+
+    /**
+     * Formatea un número con hasta $decimals decimales, removiendo ceros
+     * (y el punto) sobrantes al final. Ej: 0.350 -> "0.35", 1.000 -> "1".
+     */
+    private function trimTrailingZeros(float $value, int $decimals): string
+    {
+        return rtrim(rtrim(number_format($value, $decimals, '.', ''), '0'), '.');
     }
 
     /**

@@ -64,6 +64,7 @@ class VentaTicketData implements TicketDataInterface
             'fecha_string' => self::fechaString($order->created_at),
             'hora' => Carbon::parse($order->created_at)->setTimezone(config('app.timezone'))->format('H:i'),
             'products' => $products,
+            'sell_by_weight' => (bool) ($config?->tipo_negocio?->features()['sell_by_weight'] ?? false),
             'business' => [
                 'name' => $config?->business_name ?? env('APP_FULL_NAME', 'Punto de venta'),
                 'phone' => $config?->phone,

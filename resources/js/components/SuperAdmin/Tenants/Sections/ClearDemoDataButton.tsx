@@ -6,15 +6,16 @@ import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 interface ClearDemoDataButtonProps {
     tenantId: number;
+    tenantName: string;
 }
 
-export const ClearDemoDataButton = ({ tenantId }: ClearDemoDataButtonProps) => {
+export const ClearDemoDataButton = ({ tenantId, tenantName }: ClearDemoDataButtonProps) => {
     const { mutate, isPending } = useClearDemoData();
 
     const handleClear = async () => {
         const result = await Swal.fire({
-            title: "¿Limpiar datos de demo?",
-            text: "Se eliminarán todas las órdenes y reportes de este cliente. Esta acción no se puede deshacer.",
+            title: `¿Limpiar datos de ${tenantName}?`,
+            text: `Se eliminarán todas las órdenes y reportes de ${tenantName}. Esta acción no se puede deshacer.`,
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#ef4444",

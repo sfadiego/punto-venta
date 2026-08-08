@@ -81,8 +81,10 @@ export const usePrintTicket = (orderId: number) => {
         sendPrintServer();
     };
 
-    // Visible cuando: config cargando, printer_enabled/bluetooth_printing_enabled activos, o printer_name configurado (servidor).
-    const isVisible = !businessConfig
+    // Visible cuando: agente/Bluetooth ya conectado, config cargando, printer_enabled/bluetooth_printing_enabled activos, o printer_name configurado (servidor).
+    const isVisible = agentConnected
+        || bleConnected
+        || !businessConfig
         || !!businessConfig.printer_enabled
         || !!businessConfig.bluetooth_printing_enabled
         || !!businessConfig.printer_name?.trim();

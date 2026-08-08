@@ -3,9 +3,10 @@ import { ClearDemoDataButton } from "./ClearDemoDataButton";
 
 interface TenantDangerZoneProps {
     tenantId: number;
+    tenantName: string;
 }
 
-export const TenantDangerZone = ({ tenantId }: TenantDangerZoneProps) => (
+export const TenantDangerZone = ({ tenantId, tenantName }: TenantDangerZoneProps) => (
     <section className="mt-6 bg-white rounded-2xl border border-red-100 shadow-sm p-6">
         <div className="flex items-start justify-between gap-4">
             <div className="gap-3">
@@ -18,7 +19,7 @@ export const TenantDangerZone = ({ tenantId }: TenantDangerZoneProps) => (
                         Elimina todos los datos de prueba generados durante el demo. Esta acción no se puede deshacer.
                     </p>
                 </div>
-                <ClearDemoDataButton tenantId={tenantId} />
+                <ClearDemoDataButton tenantId={tenantId} tenantName={tenantName} />
             </div>
         </div>
     </section>
