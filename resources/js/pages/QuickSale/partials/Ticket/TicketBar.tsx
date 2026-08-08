@@ -1,8 +1,13 @@
-import { ChevronUp, Pencil, Banknote } from "lucide-react";
+import { ChevronUp, Pencil, Banknote, Printer, Loader } from "lucide-react";
 import { Input } from "@/components/ui/form/Input";
+import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { useQuickSaleContext } from "../../QuickSaleContext";
 import { TicketDrawer } from "./TicketDrawer";
+
+const printButtonClass =
+    "flex items-center justify-center w-11 h-11 shrink-0 rounded-xl text-stone-500 " +
+    "hover:text-stone-700 hover:bg-white border border-stone-200 transition-all disabled:opacity-50";
 
 export const TicketBar = () => {
     const {
@@ -16,8 +21,17 @@ export const TicketBar = () => {
         handleNombrePedidoBlur,
         domicilioActivo,
         domicilioNum,
+        ensureOrderForPrint,
+        isPreparingPrint,
     } = useQuickSaleContext();
+    const { print, isPending: isPrinting, isVisible: printVisible } = usePrintTicket();
     const hasAnything = cart.length > 0 || (domicilioActivo && domicilioNum > 0);
+
+    const handlePrint = async () => {
+        if (!hasAnything) return;
+        const orderId = await ensureOrderForPrint();
+        print(orderId);
+    };
 
     return (
         <footer className="shrink-0 bg-white border-t border-stone-200">
@@ -44,6 +58,19 @@ export const TicketBar = () => {
                             className="!w-full !px-0 !py-0 !border-0 !bg-transparent !text-sm !font-medium !text-stone-700 placeholder:!text-stone-400 focus:!ring-0"
                         />
                     </div>
+                    {printVisible && (
+                        <button
+                            type="button"
+                            onClick={handlePrint}
+                            disabled={!hasAnything || isPrinting || isPreparingPrint}
+                            title="Imprimir ticket"
+                            className={printButtonClass}
+                        >
+                            {isPrinting || isPreparingPrint
+                                ? <Loader size={20} className="animate-spin" />
+                                : <Printer size={20} />}
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={openPayModal}

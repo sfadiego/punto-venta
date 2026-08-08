@@ -22,13 +22,13 @@ export const PrintTicketButton = ({
     showLabel = false,
     className,
 }: PrintTicketButtonProps) => {
-    const { print, isPending, isVisible } = usePrintTicket(orderId);
+    const { print, isPending, isVisible } = usePrintTicket();
 
     if (!isVisible) return null;
 
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        print();
+        print(orderId);
     };
 
     const resolvedClass = className ?? (showLabel ? defaultLabelClass : defaultIconClass);

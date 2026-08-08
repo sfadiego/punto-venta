@@ -57,7 +57,7 @@ export const useOrderDelivery = (
     const toggleDomicilio = (checked: boolean) => {
         setDomicilioActivo(checked);
         if (checked) {
-            const defaultCost = businessConfig?.costo_domicilio_default ?? 0;
+            const defaultCost = Number(businessConfig?.costo_domicilio_default ?? 0);
             const nextCost = defaultCost > 0 ? String(defaultCost) : "";
             setCostoDomicilio(nextCost);
             setOrderDeliveryPaidByState(DeliveryPaidByEnum.Customer);

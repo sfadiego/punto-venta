@@ -51,6 +51,7 @@ export const useQuickSaleOrderLifecycle = ({
 
     const [nombrePedido, setNombrePedido] = useState("");
     const [isSavingOrder, setIsSavingOrder] = useState(false);
+    const [isPreparingPrint, setIsPreparingPrint] = useState(false);
 
     const handleNombrePedidoBlur = () => {
         if (!resumeOrderId || !nombrePedido.trim()) return;
@@ -79,25 +80,9 @@ export const useQuickSaleOrderLifecycle = ({
         applyOrderState(resumeOrder);
     }, [resumeOrder, resumeOrderId, applyOrderState]);
 
-    // Guardar y continuar después: crea la orden InProcess (mismo patrón que
+    // Crea la orden InProcess con el carrito/domicilio actual (mismo patrón que
     // useSellByWeightSaleModal) para que quede visible/retomable en "Ventas del día".
-    const saveCartAsInProcess = async () => {
-        if (resumeOrderId) {
-            // El carrito y el domicilio ya se sincronizaron acción por acción mientras se editaba
-            // (addToCart/removeFromCart/clearCart/toggleDelivery/etc.) — aquí solo queda fijar
-            // nombre/domicilio por si quedó algo sin blur (ej. el input de costo a medio escribir).
-            await updateOrderData({
-                orderId: resumeOrderId,
-                data: {
-                    nombre_pedido: resolveSaleName(nombrePedido),
-                    is_delivery: domicilioActivo,
-                    costo_domicilio: calcCostoDomicilio(domicilioNum, domicilioActivo, customerPays),
-                },
-            });
-            invalidateResumeOrderQueries();
-            return;
-        }
-
+    const createOrderFromCart = async (): Promise<number> => {
         const res = await storeOrder({
             nombre_pedido: resolveSaleName(nombrePedido),
             total: 0,
@@ -123,6 +108,45 @@ export const useQuickSaleOrderLifecycle = ({
                     costo_domicilio: calcCostoDomicilio(domicilioNum, domicilioActivo, customerPays),
                 },
             });
+        }
+
+        return order.id;
+    };
+
+    // Guardar y continuar después.
+    const saveCartAsInProcess = async () => {
+        if (resumeOrderId) {
+            // El carrito y el domicilio ya se sincronizaron acción por acción mientras se editaba
+            // (addToCart/removeFromCart/clearCart/toggleDelivery/etc.) — aquí solo queda fijar
+            // nombre/domicilio por si quedó algo sin blur (ej. el input de costo a medio escribir).
+            await updateOrderData({
+                orderId: resumeOrderId,
+                data: {
+                    nombre_pedido: resolveSaleName(nombrePedido),
+                    is_delivery: domicilioActivo,
+                    costo_domicilio: calcCostoDomicilio(domicilioNum, domicilioActivo, customerPays),
+                },
+            });
+            invalidateResumeOrderQueries();
+            return;
+        }
+
+        await createOrderFromCart();
+    };
+
+    // Imprimir sin haber guardado aún: crea la orden como InProcess (igual que "Guardar y
+    // continuar después") para tener un id que imprimir, y pasa la página a modo retomar esa
+    // orden — desde ahí en adelante el carrito sincroniza acción por acción como cualquier venta
+    // retomada.
+    const ensureOrderForPrint = async (): Promise<number> => {
+        if (resumeOrderId) return resumeOrderId;
+        setIsPreparingPrint(true);
+        try {
+            const newOrderId = await createOrderFromCart();
+            navigate(`${AdminRoutes.QuickSale}/${newOrderId}`, { replace: true });
+            return newOrderId;
+        } finally {
+            setIsPreparingPrint(false);
         }
     };
 
@@ -185,5 +209,7 @@ export const useQuickSaleOrderLifecycle = ({
         handleNombrePedidoBlur,
         isSavingOrder,
         handleBack,
+        ensureOrderForPrint,
+        isPreparingPrint,
     };
 };

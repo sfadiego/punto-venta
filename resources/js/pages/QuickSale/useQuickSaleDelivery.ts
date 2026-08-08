@@ -44,7 +44,7 @@ export const useQuickSaleDelivery = (resumeOrderId: number | null) => {
             let nextPaidBy = deliveryPaidBy;
             if (next) {
                 // Precarga el costo configurado en Admin > Domicilio, solo si el negocio definió uno.
-                const defaultCost = businessConfig?.costo_domicilio_default ?? 0;
+                const defaultCost = Number(businessConfig?.costo_domicilio_default ?? 0);
                 nextCosto = defaultCost;
                 setCostoDomicilio(defaultCost > 0 ? String(defaultCost) : "");
             } else {

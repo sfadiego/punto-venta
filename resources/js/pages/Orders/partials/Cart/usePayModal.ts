@@ -37,7 +37,7 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
     const { data: businessConfig } = useGetBusinessConfig();
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
     const { data: customers = [] } = useCustomerList();
-    const { print } = usePrintTicket(orderId);
+    const { print } = usePrintTicket();
 
     const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
     const isCash = !selectedMethod || selectedMethod.name.toLowerCase().includes("efectivo");
@@ -105,7 +105,7 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
                     cancelButtonText: "No",
                     reverseButtons: true,
                 });
-                if (result.isConfirmed) print();
+                if (result.isConfirmed) print(orderId);
             }
 
             navigate("/");

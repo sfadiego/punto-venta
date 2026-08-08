@@ -449,7 +449,7 @@ export const useSellByWeightSaleModal = (onClose: () => void, initialOrder?: IOr
     const toggleDomicilio = (checked: boolean) => {
         setDomicilioActivo(checked);
         if (checked) {
-            const defaultCost = businessConfig?.costo_domicilio_default ?? 0;
+            const defaultCost = Number(businessConfig?.costo_domicilio_default ?? 0);
             setCostoDomicilio(defaultCost > 0 ? String(defaultCost) : "");
             setOrderDeliveryPaidBy(DeliveryPaidByEnum.Customer);
         } else {

@@ -7,7 +7,7 @@ import { reportClientError } from "@/utils/reportClientError";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { toast } from "react-toastify";
 
-export const usePrintTicket = (orderId: number) => {
+export const usePrintTicket = () => {
     const { data: businessConfig } = useGetBusinessConfig();
     const { isConnected: agentConnected, print: agentPrint } = usePrintAgent();
     const { isConnected: bleConnected, print: blePrint } = useBluetoothPrint();
@@ -16,14 +16,14 @@ export const usePrintTicket = (orderId: number) => {
 
     // Impresión vía servidor (CUPS/red) — fallback cuando no hay agente local
     const { mutate: sendPrintServer, isPending: isPendingServer } = useMutation({
-        mutationFn: () => printOrder(orderId),
+        mutationFn: (orderId: number) => printOrder(orderId),
         onSuccess: () => toast.success("Ticket enviado a la impresora"),
         onError: (error) => toast.error(getUserFacingErrorMessage(error, "Impresora no disponible")),
     });
 
     // Impresión vía agente WebSocket local
     const { mutate: sendPrintAgent, isPending: isPendingAgent } = useMutation({
-        mutationFn: async () => {
+        mutationFn: async (orderId: number) => {
             const bytes = await fetchPrintBytes(orderId);
             await agentPrint(new Uint8Array(bytes as ArrayBuffer));
         },
@@ -36,7 +36,7 @@ export const usePrintTicket = (orderId: number) => {
 
     // Impresión vía Bluetooth (tablet, sin agente)
     const { mutate: sendPrintBluetooth, isPending: isPendingBluetooth } = useMutation({
-        mutationFn: async () => {
+        mutationFn: async (orderId: number) => {
             const bytes = await fetchPrintBytes(orderId);
             await blePrint(new Uint8Array(bytes as ArrayBuffer));
         },
@@ -47,14 +47,14 @@ export const usePrintTicket = (orderId: number) => {
         },
     });
 
-    const print = () => {
+    const print = (orderId: number) => {
         if (agentConnected) {
-            sendPrintAgent();
+            sendPrintAgent(orderId);
             return;
         }
 
         if (bleConnected) {
-            sendPrintBluetooth();
+            sendPrintBluetooth(orderId);
             return;
         }
 
@@ -78,7 +78,7 @@ export const usePrintTicket = (orderId: number) => {
             return;
         }
 
-        sendPrintServer();
+        sendPrintServer(orderId);
     };
 
     // Visible cuando: agente/Bluetooth ya conectado, config cargando, printer_enabled/bluetooth_printing_enabled activos, o printer_name configurado (servidor).
