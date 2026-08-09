@@ -309,4 +309,64 @@ class OrderTotalsTest extends TestCase
         $this->assertGreaterThanOrEqual(0, $orden->total);
         $this->assertGreaterThanOrEqual(0, $orden->subtotal);
     }
+
+    // ── Costo de domicilio ─────────────────────────────────────
+    //
+    // +costo_domicilio = cliente paga → se suma al total.
+    // -costo_domicilio = negocio absorbe → el cliente NO lo paga, el total no cambia.
+
+    public function test_total_suma_costo_domicilio_cuando_cliente_paga(): void
+    {
+        $orden = $this->crearOrden();
+        $producto = $this->crearProducto(precio: 100);
+
+        // subtotal = 100×2 = 200, domicilio (cliente paga) = 30 → total = 230
+        $this->agregarProducto($orden->id, $producto->id, 2, 100);
+
+        $this->putJson("/api/order/{$orden->id}", [
+            'costo_domicilio' => 30,
+            'is_delivery' => true,
+        ], $this->authHeaders())->assertStatus(200);
+
+        $totales = $this->totalOrden($orden->id);
+
+        $this->assertEquals(200.0, $totales['subtotal']);
+        $this->assertEquals(230.0, $totales['total']);
+    }
+
+    public function test_total_no_descuenta_costo_domicilio_cuando_negocio_paga(): void
+    {
+        $orden = $this->crearOrden();
+        $producto = $this->crearProducto(precio: 100);
+
+        // subtotal = 100×2 = 200, domicilio absorbido por el negocio (-30) → total sigue en 200
+        $this->agregarProducto($orden->id, $producto->id, 2, 100);
+
+        $this->putJson("/api/order/{$orden->id}", [
+            'costo_domicilio' => -30,
+            'is_delivery' => true,
+        ], $this->authHeaders())->assertStatus(200);
+
+        $totales = $this->totalOrden($orden->id);
+
+        $this->assertEquals(200.0, $totales['subtotal']);
+        $this->assertEquals(200.0, $totales['total']);
+    }
+
+    public function test_total_incluye_costo_domicilio_en_la_misma_respuesta_del_update(): void
+    {
+        $orden = $this->crearOrden();
+        $producto = $this->crearProducto(precio: 100);
+
+        $this->agregarProducto($orden->id, $producto->id, 1, 100);
+
+        // El total debe reflejar el nuevo costo_domicilio en la MISMA respuesta del PUT,
+        // sin necesitar una segunda petición (regresión: orden de cálculo en el controller).
+        $response = $this->putJson("/api/order/{$orden->id}", [
+            'costo_domicilio' => 30,
+            'is_delivery' => true,
+        ], $this->authHeaders())->assertStatus(200);
+
+        $this->assertEquals(130.0, (float) $response->json('data.total'));
+    }
 }
