@@ -74,6 +74,7 @@ class VentaTicketData implements TicketDataInterface
                 'website' => $config?->website,
                 'ticket_footer' => $config?->ticket_footer,
                 'paper_width' => $config?->paper_width ?? '58',
+                'sell_by_weight' => $config?->tipo_negocio?->features()['sell_by_weight'] ?? false,
             ],
         ];
     }

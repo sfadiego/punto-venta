@@ -2,6 +2,7 @@
 
 namespace Tests\Orders;
 
+use App\Enums\BusinessTypeEnum;
 use App\Enums\UnidadMedidaEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
@@ -182,5 +183,99 @@ class PrintTest extends TestCase
 
         $this->assertStringContainsString('3 x $45.00', $response->getContent());
         $this->assertStringNotContainsString('3.000', $response->getContent());
+    }
+
+    // ── Costo de domicilio en el ticket ─────────────────────────
+
+    public function test_bytes_domicilio_cliente_paga_se_imprime_con_signo_positivo(): void
+    {
+        $orden = $this->crearOrden();
+        $orden->update([
+            OrderModel::IS_DELIVERY => true,
+            OrderModel::COSTO_DOMICILIO => 30,
+        ]);
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        $this->assertStringContainsString('+$30.00', $response->getContent());
+    }
+
+    public function test_bytes_domicilio_negocio_paga_no_se_imprime(): void
+    {
+        $orden = $this->crearOrden();
+        $orden->update([
+            OrderModel::IS_DELIVERY => true,
+            OrderModel::COSTO_DOMICILIO => -30,
+        ]);
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        // El domicilio absorbido por el negocio no se cobra al cliente, no debe aparecer en el ticket.
+        $this->assertStringNotContainsString('Domicilio', $response->getContent());
+    }
+
+    // ── Propina: solo aplica a restaurantes ─────────────────────
+
+    public function test_bytes_propina_aparece_en_restaurante(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Restaurante,
+        ]);
+
+        $orden = $this->crearOrden();
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        $this->assertStringContainsString('Propina 10%', $response->getContent());
+    }
+
+    public function test_bytes_propina_no_aparece_en_venta_por_peso(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::VentaPorPeso,
+        ]);
+
+        $orden = $this->crearOrden();
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        $this->assertStringNotContainsString('Propina', $response->getContent());
+    }
+
+    public function test_bytes_propina_no_incluye_costo_domicilio(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Restaurante,
+        ]);
+
+        $orden = $this->crearOrden();
+        $orden->update([
+            OrderModel::SUBTOTAL => 970,
+            OrderModel::TOTAL => 1000,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::IS_DELIVERY => true,
+            OrderModel::COSTO_DOMICILIO => 30,
+        ]);
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        // Propina = 10% de 970 (subtotal, sin domicilio) = $97.00, no 10% de 1000.
+        $this->assertStringContainsString('$97.00', $response->getContent());
+        $this->assertStringNotContainsString('$100.00', $response->getContent());
     }
 }

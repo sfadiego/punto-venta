@@ -6,5 +6,6 @@ export interface IProductGroup {
     items: IOrderProduct[];
     readyCount: number;
     totalCount: number;
+    totalUnits: number;
     allReady: boolean;
 }

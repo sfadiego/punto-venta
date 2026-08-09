@@ -44,7 +44,7 @@ class VentaFormatter implements TicketFormatterInterface
         // ─── Info del pedido ──────────────────────────────────
         $printer->setJustification(Printer::JUSTIFY_LEFT);
         $printer->setEmphasis(true);
-        $printer->text('Mesa : '.$d['nombre_pedido']."\n");
+        $printer->text((empty($business['sell_by_weight']) ? 'Pedido: ' : 'Mesa : ').$d['nombre_pedido']."\n");
         $printer->setEmphasis(false);
         $prefix = $this->folioPrefix($business['name']);
         $printer->text('Folio: '.$prefix.'-'.str_pad($d['id'], 4, '0', STR_PAD_LEFT)."\n");
@@ -75,17 +75,26 @@ class VentaFormatter implements TicketFormatterInterface
             )."\n");
         }
 
-        $printer->setEmphasis(true);
-        $printer->text($this->totalRow('TOTAL:', '$'.number_format($d['total'], 2))."\n");
-        $printer->setEmphasis(false);
+        // order.total nunca incluye el domicilio (se mantiene "solo productos" para el
+        // cierre de caja); el total impreso al cliente sí debe sumarlo cuando lo paga él.
+        $subtotalConDescuento = $d['subtotal'] - ($d['subtotal'] * $d['descuento'] / 100);
+        $domicilioClientePaga = (! empty($d['is_delivery']) && $d['costo_domicilio'] > 0) ? $d['costo_domicilio'] : 0;
 
-        if (! empty($d['is_delivery']) && $d['costo_domicilio'] > 0) {
-            $printer->text($this->totalRow('Domicilio:', '-$'.number_format($d['costo_domicilio'], 2))."\n");
+        if ($domicilioClientePaga > 0) {
+            $printer->text($this->totalRow('Domicilio:', '+$'.number_format($domicilioClientePaga, 2))."\n");
         }
 
-        $propina = round($d['total'] * 0.10, 2);
-        $printer->feed(1);
-        $printer->text($this->totalRow('Propina 10%:', '$'.number_format($propina, 2))."\n");
+        $totalTicket = $subtotalConDescuento + $domicilioClientePaga;
+
+        $printer->setEmphasis(true);
+        $printer->text($this->totalRow('TOTAL:', '$'.number_format($totalTicket, 2))."\n");
+        $printer->setEmphasis(false);
+
+        if (empty($business['sell_by_weight'])) {
+            $propina = round($subtotalConDescuento * 0.10, 2);
+            $printer->feed(1);
+            $printer->text($this->totalRow('Propina 10%:', '$'.number_format($propina, 2))."\n");
+        }
 
         // ─── Pie del ticket ───────────────────────────────────
         $printer->feed(1);

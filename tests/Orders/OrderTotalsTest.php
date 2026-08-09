@@ -309,4 +309,47 @@ class OrderTotalsTest extends TestCase
         $this->assertGreaterThanOrEqual(0, $orden->total);
         $this->assertGreaterThanOrEqual(0, $orden->subtotal);
     }
+
+    // ── Costo de domicilio ─────────────────────────────────────
+    //
+    // order.total (usado como "bruto" en el cierre de caja) es SIEMPRE solo productos:
+    // costo_domicilio nunca se suma ni se resta de él, sin importar quién pague.
+    // El total que ve el cliente (con domicilio incluido) se calcula solo para mostrar
+    // en el ticket/checkout, no se persiste en order.total (ver CloseSalesTotalsTest).
+
+    public function test_total_de_orden_no_incluye_costo_domicilio_cuando_cliente_paga(): void
+    {
+        $orden = $this->crearOrden();
+        $producto = $this->crearProducto(precio: 100);
+
+        $this->agregarProducto($orden->id, $producto->id, 2, 100);
+
+        $this->putJson("/api/order/{$orden->id}", [
+            'costo_domicilio' => 30,
+            'is_delivery' => true,
+        ], $this->authHeaders())->assertStatus(200);
+
+        $totales = $this->totalOrden($orden->id);
+
+        $this->assertEquals(200.0, $totales['subtotal']);
+        $this->assertEquals(200.0, $totales['total']);
+    }
+
+    public function test_total_de_orden_no_incluye_costo_domicilio_cuando_negocio_paga(): void
+    {
+        $orden = $this->crearOrden();
+        $producto = $this->crearProducto(precio: 100);
+
+        $this->agregarProducto($orden->id, $producto->id, 2, 100);
+
+        $this->putJson("/api/order/{$orden->id}", [
+            'costo_domicilio' => -30,
+            'is_delivery' => true,
+        ], $this->authHeaders())->assertStatus(200);
+
+        $totales = $this->totalOrden($orden->id);
+
+        $this->assertEquals(200.0, $totales['subtotal']);
+        $this->assertEquals(200.0, $totales['total']);
+    }
 }
