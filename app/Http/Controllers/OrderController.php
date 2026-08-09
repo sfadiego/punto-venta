@@ -61,10 +61,8 @@ class OrderController extends Controller
         TenantActivityService $activityService,
     ): JsonResponse {
         $data = $params->toArray();
-        $wasClosed = $order->estatus_pedido_id === OrderStatusEnum::CLOSED->value;
-
-        $order->fill($data);
         $orderDetail = $order->totalAndSubTotalOrder();
+        $wasClosed = $order->estatus_pedido_id === OrderStatusEnum::CLOSED->value;
 
         $order->update(array_merge($data, [
             'total' => $orderDetail['total'],

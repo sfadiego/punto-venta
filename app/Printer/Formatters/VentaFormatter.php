@@ -75,17 +75,23 @@ class VentaFormatter implements TicketFormatterInterface
             )."\n");
         }
 
-        if (! empty($d['is_delivery']) && $d['costo_domicilio'] > 0) {
-            $printer->text($this->totalRow('Domicilio:', '+$'.number_format($d['costo_domicilio'], 2))."\n");
+        // order.total nunca incluye el domicilio (se mantiene "solo productos" para el
+        // cierre de caja); el total impreso al cliente sí debe sumarlo cuando lo paga él.
+        $subtotalConDescuento = $d['subtotal'] - ($d['subtotal'] * $d['descuento'] / 100);
+        $domicilioClientePaga = (! empty($d['is_delivery']) && $d['costo_domicilio'] > 0) ? $d['costo_domicilio'] : 0;
+
+        if ($domicilioClientePaga > 0) {
+            $printer->text($this->totalRow('Domicilio:', '+$'.number_format($domicilioClientePaga, 2))."\n");
         }
 
+        $totalTicket = $subtotalConDescuento + $domicilioClientePaga;
+
         $printer->setEmphasis(true);
-        $printer->text($this->totalRow('TOTAL:', '$'.number_format($d['total'], 2))."\n");
+        $printer->text($this->totalRow('TOTAL:', '$'.number_format($totalTicket, 2))."\n");
         $printer->setEmphasis(false);
 
         if (empty($business['sell_by_weight'])) {
-            $baseParaPropina = $d['subtotal'] - ($d['subtotal'] * $d['descuento'] / 100);
-            $propina = round($baseParaPropina * 0.10, 2);
+            $propina = round($subtotalConDescuento * 0.10, 2);
             $printer->feed(1);
             $printer->text($this->totalRow('Propina 10%:', '$'.number_format($propina, 2))."\n");
         }
