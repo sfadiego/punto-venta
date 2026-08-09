@@ -21,6 +21,7 @@ export const groupOrderProducts = (orderProducts: IOrderProduct[] = []): IProduc
             items,
             readyCount: items.filter((i) => i.is_ready).length,
             totalCount: items.length,
+            totalUnits: items.reduce((sum, i) => sum + parseFloat(i.cantidad.toString()), 0),
             allReady: items.every((i) => i.is_ready),
         };
     });

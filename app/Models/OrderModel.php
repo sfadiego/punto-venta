@@ -120,6 +120,10 @@ class OrderModel extends Model
             $orderTotal = $orderSubtotal - $discount;
         }
 
+        // +costo_domicilio = cliente paga (se suma al total); -costo_domicilio = negocio absorbe
+        // (no se descuenta del total que paga el cliente, solo se refleja en el cierre de caja).
+        $orderTotal += max($this->costo_domicilio ?? 0, 0);
+
         return [
             'total' => $orderTotal,
             'subtotal' => $orderSubtotal,

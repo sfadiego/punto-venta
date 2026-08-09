@@ -44,7 +44,7 @@ class VentaFormatter implements TicketFormatterInterface
         // ─── Info del pedido ──────────────────────────────────
         $printer->setJustification(Printer::JUSTIFY_LEFT);
         $printer->setEmphasis(true);
-        $printer->text('Mesa : '.$d['nombre_pedido']."\n");
+        $printer->text((empty($business['sell_by_weight']) ? 'Pedido: ' : 'Mesa : ').$d['nombre_pedido']."\n");
         $printer->setEmphasis(false);
         $prefix = $this->folioPrefix($business['name']);
         $printer->text('Folio: '.$prefix.'-'.str_pad($d['id'], 4, '0', STR_PAD_LEFT)."\n");
@@ -75,17 +75,20 @@ class VentaFormatter implements TicketFormatterInterface
             )."\n");
         }
 
+        if (! empty($d['is_delivery']) && $d['costo_domicilio'] > 0) {
+            $printer->text($this->totalRow('Domicilio:', '+$'.number_format($d['costo_domicilio'], 2))."\n");
+        }
+
         $printer->setEmphasis(true);
         $printer->text($this->totalRow('TOTAL:', '$'.number_format($d['total'], 2))."\n");
         $printer->setEmphasis(false);
 
-        if (! empty($d['is_delivery']) && $d['costo_domicilio'] > 0) {
-            $printer->text($this->totalRow('Domicilio:', '-$'.number_format($d['costo_domicilio'], 2))."\n");
+        if (empty($business['sell_by_weight'])) {
+            $baseParaPropina = $d['subtotal'] - ($d['subtotal'] * $d['descuento'] / 100);
+            $propina = round($baseParaPropina * 0.10, 2);
+            $printer->feed(1);
+            $printer->text($this->totalRow('Propina 10%:', '$'.number_format($propina, 2))."\n");
         }
-
-        $propina = round($d['total'] * 0.10, 2);
-        $printer->feed(1);
-        $printer->text($this->totalRow('Propina 10%:', '$'.number_format($propina, 2))."\n");
 
         // ─── Pie del ticket ───────────────────────────────────
         $printer->feed(1);

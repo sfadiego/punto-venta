@@ -1,6 +1,6 @@
 import { Loader, CheckCircle2, Circle, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
 import { IProductGroup } from "@/models/IProductGroup";
-import { formatCantidad } from "@/utils/formatUnits";
+import { formatCantidad, formatUnitsLabel, formatGroupSummary } from "@/utils/formatUnits";
 import { ProductLineItem } from "./ProductLineItem";
 
 interface ProductGroupCardProps {
@@ -23,7 +23,7 @@ export const ProductGroupCard = ({
     onToggleProductReady,
 }: ProductGroupCardProps) => {
     const hasMany = group.totalCount > 1;
-
+    const singleUnitsLabel = !hasMany ? (formatUnitsLabel(group.items[0]) ?? formatCantidad(group.items[0])) : null;
     return (
         <div className="rounded-xl border overflow-hidden">
             <div
@@ -39,13 +39,6 @@ export const ProductGroupCard = ({
                         {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                     </button>
                 )}
-                <div
-                    className={`min-w-[2.5rem] h-7 px-2 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold whitespace-nowrap ${
-                        group.allReady ? "bg-emerald-100 text-emerald-700" : "bg-orange-100 text-orange-700"
-                    }`}
-                >
-                    {hasMany ? `×${group.totalCount}` : formatCantidad(group.items[0])}
-                </div>
                 <div className="flex-1 min-w-0">
                     <p
                         className={`text-sm font-semibold ${group.allReady ? "text-emerald-700 line-through decoration-emerald-400/60" : "text-stone-900"}`}
@@ -54,8 +47,11 @@ export const ProductGroupCard = ({
                     </p>
                     {hasMany && (
                         <p className="text-xs text-stone-400 mt-0.5">
-                            {group.readyCount}/{group.totalCount} listos
+                            {formatGroupSummary(group)}
                         </p>
+                    )}
+                    {!hasMany && (
+                        <p className="text-xs text-stone-400 mt-0.5">{singleUnitsLabel}</p>
                     )}
                     {!hasMany && group.items[0].observacion && (
                         <div className="flex items-start gap-1 mt-1">

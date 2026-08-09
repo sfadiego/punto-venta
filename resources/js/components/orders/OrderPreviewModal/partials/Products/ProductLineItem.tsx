@@ -1,6 +1,6 @@
 import { Loader, CheckCircle2, Circle, MessageSquare } from "lucide-react";
 import { IOrderProduct } from "@/models/IOrderProduct";
-import { formatCantidad } from "@/utils/formatUnits";
+import { formatCantidad, formatUnitsLabel } from "@/utils/formatUnits";
 
 interface ProductLineItemProps {
     item: IOrderProduct;
@@ -16,18 +16,11 @@ export const ProductLineItem = ({ item, groupName, isPending, onToggleReady }: P
         }`}
     >
         <div className="w-4 shrink-0" />
-        <div
-            className={`min-w-[2rem] h-6 px-1.5 rounded flex items-center justify-center shrink-0 text-xs font-bold whitespace-nowrap ${
-                item.is_ready ? "bg-emerald-100 text-emerald-700" : "bg-orange-100 text-orange-700"
-            }`}
-        >
-            {formatCantidad(item)}
-        </div>
         <div className="flex-1 min-w-0">
             <p
                 className={`text-xs font-medium ${item.is_ready ? "text-emerald-600 line-through decoration-emerald-400/60" : "text-stone-700"}`}
             >
-                {groupName}
+                {`${formatUnitsLabel(item) ?? formatCantidad(item)} · ${groupName}`}
             </p>
             {item.observacion && (
                 <div className="flex items-start gap-1 mt-0.5">

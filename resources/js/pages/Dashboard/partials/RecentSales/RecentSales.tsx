@@ -69,7 +69,7 @@ export const RecentSales = ({ onSelect }: RecentSalesProps) => {
                                                 <p className="text-xs sm:text-sm font-semibold text-stone-900 truncate">
                                                     {sale.nombre_pedido ?? `Pedido #${sale.id}`}
                                                 </p>
-                                                {sale.is_delivery && (
+                                                {!!sale.is_delivery && (
                                                     <span title="Domicilio" className="shrink-0">
                                                         <Bike size={14} className="text-blue-500" />
                                                     </span>

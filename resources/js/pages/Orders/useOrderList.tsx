@@ -17,7 +17,7 @@ const renderersMap: DataTableRenderersMap = {
     nombre_pedido: (o: IOrder) => (
         <span className="flex items-center gap-1.5">
             {o.nombre_pedido}
-            {o.is_delivery && (
+            {!!o.is_delivery && (
                 <span title="Domicilio" className="shrink-0">
                     <Bike size={14} className="text-blue-500" />
                 </span>
