@@ -122,6 +122,30 @@ class OrderSaleService
     }
 
     /**
+     * Clientes con ventas a crédito dentro de una sesión de caja puntual (uso en CloseSales).
+     * Solo cuenta órdenes ya cerradas: una venta a crédito no aplica al balance del cliente
+     * (ver OrderCreditService::applyIfClosingAsCredit) hasta que estatus_pedido_id = Closed.
+     */
+    public function creditCustomersBySession(int $sistemaId): array
+    {
+        return OrderModel::query()
+            ->where(OrderModel::SISTEMA_ID, $sistemaId)
+            ->where(OrderModel::ESTATUS_PEDIDO_ID, OrderStatusEnum::CLOSED->value)
+            ->where(OrderModel::IS_CREDIT, true)
+            ->whereNotNull(OrderModel::CUSTOMER_ID)
+            ->with('customer:id,name,phone,balance')
+            ->get()
+            ->groupBy(OrderModel::CUSTOMER_ID)
+            ->map(fn ($orders) => [
+                'customer' => $orders->first()->customer,
+                'orders_count' => $orders->count(),
+                'total_credit' => round($orders->sum(OrderModel::TOTAL), 2),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
      * Aplica el filtro de fecha puntual, semana (lunes YYYY-MM-DD) o mes (YYYY-MM) sobre la columna dada.
      */
     private function applyPeriod($query, string $column, ?string $date, ?string $month, ?string $week = null): void

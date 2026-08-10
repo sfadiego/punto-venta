@@ -27,7 +27,7 @@ export const useSaleQuickPay = (order: IOrder) => {
     const { data: businessConfig } = useGetBusinessConfig();
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
     const { data: customers = [] } = useCustomerList();
-    const { print } = usePrintTicket(order.id);
+    const { print } = usePrintTicket();
 
     const totalFinal = order.total;
     const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
@@ -84,7 +84,7 @@ export const useSaleQuickPay = (order: IOrder) => {
                     cancelButtonText: "No",
                     reverseButtons: true,
                 });
-                if (result.isConfirmed) print();
+                if (result.isConfirmed) print(order.id);
             }
         } catch (error) {
             logUnexpectedError(error, "useSaleQuickPay.handlePay");

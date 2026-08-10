@@ -108,6 +108,17 @@ class OrderController extends Controller
         return Response::success($saleService->salesByCategory($sistemaId, $date, $month, $week));
     }
 
+    public function creditCustomers(Request $request, OrderSaleService $saleService): JsonResponse
+    {
+        $sistemaId = $request->query('sistema_id');
+
+        if (! $sistemaId) {
+            return Response::error('Se requiere sistema_id.');
+        }
+
+        return Response::success($saleService->creditCustomersBySession((int) $sistemaId));
+    }
+
     // Se difiere con DB::afterCommit para que el broadcast (llamada HTTP síncrona a Reverb)
     // no se ejecute mientras la fila de la orden sigue bloqueada por lockForUpdate() — de lo
     // contrario, otras requests concurrentes sobre la misma orden (agregar producto, marcar

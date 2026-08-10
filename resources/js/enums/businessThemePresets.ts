@@ -17,10 +17,10 @@ export const BUSINESS_THEME_PRESETS: Record<AppThemeEnum, BusinessThemePreset> =
         label_color: "#1C1917",
     },
     [AppThemeEnum.AzulMarino]: {
-        primary_color: "#2563EB",
-        sidebar_color: "#1E3A8A",
+        primary_color: "#3B6EA5",
+        sidebar_color: "#1F2A44",
         font_color: "#FFFFFF",
-        label_color: "#1E3A8A",
+        label_color: "#1F2A44",
     },
     // Colores exactos del landing (public/landing/index.html): --ember-ink #006D74, --ember #008991.
     [AppThemeEnum.Turquesa]: {

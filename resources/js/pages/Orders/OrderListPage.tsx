@@ -1,15 +1,14 @@
-import { useState } from "react";
 import { DataTable } from "mantine-datatable";
 import { ClipboardList, RefreshCw, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
+import { AdminRoutes } from "@/enums/RoutesEnum";
 import { useOrderList } from "./useOrderList";
 import { OrderFilters } from "./partials/OrderFilters";
 import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { ExpensesButton } from "@/components/orders/ExpensesButton";
-import { SellByWeightSaleModal } from "@/pages/Dashboard/partials/SellByWeightSaleModal/SellByWeightSaleModal";
 import { usePermissions } from "@/hooks/usePermissions";
 import { PendingOrdersSection } from "@/components/orders/PendingOrders/PendingOrdersSection";
 
@@ -35,12 +34,11 @@ export default function OrderListPage() {
     } = useOrderList();
 
     const { can } = usePermissions();
-    const [resumeOrder, setResumeOrder] = useState<IOrder | null>(null);
 
     const handleRowClick = (order: IOrder) => {
         if (sellByWeight) {
             if (order.estatus_pedido_id === OrderStatusEnum.InProcess) {
-                setResumeOrder(order);
+                navigate(`${AdminRoutes.QuickSale}/${order.id}`);
             }
         } else if (can("takeOrder")) {
             navigate(`/take-order/${order.id}`);
@@ -113,13 +111,6 @@ export default function OrderListPage() {
                         rowClassName={(record: IOrder) => getRowClassName(record)}
                     />
                 </div>
-            )}
-
-            {resumeOrder && (
-                <SellByWeightSaleModal
-                    initialOrder={resumeOrder}
-                    onClose={() => setResumeOrder(null)}
-                />
             )}
         </div>
     );

@@ -29,6 +29,23 @@ export const calcCostoDomicilio = (
 };
 
 /**
+ * Total final a cobrar de una orden ya guardada. `order.total` en BD nunca incluye el domicilio
+ * (ver OrderController::update / OrderSaleService::createDirectSale, que lo calculan solo desde
+ * order_products) — cualquier listado que muestre el total de una orden con envío activo debe
+ * pasar por aquí, no leer `total` directo, o subestima el monto cuando lo paga el cliente.
+ */
+export const calcOrderDisplayTotal = (order: {
+    total: number;
+    costo_domicilio: number | string;
+    is_delivery: boolean;
+}): number => {
+    const rawDomicilio = Number(order.costo_domicilio ?? 0);
+    const domicilio = Math.abs(rawDomicilio);
+    const customerPays = rawDomicilio >= 0;
+    return calcDeliveryTotal(order.total, domicilio, order.is_delivery, customerPays);
+};
+
+/**
  * Calcula el efectivo esperado en caja al cierre.
  * Los domicilios absorbidos por el negocio se pagan al repartidor en efectivo,
  * por lo que reducen el efectivo disponible en caja.

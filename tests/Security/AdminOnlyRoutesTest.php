@@ -4,6 +4,8 @@ namespace Tests\Security;
 
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
+use App\Models\CategoryModel;
+use App\Models\CustomerModel;
 use App\Models\Permission;
 use App\Models\RolePermission;
 use App\Models\User;
@@ -200,7 +202,7 @@ class AdminOnlyRoutesTest extends TestCase
         ], $this->authHeaders($empleado))
             ->assertStatus(403);
 
-        $category = \App\Models\CategoryModel::first();
+        $category = CategoryModel::first();
 
         $this->putJson("/api/category/{$category->id}", [
             'nombre' => 'Renombrada',
@@ -218,18 +220,18 @@ class AdminOnlyRoutesTest extends TestCase
         $this->getJson('/api/category', $this->authHeaders($empleado))
             ->assertStatus(206);
 
-        $category = \App\Models\CategoryModel::first();
+        $category = CategoryModel::first();
 
         $this->getJson("/api/category/{$category->id}", $this->authHeaders($empleado))
             ->assertStatus(200);
     }
 
-    private function crearCliente(): \App\Models\CustomerModel
+    private function crearCliente(): CustomerModel
     {
-        return \App\Models\CustomerModel::create([
-            \App\Models\CustomerModel::NAME => 'Cliente Test '.uniqid(),
-            \App\Models\CustomerModel::PHONE => '5512345678',
-            \App\Models\CustomerModel::TENANT_ID => \App\Models\BusinessConfigModel::first()->id,
+        return CustomerModel::create([
+            CustomerModel::NAME => 'Cliente Test '.uniqid(),
+            CustomerModel::PHONE => '5512345678',
+            CustomerModel::TENANT_ID => BusinessConfigModel::first()->id,
         ]);
     }
 

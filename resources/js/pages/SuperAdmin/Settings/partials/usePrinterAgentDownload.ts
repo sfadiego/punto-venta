@@ -1,11 +1,8 @@
 import { useState } from "react";
-import { superAdminAxios } from "@/contexts/SuperAdminContext";
-import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { useDownloadPrinterAgent, PrinterAgentPlatform } from "@/services/usePrinterAgentService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { isAxiosError, getUserFacingErrorMessage } from "@/utils/axiosError";
 import { toast } from "react-toastify";
-
-type Platform = "win" | "mac";
 
 const parseErrorMessage = async (error: unknown): Promise<string> => {
     if (!isAxiosError(error)) return "Error inesperado al descargar";
@@ -26,8 +23,9 @@ const parseErrorMessage = async (error: unknown): Promise<string> => {
 export const usePrinterAgentDownload = () => {
     const [printer, setPrinter] = useState("");
     const [port, setPort] = useState("8765");
-    const [platform, setPlatform] = useState<Platform>("win");
+    const [platform, setPlatform] = useState<PrinterAgentPlatform>("win");
     const [isDownloading, setIsDownloading] = useState(false);
+    const { mutateAsync: downloadAgent } = useDownloadPrinterAgent();
 
     const download = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,11 +33,7 @@ export const usePrinterAgentDownload = () => {
 
         setIsDownloading(true);
         try {
-            const res = await superAdminAxios.post(
-                ApiRoutes.SuperAdminPrinterAgent,
-                { printer: printer.trim(), port: Number(port) || 8765, platform },
-                { responseType: "blob" },
-            );
+            const res = await downloadAgent({ printer: printer.trim(), port: Number(port) || 8765, platform });
 
             const url = URL.createObjectURL(new Blob([res.data as BlobPart]));
             const a = document.createElement("a");

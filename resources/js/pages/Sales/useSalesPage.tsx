@@ -12,12 +12,13 @@ import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
 
 import { getWeekStart, localDateString } from "@/utils/dateUtils";
 import { SalesReportModeEnum } from "@/enums/SalesReportModeEnum";
+import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 
 const today = () => localDateString();
 const currentMonth = () => today().slice(0, 7);
 
 const renderersMap: DataTableRenderersMap = {
-    total: (o: IOrder) => `$${o.total.toFixed(2)}`,
+    total: (o: IOrder) => `$${calcOrderDisplayTotal(o).toFixed(2)}`,
     subtotal: (o: IOrder) => `$${o.subtotal.toFixed(2)}`,
     descuento: (o: IOrder) => (o.descuento > 0 ? `${o.descuento}%` : "—"),
     payment_method: (o: IOrder) => <PaymentMethodBadge name={o.payment_method?.name} />,

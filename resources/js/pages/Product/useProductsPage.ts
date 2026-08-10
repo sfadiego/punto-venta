@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { useIndexProducts } from "@/services/useProductService";
 import { useIndexCategories } from "@/services/useCategoriesService";
+import { IProduct } from "@/models/IProduct";
 
 export const useProductsPage = () => {
     const queryClient = useQueryClient();
@@ -11,6 +12,8 @@ export const useProductsPage = () => {
     const [categoryId, setCategoryId] = useState<number | null>(null);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<IProduct | null>(null);
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(search), 400);
@@ -41,6 +44,18 @@ export const useProductsPage = () => {
 
     const pageSize = [10, 20, 50];
 
+    const handleCloseModal = () => setIsModalOpen(false);
+
+    const openAddModal = () => {
+        setEditingProduct(null);
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (product: IProduct) => {
+        setEditingProduct(product);
+        setIsModalOpen(true);
+    };
+
     return {
         products: data?.data ?? [],
         total: data?.total ?? 0,
@@ -57,5 +72,10 @@ export const useProductsPage = () => {
         handleCategoryChange,
         handleSearchChange,
         invalidateProducts,
+        isModalOpen,
+        editingProduct,
+        openAddModal,
+        openEditModal,
+        handleCloseModal,
     };
 };

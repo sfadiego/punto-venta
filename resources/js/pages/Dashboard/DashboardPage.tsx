@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Widget } from "@/components/dashboard/widgets/Widget";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 import {
@@ -12,7 +11,6 @@ import { RecentSales } from "./partials/RecentSales/RecentSales";
 import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { ExpensesButton } from "@/components/orders/ExpensesButton";
-import { SellByWeightSaleModal } from "./partials/SellByWeightSaleModal/SellByWeightSaleModal";
 import { OpenSalesModal } from "./partials/OpenSalesModal/OpenSalesModal";
 import { useOpenSalesModal } from "./partials/OpenSalesModal/useOpenSalesModal";
 import { AdminRoutes } from "@/enums/RoutesEnum";
@@ -41,7 +39,7 @@ export default function DashboardPage() {
         handleClose: closeSales, formik: openSalesFormik, isPending: openSalesPending,
     } = useOpenSalesModal();
 
-    const [resumeOrder, setResumeOrder] = useState<IOrder | null>(null);
+    const handleResumeSale = (order: IOrder) => navigate(`${AdminRoutes.QuickSale}/${order.id}`);
 
     const cajaAbierta = !!sistemaId;
 
@@ -125,7 +123,7 @@ export default function DashboardPage() {
                 placement="top-start"
             >
                 {sellByWeight ? (
-                    <RecentSales onSelect={setResumeOrder} />
+                    <RecentSales onSelect={handleResumeSale} />
                 ) : (
                     <RecentOrders
                         orders={orders}
@@ -144,13 +142,6 @@ export default function DashboardPage() {
                 formik={openSalesFormik}
                 onClose={closeSales}
             />
-
-            {resumeOrder && (
-                <SellByWeightSaleModal
-                    initialOrder={resumeOrder}
-                    onClose={() => setResumeOrder(null)}
-                />
-            )}
         </div>
     );
 }

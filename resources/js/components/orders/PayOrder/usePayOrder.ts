@@ -29,7 +29,7 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
     const { data: businessConfig } = useGetBusinessConfig();
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
     const { data: customers = [] } = useCustomerList();
-    const { print } = usePrintTicket(order.id);
+    const { print } = usePrintTicket();
 
     const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
     const isCash = !selectedMethod || selectedMethod.name.toLowerCase().includes("efectivo");
@@ -96,7 +96,7 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
                     cancelButtonText: "No",
                     reverseButtons: true,
                 });
-                if (result.isConfirmed) print();
+                if (result.isConfirmed) print(order.id);
             }
         } catch (error) {
             logUnexpectedError(error, "usePayOrder.handlePay");

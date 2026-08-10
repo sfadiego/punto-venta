@@ -12,6 +12,7 @@ import { SaleActions } from "@/components/orders/OrderActions/SaleActions";
 import { getActiveStatuses } from "./partials/OrderFilters";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
+import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 
 const renderersMap: DataTableRenderersMap = {
     nombre_pedido: (o: IOrder) => (
@@ -24,7 +25,7 @@ const renderersMap: DataTableRenderersMap = {
             )}
         </span>
     ),
-    total: (o: IOrder) => `$${o.total.toFixed(2)}`,
+    total: (o: IOrder) => `$${calcOrderDisplayTotal(o).toFixed(2)}`,
     subtotal: (o: IOrder) => `$${o.subtotal.toFixed(2)}`,
     descuento: (o: IOrder) => (o.descuento > 0 ? `${o.descuento}%` : "—"),
     payment_method: (o: IOrder) => <PaymentMethodBadge name={o.payment_method?.name ?? "Efectivo"} />,

@@ -30,7 +30,17 @@ export const getUserFacingErrorMessage = (error: unknown, fallback: string): str
         return "La solicitud tardó demasiado en responder. Verifica tu conexión e intenta de nuevo.";
     }
 
-    return error.response?.data?.message ?? fallback;
+    if (error.response?.data?.message) return error.response.data.message;
+
+    // Errores de validación (bootstrap/app.php withExceptions -> ValidationException) responden
+    // {success: false, data: {campo: ["mensaje"]}} sin "message" top-level — sin este fallback,
+    // getUserFacingErrorMessage siempre devolvía el texto genérico del caller, ocultando el
+    // motivo real (ej. "The cantidad field must not be greater than 99.").
+    const validationErrors = getFieldErrors(error);
+    const firstFieldError = validationErrors && Object.values(validationErrors)[0];
+    if (firstFieldError) return firstFieldError;
+
+    return fallback;
 };
 
 // Extrae errores de validación por campo (400, {data: {campo: [mensaje]}}) para

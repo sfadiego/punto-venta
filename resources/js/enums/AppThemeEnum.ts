@@ -7,5 +7,5 @@ export enum AppThemeEnum {
 export const APP_THEME_LABELS: Record<AppThemeEnum, string> = {
     [AppThemeEnum.AmberOrange]: "Amber Orange",
     [AppThemeEnum.AzulMarino]: "Azul Marino",
-    [AppThemeEnum.Turquesa]: "Turquesa (Landing)",
+    [AppThemeEnum.Turquesa]: "Turquesa",
 };

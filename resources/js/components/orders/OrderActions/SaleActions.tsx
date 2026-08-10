@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Eye, Trash2, Loader, DollarSign } from "lucide-react";
 import { PrintTicketButton } from "../PrintTicket/PrintTicketButton";
 import { OrderDetailModal } from "@/pages/Sales/partials/OrderDetailModal/OrderDetailModal";
-import { SellByWeightPayModal } from "@/pages/Dashboard/partials/SellByWeightSaleModal/PayModal/SellByWeightPayModal";
+import { SellByWeightPayModal } from "@/components/orders/SellByWeightPayModal/PayModal/SellByWeightPayModal";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";
 import { useOrderActions } from "./useOrderActions";
@@ -50,17 +50,15 @@ export const SaleActions = ({ order }: SaleActionsProps) => {
                 </button>
             )}
 
-            {isClosed && (
-                <button
-                    onClick={() => setDetailOpen(true)}
-                    title="Ver detalle"
-                    className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400
-                            hover:text-orange-600 hover:bg-orange-50 border border-transparent
-                            hover:border-orange-200 transition-all"
-                >
-                    <Eye size={20} />
-                </button>
-            )}
+            <button
+                onClick={() => setDetailOpen(true)}
+                title="Ver detalle"
+                className="flex items-center justify-center w-7 h-7 rounded-lg text-stone-400
+                        hover:text-orange-600 hover:bg-orange-50 border border-transparent
+                        hover:border-orange-200 transition-all"
+            >
+                <Eye size={20} />
+            </button>
 
             {can("printTicket") && <PrintTicketButton orderId={order.id} />}
 
@@ -80,13 +78,11 @@ export const SaleActions = ({ order }: SaleActionsProps) => {
                 </button>
             )}
 
-            {isClosed && (
-                <OrderDetailModal
-                    isOpen={detailOpen}
-                    order={order}
-                    onClose={() => setDetailOpen(false)}
-                />
-            )}
+            <OrderDetailModal
+                isOpen={detailOpen}
+                order={order}
+                onClose={() => setDetailOpen(false)}
+            />
 
             {payOpen && (
                 <SellByWeightPayModal

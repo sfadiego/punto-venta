@@ -2,12 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesOpenSistema;
 use App\Models\OrderModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class OrderStoreRequest extends FormRequest
 {
+    use ValidatesOpenSistema;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -36,5 +40,13 @@ class OrderStoreRequest extends FormRequest
             OrderModel::NOMBRE_PEDIDO => 'required|string|max:255',
             OrderModel::ESTATUS_PEDIDO_ID => 'required|exists:order_status,id',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+            $this->assertSistemaAbierto($validator, $tenantId);
+        });
     }
 }

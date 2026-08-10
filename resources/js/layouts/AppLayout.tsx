@@ -63,7 +63,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     onLogout={handleLogout}
                     userName={userName}
                     userRole={userRole}
-                    onDesktopToggle={handleDesktopToggle}
+                    onDesktopToggle={desktopSidebarHidden ? undefined : handleDesktopToggle}
                 />
 
                 <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

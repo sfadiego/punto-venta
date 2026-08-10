@@ -154,8 +154,9 @@ class PrintTest extends TestCase
             array_merge($this->authHeaders(), ['Accept' => '*/*'])
         )->assertStatus(200);
 
-        // Unidad continua (litro) → cantidad con 3 decimales, no como entero.
-        $this->assertStringContainsString('1.500 litro x $20.00', $response->getContent());
+        // Unidad continua (litro) → cantidad con decimales, no como entero
+        // (ceros sobrantes se recortan: 1.500 -> "1.5", $20.00 -> "$20").
+        $this->assertStringContainsString('1.5 litro x $20', $response->getContent());
     }
 
     public function test_bytes_producto_por_unidad_se_imprime_como_entero(): void
@@ -181,7 +182,7 @@ class PrintTest extends TestCase
             array_merge($this->authHeaders(), ['Accept' => '*/*'])
         )->assertStatus(200);
 
-        $this->assertStringContainsString('3 x $45.00', $response->getContent());
+        $this->assertStringContainsString('3 x $45', $response->getContent());
         $this->assertStringNotContainsString('3.000', $response->getContent());
     }
 

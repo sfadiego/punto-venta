@@ -20,6 +20,15 @@ export const useListSubscriptions = (status?: SubscriptionStatusEnum, isDemo?: b
         },
     });
 
+export const useMrr = () =>
+    useQuery<{ total_monthly_revenue: number }>({
+        queryKey: [QUERY_KEY, "mrr"],
+        queryFn: async () => {
+            const res = await superAdminAxios.get(`${url}/mrr`);
+            return res.data.data as { total_monthly_revenue: number };
+        },
+    });
+
 export const useGetSubscriptionHistory = (tenantId: number | null) =>
     useQuery<ISubscription[]>({
         queryKey: [QUERY_KEY, "history", tenantId],
