@@ -6,6 +6,7 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { useOrderList } from "./useOrderList";
 import { OrderFilters } from "./partials/OrderFilters";
+import { OrderSearch } from "./partials/OrderSearch";
 import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { ExpensesButton } from "@/components/orders/ExpensesButton";
@@ -27,9 +28,11 @@ export default function OrderListPage() {
         refetch,
         sistemaId,
         estatusId,
+        search,
         showOrderServed,
         sellByWeight,
         handleEstatusChange,
+        handleSearchChange,
         handleClearFilters,
     } = useOrderList();
 
@@ -89,12 +92,19 @@ export default function OrderListPage() {
                 </div>
             ) : (
                 <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-                    <OrderFilters
-                        estatusId={estatusId}
-                        showOrderServed={showOrderServed}
-                        onEstatusChange={handleEstatusChange}
-                        onClear={handleClearFilters}
-                    />
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
+                        <div className="flex-1 min-w-[220px] lg:max-w-sm">
+                            <OrderSearch value={search} onChange={handleSearchChange} />
+                        </div>
+                        <div className="lg:ml-auto">
+                            <OrderFilters
+                                estatusId={estatusId}
+                                showOrderServed={showOrderServed}
+                                onEstatusChange={handleEstatusChange}
+                                onClear={handleClearFilters}
+                            />
+                        </div>
+                    </div>
                     <DataTable
                         fetching={isLoading}
                         {...dataTableProps}

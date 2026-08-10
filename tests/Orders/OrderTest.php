@@ -113,6 +113,74 @@ class OrderTest extends TestCase
         )->assertStatus(206)->assertJsonPath('total', 1);
     }
 
+    public function test_busqueda_encuentra_ordenes_activas_y_cerradas_de_la_sesion(): void
+    {
+        $report = $this->crearReporte();
+
+        $enProceso = OrderModel::create([
+            OrderModel::TOTAL => 100,
+            OrderModel::SUBTOTAL => 100,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Mesa Ventana',
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS->value,
+            OrderModel::SISTEMA_ID => $report->id,
+            OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
+        ]);
+
+        $cerrada = OrderModel::create([
+            OrderModel::TOTAL => 100,
+            OrderModel::SUBTOTAL => 100,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Mesa Ventanal',
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
+            OrderModel::SISTEMA_ID => $report->id,
+            OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
+        ]);
+
+        OrderModel::create([
+            OrderModel::TOTAL => 100,
+            OrderModel::SUBTOTAL => 100,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Mesa Sin Relacion',
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS->value,
+            OrderModel::SISTEMA_ID => $report->id,
+            OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
+        ]);
+
+        // Pide explícitamente solo InProcess vía estatus_pedido_id, pero "search" debe
+        // ignorar ese filtro y devolver tanto la activa como la cerrada que matchean.
+        $response = $this->getJson(
+            "/api/order?sistema_id={$report->id}&estatus_pedido_id={$enProceso->estatus_pedido_id}&search=Ventana",
+            $this->authHeaders()
+        );
+
+        $response->assertStatus(206)->assertJsonPath('total', 2);
+        $ids = collect($response->json('data'))->pluck('id')->all();
+        $this->assertContains($enProceso->id, $ids);
+        $this->assertContains($cerrada->id, $ids);
+    }
+
+    public function test_busqueda_no_devuelve_ordenes_de_otra_sesion(): void
+    {
+        $report = $this->crearReporte();
+        $otroReport = $this->crearReporte();
+
+        OrderModel::create([
+            OrderModel::TOTAL => 100,
+            OrderModel::SUBTOTAL => 100,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Pedido Especial',
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
+            OrderModel::SISTEMA_ID => $otroReport->id,
+            OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
+        ]);
+
+        $this->getJson(
+            "/api/order?sistema_id={$report->id}&search=Especial",
+            $this->authHeaders()
+        )->assertStatus(206)->assertJsonPath('total', 0);
+    }
+
     // ── Store ────────────────────────────────────────────────
 
     public function test_crea_orden(): void

@@ -1,4 +1,4 @@
-import { ReceiptText, Clock, Loader, Bike } from "lucide-react";
+import { ReceiptText, Clock, Loader, Bike, ArrowRight } from "lucide-react";
 import { useRecentSales } from "./useRecentSales";
 import { formatOrderTime } from "@/utils/dateUtils";
 import { EmptyState } from "@/components/ui/interactions/EmptyState";
@@ -11,9 +11,10 @@ import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 
 interface RecentSalesProps {
     onSelect?: (order: IOrder) => void;
+    onViewAll?: () => void;
 }
 
-export const RecentSales = ({ onSelect }: RecentSalesProps) => {
+export const RecentSales = ({ onSelect, onViewAll }: RecentSalesProps) => {
     const { sales, total, isLoading, isRefetching, sistemaId, sellByWeight } = useRecentSales();
 
     return (
@@ -22,14 +23,23 @@ export const RecentSales = ({ onSelect }: RecentSalesProps) => {
                 <div className="flex items-center gap-2">
                     <ReceiptText size={16} className="text-stone-400" />
                     <h2 className="font-semibold text-stone-900 text-sm">Ventas del día</h2>
+                    {total > 0 && (
+                        <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
+                            {total} {total === 1 ? "venta" : "ventas"}
+                        </span>
+                    )}
                     {isRefetching && (
                         <Loader size={13} className="animate-spin text-amber-400" />
                     )}
                 </div>
-                {total > 0 && (
-                    <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
-                        {total} {total === 1 ? "venta" : "ventas"}
-                    </span>
+                {onViewAll && (
+                    <button
+                        onClick={onViewAll}
+                        className="flex items-center gap-1 text-amber-600 hover:text-amber-700 text-xs font-medium transition-colors"
+                    >
+                        Ver todas
+                        <ArrowRight size={13} />
+                    </button>
                 )}
             </div>
 

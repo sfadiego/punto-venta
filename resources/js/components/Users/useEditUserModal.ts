@@ -5,7 +5,7 @@ import { useUpdateUser } from "@/services/useUserService";
 import { useAxios } from "@/hooks/useAxios";
 import { IUser } from "@/models/IUser";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { getFieldErrors, getUserFacingErrorMessage } from "@/utils/axiosError";
 
 const schema = Yup.object({
     nombre:           Yup.string().required("El nombre es requerido"),
@@ -37,7 +37,7 @@ export const useEditUserModal = (user: IUser | null, onClose: () => void) => {
         initialValues: buildInitialValues(user),
         validationSchema: schema,
         enableReinitialize: true,
-        onSubmit: async (values, { setSubmitting }) => {
+        onSubmit: async (values, { setSubmitting, setErrors, setTouched }) => {
             if (!user) return;
             try {
                 const res = await mutateAsync({
@@ -67,6 +67,15 @@ export const useEditUserModal = (user: IUser | null, onClose: () => void) => {
             } catch (error) {
                 logUnexpectedError(error, "useEditUserModal.onSubmit");
                 toast.error(getUserFacingErrorMessage(error, "No se pudo actualizar el usuario"));
+
+                // El backend bloquea quitar el rol/desactivar al único admin activo del
+                // negocio devolviendo el motivo en el campo rol_id — lo pintamos como
+                // etiqueta inline junto al selector, no solo en el toast.
+                const fieldErrors = getFieldErrors(error);
+                if (fieldErrors) {
+                    setErrors(fieldErrors);
+                    setTouched({ rol_id: true, activo: true }, false);
+                }
             } finally {
                 setSubmitting(false);
             }
