@@ -17,7 +17,7 @@ export const TicketRow = ({ name, weightLabel, unitPrice, lineTotal, onRemove }:
                     type="button"
                     onClick={onRemove}
                     aria-label={`Quitar ${name}`}
-                    className="shrink-0 text-stone-400 hover:text-red-500 transition-colors"
+                    className="shrink-0 text-red-400 hover:text-red-600 transition-colors"
                 >
                     <Trash2 size={16} />
                 </button>

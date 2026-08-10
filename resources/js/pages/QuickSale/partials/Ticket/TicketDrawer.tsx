@@ -6,7 +6,7 @@ import { DeliverySection } from "./DeliverySection";
 import { TicketRow } from "./TicketRow";
 
 const weightLabel = (cantidadKg: number) =>
-    cantidadKg >= 1 ? `${cantidadKg.toFixed(2)} kg` : `${Math.round(cantidadKg * 1000)} g`;
+    cantidadKg >= 1 ? `${cantidadKg.toFixed(2).replace(/\.?0+$/, "")} kg` : `${Math.round(cantidadKg * 1000)} g`;
 
 export const TicketDrawer = () => {
     const { cart, removeFromCart, clearCart, domicilioActivo, domicilioNum, deliveryPaidBy } = useQuickSaleContext();
@@ -21,7 +21,7 @@ export const TicketDrawer = () => {
                     disabled={cart.length === 0}
                     aria-label="Vaciar ticket"
                     title="Vaciar ticket"
-                    className="shrink-0 text-stone-400 hover:text-red-500 disabled:opacity-40 disabled:hover:text-stone-400 transition-colors"
+                    className="shrink-0 text-red-400 hover:text-red-600 disabled:opacity-40 disabled:text-stone-400 transition-colors"
                 >
                     <Trash2 size={16} />
                 </button>
