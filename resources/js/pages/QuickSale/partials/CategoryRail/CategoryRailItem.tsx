@@ -12,8 +12,9 @@ export const CategoryRailItem = ({ category, isActive, onSelect }: CategoryRailI
         type="button"
         onClick={() => category.id && onSelect(category.id)}
         className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-center transition-colors ${
-            isActive ? "bg-amber-500 text-white shadow-sm" : "text-stone-500 hover:bg-stone-100 hover:text-stone-700"
+            isActive ? "text-white shadow-sm" : "text-stone-500 hover:bg-stone-100 hover:text-stone-700"
         }`}
+        style={isActive ? { backgroundColor: "var(--color-primary)" } : undefined}
     >
         <DynamicIcon name={category.icon_name || "Tag"} size={20} />
         <span className="text-[11px] font-semibold leading-tight">{category.nombre}</span>

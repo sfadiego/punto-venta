@@ -41,8 +41,9 @@ export const ProductCard = ({ product, onAdd, onTap, hasStagedWeight = false }: 
                         type="button"
                         onClick={() => setMode(WeightInputModeEnum.Weight)}
                         className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
-                            isWeightMode ? "bg-amber-500 text-white" : "text-stone-500"
+                            isWeightMode ? "text-white" : "text-stone-500"
                         }`}
+                        style={isWeightMode ? { backgroundColor: "var(--color-primary)" } : undefined}
                     >
                         kg
                     </button>
@@ -50,15 +51,16 @@ export const ProductCard = ({ product, onAdd, onTap, hasStagedWeight = false }: 
                         type="button"
                         onClick={() => setMode(WeightInputModeEnum.Price)}
                         className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
-                            !isWeightMode ? "bg-amber-500 text-white" : "text-stone-500"
+                            !isWeightMode ? "text-white" : "text-stone-500"
                         }`}
+                        style={!isWeightMode ? { backgroundColor: "var(--color-primary)" } : undefined}
                     >
                         $
                     </button>
                 </div>
             </div>
 
-            <p className="text-xl font-extrabold text-amber-600 tabular-nums">
+            <p className="text-xl font-extrabold tabular-nums" style={{ color: "var(--color-primary)" }}>
                 {formatCurrencyTrimmed(product.precio)} <span className="text-xs font-semibold text-stone-400">/ kg</span>
             </p>
 
