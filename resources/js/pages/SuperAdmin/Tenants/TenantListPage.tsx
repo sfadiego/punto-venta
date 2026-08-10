@@ -10,6 +10,7 @@ import { ActiveUsersWidget } from "@/components/SuperAdmin/Tenants/Users/ActiveU
 import { ActiveUsersBadge } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersBadge";
 import { InactiveTenantsWidget } from "@/components/SuperAdmin/Tenants/Activity/InactiveTenantsWidget";
 import { InactivityBadge } from "@/components/SuperAdmin/Tenants/Activity/InactivityBadge";
+import { MrrWidget } from "@/components/SuperAdmin/Tenants/Subscription/MrrWidget";
 import { SelectTenantFilter } from "./partials/SelectTenantFilter";
 
 const BUSINESS_TYPE_SHORT_LABELS: Record<BusinessTypeEnum, string> = {
@@ -53,9 +54,10 @@ export default function TenantListPage() {
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
                     <ActiveUsersWidget tenants={allTenants} onRefresh={refetch} isRefreshing={isRefetching} />
                     <InactiveTenantsWidget tenants={allTenants} />
+                    <MrrWidget />
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 mb-5">

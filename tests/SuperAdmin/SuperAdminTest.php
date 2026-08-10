@@ -413,4 +413,116 @@ class SuperAdminTest extends TestCase
         ], $this->superAdminHeaders())
             ->assertStatus(400);
     }
+
+    // ── Subscription MRR ──────────────────────────────────────
+
+    public function test_mrr_sin_autenticacion(): void
+    {
+        $this->getJson('/api/super-admin/subscription/mrr')
+            ->assertStatus(401);
+    }
+
+    public function test_mrr_sin_rol_superadmin(): void
+    {
+        $this->getJson('/api/super-admin/subscription/mrr', $this->authHeaders())
+            ->assertStatus(403);
+    }
+
+    public function test_mrr_retorna_cero_sin_tenants_pagantes(): void
+    {
+        // El tenant sembrado por defecto queda en plan lifetime (ver Tests\TestCase::setUp),
+        // por lo que sin tenants adicionales el ingreso mensual debe ser 0.
+        $this->getJson('/api/super-admin/subscription/mrr', $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonPath('data.total_monthly_revenue', 0);
+    }
+
+    public function test_mrr_suma_tenants_activos_pagantes(): void
+    {
+        BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'mrr-tenant-1-'.uniqid(),
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Pagante 1',
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => 'monthly',
+            BusinessConfigModel::SUBSCRIPTION_AMOUNT => 150.00,
+        ]);
+        BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'mrr-tenant-2-'.uniqid(),
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Pagante 2',
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => 'annual',
+            BusinessConfigModel::SUBSCRIPTION_AMOUNT => 349.50,
+        ]);
+
+        $this->getJson('/api/super-admin/subscription/mrr', $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.total_monthly_revenue', 499.5);
+    }
+
+    public function test_mrr_excluye_tenants_demo(): void
+    {
+        BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'mrr-demo-'.uniqid(),
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Demo',
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => true,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => 'monthly',
+            BusinessConfigModel::SUBSCRIPTION_AMOUNT => 200.00,
+        ]);
+
+        $this->getJson('/api/super-admin/subscription/mrr', $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.total_monthly_revenue', 0);
+    }
+
+    public function test_mrr_excluye_tenants_inactivos(): void
+    {
+        BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'mrr-inactivo-'.uniqid(),
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Inactivo',
+            BusinessConfigModel::ACTIVO => false,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => 'monthly',
+            BusinessConfigModel::SUBSCRIPTION_AMOUNT => 200.00,
+        ]);
+
+        $this->getJson('/api/super-admin/subscription/mrr', $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.total_monthly_revenue', 0);
+    }
+
+    public function test_mrr_excluye_plan_lifetime(): void
+    {
+        BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'mrr-lifetime-'.uniqid(),
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Lifetime',
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => 'lifetime',
+            BusinessConfigModel::SUBSCRIPTION_AMOUNT => 5000.00,
+        ]);
+
+        $this->getJson('/api/super-admin/subscription/mrr', $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.total_monthly_revenue', 0);
+    }
+
+    public function test_mrr_excluye_tenants_sin_monto_de_suscripcion(): void
+    {
+        BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'mrr-sin-monto-'.uniqid(),
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Sin Monto',
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => 'monthly',
+            BusinessConfigModel::SUBSCRIPTION_AMOUNT => 0,
+        ]);
+
+        $this->getJson('/api/super-admin/subscription/mrr', $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.total_monthly_revenue', 0);
+    }
 }

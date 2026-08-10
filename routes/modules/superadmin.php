@@ -39,6 +39,7 @@ Route::prefix('super-admin')->group(function () {
 
         Route::prefix('subscription')->controller(SubscriptionController::class)->group(function () {
             Route::get('', 'index');
+            Route::get('mrr', 'mrr');
             Route::post('{tenant}', 'store');
             Route::get('{tenant}/history', 'history');
         });

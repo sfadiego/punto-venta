@@ -7,12 +7,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SubscriptionStoreRequest;
 use App\Models\BusinessConfigModel;
 use App\Models\SubscriptionModel;
+use App\Services\SubscriptionStatisticsService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Response;
 
 class SubscriptionController extends Controller
 {
+    public function __construct(private readonly SubscriptionStatisticsService $statisticsService) {}
+
     /**
      * All tenants with their latest subscription status.
      */
@@ -57,6 +60,16 @@ class SubscriptionController extends Controller
         ]);
 
         return Response::success($this->formatTenant($tenant->fresh()));
+    }
+
+    /**
+     * Ingreso mensual total sobre el conjunto de clientes activos.
+     */
+    public function mrr(): JsonResponse
+    {
+        return Response::success([
+            'total_monthly_revenue' => $this->statisticsService->totalMonthlyRevenue(),
+        ]);
     }
 
     /**
