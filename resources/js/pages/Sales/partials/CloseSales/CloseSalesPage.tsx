@@ -1,6 +1,7 @@
 import { AlertCircle } from "lucide-react";
 import { useCloseSalesPage } from "./useCloseSalesPage";
 import BestSellerWidget from "./BestSellerWidget";
+import CreditCustomersWidget from "./CreditCustomersWidget";
 import CloseSalesCategoryReportWidget from "./CloseSalesCategoryReportWidget";
 import { SalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/SalesByCategoryModal";
 import { useSalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/useSalesByCategoryModal";
@@ -93,14 +94,15 @@ export default function CloseSalesPage() {
             />
 
             <CloseSalesTotalBanner total={totalEnCaja} />
-
-            <CloseSalesSessionDetail activeSale={activeSale} />
-
-            <BestSellerWidget sistemaId={sistemaId} />
-
+            
             {sellByWeight && (
                 <CloseSalesCategoryReportWidget onOpen={categoryModal.open} />
             )}
+
+            <BestSellerWidget sistemaId={sistemaId} />
+            <CreditCustomersWidget sistemaId={sistemaId} />
+            
+            <CloseSalesSessionDetail activeSale={activeSale} />
 
             {hasActiveOrders && (
                 <CloseSalesActiveOrdersAlert count={activeOrdersCount} />

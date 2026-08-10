@@ -13,6 +13,7 @@ use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
 use App\Models\User;
+use App\Services\OrderCreditService;
 use Tests\TestCase;
 
 class OrderCreditSaleTest extends TestCase
@@ -109,7 +110,7 @@ class OrderCreditSaleTest extends TestCase
         $orderInstanciaA = OrderModel::find($order->id);
         $orderInstanciaB = OrderModel::find($order->id);
 
-        $service = app(\App\Services\OrderCreditService::class);
+        $service = app(OrderCreditService::class);
         $service->applyIfClosingAsCredit($orderInstanciaA, true);
         $service->applyIfClosingAsCredit($orderInstanciaB, true);
 

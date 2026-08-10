@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderProductController;
+use App\Http\Controllers\PrintController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('order')->group(function () {
@@ -10,7 +11,8 @@ Route::prefix('order')->group(function () {
         Route::post('/', 'store');
         Route::post('/sale', 'storeSale');
         Route::get('/sales-by-category', 'salesByCategory');
-        Route::get('/print/test-bytes', [\App\Http\Controllers\PrintController::class, 'testBytes']);
+        Route::get('/credit-customers', 'creditCustomers');
+        Route::get('/print/test-bytes', [PrintController::class, 'testBytes']);
         Route::prefix('{order}')->group(function () {
             Route::get('', 'show');
             Route::get('total', 'total');

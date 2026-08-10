@@ -773,6 +773,116 @@ class OrderTest extends TestCase
         $this->assertEquals(100.0, $totalRevenue);
     }
 
+    // ── CreditCustomers ──────────────────────────────────────
+
+    private function venderACredito(int $sistemaId, CustomerModel $customer, float $total, bool $cerrada = true): OrderModel
+    {
+        return OrderModel::create([
+            OrderModel::TOTAL => $total,
+            OrderModel::SUBTOTAL => $total,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Venta a crédito',
+            OrderModel::ESTATUS_PEDIDO_ID => $cerrada ? OrderStatusEnum::CLOSED->value : OrderStatusModel::first()->id,
+            OrderModel::SISTEMA_ID => $sistemaId,
+            OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
+            OrderModel::IS_CREDIT => true,
+            OrderModel::CUSTOMER_ID => $customer->id,
+        ]);
+    }
+
+    public function test_clientes_a_credito_sin_sistema_id_falla(): void
+    {
+        $this->getJson('/api/order/credit-customers', $this->authHeaders())
+            ->assertStatus(422);
+    }
+
+    public function test_clientes_a_credito_retorna_lista_vacia_sin_ventas(): void
+    {
+        $report = $this->crearReporte();
+
+        $this->getJson("/api/order/credit-customers?sistema_id={$report->id}", $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonPath('data', []);
+    }
+
+    public function test_clientes_a_credito_agrupa_por_cliente(): void
+    {
+        $report = $this->crearReporte();
+        $customer = CustomerModel::create([
+            CustomerModel::TENANT_ID => BusinessConfigModel::first()->id,
+            CustomerModel::NAME => 'Cliente Fiado',
+            CustomerModel::PHONE => '3001234567',
+        ]);
+
+        $this->venderACredito($report->id, $customer, 100);
+        $this->venderACredito($report->id, $customer, 50);
+
+        $response = $this->getJson("/api/order/credit-customers?sistema_id={$report->id}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals($customer->id, $data[0]['customer']['id']);
+        $this->assertEquals(2, $data[0]['orders_count']);
+        $this->assertEquals(150.0, $data[0]['total_credit']);
+    }
+
+    public function test_clientes_a_credito_excluye_ordenes_no_cerradas(): void
+    {
+        $report = $this->crearReporte();
+        $customer = CustomerModel::create([
+            CustomerModel::TENANT_ID => BusinessConfigModel::first()->id,
+            CustomerModel::NAME => 'Cliente Sin Cerrar',
+        ]);
+
+        $this->venderACredito($report->id, $customer, 100, cerrada: false);
+
+        $this->getJson("/api/order/credit-customers?sistema_id={$report->id}", $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data', []);
+    }
+
+    public function test_clientes_a_credito_excluye_ventas_no_credito(): void
+    {
+        $report = $this->crearReporte();
+        $orden = $this->crearOrden();
+        $orden->update([
+            OrderModel::SISTEMA_ID => $report->id,
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
+        ]);
+
+        $this->getJson("/api/order/credit-customers?sistema_id={$report->id}", $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data', []);
+    }
+
+    public function test_clientes_a_credito_filtra_por_sesion(): void
+    {
+        $sesionA = $this->crearReporte();
+        $sesionB = $this->crearReporte();
+        $customer = CustomerModel::create([
+            CustomerModel::TENANT_ID => BusinessConfigModel::first()->id,
+            CustomerModel::NAME => 'Cliente Multi Sesion',
+        ]);
+
+        $this->venderACredito($sesionA->id, $customer, 100);
+        $this->venderACredito($sesionB->id, $customer, 999);
+
+        $response = $this->getJson("/api/order/credit-customers?sistema_id={$sesionA->id}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals(100.0, $data[0]['total_credit']);
+    }
+
+    public function test_clientes_a_credito_sin_autenticacion(): void
+    {
+        $this->getJson('/api/order/credit-customers?sistema_id=1')
+            ->assertStatus(401);
+    }
+
     // ── Auth ─────────────────────────────────────────────────
 
     public function test_sin_token_no_accede(): void

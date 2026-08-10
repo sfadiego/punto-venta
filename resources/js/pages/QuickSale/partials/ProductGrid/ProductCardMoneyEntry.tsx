@@ -40,7 +40,7 @@ export const ProductCardMoneyEntry = ({ value, onChange, onCommit, maxValue }: P
                     }
                 }}
                 inputStyle="none"
-                className={`!w-20 !px-0 !py-1.5 !border-0 !rounded-none !bg-transparent !text-base !font-bold focus:!ring-0 tabular-nums ${
+                className={`!w-20 !px-0 !py-1.5 !border-0 !rounded-none !bg-transparent !text-base !font-bold focus:!ring-0 tabular-nums !w-full ${
                     isOverLimit ? "!text-red-600" : "!text-stone-900"
                 }`}
             />
