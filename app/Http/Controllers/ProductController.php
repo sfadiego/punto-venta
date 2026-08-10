@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Core\Data\IndexData;
+use App\Enums\StockMovementReasonEnum;
 use App\Enums\UnidadMedidaEnum;
 use App\Http\Requests\ProductStoreRequest;
 use App\Http\Requests\ProductUpdateRequest;
 use App\Models\ProductImageModel;
 use App\Models\ProductModel;
 use App\Services\ProductsService;
+use App\Services\StockService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Response;
 
@@ -24,18 +26,40 @@ class ProductController extends Controller
         return Response::success($product->load('variants'));
     }
 
-    public function store(ProductStoreRequest $param): JsonResponse
+    public function store(ProductStoreRequest $param, StockService $stockService): JsonResponse
     {
-        return Response::success(
-            ProductModel::create([
-                ProductModel::NOMBRE => $param->nombre,
-                ProductModel::PRECIO => $param->precio,
-                ProductModel::DESCRIPCION => $param->descripcion ?? '',
-                ProductModel::CATEGORIA_ID => $param->categoria_id,
-                ProductModel::FOTO_ID => $param?->picture_id ?? null,
-                ProductModel::UNIDAD_MEDIDA => $param->unidad_medida ?? UnidadMedidaEnum::Unidad->value,
-            ])
-        );
+        $manageStock = (bool) ($param->manage_stock ?? false);
+
+        // si el usuario no captura un código, se genera uno a partir del nombre para
+        // que el producto sea buscable con el lector desde su creación.
+        $productCode = $param->product_code ?: ProductModel::generateProductCode($param->nombre);
+
+        $product = ProductModel::create([
+            ProductModel::NOMBRE => $param->nombre,
+            ProductModel::PRECIO => $param->precio,
+            ProductModel::DESCRIPCION => $param->descripcion ?? '',
+            ProductModel::CATEGORIA_ID => $param->categoria_id,
+            ProductModel::FOTO_ID => $param?->picture_id ?? null,
+            ProductModel::UNIDAD_MEDIDA => $param->unidad_medida ?? UnidadMedidaEnum::Unidad->value,
+            ProductModel::MANAGE_STOCK => $manageStock,
+            ProductModel::STOCK => $manageStock ? 0 : null,
+            ProductModel::MIN_STOCK => $manageStock ? ($param->min_stock ?? null) : null,
+            ProductModel::PRODUCT_CODE => $productCode,
+        ]);
+
+        // la existencia inicial se registra como movimiento (no como valor directo
+        // del INSERT) para que quede auditada en el kardex desde el día uno.
+        $initialStock = (float) ($param->stock ?? 0);
+        if ($manageStock && $initialStock > 0) {
+            $stockService->adjust(
+                productId: $product->id,
+                delta: $initialStock,
+                note: 'Carga inicial de stock',
+                reason: StockMovementReasonEnum::InitialStock,
+            );
+        }
+
+        return Response::success($product->refresh());
     }
 
     public function update(ProductModel $product, ProductUpdateRequest $param): JsonResponse
@@ -49,6 +73,9 @@ class ProductController extends Controller
                 pictureId: $param->has('picture_id') ? $param->picture_id : null,
                 active: $param->has('activo') ? (bool) $param->activo : null,
                 unidadMedida: $param->has('unidad_medida') ? $param->unidad_medida : null,
+                manageStock: $param->has('manage_stock') ? (bool) $param->manage_stock : null,
+                minStock: $param->has('min_stock') ? $param->min_stock : null,
+                productCode: $param->has('product_code') ? ($param->product_code ?? '') : null,
             )
         );
     }

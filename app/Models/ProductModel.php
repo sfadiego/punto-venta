@@ -4,12 +4,12 @@ namespace App\Models;
 
 use App\Enums\UnidadMedidaEnum;
 use App\Models\Traits\HasTenant;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class ProductModel extends Model
 {
@@ -33,8 +33,19 @@ class ProductModel extends Model
 
     const UNIDAD_MEDIDA = 'unidad_medida';
 
+    const MANAGE_STOCK = 'manage_stock';
+
+    const STOCK = 'stock';
+
+    const MIN_STOCK = 'min_stock';
+
+    const PRODUCT_CODE = 'product_code';
+
     protected $casts = [
         self::UNIDAD_MEDIDA => UnidadMedidaEnum::class,
+        self::MANAGE_STOCK => 'boolean',
+        self::STOCK => 'decimal:2',
+        self::MIN_STOCK => 'decimal:2',
     ];
 
     protected $fillable = [
@@ -46,6 +57,10 @@ class ProductModel extends Model
         self::FOTO_ID,
         self::TENANT_ID,
         self::UNIDAD_MEDIDA,
+        self::MANAGE_STOCK,
+        self::STOCK,
+        self::MIN_STOCK,
+        self::PRODUCT_CODE,
     ];
 
     public static function store(
@@ -66,17 +81,29 @@ class ProductModel extends Model
         ]);
     }
 
-    // @deprecated
-    public static function getProducts(string $productName = '', int $categoriaId = 0): Collection
+    /**
+     * generateProductCode — arma un código a partir del nombre del producto para el
+     * lector de código de barras cuando el usuario no captura uno manualmente.
+     * No es un EAN/UPC real, solo un identificador legible y único por tenant que se
+     * puede escanear/buscar igual que uno capturado a mano.
+     */
+    public static function generateProductCode(string $nombre): string
     {
-        return ProductModel::with(['category'])
-            ->when($productName !== '', function ($q) use ($productName) {
-                $q->where(self::NOMBRE, 'like', "%$productName%");
-            })
-            ->when($categoriaId !== 0, function ($q) use ($categoriaId) {
-                $q->where(self::CATEGORIA_ID, $categoriaId);
-            })
-            ->get();
+        $base = Str::upper(preg_replace('/[^A-Z0-9]/', '', Str::ascii($nombre)));
+        $base = Str::substr($base, 0, 8) ?: 'PROD';
+
+        $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+
+        do {
+            $code = $base.str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        } while (
+            static::withTrashed()
+                ->where(self::PRODUCT_CODE, $code)
+                ->when($tenantId, fn ($q) => $q->where(self::TENANT_ID, $tenantId))
+                ->exists()
+        );
+
+        return $code;
     }
 
     public function updateProduct(
@@ -87,6 +114,9 @@ class ProductModel extends Model
         ?int $pictureId,
         ?bool $active,
         ?string $unidadMedida = null,
+        ?bool $manageStock = null,
+        ?float $minStock = null,
+        ?string $productCode = null,
     ): ProductModel {
 
         $data = [];
@@ -110,6 +140,22 @@ class ProductModel extends Model
         }
         if ($unidadMedida !== null) {
             $data[ProductModel::UNIDAD_MEDIDA] = $unidadMedida;
+        }
+        if ($manageStock !== null) {
+            $data[ProductModel::MANAGE_STOCK] = $manageStock;
+            // al desactivar el control de stock se limpia la existencia y el mínimo:
+            // hasLowStock() y el resto del flujo asumen que ambos son null cuando
+            // manage_stock es false, para no mostrar cifras obsoletas.
+            if (! $manageStock) {
+                $data[ProductModel::STOCK] = null;
+                $data[ProductModel::MIN_STOCK] = null;
+            }
+        }
+        if ($minStock !== null && ($manageStock ?? $this->manage_stock)) {
+            $data[ProductModel::MIN_STOCK] = $minStock;
+        }
+        if ($productCode !== null) {
+            $data[ProductModel::PRODUCT_CODE] = $productCode !== '' ? $productCode : null;
         }
 
         $this->update($data);
@@ -140,5 +186,19 @@ class ProductModel extends Model
         }
 
         return $this->variants()->where(ProductVariantModel::ACTIVO, true)->exists();
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovementModel::class, StockMovementModel::PRODUCT_ID, 'id');
+    }
+
+    public function hasLowStock(): bool
+    {
+        if (! $this->manage_stock || $this->min_stock === null || $this->stock === null) {
+            return false;
+        }
+
+        return (float) $this->stock <= (float) $this->min_stock;
     }
 }

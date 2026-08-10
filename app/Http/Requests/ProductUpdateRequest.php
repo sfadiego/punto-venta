@@ -44,6 +44,12 @@ class ProductUpdateRequest extends FormRequest
                 Rule::exists('product_image', 'id')->where('tenant_id', $tenantId),
             ],
             ProductModel::UNIDAD_MEDIDA => ['nullable', Rule::enum(UnidadMedidaEnum::class)],
+            ProductModel::MANAGE_STOCK => 'nullable|boolean',
+            ProductModel::MIN_STOCK => 'nullable|numeric|min:0',
+            ProductModel::PRODUCT_CODE => [
+                'nullable', 'string', 'max:64',
+                Rule::unique('product', 'product_code')->where('tenant_id', $tenantId)->ignore($productId)->whereNull('deleted_at'),
+            ],
         ];
     }
 
@@ -61,6 +67,11 @@ class ProductUpdateRequest extends FormRequest
             'activo.boolean' => 'El campo disponible debe ser verdadero o falso.',
             'picture_id.exists' => 'La imagen seleccionada no es válida.',
             'unidad_medida.enum' => 'La unidad de medida seleccionada no es válida.',
+            'manage_stock.boolean' => 'El campo maneja stock debe ser verdadero o falso.',
+            'min_stock.numeric' => 'El stock mínimo debe ser un número válido.',
+            'min_stock.min' => 'El stock mínimo no puede ser negativo.',
+            'product_code.max' => 'El código de barras no puede superar los 64 caracteres.',
+            'product_code.unique' => 'Ya existe un producto con este código de barras.',
         ];
     }
 
@@ -70,6 +81,9 @@ class ProductUpdateRequest extends FormRequest
             'categoria_id' => 'categoría',
             'picture_id' => 'imagen',
             'unidad_medida' => 'unidad de medida',
+            'manage_stock' => 'maneja stock',
+            'min_stock' => 'stock mínimo',
+            'product_code' => 'código de barras',
         ];
     }
 }
