@@ -123,7 +123,7 @@ export default function DashboardPage() {
                 placement="top-start"
             >
                 {sellByWeight ? (
-                    <RecentSales onSelect={handleResumeSale} />
+                    <RecentSales onSelect={handleResumeSale} onViewAll={() => navigate(AdminRoutes.OrderList)} />
                 ) : (
                     <RecentOrders
                         orders={orders}
@@ -131,7 +131,7 @@ export default function DashboardPage() {
                         isFetchingNextPage={isFetchingNextPage}
                         hasNextPage={hasNextPage}
                         sistemaId={sistemaId}
-                        onViewAll={() => navigate("/orders")}
+                        onViewAll={() => navigate(AdminRoutes.OrderList)}
                         onLoadMore={fetchNextPage}
                     />
                 )}

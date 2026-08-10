@@ -16,4 +16,5 @@ export interface IPaginateServiceProps {
     semana?: string | null;
     mes?: string | null;
     categoria_id?: number | null;
+    search?: string | null;
 }

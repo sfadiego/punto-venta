@@ -61,12 +61,14 @@ export const useOrderList = () => {
         : getActiveStatuses(showOrderServed);
 
     const [estatusId, setEstatusId] = useState<string>(defaultStatuses);
+    const [search, setSearch] = useState("");
 
     const { dataTableProps, isLoading, isFetching, refetch, setPage } = useDataTable({
         service: useIndexOrder,
         payload: {
             sistema_id: sistemaId,
             estatus_pedido_id: estatusId,
+            search,
         },
         renderersMap,
     });
@@ -97,8 +99,14 @@ export const useOrderList = () => {
         setPage(1);
     };
 
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        setPage(1);
+    };
+
     const handleClearFilters = () => {
         setEstatusId(defaultStatuses);
+        setSearch("");
         setPage(1);
     };
 
@@ -109,9 +117,11 @@ export const useOrderList = () => {
         refetch,
         sistemaId,
         estatusId,
+        search,
         showOrderServed,
         sellByWeight,
         handleEstatusChange,
+        handleSearchChange,
         handleClearFilters,
     };
 };

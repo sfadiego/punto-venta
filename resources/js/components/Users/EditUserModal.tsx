@@ -104,6 +104,9 @@ export const EditUserModal = ({ user, excludeRoles = [], onClose }: EditUserModa
                                 {formik.values.activo ? "Activo" : "Inactivo"}
                             </span>
                         </div>
+                        {formik.touched.activo && formik.errors.activo && (
+                            <p className="text-red-500 text-xs -mt-2">{formik.errors.activo}</p>
+                        )}
 
                         <Input
                             formik={formik}

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Core\Data\IndexData;
 use App\Core\Paginator\DataTable;
 use App\Enums\OrderStatusEnum;
+use App\Models\CustomerModel;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
 use Carbon\Carbon;
@@ -37,8 +38,25 @@ class OrderService extends DataTable
         $query = $this->model->newQuery()->with(['status', 'paymentMethod:id,name', 'customer:id,name,phone']);
         $rawEstatus = request()->query('estatus_pedido_id');
         $sistemaId = request()->query('sistema_id');
+        $search = request()->query('search');
 
-        if ($rawEstatus !== null) {
+        if ($search) {
+            // El buscador de la sesión actual ignora el filtro de estatus activo y busca
+            // tanto en órdenes activas como cerradas — el usuario decide el alcance con el
+            // texto, no con los botones de filtro.
+            $query->whereIn(OrderModel::ESTATUS_PEDIDO_ID, [
+                OrderStatusEnum::IN_PROCESS->value,
+                OrderStatusEnum::SERVED->value,
+                OrderStatusEnum::CLOSED->value,
+            ])->where(function (Builder $q) use ($search) {
+                $q->where(OrderModel::NOMBRE_PEDIDO, 'like', "%{$search}%")
+                    ->orWhere('id', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function (Builder $c) use ($search) {
+                        $c->where(CustomerModel::NAME, 'like', "%{$search}%")
+                            ->orWhere(CustomerModel::PHONE, 'like', "%{$search}%");
+                    });
+            });
+        } elseif ($rawEstatus !== null) {
             $estatusIds = array_map('intval', explode(',', $rawEstatus));
             $query->whereIn('estatus_pedido_id', $estatusIds);
         } else {

@@ -254,4 +254,68 @@ class UserTest extends TestCase
 
         $this->putJson("/api/admin/users/{$user->id}", [])->assertStatus(401);
     }
+
+    // ── Último admin ─────────────────────────────────────────
+
+    public function test_no_puede_quitar_rol_admin_al_unico_admin_activo(): void
+    {
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $response = $this->putJson("/api/admin/users/{$admin->id}", [
+            'nombre' => $admin->nombre,
+            'apellido_paterno' => $admin->apellido_paterno ?? 'Paterno',
+            'email' => $admin->email,
+            'usuario' => $admin->usuario,
+            'rol_id' => RoleEnum::EMPLOYE->value,
+            'activo' => true,
+        ], $this->authHeaders($admin));
+
+        $response->assertStatus(400)
+            ->assertJsonPath('data.rol_id.0', 'No se puede quitar el rol de administrador ni desactivar a este usuario porque es el único administrador activo del negocio.');
+
+        $this->assertDatabaseHas('users', ['id' => $admin->id, 'rol_id' => RoleEnum::ADMIN->value]);
+    }
+
+    public function test_no_puede_desactivar_al_unico_admin_activo(): void
+    {
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $response = $this->putJson("/api/admin/users/{$admin->id}", [
+            'nombre' => $admin->nombre,
+            'apellido_paterno' => $admin->apellido_paterno ?? 'Paterno',
+            'email' => $admin->email,
+            'usuario' => $admin->usuario,
+            'rol_id' => RoleEnum::ADMIN->value,
+            'activo' => false,
+        ], $this->authHeaders($admin));
+
+        $response->assertStatus(400)
+            ->assertJsonPath('data.activo.0', 'No se puede quitar el rol de administrador ni desactivar a este usuario porque es el único administrador activo del negocio.');
+
+        $this->assertDatabaseHas('users', ['id' => $admin->id, 'activo' => true]);
+    }
+
+    public function test_si_puede_quitar_rol_admin_cuando_hay_otro_admin_activo(): void
+    {
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $otroAdmin = User::factory()->create([
+            'tenant_id' => $admin->tenant_id,
+            'rol_id' => RoleEnum::ADMIN->value,
+            'activo' => true,
+        ]);
+
+        $response = $this->putJson("/api/admin/users/{$admin->id}", [
+            'nombre' => $admin->nombre,
+            'apellido_paterno' => $admin->apellido_paterno ?? 'Paterno',
+            'email' => $admin->email,
+            'usuario' => $admin->usuario,
+            'rol_id' => RoleEnum::EMPLOYE->value,
+            'activo' => true,
+        ], $this->authHeaders($otroAdmin));
+
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('users', ['id' => $admin->id, 'rol_id' => RoleEnum::EMPLOYE->value]);
+    }
 }
