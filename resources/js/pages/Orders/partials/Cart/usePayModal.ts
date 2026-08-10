@@ -16,6 +16,7 @@ import { calcCostoDomicilio } from "@/utils/deliveryCalc";
 import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
 
 interface DeliveryInfo {
     domicilio: number;
@@ -91,6 +92,7 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
                     queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`],
                 });
             }
+            invalidateSalesByCategory(queryClient);
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closeModal();
 

@@ -19,6 +19,7 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
 import { IModalCartItem } from "@/models/IModalCartItem";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
+import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
 
 interface UseQuickSalePaymentParams {
     resumeOrderId: number | null;
@@ -156,6 +157,7 @@ export const useQuickSalePayment = ({
             // la validación de "no exceder el stock disponible" quedan trabajando con datos
             // viejos hasta que algo más invalide la query o el usuario recargue la página.
             queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
+            invalidateSalesByCategory(queryClient);
 
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente." : "Venta registrada correctamente.");
             setShowPayModal(false);

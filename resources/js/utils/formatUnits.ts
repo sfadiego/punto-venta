@@ -1,12 +1,19 @@
 import { UnidadMedidaEnum, UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { IProductGroup } from "@/models/IProductGroup";
+import { ISalesByCategoryUnit } from "@/models/ISalesByCategory";
 
 export const formatTotal = (total: number, unidad: UnidadMedidaEnum): string => {
     if (unidad === UnidadMedidaEnum.Kg || unidad === UnidadMedidaEnum.Gr || unidad === UnidadMedidaEnum.Litro)
         return `${total.toFixed(3).replace(/\.?0+$/, "")} ${unidad}`;
     return `${total} und`;
 };
+
+// Una categoría puede mezclar productos con distinta unidad_medida (ej. "Lacteos" con kg y L)
+// — cada unidad viene ya totalizada por separado desde el backend, se listan juntas en vez de
+// sumarlas (sumar 5 kg + 2 L daría un número sin sentido).
+export const formatCategoryUnits = (units: ISalesByCategoryUnit[]): string =>
+    units.map((u) => formatTotal(u.total_cantidad, u.unidad_medida)).join(" · ");
 
 export const formatCantidad = (item: IOrderProduct): string => {
     const unidad = item.product?.unidad_medida;

@@ -5,6 +5,7 @@ namespace Tests\Orders;
 use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
 use App\Enums\RoleEnum;
+use App\Enums\UnidadMedidaEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use App\Models\CustomerModel;
@@ -839,6 +840,50 @@ class OrderTest extends TestCase
         $totalRevenue = collect($categories)->sum('total_revenue');
 
         $this->assertEquals(100.0, $totalRevenue);
+    }
+
+    public function test_ventas_por_categoria_desglosa_por_unidad_medida(): void
+    {
+        // Bug real: una categoría puede mezclar productos por kg y por L (ej. "Lacteos") — el
+        // reporte no debe sumarlos como si fueran la misma unidad ni asumir "kg" a fuerzas.
+        $report = $this->crearReporte();
+        $categoria = CategoryModel::first();
+
+        $productoKg = ProductModel::create([
+            ProductModel::NOMBRE => 'Queso',
+            ProductModel::PRECIO => 100,
+            ProductModel::CATEGORIA_ID => $categoria->id,
+            ProductModel::ACTIVO => true,
+            ProductModel::UNIDAD_MEDIDA => UnidadMedidaEnum::Kg,
+        ]);
+
+        $productoLitro = ProductModel::create([
+            ProductModel::NOMBRE => 'Leche',
+            ProductModel::PRECIO => 20,
+            ProductModel::CATEGORIA_ID => $categoria->id,
+            ProductModel::ACTIVO => true,
+            ProductModel::UNIDAD_MEDIDA => UnidadMedidaEnum::Litro,
+        ]);
+
+        $this->postJson('/api/order/sale', [
+            'sistema_id' => $report->id,
+            'nombre_pedido' => 'Venta mixta',
+            'items' => [
+                ['producto_id' => $productoKg->id, 'cantidad' => 3, 'precio' => 100],
+                ['producto_id' => $productoLitro->id, 'cantidad' => 2, 'precio' => 20],
+            ],
+        ], $this->authHeaders())->assertStatus(200);
+
+        $response = $this->getJson("/api/order/sales-by-category?sistema_id={$report->id}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $categories = $response->json('data.categories');
+        $this->assertCount(1, $categories);
+        $this->assertEquals(300 + 40, $categories[0]['total_revenue']);
+
+        $units = collect($categories[0]['units'])->keyBy('unidad_medida');
+        $this->assertEquals(3, $units[UnidadMedidaEnum::Kg->value]['total_cantidad']);
+        $this->assertEquals(2, $units[UnidadMedidaEnum::Litro->value]['total_cantidad']);
     }
 
     // ── CreditCustomers ──────────────────────────────────────

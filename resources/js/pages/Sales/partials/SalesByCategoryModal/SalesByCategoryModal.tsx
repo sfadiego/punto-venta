@@ -1,6 +1,7 @@
 import { X, LayoutGrid, Loader, Bike, FileArchive } from "lucide-react";
 import { ISalesByCategory } from "@/models/ISalesByCategory";
 import { formatDateLabel, formatMonthLabel, formatWeekLabel } from "@/utils/dateUtils";
+import { formatCategoryUnits } from "@/utils/formatUnits";
 
 interface SalesByCategoryModalProps {
     isOpen: boolean;
@@ -90,7 +91,7 @@ export const SalesByCategoryModal = ({
                                             <span className="font-medium text-stone-800">{cat.nombre}</span>
                                             <div className="flex items-center gap-3 text-right">
                                                 <span className="text-xs text-stone-400">
-                                                    {parseFloat(cat.total_cantidad.toString()).toFixed(2)} kg
+                                                    {formatCategoryUnits(cat.units)}
                                                 </span>
                                                 <span className="font-semibold text-stone-900 tabular-nums">
                                                     ${cat.total_revenue.toFixed(2)}
