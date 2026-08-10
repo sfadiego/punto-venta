@@ -204,8 +204,8 @@ export const useUpdateOrderStatus = () => {
 };
 
 // Variantes con orderId dinámico (pasado en cada llamada, no fijado al crear el hook).
-// Usar cuando la orden se crea de forma lazy en medio del flujo (ver useSellByWeightSaleModal),
-// donde el id recién creado debe usarse en la misma función async sin esperar un re-render.
+// Usar cuando la orden se crea de forma lazy en medio del flujo, donde el id recién creado
+// debe usarse en la misma función async sin esperar un re-render.
 
 export const useUpdateOrderData = () => {
     const { axiosApi } = useAxios();

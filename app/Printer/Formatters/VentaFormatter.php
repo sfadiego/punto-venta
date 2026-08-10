@@ -158,7 +158,7 @@ class VentaFormatter implements TicketFormatterInterface
     private function productLine(array $item): string
     {
         $name = mb_substr($item['nombre'], 0, $this->colName);
-        $total = '$'.number_format($item['total'], 2);
+        $total = '$'.$this->trimTrailingZeros($item['total'], 2, ',');
 
         $line1 = str_pad($name, $this->colName)
             .str_pad($total, $this->colTotal, ' ', STR_PAD_LEFT);
@@ -169,7 +169,7 @@ class VentaFormatter implements TicketFormatterInterface
             ? $this->trimTrailingZeros($item['cantidad'], 3).' '.$unidad
             : (int) $item['cantidad'];
 
-        $line2 = '  '.$cantidadStr.' x $'.number_format($item['precio'], 2);
+        $line2 = '  '.$cantidadStr.' x $'.$this->trimTrailingZeros($item['precio'], 2, ',');
 
         $lines = $line1."\n".$line2;
 
@@ -188,11 +188,12 @@ class VentaFormatter implements TicketFormatterInterface
 
     /**
      * Formatea un número con hasta $decimals decimales, removiendo ceros
-     * (y el punto) sobrantes al final. Ej: 0.350 -> "0.35", 1.000 -> "1".
+     * (y el punto) sobrantes al final. Ej: 0.350 -> "0.35", 1.000 -> "1",
+     * 1200.00 -> "1,200" (con $thousandsSep).
      */
-    private function trimTrailingZeros(float $value, int $decimals): string
+    private function trimTrailingZeros(float $value, int $decimals, string $thousandsSep = ''): string
     {
-        return rtrim(rtrim(number_format($value, $decimals, '.', ''), '0'), '.');
+        return rtrim(rtrim(number_format($value, $decimals, '.', $thousandsSep), '0'), '.');
     }
 
     /**

@@ -5,7 +5,7 @@ import { logUnexpectedError } from "@/plugins/logger.plugin";
 
 // Báscula real (ScaleContext / Web Serial) — lectura bajo demanda, sin polling: el hardware
 // no soporta un stream continuo, y este es el único patrón probado contra la báscula física
-// en el proyecto (mismo flujo que useSellByWeightSaleModal.handleScaleReading).
+// en el proyecto.
 export const useQuickSaleScale = () => {
     const { readWeightKg, pair: pairScale, isSupported: scaleSupported, isPaired: scaleIsPaired } = useScale();
     const [isReadingScale, setIsReadingScale] = useState(false);

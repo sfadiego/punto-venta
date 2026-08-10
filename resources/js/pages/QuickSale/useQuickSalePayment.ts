@@ -32,8 +32,8 @@ interface UseQuickSalePaymentParams {
     navigate: NavigateFunction;
 }
 
-// Cobro: efectivo / transferencia / crédito (mismo flujo que SellByWeightSaleModal), más la
-// impresión de ticket al cerrar la venta (se pregunta solo si hay una impresora ya configurada).
+// Cobro: efectivo / transferencia / crédito, más la impresión de ticket al cerrar la venta
+// (se pregunta solo si hay una impresora ya configurada).
 export const useQuickSalePayment = ({
     resumeOrderId,
     sistemaId,

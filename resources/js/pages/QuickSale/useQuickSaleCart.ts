@@ -25,7 +25,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
     // Evita la carrera de doble-tap: dos toques casi simultáneos sobre el mismo producto
     // leerían el mismo `cart` desde el closure y el segundo request pisaría al primero en
     // vez de sumarse (así apareció el precio desincronizado al retomar una orden editada
-    // a toques rápidos). Mismo patrón que useSellByWeightSaleModal (isAdding/withAdding).
+    // a toques rápidos).
     const { isPending: isAdding, withPending: withAdding } = useOptimisticPendingSet<number>();
     const { isPending: isRemoving, withPending: withRemoving } = useOptimisticPendingSet<number>();
 

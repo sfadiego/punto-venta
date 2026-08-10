@@ -76,9 +76,8 @@ export const useQuickSaleDelivery = (resumeOrderId: number | null) => {
         setDeliveryPaidBy(DeliveryPaidByEnum.Customer);
     };
 
-    // Infiere domicilioActivo/customerPays desde costo_domicilio — mismo cálculo que
-    // useSellByWeightSaleModal usa. Se reutiliza tanto al cargar la orden retomada como
-    // al "Descartar" (revierte a lo último realmente guardado).
+    // Infiere domicilioActivo/customerPays desde costo_domicilio. Se reutiliza tanto al
+    // cargar la orden retomada como al "Descartar" (revierte a lo último realmente guardado).
     const applyDeliveryFromOrder = (order: IOrder) => {
         const rawDomicilio = Number(order.costo_domicilio ?? 0);
         const amount = Math.abs(rawDomicilio);

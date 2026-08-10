@@ -28,7 +28,7 @@ interface UseQuickSaleOrderLifecycleParams {
 }
 
 // Retomar una venta guardada (InProcess) — /quick-sale/:id — y el flujo de "guardar y continuar
-// después" al presionar volver (mismo patrón que useSellByWeightSaleModal).
+// después" al presionar volver.
 export const useQuickSaleOrderLifecycle = ({
     resumeOrderId,
     sistemaId,
@@ -80,8 +80,8 @@ export const useQuickSaleOrderLifecycle = ({
         applyOrderState(resumeOrder);
     }, [resumeOrder, resumeOrderId, applyOrderState]);
 
-    // Crea la orden InProcess con el carrito/domicilio actual (mismo patrón que
-    // useSellByWeightSaleModal) para que quede visible/retomable en "Ventas del día".
+    // Crea la orden InProcess con el carrito/domicilio actual para que quede
+    // visible/retomable en "Ventas del día".
     const createOrderFromCart = async (): Promise<number> => {
         const res = await storeOrder({
             nombre_pedido: resolveSaleName(nombrePedido),

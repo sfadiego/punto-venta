@@ -1,4 +1,4 @@
-import { SellByWeightPayModal } from "@/pages/Dashboard/partials/SellByWeightSaleModal/PayModal/SellByWeightPayModal";
+import { SellByWeightPayModal } from "@/components/orders/SellByWeightPayModal/PayModal/SellByWeightPayModal";
 import { useQuickSaleContext } from "../../QuickSaleContext";
 import { QuickSaleHeader } from "./QuickSaleHeader";
 import { CategoryRail } from "../CategoryRail/CategoryRail";
