@@ -15,6 +15,7 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
+import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
 
 export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
     const queryClient = useQueryClient();
@@ -81,6 +82,7 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
                 });
             }
             queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/list`] });
+            invalidateSalesByCategory(queryClient);
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closeModal();
             onSuccess?.();

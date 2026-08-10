@@ -46,7 +46,7 @@ export const TicketBar = () => {
                 </button>
 
                 <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
-                    <div className="hidden sm:flex items-center gap-1.5 w-80 bg-white border border-stone-200 rounded-lg px-2.5 py-2 min-w-0">
+                    <div className="hidden sm:flex items-center gap-1.5 w-80 max-w-[28vw] bg-white border border-stone-200 rounded-lg px-2.5 py-2 min-w-0">
                         <Pencil size={13} className="shrink-0 text-stone-400" />
                         <Input
                             name="nombrePedido"

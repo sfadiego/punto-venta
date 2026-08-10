@@ -1,8 +1,15 @@
+import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
+
+export interface ISalesByCategoryUnit {
+    unidad_medida: UnidadMedidaEnum;
+    total_cantidad: number;
+}
+
 export interface ISalesByCategory {
     id: number;
     nombre: string;
-    total_cantidad: number;
     total_revenue: number;
+    units: ISalesByCategoryUnit[];
 }
 
 export interface ISalesByCategoryResponse {

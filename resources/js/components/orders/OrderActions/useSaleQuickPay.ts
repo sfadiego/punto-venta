@@ -14,6 +14,7 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IOrder } from "@/models/IOrder";
 import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
+import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
 
 export const useSaleQuickPay = (order: IOrder) => {
     const queryClient = useQueryClient();
@@ -70,6 +71,7 @@ export const useSaleQuickPay = (order: IOrder) => {
                     queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`],
                 });
             }
+            invalidateSalesByCategory(queryClient);
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closePayModal();
 

@@ -108,11 +108,31 @@ class OrderSaleService
 
         $this->applyPeriod($query, 'o.created_at', $date, $month, $week);
 
-        $categories = $query
-            ->groupBy('categories.id', 'categories.nombre')
-            ->selectRaw('categories.id, categories.nombre, SUM(order_product.cantidad) as total_cantidad, ROUND(SUM(order_product.precio * order_product.cantidad * (1 - COALESCE(order_product.descuento, 0) / 100) * (1 - COALESCE(o.descuento, 0) / 100)), 2) as total_revenue')
-            ->orderByDesc('total_revenue')
+        // Se agrupa también por unidad_medida: una misma categoría puede mezclar productos por
+        // kg y por L (ej. "Lacteos"), y sumar cantidades de unidades distintas como si fueran
+        // la misma sería incorrecto — cada unidad se totaliza por separado y se muestra desglosada.
+        $rows = $query
+            ->groupBy('categories.id', 'categories.nombre', 'product.unidad_medida')
+            ->selectRaw('categories.id, categories.nombre, product.unidad_medida, SUM(order_product.cantidad) as total_cantidad, ROUND(SUM(order_product.precio * order_product.cantidad * (1 - COALESCE(order_product.descuento, 0) / 100) * (1 - COALESCE(o.descuento, 0) / 100)), 2) as total_revenue')
             ->get();
+
+        $categories = $rows
+            ->groupBy('id')
+            ->map(function ($group) {
+                $first = $group->first();
+
+                return [
+                    'id' => $first->id,
+                    'nombre' => $first->nombre,
+                    'total_revenue' => round($group->sum('total_revenue'), 2),
+                    'units' => $group->map(fn ($row) => [
+                        'unidad_medida' => $row->unidad_medida,
+                        'total_cantidad' => (float) $row->total_cantidad,
+                    ])->values(),
+                ];
+            })
+            ->sortByDesc('total_revenue')
+            ->values();
 
         $domiciliosQuery = OrderModel::query()
             ->where(OrderModel::ESTATUS_PEDIDO_ID, OrderStatusEnum::CLOSED->value)
