@@ -13,6 +13,7 @@ import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IOrder } from "@/models/IOrder";
+import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
 
 export const useSaleQuickPay = (order: IOrder) => {
     const queryClient = useQueryClient();
@@ -45,8 +46,7 @@ export const useSaleQuickPay = (order: IOrder) => {
         setCash("");
         setIsCreditMode(false);
         setSelectedCustomerId(null);
-        const firstActive = paymentMethods.find((m) => m.active);
-        setPaymentMethodId(firstActive?.id ?? null);
+        setPaymentMethodId(resolveDefaultPaymentMethodId(paymentMethods));
         setIsOpen(true);
     };
 

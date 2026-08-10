@@ -1,12 +1,10 @@
 import { Trash2 } from "lucide-react";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
+import { formatCartQuantity, formatCartUnitPrice } from "@/utils/weightUnits";
 import { useQuickSaleContext } from "../../QuickSaleContext";
 import { DeliverySection } from "./DeliverySection";
 import { TicketRow } from "./TicketRow";
-
-const weightLabel = (cantidadKg: number) =>
-    cantidadKg >= 1 ? `${cantidadKg.toFixed(2).replace(/\.?0+$/, "")} kg` : `${Math.round(cantidadKg * 1000)} g`;
 
 export const TicketDrawer = () => {
     const { cart, removeFromCart, clearCart, domicilioActivo, domicilioNum, deliveryPaidBy } = useQuickSaleContext();
@@ -35,8 +33,8 @@ export const TicketDrawer = () => {
                         <TicketRow
                             key={item.orderProductId}
                             name={item.product.nombre}
-                            weightLabel={weightLabel(item.cantidad)}
-                            unitPrice={item.precioEfectivo}
+                            quantityLabel={formatCartQuantity(item.product.unidad_medida, item.cantidad)}
+                            priceLabel={formatCartUnitPrice(item.product.unidad_medida, item.precioEfectivo)}
                             lineTotal={item.precioEfectivo * item.cantidad}
                             onRemove={() => removeFromCart(item.orderProductId)}
                         />

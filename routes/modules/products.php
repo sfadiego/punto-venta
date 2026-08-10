@@ -11,6 +11,8 @@ Route::prefix('product')->group(function () {
         Route::get('{product}', 'show');
         Route::post('', 'store');
         Route::put('{product}', 'update');
+        Route::post('{product}/stock-adjustment', 'stockAdjustment');
+        Route::get('{product}/stock-movements', 'stockMovements');
         Route::delete('{product}', 'delete');
     });
 

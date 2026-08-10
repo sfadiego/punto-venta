@@ -3,13 +3,13 @@ import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 
 interface TicketRowProps {
     name: string;
-    weightLabel: string;
-    unitPrice: number;
+    quantityLabel: string;
+    priceLabel: string;
     lineTotal: number;
     onRemove?: () => void;
 }
 
-export const TicketRow = ({ name, weightLabel, unitPrice, lineTotal, onRemove }: TicketRowProps) => (
+export const TicketRow = ({ name, quantityLabel, priceLabel, lineTotal, onRemove }: TicketRowProps) => (
     <div className="flex items-center justify-between gap-3 py-2.5 border-b border-stone-100 last:border-b-0">
         <div className="flex items-center gap-2.5 min-w-0">
             {onRemove && (
@@ -25,7 +25,7 @@ export const TicketRow = ({ name, weightLabel, unitPrice, lineTotal, onRemove }:
             <div className="min-w-0">
                 <p className="text-sm font-semibold text-stone-900 truncate">{name}</p>
                 <p className="text-xs text-stone-500 tabular-nums">
-                    {weightLabel} · {formatCurrencyTrimmed(unitPrice)}/kg
+                    {quantityLabel} · {priceLabel}
                 </p>
             </div>
         </div>

@@ -13,6 +13,7 @@ import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { calcCostoDomicilio } from "@/utils/deliveryCalc";
+import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 
@@ -56,8 +57,7 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
         setPropina("");
         setIsCreditMode(false);
         setSelectedCustomerId(null);
-        const firstMethod = paymentMethods.find((m) => m.active);
-        setPaymentMethodId(firstMethod?.id ?? null);
+        setPaymentMethodId(resolveDefaultPaymentMethodId(paymentMethods));
         openModal();
     };
 

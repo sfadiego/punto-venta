@@ -1,5 +1,6 @@
 import { IProduct } from "@/models/IProduct";
 import { IProductVariant } from "@/models/IProductVariant";
+import { IStockMovement } from "@/models/IStockMovement";
 import { axiosGET, axiosPOST, axiosPUT, axiosDELETE, useDELETE, useGET, usePOST, usePUT } from "../hooks/useApi";
 import { useMutation } from "@tanstack/react-query";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -16,7 +17,8 @@ export const useIndexProducts = ({
     limit = 10,
     categoria_id,
     nombre,
-}: IPaginateServiceProps & { categoria_id?: number | null; nombre?: string }) =>
+    low_stock,
+}: IPaginateServiceProps & { categoria_id?: number | null; nombre?: string; low_stock?: boolean }) =>
     useGET<IPaginate<IProduct>>({
         url,
         filters: {
@@ -26,6 +28,7 @@ export const useIndexProducts = ({
             limit,
             ...(categoria_id ? { categoria_id } : {}),
             ...(nombre ? { nombre } : {}),
+            ...(low_stock ? { low_stock: 1 } : {}),
         },
     });
 const PRODUCT_PAGE_SIZE = 24;
@@ -110,5 +113,37 @@ export const useDeleteProductVariant = () => {
     return useMutation({
         mutationFn: ({ productId, variantId }: { productId: number; variantId: number }) =>
             axiosDELETE(axiosApi, { url: `${adminUrl}/${productId}/variant/${variantId}` }),
+    });
+};
+
+// Historial de movimientos (kardex) del producto, paginado con scroll infinito — más
+// reciente primero.
+const STOCK_MOVEMENTS_PAGE_SIZE = 20;
+
+export const useInfiniteStockMovements = (productId: number | null) => {
+    const { axiosApi } = useAxios();
+    return useInfiniteQuery<IPaginate<IStockMovement>>({
+        queryKey: [adminUrl, "stock-movements", "infinite", productId],
+        queryFn: ({ pageParam }) =>
+            axiosGET(axiosApi, {
+                url: `${adminUrl}/${productId}/stock-movements`,
+                params: { page: pageParam as number, limit: STOCK_MOVEMENTS_PAGE_SIZE },
+            }),
+        getNextPageParam: (lastPage) =>
+            lastPage.current_page < lastPage.last_page
+                ? lastPage.current_page + 1
+                : undefined,
+        initialPageParam: 1,
+        enabled: !!productId,
+    });
+};
+
+// Ajuste manual de stock (reposición, conteo físico, merma) — productId dinámico, el mismo
+// hook ajusta cualquier producto sin remontar (ej. desde un modal compartido en el listado).
+export const useAdjustProductStock = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({ productId, data }: { productId: number; data: { delta: number; note?: string } }) =>
+            axiosPOST(axiosApi, { url: `${adminUrl}/${productId}/stock-adjustment`, data }),
     });
 };

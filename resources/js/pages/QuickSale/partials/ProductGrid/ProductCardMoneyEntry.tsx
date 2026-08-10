@@ -6,12 +6,13 @@ interface ProductCardMoneyEntryProps {
     onChange: (value: string) => void;
     onCommit: () => void;
     maxValue: number;
+    disabled?: boolean;
 }
 
-export const ProductCardMoneyEntry = ({ value, onChange, onCommit, maxValue }: ProductCardMoneyEntryProps) => {
+export const ProductCardMoneyEntry = ({ value, onChange, onCommit, maxValue, disabled = false }: ProductCardMoneyEntryProps) => {
     const numValue = parseFloat(value) || 0;
     const isOverLimit = numValue > maxValue;
-    const canCommit = numValue > 0 && !isOverLimit;
+    const canCommit = !disabled && numValue > 0 && !isOverLimit;
 
     return (
         <div
@@ -28,6 +29,7 @@ export const ProductCardMoneyEntry = ({ value, onChange, onCommit, maxValue }: P
                 min={0}
                 max={maxValue}
                 value={value}
+                disabled={disabled}
                 onChange={(e) => onChange(sanitizePositiveNumberInput(e.target.value))}
                 onKeyDown={(e) => {
                     if (e.key === "-" || e.key === "Minus") {

@@ -1,5 +1,5 @@
 import { DollarSign, Loader } from "lucide-react";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatMoney } from "@/utils/formatCurrency";
 import { useMrrWidget } from "./useMrrWidget";
 
 export const MrrWidget = () => {
@@ -16,7 +16,7 @@ export const MrrWidget = () => {
                     {isLoading ? (
                         <Loader size={18} className="animate-spin text-slate-300 mt-1" />
                     ) : (
-                        <p className="text-2xl font-bold text-slate-900 leading-tight">{formatCurrency(totalMonthlyRevenue)}</p>
+                        <p className="text-2xl font-bold text-slate-900 leading-tight">{formatMoney(totalMonthlyRevenue)}</p>
                     )}
                 </div>
             </div>
