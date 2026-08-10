@@ -12,6 +12,7 @@ export const useProductsPage = () => {
     const [categoryId, setCategoryId] = useState<number | null>(null);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [lowStockOnly, setLowStockOnly] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<IProduct | null>(null);
 
@@ -25,6 +26,7 @@ export const useProductsPage = () => {
         limit,
         categoria_id: categoryId,
         nombre: debouncedSearch || undefined,
+        low_stock: lowStockOnly,
     });
     const { data: categories } = useIndexCategories();
 
@@ -35,6 +37,11 @@ export const useProductsPage = () => {
 
     const handleSearchChange = (value: string) => {
         setSearch(value);
+        setPage(1);
+    };
+
+    const handleLowStockOnlyChange = (value: boolean) => {
+        setLowStockOnly(value);
         setPage(1);
     };
 
@@ -66,11 +73,13 @@ export const useProductsPage = () => {
         categories: categories ?? [],
         categoryId,
         search,
+        lowStockOnly,
         setPage,
         setLimit,
         refetch,
         handleCategoryChange,
         handleSearchChange,
+        handleLowStockOnlyChange,
         invalidateProducts,
         isModalOpen,
         editingProduct,

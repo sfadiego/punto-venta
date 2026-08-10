@@ -74,9 +74,9 @@ export const TicketBar = () => {
                     <button
                         type="button"
                         onClick={openPayModal}
-                        disabled={!hasAnything}
+                        disabled={cart.length === 0}
                         className="shrink-0 flex items-center gap-2 hover:brightness-95 active:brightness-90 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm shadow-sm"
-                        style={hasAnything ? { backgroundColor: "var(--color-primary)" } : undefined}
+                        style={cart.length > 0 ? { backgroundColor: "var(--color-primary)" } : undefined}
                     >
                         <Banknote size={16} />
                         Cobrar

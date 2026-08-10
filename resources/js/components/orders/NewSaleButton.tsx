@@ -15,7 +15,7 @@ export const NewSaleButton = ({ className }: NewSaleButtonProps) => {
             className={className ?? "flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-medium px-4 py-2.5 rounded-xl transition-colors text-sm"}
         >
             <ShoppingCart size={16} />
-            Nueva venta
+            <span className="hidden md:inline lg:inline">Nueva venta</span>
         </button>
     );
 };

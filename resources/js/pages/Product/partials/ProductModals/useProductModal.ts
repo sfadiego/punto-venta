@@ -15,6 +15,7 @@ import { capitalizeFirstLetter } from "@/utils/textCase";
 import { useAxios } from "@/hooks/useAxios";
 import { IProduct } from "@/models/IProduct";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
+import { trimDecimalZeros } from "@/utils/formatDecimal";
 
 export type ProductVariantFormValue = {
     id?: number;
@@ -30,6 +31,10 @@ export type ProductForm = {
     unidad_medida: UnidadMedidaEnum;
     activo: boolean;
     variants: ProductVariantFormValue[];
+    manage_stock: boolean;
+    stock: string;
+    min_stock: string;
+    product_code: string;
 };
 
 const schema = Yup.object({
@@ -51,6 +56,10 @@ const schema = Yup.object({
                 .required("El precio es requerido"),
         }),
     ),
+    manage_stock: Yup.boolean(),
+    stock: Yup.number().typeError("Ingresa un stock inicial válido").min(0, "El stock inicial no puede ser negativo").nullable(),
+    min_stock: Yup.number().typeError("Ingresa un stock mínimo válido").min(0, "El stock mínimo no puede ser negativo").nullable(),
+    product_code: Yup.string().max(64, "Máximo 64 caracteres"),
 });
 
 export const useProductModal = (product: IProduct | null, onSuccess: () => void, onClose: () => void) => {
@@ -77,17 +86,32 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
             unidad_medida: product?.unidad_medida ?? (sellByWeight ? UnidadMedidaEnum.Kg : UnidadMedidaEnum.Unidad),
             activo: product?.activo ?? true,
             variants: initialVariants,
+            manage_stock: product?.manage_stock ?? false,
+            stock: "",
+            min_stock: product?.min_stock ? trimDecimalZeros(product.min_stock) : "",
+            product_code: product?.product_code ?? "",
         },
         validationSchema: schema,
         onSubmit: async (values, helpers) => {
-            const payload = {
+            const payload: Record<string, unknown> = {
                 nombre: capitalizeFirstLetter(values.nombre),
                 descripcion: values.descripcion.trim(),
                 precio: Number(values.precio),
                 categoria_id: Number(values.categoria_id),
                 unidad_medida: values.unidad_medida,
                 activo: values.activo,
+                manage_stock: values.manage_stock,
+                product_code: values.product_code.trim() || undefined,
             };
+
+            // El stock inicial solo aplica al crear — en edición se ajusta vía
+            // StockService::adjust (auditado), nunca reescribiendo el valor directo.
+            if (values.manage_stock) {
+                payload.min_stock = values.min_stock !== "" ? Number(values.min_stock) : undefined;
+                if (!isEdit) {
+                    payload.stock = values.stock !== "" ? Number(values.stock) : undefined;
+                }
+            }
 
             try {
                 let productId = product?.id ?? 0;
@@ -112,9 +136,7 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
                     });
                 }
 
-                if (!isEdit) {
-                    helpers.resetForm();
-                }
+                helpers.resetForm();
                 onSuccess();
                 onClose();
             } catch (error) {
@@ -135,6 +157,7 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
         formik,
         categories: categories ?? [],
         sellByWeight,
+        currentStock: product?.stock ?? null,
     };
 };
 

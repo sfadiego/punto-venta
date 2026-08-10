@@ -6,6 +6,9 @@ import { ProductPricingFields } from "./ProductPricingFields";
 import { ProductVariantsField } from "./ProductVariantsField";
 import { UnidadMedidaField } from "./UnidadMedidaField";
 import { ProductAvailabilityToggle } from "./ProductAvailabilityToggle";
+import { ProductStockToggle } from "./ProductStockToggle";
+import { ProductStockFields } from "./ProductStockFields";
+import { ProductCodeField } from "./ProductCodeField";
 import { ProductModalFooter } from "./ProductModalFooter";
 import { Input } from "@/components/ui/form/Input";
 import { Textarea } from "@/components/ui/form/textarea";
@@ -16,17 +19,18 @@ interface ProductModalProps {
     formik: FormikProps<ProductForm>;
     categories: ICategory[];
     sellByWeight: boolean;
+    currentStock?: string | null;
     onClose: () => void;
 }
 
-export const ProductModal = ({ isOpen, isEdit, formik, categories, sellByWeight, onClose }: ProductModalProps) => {
+export const ProductModal = ({ isOpen, isEdit, formik, categories, sellByWeight, currentStock, onClose }: ProductModalProps) => {
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
                 <ProductModalHeader isEdit={isEdit} nombre={formik.values.nombre} onClose={onClose} />
 
                 <form onSubmit={formik.handleSubmit} className="p-5 space-y-4 overflow-y-auto">
@@ -51,6 +55,11 @@ export const ProductModal = ({ isOpen, isEdit, formik, categories, sellByWeight,
                     {!sellByWeight && <ProductVariantsField formik={formik} />}
 
                     {sellByWeight && <UnidadMedidaField formik={formik} />}
+
+                    <ProductCodeField formik={formik} />
+
+                    <ProductStockToggle formik={formik} />
+                    <ProductStockFields formik={formik} isEdit={isEdit} currentStock={currentStock} />
 
                     <ProductAvailabilityToggle formik={formik} />
 

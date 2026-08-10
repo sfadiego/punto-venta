@@ -15,4 +15,9 @@ export interface IProduct {
     activo: boolean;
     unidad_medida: UnidadMedidaEnum;
     variants?: IProductVariant[];
+    // decimales del backend (cast decimal:2) llegan como string, no number
+    manage_stock: boolean;
+    stock: string | null;
+    min_stock: string | null;
+    product_code: string | null;
 }

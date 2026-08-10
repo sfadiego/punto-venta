@@ -46,6 +46,7 @@ class OrderProductController extends Controller
     /**
      * store — adds a product (or extra) to the order using incremental total update.
      * Avoids a full SUM recalculation by computing only the delta for the added item.
+     * El stock no se toca aquí — se descuenta recién al cerrar la orden (OrderController::update).
      */
     public function store(string $orderId, OrderProductStoreRequest $params): JsonResponse
     {

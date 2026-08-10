@@ -92,6 +92,31 @@ class ProductTest extends TestCase
         $this->assertNotContains('Refresco', $nombres);
     }
 
+    public function test_filtra_productos_por_product_code_exacto(): void
+    {
+        // El lector de código de barras reutiliza el mismo buscador (?nombre=) — el código
+        // hace match exacto, no LIKE parcial, para no traer falsos positivos.
+        ProductModel::factory()->create(['nombre' => 'Refresco de cola', 'product_code' => 'ABC12345']);
+        ProductModel::factory()->create(['nombre' => 'Otro producto', 'product_code' => 'XYZ99999']);
+
+        $response = $this->getJson('/api/product?page=1&limit=10&nombre=ABC12345', $this->authHeaders())
+            ->assertStatus(206);
+
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals('ABC12345', $data[0]['product_code']);
+    }
+
+    public function test_product_code_parcial_no_hace_match(): void
+    {
+        ProductModel::factory()->create(['nombre' => 'Refresco de cola', 'product_code' => 'ABC12345']);
+
+        $response = $this->getJson('/api/product?page=1&limit=10&nombre=ABC123', $this->authHeaders())
+            ->assertStatus(206);
+
+        $this->assertEmpty($response->json('data'));
+    }
+
     public function test_filtra_por_nombre_inexistente_retorna_vacio(): void
     {
         $response = $this->getJson('/api/product?page=1&limit=5&nombre=xyzinexistente999', $this->authHeaders())

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ActivityTypeEnum;
 use App\Enums\OrderStatusEnum;
+use App\Enums\StockMovementReasonEnum;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
@@ -12,7 +13,10 @@ use Carbon\Carbon;
 
 class OrderSaleService
 {
-    public function __construct(private readonly TenantActivityService $activityService) {}
+    public function __construct(
+        private readonly TenantActivityService $activityService,
+        private readonly StockService $stockService,
+    ) {}
 
     /**
      * Crea y cierra una venta en un solo paso: orden + productos + total, todo Closed.
@@ -39,13 +43,23 @@ class OrderSaleService
         ]);
 
         foreach ($items as $item) {
-            OrderProductModel::create([
+            $orderProduct = OrderProductModel::create([
                 OrderProductModel::PEDIDO_ID => $order->id,
                 OrderProductModel::PRODUCTO_ID => $item['producto_id'],
                 OrderProductModel::VARIANT_ID => $item['variant_id'] ?? null,
                 OrderProductModel::CANTIDAD => $item['cantidad'],
                 OrderProductModel::PRECIO => $item['precio'],
             ]);
+
+            $product = ProductModel::find($item['producto_id']);
+            if ($product && $product->manage_stock) {
+                $this->stockService->deduct(
+                    productId: $product->id,
+                    quantity: (float) $item['cantidad'],
+                    reason: StockMovementReasonEnum::Sale,
+                    reference: $orderProduct,
+                );
+            }
         }
 
         $order->update([

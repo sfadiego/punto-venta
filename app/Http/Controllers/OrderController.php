@@ -5,14 +5,19 @@ namespace App\Http\Controllers;
 use App\Core\Data\IndexData;
 use App\Enums\ActivityTypeEnum;
 use App\Enums\OrderStatusEnum;
+use App\Enums\StockMovementReasonEnum;
 use App\Events\OrdersUpdated;
+use App\Exceptions\InsufficientStockException;
 use App\Http\Requests\OrderStoreRequest;
 use App\Http\Requests\OrderStoreSaleRequest;
 use App\Http\Requests\OrderUpdateRequest;
 use App\Models\OrderModel;
+use App\Models\OrderProductModel;
+use App\Models\ProductModel;
 use App\Services\OrderCreditService;
 use App\Services\OrderSaleService;
 use App\Services\OrderService;
+use App\Services\StockService;
 use App\Services\TenantActivityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,6 +54,8 @@ class OrderController extends Controller
 
     public function delete(OrderModel $order): JsonResponse
     {
+        // El stock solo se descuenta al cerrar la orden (ver update()) — una orden InProcess/
+        // Served nunca lo tocó, así que cancelarla aquí no necesita restaurar nada.
         $order->orderProducts()->delete();
 
         return Response::success($order->delete());
@@ -59,17 +66,30 @@ class OrderController extends Controller
         OrderUpdateRequest $params,
         OrderCreditService $creditService,
         TenantActivityService $activityService,
+        StockService $stockService,
     ): JsonResponse {
         $data = $params->toArray();
         $orderDetail = $order->totalAndSubTotalOrder();
         $wasClosed = $order->estatus_pedido_id === OrderStatusEnum::CLOSED->value;
+        $becomingClosed = (int) ($data['estatus_pedido_id'] ?? 0) === OrderStatusEnum::CLOSED->value;
+
+        // El stock se descuenta recién cuando la venta se concreta (la orden pasa a Closed),
+        // no al ir agregando productos al carrito — así una orden InProcess abandonada o
+        // cancelada nunca dejó tocado el stock de nadie. Si algún producto ya no alcanza,
+        // el cierre completo falla y la orden se queda como estaba.
+        if ($becomingClosed && ! $wasClosed) {
+            try {
+                $this->deductStockForOrder($order, $stockService);
+            } catch (InsufficientStockException $e) {
+                return Response::error($e->getMessage());
+            }
+        }
 
         $order->update(array_merge($data, [
             'total' => $orderDetail['total'],
             'subtotal' => $orderDetail['subtotal'],
         ]));
 
-        $becomingClosed = (int) ($data['estatus_pedido_id'] ?? 0) === OrderStatusEnum::CLOSED->value;
         $creditService->applyIfClosingAsCredit($order, $becomingClosed);
 
         if ($becomingClosed && ! $wasClosed) {
@@ -82,6 +102,27 @@ class OrderController extends Controller
         return Response::success($order->fresh(['paymentMethod:id,name', 'customer:id,name,balance,phone']));
     }
 
+    /**
+     * @throws InsufficientStockException
+     */
+    private function deductStockForOrder(OrderModel $order, StockService $stockService): void
+    {
+        $order->orderProducts()
+            ->whereNotNull('producto_id')
+            ->get()
+            ->each(function (OrderProductModel $item) use ($stockService) {
+                $product = ProductModel::find($item->producto_id);
+                if ($product && $product->manage_stock) {
+                    $stockService->deduct(
+                        productId: $product->id,
+                        quantity: (float) $item->cantidad,
+                        reason: StockMovementReasonEnum::Sale,
+                        reference: $item,
+                    );
+                }
+            });
+    }
+
     public function total(OrderModel $order): JsonResponse
     {
         return Response::success($order->totalOrderProducts());
@@ -89,7 +130,11 @@ class OrderController extends Controller
 
     public function storeSale(OrderStoreSaleRequest $params, OrderSaleService $saleService): JsonResponse
     {
-        $order = $saleService->createDirectSale($params->validated());
+        try {
+            $order = $saleService->createDirectSale($params->validated());
+        } catch (InsufficientStockException $e) {
+            return Response::error($e->getMessage());
+        }
 
         return Response::success($order->load('orderProducts'));
     }

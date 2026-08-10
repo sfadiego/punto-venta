@@ -14,6 +14,7 @@ import { useAxios } from "@/hooks/useAxios";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
 
 export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
     const queryClient = useQueryClient();
@@ -48,8 +49,7 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
         setPropina("");
         setIsCreditMode(false);
         setSelectedCustomerId(null);
-        const firstMethod = paymentMethods.find((m) => m.active);
-        setPaymentMethodId(firstMethod?.id ?? null);
+        setPaymentMethodId(resolveDefaultPaymentMethodId(paymentMethods));
         openModal();
     };
 
