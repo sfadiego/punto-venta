@@ -3,7 +3,7 @@ import { DataTable, DataTableColumn } from "mantine-datatable";
 import { Plus, RefreshCw } from "lucide-react";
 import { ICategory } from "@/models/ICategory";
 import { DynamicIcon } from "@/components/ui/DynamicIcon";
-import { CategorySearch } from "@/components/Category/CategorySearch";
+import { CategorySearch } from "./partials/CategorySearch";
 import { RoleEnum } from "@/enums/RoleEnum";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useCategoriesPage } from "./useCategoriesPage";

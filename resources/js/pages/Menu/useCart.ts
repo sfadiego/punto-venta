@@ -2,14 +2,9 @@ import { useState } from "react";
 import { IMenuProduct, ICartItem } from "@/models/IMenu";
 import { IProductVariant } from "@/models/IProductVariant";
 import { isWeightUnit, weightStep, weightMin } from "@/utils/weightUnits";
-import { getCartItemUnitPrice } from "@/utils/menuCartCalc";
+import { getCartItemUnitPrice, roundCartQuantity as round3, matchesCartLine as matchesLine } from "@/utils/menuCartCalc";
 
 export type { ICartItem };
-
-const round3 = (n: number) => parseFloat(n.toFixed(3));
-
-const matchesLine = (item: ICartItem, productId: number, variantId?: number | null) =>
-    item.product.id === productId && (item.variant?.id ?? null) === (variantId ?? null);
 
 export const useCart = () => {
     const [items, setItems] = useState<ICartItem[]>([]);

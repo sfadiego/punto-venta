@@ -8,6 +8,7 @@ import { UnitControls } from "./UnitControls";
 import { VariantPickerModal } from "./VariantPickerModal";
 import { useProductCard } from "./useProductCard";
 import { formatMoney } from "@/utils/formatCurrency";
+import { ProductImagePlaceholder } from "./ProductImagePlaceholder";
 
 interface ProductCardProps {
     product: IMenuProduct;
@@ -18,12 +19,6 @@ interface ProductCardProps {
     onRemove: (productId: number) => void;
     onAddWithWeight: (product: IMenuProduct, weight: number) => void;
 }
-
-const Placeholder = () => (
-    <div className="w-full h-32 sm:h-40 bg-stone-50 flex items-center justify-center">
-        <span className="text-4xl text-stone-200">🍽️</span>
-    </div>
-);
 
 export const ProductCard = ({ product, quantity, primaryColor, readonly = false, onAdd, onRemove, onAddWithWeight }: ProductCardProps) => {
     const unit = product.unidad_medida;
@@ -45,7 +40,7 @@ export const ProductCard = ({ product, quantity, primaryColor, readonly = false,
                     onError={() => setImgError(true)}
                 />
             ) : (
-                <Placeholder />
+                <ProductImagePlaceholder />
             )}
 
             <div className="p-3 flex flex-col gap-2.5 flex-1">

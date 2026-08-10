@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { DataTable, DataTableColumn } from "mantine-datatable";
 import { Package, Plus, RefreshCw } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
@@ -9,13 +9,10 @@ import { CategoryFilter } from "./partials/CategoryFilter";
 import { ProductModal } from "./partials/ProductModals/ProductModal";
 import { useProductModal } from "./partials/ProductModals/useProductModal";
 import { ProductTableActions } from "./partials/ProductTableActions";
-import { ProductSearch } from "@/components/Product/ProductSearch";
+import { ProductSearch } from "./partials/ProductSearch";
 import { formatMoney } from "@/utils/formatCurrency";
 
 export default function ProductsPage() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingProduct, setEditingProduct] = useState<IProduct | null>(null);
-
     const {
         products,
         total,
@@ -32,25 +29,18 @@ export default function ProductsPage() {
         handleCategoryChange,
         handleSearchChange,
         invalidateProducts,
+        isModalOpen,
+        editingProduct,
+        openAddModal,
+        openEditModal,
+        handleCloseModal,
     } = useProductsPage();
-
-    const handleCloseModal = () => setIsModalOpen(false);
 
     const { isEdit, formik, categories: modalCategories, sellByWeight } = useProductModal(
         editingProduct,
         invalidateProducts,
         handleCloseModal,
     );
-
-    const openAddModal = () => {
-        setEditingProduct(null);
-        setIsModalOpen(true);
-    };
-
-    const openEditModal = (product: IProduct) => {
-        setEditingProduct(product);
-        setIsModalOpen(true);
-    };
 
     const columns = useMemo<DataTableColumn<IProduct>[]>(
         () => [
@@ -122,7 +112,7 @@ export default function ProductsPage() {
                 ),
             },
         ],
-        [],
+        [openEditModal],
     );
 
     return (
