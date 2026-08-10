@@ -12,6 +12,7 @@ use App\Http\Requests\ProductUpdateRequest;
 use App\Models\ProductImageModel;
 use App\Models\ProductModel;
 use App\Services\ProductsService;
+use App\Services\StockMovementsService;
 use App\Services\StockService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Response;
@@ -107,6 +108,15 @@ class ProductController extends Controller
         }
 
         return Response::success($updated);
+    }
+
+    /**
+     * stockMovements — historial paginado de movimientos de stock del producto (kardex),
+     * más reciente primero.
+     */
+    public function stockMovements(ProductModel $product, IndexData $data, StockMovementsService $service): JsonResponse
+    {
+        return $service->run($data);
     }
 
     public function delete(ProductModel $product): JsonResponse

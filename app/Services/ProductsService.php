@@ -33,6 +33,7 @@ class ProductsService extends DataTable
 
         $nombre = request()->query('nombre');
         $categoriaId = request()->query('categoria_id');
+        $lowStock = request()->query('low_stock');
 
         if ($nombre) {
             $query->where(function (Builder $query) use ($nombre) {
@@ -49,6 +50,15 @@ class ProductsService extends DataTable
 
         if ($categoriaId) {
             $query->where('categoria_id', (int) $categoriaId);
+        }
+
+        // Mismo criterio que ProductModel::hasLowStock(): stock en 0 ya cumple la condición
+        // "stock <= min_stock" mientras min_stock sea >= 0, así que no hace falta un OR aparte.
+        if ($lowStock) {
+            $query->where('manage_stock', true)
+                ->whereNotNull('min_stock')
+                ->whereNotNull('stock')
+                ->whereColumn('stock', '<=', 'min_stock');
         }
 
         return $query;

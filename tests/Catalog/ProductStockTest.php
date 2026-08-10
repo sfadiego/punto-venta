@@ -303,4 +303,61 @@ class ProductStockTest extends TestCase
             'product_code' => 'SINCAMBIO',
         ]);
     }
+
+    // ── Index — filtro low_stock ──────────────────────────────
+
+    public function test_filtro_low_stock_solo_incluye_productos_en_o_bajo_el_minimo(): void
+    {
+        $bajo = ProductModel::factory()->create([
+            'nombre' => 'Bajo stock', 'manage_stock' => true, 'stock' => 3, 'min_stock' => 5,
+        ]);
+        $enMinimo = ProductModel::factory()->create([
+            'nombre' => 'En el minimo', 'manage_stock' => true, 'stock' => 5, 'min_stock' => 5,
+        ]);
+        $sobrado = ProductModel::factory()->create([
+            'nombre' => 'Stock sobrado', 'manage_stock' => true, 'stock' => 20, 'min_stock' => 5,
+        ]);
+
+        $response = $this->getJson('/api/product?page=1&limit=10&low_stock=1', $this->authHeaders())
+            ->assertStatus(206);
+
+        $ids = array_column($response->json('data'), 'id');
+        $this->assertContains($bajo->id, $ids);
+        $this->assertContains($enMinimo->id, $ids);
+        $this->assertNotContains($sobrado->id, $ids);
+    }
+
+    public function test_filtro_low_stock_incluye_stock_en_cero(): void
+    {
+        $sinExistencia = ProductModel::factory()->create([
+            'nombre' => 'Sin existencia', 'manage_stock' => true, 'stock' => 0, 'min_stock' => 2,
+        ]);
+
+        $response = $this->getJson('/api/product?page=1&limit=10&low_stock=1', $this->authHeaders())
+            ->assertStatus(206);
+
+        $this->assertContains($sinExistencia->id, array_column($response->json('data'), 'id'));
+    }
+
+    public function test_filtro_low_stock_excluye_productos_sin_manage_stock(): void
+    {
+        ProductModel::factory()->create(['nombre' => 'Sin control de stock', 'manage_stock' => false]);
+
+        $response = $this->getJson('/api/product?page=1&limit=10&low_stock=1', $this->authHeaders())
+            ->assertStatus(206);
+
+        $this->assertEmpty($response->json('data'));
+    }
+
+    public function test_sin_filtro_low_stock_muestra_todos_los_productos(): void
+    {
+        ProductModel::factory()->create([
+            'nombre' => 'Stock sobrado', 'manage_stock' => true, 'stock' => 20, 'min_stock' => 5,
+        ]);
+
+        $response = $this->getJson('/api/product?page=1&limit=10', $this->authHeaders())
+            ->assertStatus(206);
+
+        $this->assertNotEmpty($response->json('data'));
+    }
 }

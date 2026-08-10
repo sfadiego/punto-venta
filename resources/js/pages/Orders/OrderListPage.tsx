@@ -68,7 +68,8 @@ export default function OrderListPage() {
                             rounded-xl hover:bg-stone-50 transition-colors"
                     >
                         <RefreshCw size={15} />
-                        Actualizar
+                        
+                        <span className="hidden md:inline lg:inline">Actualizar</span>
                     </button>
 
                     {sistemaId && can("registerExpense") && <ExpensesButton />}

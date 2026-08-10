@@ -65,4 +65,9 @@ class StockMovementModel extends Model
     {
         return $this->morphTo();
     }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, self::CREATED_BY, 'id');
+    }
 }

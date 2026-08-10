@@ -8,8 +8,13 @@ import { isLowStock } from "@/utils/stock";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
 import { useProductsPage } from "./useProductsPage";
 import { CategoryFilter } from "./partials/CategoryFilter";
+import { LowStockFilter } from "./partials/LowStockFilter";
 import { ProductModal } from "./partials/ProductModals/ProductModal";
 import { useProductModal } from "./partials/ProductModals/useProductModal";
+import { RestockModal } from "./partials/RestockModal/RestockModal";
+import { useRestockModal } from "./partials/RestockModal/useRestockModal";
+import { StockMovementsModal } from "./partials/StockMovementsModal/StockMovementsModal";
+import { useStockMovementsModal } from "./partials/StockMovementsModal/useStockMovementsModal";
 import { ProductTableActions } from "./partials/ProductTableActions";
 import { ProductSearch } from "./partials/ProductSearch";
 import { formatMoney } from "@/utils/formatCurrency";
@@ -25,11 +30,13 @@ export default function ProductsPage() {
         categories,
         categoryId,
         search,
+        lowStockOnly,
         setPage,
         setLimit,
         refetch,
         handleCategoryChange,
         handleSearchChange,
+        handleLowStockOnlyChange,
         invalidateProducts,
         isModalOpen,
         editingProduct,
@@ -43,6 +50,26 @@ export default function ProductsPage() {
         invalidateProducts,
         handleCloseModal,
     );
+
+    const {
+        isOpen: isRestockOpen,
+        product: restockProduct,
+        formik: restockFormik,
+        openRestockModal,
+        closeRestockModal,
+    } = useRestockModal();
+
+    const {
+        isOpen: isMovementsOpen,
+        product: movementsProduct,
+        movements,
+        isLoading: isLoadingMovements,
+        isFetchingNextPage: isFetchingNextMovementsPage,
+        hasNextPage: hasNextMovementsPage,
+        fetchNextPage: fetchNextMovementsPage,
+        openMovementsModal,
+        closeMovementsModal,
+    } = useStockMovementsModal();
 
     // Cancelar/cerrar sin guardar (X, click en el backdrop, botón Cancelar) debe limpiar el
     // formulario — si no, al reabrir para agregar otro producto aparecían los valores
@@ -131,14 +158,19 @@ export default function ProductsPage() {
             {
                 accessor: "_acciones" as keyof IProduct,
                 title: "Acciones",
-                width: 90,
+                width: 150,
                 textAlign: "center",
                 render: (p: IProduct) => (
-                    <ProductTableActions product={p} onEdit={openEditModal} />
+                    <ProductTableActions
+                        product={p}
+                        onEdit={openEditModal}
+                        onRestock={openRestockModal}
+                        onViewMovements={openMovementsModal}
+                    />
                 ),
             },
         ],
-        [openEditModal, sellByWeight],
+        [openEditModal, openRestockModal, openMovementsModal, sellByWeight],
     );
 
     return (
@@ -187,6 +219,11 @@ export default function ProductsPage() {
                             />
                         </>
                     )}
+
+                    {/* Stock es un concepto de venta por peso — no aplica al flujo de restaurante */}
+                    {sellByWeight && (
+                        <LowStockFilter checked={lowStockOnly} onChange={handleLowStockOnlyChange} />
+                    )}
                 </div>
 
                 {/* Tabla */}
@@ -224,6 +261,24 @@ export default function ProductsPage() {
                 sellByWeight={sellByWeight}
                 currentStock={currentStock}
                 onClose={handleModalClose}
+            />
+
+            <RestockModal
+                isOpen={isRestockOpen}
+                product={restockProduct}
+                formik={restockFormik}
+                onClose={closeRestockModal}
+            />
+
+            <StockMovementsModal
+                isOpen={isMovementsOpen}
+                product={movementsProduct}
+                movements={movements}
+                isLoading={isLoadingMovements}
+                isFetchingNextPage={isFetchingNextMovementsPage}
+                hasNextPage={hasNextMovementsPage}
+                fetchNextPage={fetchNextMovementsPage}
+                onClose={closeMovementsModal}
             />
         </div>
     );
