@@ -4,6 +4,8 @@ import { Package, Plus, RefreshCw } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
+import { isLowStock } from "@/utils/stock";
+import { trimDecimalZeros } from "@/utils/formatDecimal";
 import { useProductsPage } from "./useProductsPage";
 import { CategoryFilter } from "./partials/CategoryFilter";
 import { ProductModal } from "./partials/ProductModals/ProductModal";
@@ -36,11 +38,19 @@ export default function ProductsPage() {
         handleCloseModal,
     } = useProductsPage();
 
-    const { isEdit, formik, categories: modalCategories, sellByWeight } = useProductModal(
+    const { isEdit, formik, categories: modalCategories, sellByWeight, currentStock } = useProductModal(
         editingProduct,
         invalidateProducts,
         handleCloseModal,
     );
+
+    // Cancelar/cerrar sin guardar (X, click en el backdrop, botón Cancelar) debe limpiar el
+    // formulario — si no, al reabrir para agregar otro producto aparecían los valores
+    // capturados en el intento anterior.
+    const handleModalClose = () => {
+        formik.resetForm();
+        handleCloseModal();
+    };
 
     const columns = useMemo<DataTableColumn<IProduct>[]>(
         () => [
@@ -102,6 +112,22 @@ export default function ProductsPage() {
                     </span>
                 ),
             },
+            // Stock es un concepto de inventario por unidad/peso — no aplica al flujo de
+            // restaurante (platillos preparados al momento), así que la columna solo se
+            // muestra para negocios de venta por peso.
+            ...(sellByWeight
+                ? [
+                      {
+                          accessor: "stock" as keyof IProduct,
+                          title: "Stock",
+                          render: (p: IProduct) => (
+                              <span className="text-sm tabular-nums text-stone-700">
+                                  {p.manage_stock ? trimDecimalZeros(p.stock ?? 0) : <span className="text-stone-400">N/A</span>}
+                              </span>
+                          ),
+                      } as DataTableColumn<IProduct>,
+                  ]
+                : []),
             {
                 accessor: "_acciones" as keyof IProduct,
                 title: "Acciones",
@@ -112,7 +138,7 @@ export default function ProductsPage() {
                 ),
             },
         ],
-        [openEditModal],
+        [openEditModal, sellByWeight],
     );
 
     return (
@@ -180,6 +206,7 @@ export default function ProductsPage() {
                         withTableBorder
                         withColumnBorders
                         striped
+                        rowClassName={(p) => (isLowStock(p) ? "!bg-red-100" : undefined)}
                         minHeight={300}
                         className="whitespace-nowrap"
                         paginationText={({ from, to, totalRecords }) =>
@@ -195,7 +222,8 @@ export default function ProductsPage() {
                 formik={formik}
                 categories={modalCategories}
                 sellByWeight={sellByWeight}
-                onClose={handleCloseModal}
+                currentStock={currentStock}
+                onClose={handleModalClose}
             />
         </div>
     );

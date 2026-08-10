@@ -445,6 +445,16 @@ const toggle = async (id: number) => {
 ### variables
 - utiliza variables en ingles
 
+### enums — nunca strings/valores literales
+- Si un valor (tipo, razón, estatus, rol, etc.) ya tiene un enum backing en `app/Enums/` (PHP) o `enums/` (TS), nunca
+  comparar, asignar o hacer aserciones contra su string/valor crudo (`'exit'`, `'sale'`, `3`, etc.) — siempre referenciar
+  el caso del enum (`StockMovementTypeEnum::Exit->value`, `OrderStatusEnum.Closed`).
+- Aplica también en tests: `assertDatabaseHas`, `assertJsonPath`, payloads de request, etc. deben usar el enum en vez
+  del literal, para que un rename del valor del enum rompa la referencia en compilación/lint en vez de fallar en
+  silencio en runtime.
+- Si el valor no tiene enum todavía y se repite en más de un lugar, crear el enum correspondiente antes de seguir
+  usando el literal.
+
 ### migraciones
 - utiliza nombres en ingles a nuevas columnas en las migraciones
 - todas las nuevas columnas deben ser agregadas por migracion

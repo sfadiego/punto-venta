@@ -5,9 +5,10 @@ interface UnitControlsProps {
     primaryColor: string;
     onAdd: () => void;
     onRemove: () => void;
+    disableAdd?: boolean;
 }
 
-export const UnitControls = ({ quantity, primaryColor, onAdd, onRemove }: UnitControlsProps) => (
+export const UnitControls = ({ quantity, primaryColor, onAdd, onRemove, disableAdd = false }: UnitControlsProps) => (
     <div className="flex items-center gap-1 shrink-0">
         <button
             onClick={onRemove}
@@ -21,8 +22,9 @@ export const UnitControls = ({ quantity, primaryColor, onAdd, onRemove }: UnitCo
         </span>
         <button
             onClick={onAdd}
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70"
-            style={{ backgroundColor: primaryColor }}
+            disabled={disableAdd}
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:active:opacity-100"
+            style={disableAdd ? undefined : { backgroundColor: primaryColor }}
             aria-label="Agregar uno"
         >
             <Plus size={14} />

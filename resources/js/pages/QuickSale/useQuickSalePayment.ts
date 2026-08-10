@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { NavigateFunction } from "react-router-dom";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
@@ -11,7 +12,9 @@ import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { resolveSaleName } from "@/utils/resolveSaleName";
 import { calcCostoDomicilio } from "@/utils/deliveryCalc";
+import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
 import { AdminRoutes } from "@/enums/RoutesEnum";
+import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
 import { IModalCartItem } from "@/models/IModalCartItem";
@@ -49,6 +52,7 @@ export const useQuickSalePayment = ({
     navigate,
 }: UseQuickSalePaymentParams) => {
     const invalidateResumeOrderQueries = useInvalidateResumeOrderQueries(resumeOrderId);
+    const queryClient = useQueryClient();
     const { data: businessConfig } = useGetBusinessConfig();
     const { isConnected: agentConnected, print: agentPrint } = usePrintAgent();
     const { mutateAsync: printOrder } = usePrintOrder();
@@ -65,21 +69,29 @@ export const useQuickSalePayment = ({
     const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
     const [isPaying, setIsPaying] = useState(false);
 
+    // Preselecciona "Efectivo" (método más usado) en cuanto se cargan los métodos de pago —
+    // se re-ejecuta después de cada venta porque handlePay resetea paymentMethodId a null.
+    useEffect(() => {
+        if (paymentMethodId !== null || paymentMethods.length === 0) return;
+        setPaymentMethodId(resolveDefaultPaymentMethodId(paymentMethods));
+    }, [paymentMethods, paymentMethodId]);
+
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - total;
     const selectedPaymentMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
     const isCashMethod = !selectedPaymentMethod || selectedPaymentMethod.name.toLowerCase().includes("efectivo");
     const selectedCustomer = customers.find((c) => c.id === selectedCustomerId) ?? null;
-    const canPay = isCreditMode
+    const hasProducts = cart.length > 0;
+    const canPay = hasProducts && (isCreditMode
         ? !domicilioExcedeTotal && total > 0 && !!selectedCustomer && selectedCustomer.allow_credit
-        : !domicilioExcedeTotal && (isCashMethod ? cashNum >= total && total > 0 : total > 0);
+        : !domicilioExcedeTotal && (isCashMethod ? cashNum >= total && total > 0 : total > 0));
 
     const openPayModal = () => {
         if (!sistemaId) {
             toast.error("No hay una caja abierta.");
             return;
         }
-        if (!hasAnything) return;
+        if (!hasAnything || !hasProducts) return;
         setShowPayModal(true);
     };
 
@@ -139,6 +151,11 @@ export const useQuickSalePayment = ({
                 },
             });
             if (resumeOrderId) invalidateResumeOrderQueries();
+            // La venta descontó stock en el backend — sin esto, el catálogo en caché
+            // (staleTime de 2 min) sigue mostrando la existencia previa y tanto la UI como
+            // la validación de "no exceder el stock disponible" quedan trabajando con datos
+            // viejos hasta que algo más invalide la query o el usuario recargue la página.
+            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
 
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente." : "Venta registrada correctamente.");
             setShowPayModal(false);

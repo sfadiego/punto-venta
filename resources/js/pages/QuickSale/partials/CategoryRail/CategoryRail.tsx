@@ -1,4 +1,5 @@
 import { useQuickSaleContext } from "../../QuickSaleContext";
+import { CategoryRailAllButton } from "./CategoryRailAllButton";
 import { CategoryRailItem } from "./CategoryRailItem";
 
 export const CategoryRail = () => {
@@ -9,6 +10,7 @@ export const CategoryRail = () => {
             className="w-28 shrink-0 flex flex-col gap-1 overflow-y-auto p-2 bg-white border-r border-stone-200"
             aria-label="Categorías"
         >
+            <CategoryRailAllButton isActive={activeCategoryId === null} onSelect={() => setActiveCategoryId(null)} />
             {categories.map((category) => (
                 <CategoryRailItem
                     key={category.id}

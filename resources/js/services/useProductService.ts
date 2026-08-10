@@ -112,3 +112,13 @@ export const useDeleteProductVariant = () => {
             axiosDELETE(axiosApi, { url: `${adminUrl}/${productId}/variant/${variantId}` }),
     });
 };
+
+// Ajuste manual de stock (reposición, conteo físico, merma) — productId dinámico, el mismo
+// hook ajusta cualquier producto sin remontar (ej. desde un modal compartido en el listado).
+export const useAdjustProductStock = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({ productId, data }: { productId: number; data: { delta: number; note?: string } }) =>
+            axiosPOST(axiosApi, { url: `${adminUrl}/${productId}/stock-adjustment`, data }),
+    });
+};

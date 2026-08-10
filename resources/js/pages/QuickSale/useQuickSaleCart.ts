@@ -6,13 +6,17 @@ import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useCreateOrderProduct, useUpdateOrderProduct, useDeleteOrderItem, useClearOrderCart } from "@/services/useOrderService";
 import { IProduct } from "@/models/IProduct";
 import { IOrderProduct } from "@/models/IOrderProduct";
+import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { IModalCartItem } from "@/models/IModalCartItem";
+import { getAvailableStock } from "@/utils/stock";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
 import { MAX_CANTIDAD_KG } from "./quickSaleConstants";
 
 // Estado del carrito y su sincronización con el backend. Cuando se está retomando una orden
 // (resumeOrderId), cada add/remove/clear pega al servidor de inmediato en vez de esperar a
-// guardar/cobrar — en una venta nueva es puro estado local hasta el checkout.
+// guardar/cobrar — en una venta nueva es puro estado local hasta el checkout. El stock del
+// catálogo no cambia con estos movimientos (solo se descuenta al cerrar la orden — ver
+// useQuickSalePayment.ts), así que aquí no hace falta invalidar la query de productos.
 export const useQuickSaleCart = (resumeOrderId: number | null) => {
     const invalidateResumeOrderQueries = useInvalidateResumeOrderQueries(resumeOrderId);
     const [cart, setCart] = useState<IModalCartItem[]>([]);
@@ -35,8 +39,20 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
         const existing = cart.find(
             (item) => item.productId === product.id && item.precioEfectivo === product.precio,
         );
-        if ((existing?.cantidad ?? 0) + cantidadKg > MAX_CANTIDAD_KG) {
-            toast.error(`No puedes agregar más de ${MAX_CANTIDAD_KG} kg de ${product.nombre}.`);
+        const unitLabel = UNIDAD_LABELS[product.unidad_medida] ?? "kg";
+        const currentQty = existing?.cantidad ?? 0;
+
+        // No dejar reservar en el carrito más de lo que hay en existencia — el backend igual
+        // lo bloquea al cerrar la venta. Sin toast aquí: la card (ProductCard) ya deshabilita
+        // sus controles y muestra el aviso de stock inline cuando se llega al tope, así que en
+        // flujo normal este bloque no debería alcanzarse — queda como respaldo silencioso.
+        const availableStock = getAvailableStock(product);
+        if (currentQty + cantidadKg > availableStock) {
+            return;
+        }
+
+        if (currentQty + cantidadKg > MAX_CANTIDAD_KG) {
+            toast.error(`No puedes agregar más de ${MAX_CANTIDAD_KG} ${unitLabel} de ${product.nombre}.`);
             return;
         }
 
@@ -107,6 +123,58 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
         });
     };
 
+    // Quita una unidad del producto (botón "-" de UnitControls, solo productos por unidad).
+    // Si la cantidad llega a 0 elimina la línea, igual que removeFromCart.
+    const decrementFromCart = async (product: IProduct) => {
+        const existing = cart.find(
+            (item) => item.productId === product.id && item.precioEfectivo === product.precio,
+        );
+        if (!existing) return;
+
+        if (resumeOrderId) {
+            if (isRemoving(existing.orderProductId) || isAdding(product.id)) return;
+            try {
+                await withRemoving([existing.orderProductId], async () => {
+                    if (existing.cantidad <= 1) {
+                        await deleteOrderItem({ orderId: resumeOrderId, orderProductId: existing.orderProductId });
+                        setCart((prev) => prev.filter((item) => item.orderProductId !== existing.orderProductId));
+                    } else {
+                        const newQty = existing.cantidad - 1;
+                        await updateOrderProduct({
+                            orderId: resumeOrderId,
+                            orderProductId: existing.orderProductId,
+                            data: { cantidad: newQty, precio: existing.precioEfectivo },
+                        });
+                        setCart((prev) =>
+                            prev.map((item) =>
+                                item.orderProductId === existing.orderProductId ? { ...item, cantidad: newQty } : item,
+                            ),
+                        );
+                    }
+                });
+                invalidateResumeOrderQueries();
+            } catch (error) {
+                logUnexpectedError(error, "useQuickSaleCart.decrementFromCart");
+                toast.error(getUserFacingErrorMessage(error, "Error al quitar el producto."));
+            }
+            return;
+        }
+
+        setCart((prev) => {
+            if (existing.cantidad <= 1) {
+                return prev.filter((item) => item.orderProductId !== existing.orderProductId);
+            }
+            return prev.map((item) =>
+                item.orderProductId === existing.orderProductId ? { ...item, cantidad: item.cantidad - 1 } : item,
+            );
+        });
+    };
+
+    // Cantidad actual en el carrito para un producto por unidad (UnitControls la usa para
+    // decidir entre mostrar el botón "+" inicial o el stepper con "-").
+    const quantityOf = (product: IProduct) =>
+        cart.find((item) => item.productId === product.id && item.precioEfectivo === product.precio)?.cantidad ?? 0;
+
     const removeFromCart = async (orderProductId: number) => {
         if (resumeOrderId) {
             if (isRemoving(orderProductId)) return;
@@ -158,5 +226,5 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
         prevCartLengthRef.current = cart.length;
     }, [cart.length]);
 
-    return { cart, setCart, addToCart, removeFromCart, clearCart, isDrawerOpen, toggleDrawer };
+    return { cart, setCart, addToCart, decrementFromCart, quantityOf, removeFromCart, clearCart, isDrawerOpen, toggleDrawer };
 };

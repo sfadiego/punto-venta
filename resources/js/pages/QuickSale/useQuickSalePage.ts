@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAxios } from "@/hooks/useAxios";
 import { IProduct } from "@/models/IProduct";
+import { isWeightUnit } from "@/utils/weightUnits";
 import { calcModalCartTotal } from "@/utils/sellByWeightCartCalc";
 import { calcDeliveryTotal } from "@/utils/deliveryCalc";
 import { useQuickSaleCatalog } from "./useQuickSaleCatalog";
@@ -30,9 +31,14 @@ export const useQuickSalePage = () => {
         delivery.domicilioActivo && !delivery.customerPays && delivery.domicilioNum > productsTotal && productsTotal > 0;
     const hasAnything = cart.cart.length > 0 || (delivery.domicilioActivo && delivery.domicilioNum > 0);
 
-    // Toque directo sobre una card (fuera de los chips/toggle $): si hay un peso de báscula
-    // en espera, se aplica y se consume; si no, agrega el peso rápido por defecto de la card.
+    // Toque directo sobre una card (fuera de los chips/toggle $): productos por unidad se
+    // agregan directo (sin báscula ni cálculo de peso). Productos por peso/volumen aplican
+    // el peso de báscula en espera si existe, o el peso rápido por defecto de la card.
     const handleCardTap = (product: IProduct) => {
+        if (!isWeightUnit(product.unidad_medida)) {
+            cart.addToCart(product, 1);
+            return;
+        }
         if (scale.stagedWeightKg !== null) {
             cart.addToCart(product, scale.stagedWeightKg);
             scale.clearStagedWeight();

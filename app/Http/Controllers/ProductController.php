@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Core\Data\IndexData;
 use App\Enums\StockMovementReasonEnum;
 use App\Enums\UnidadMedidaEnum;
+use App\Exceptions\InsufficientStockException;
+use App\Http\Requests\ProductStockAdjustmentRequest;
 use App\Http\Requests\ProductStoreRequest;
 use App\Http\Requests\ProductUpdateRequest;
 use App\Models\ProductImageModel;
@@ -42,8 +44,10 @@ class ProductController extends Controller
             ProductModel::FOTO_ID => $param?->picture_id ?? null,
             ProductModel::UNIDAD_MEDIDA => $param->unidad_medida ?? UnidadMedidaEnum::Unidad->value,
             ProductModel::MANAGE_STOCK => $manageStock,
+            // sin cantidad indicada: arranca en 0 (la carga real se aplica abajo como
+            // movimiento) y el mínimo por defecto es 2 si no se especifica uno.
             ProductModel::STOCK => $manageStock ? 0 : null,
-            ProductModel::MIN_STOCK => $manageStock ? ($param->min_stock ?? null) : null,
+            ProductModel::MIN_STOCK => $manageStock ? ($param->min_stock ?? ProductModel::MIN_STOCK_DEFAULT) : null,
             ProductModel::PRODUCT_CODE => $productCode,
         ]);
 
@@ -78,6 +82,31 @@ class ProductController extends Controller
                 productCode: $param->has('product_code') ? ($param->product_code ?? '') : null,
             )
         );
+    }
+
+    /**
+     * stockAdjustment — ajuste manual de inventario (reposición, conteo físico, merma).
+     * Nunca escribe stock directo: siempre pasa por StockService::adjust() para quedar
+     * auditado en stock_movements.
+     */
+    public function stockAdjustment(ProductModel $product, ProductStockAdjustmentRequest $param, StockService $stockService): JsonResponse
+    {
+        if (! $product->manage_stock) {
+            return Response::error('Este producto no maneja stock.');
+        }
+
+        try {
+            $updated = $stockService->adjust(
+                productId: $product->id,
+                delta: (float) $param->delta,
+                note: $param->note,
+                createdBy: auth()->id(),
+            );
+        } catch (InsufficientStockException $e) {
+            return Response::error($e->getMessage());
+        }
+
+        return Response::success($updated);
     }
 
     public function delete(ProductModel $product): JsonResponse

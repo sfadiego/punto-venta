@@ -36,7 +36,11 @@ class ProductsService extends DataTable
 
         if ($nombre) {
             $query->where(function (Builder $query) use ($nombre) {
+                // product_code es match exacto (viene de un lector de código de barras, no
+                // texto libre) — un LIKE parcial aquí generaría falsos positivos entre
+                // códigos que comparten substring.
                 $query->where('nombre', 'like', "%{$nombre}%")
+                    ->orWhere('product_code', $nombre)
                     ->orWhereHas('category', function ($query) use ($nombre) {
                         $query->where('nombre', 'like', "%{$nombre}%");
                     });

@@ -41,6 +41,8 @@ class ProductModel extends Model
 
     const PRODUCT_CODE = 'product_code';
 
+    const MIN_STOCK_DEFAULT = 2;
+
     protected $casts = [
         self::UNIDAD_MEDIDA => UnidadMedidaEnum::class,
         self::MANAGE_STOCK => 'boolean',
@@ -149,6 +151,15 @@ class ProductModel extends Model
             if (! $manageStock) {
                 $data[ProductModel::STOCK] = null;
                 $data[ProductModel::MIN_STOCK] = null;
+            } else {
+                // se activa manage_stock sin indicar cantidad/mínimo explícitos: mismos
+                // defaults que store() (0 y 2) en vez de dejar las columnas en null.
+                if ($this->stock === null) {
+                    $data[ProductModel::STOCK] = 0;
+                }
+                if ($minStock === null) {
+                    $data[ProductModel::MIN_STOCK] = self::MIN_STOCK_DEFAULT;
+                }
             }
         }
         if ($minStock !== null && ($manageStock ?? $this->manage_stock)) {

@@ -246,6 +246,46 @@ jobs:
             echo "✅ Contextos de página bien ubicados"
           fi
 
+      - name: Verificar valores de enum usados como string literal (PHP)
+        run: |
+          echo "── Verificando literales de enums PHP fuera de app/Enums/ (CLAUDE.md: 'enums — nunca strings/valores literales') ──"
+          FOUND=0
+
+          # Por cada enum backed en string, solo revisa archivos que YA importan ese enum
+          # (use App\Enums\XxxEnum;) — así un literal coincidente por casualidad en un
+          # dominio no relacionado (ej. "active" como valor libre de otra columna) no se
+          # marca como falso positivo; solo importa si el archivo conoce ese enum específico
+          # y aun así usa el string crudo en vez de XxxEnum::Caso->value.
+          for enum_file in app/Enums/*.php; do
+            enum_name=$(basename "$enum_file" .php)
+            values=$(grep -oE "case [A-Za-z0-9_]+ = '[^']+'" "$enum_file" 2>/dev/null | sed -E "s/.*= '([^']+)'/\1/")
+            [ -z "$values" ] && continue
+
+            files=$(grep -rl "use App\\\\Enums\\\\${enum_name};" app tests --include="*.php" 2>/dev/null | grep -v "^${enum_file}$" || true)
+            [ -z "$files" ] && continue
+
+            while IFS= read -r value; do
+              [ -z "$value" ] && continue
+              while IFS= read -r file; do
+                [ -z "$file" ] && continue
+                MATCHES=$(grep -n "['\"]${value}['\"]" "$file" 2>/dev/null | grep -v "${enum_name}::" || true)
+                if [ -n "$MATCHES" ]; then
+                  echo "⚠️  $file usa \"$value\" como literal pero ya importa ${enum_name} — usa ${enum_name}::Caso->value:"
+                  echo "$MATCHES"
+                  echo ""
+                  FOUND=$((FOUND + 1))
+                fi
+              done <<< "$files"
+            done <<< "$values"
+          done
+
+          if [ "$FOUND" -gt 0 ]; then
+            echo "Revisa los casos anteriores y reemplázalos por el enum correspondiente (CLAUDE.md: 'enums — nunca strings/valores literales')."
+            # Warning, no bloquea el PR — puede haber falsos positivos.
+          else
+            echo "✅ Sin literales de enum detectados"
+          fi
+
       - name: Verificar tamaño del hook principal de página
         run: |
           echo "── Verificando tamaño de use<Feature>Page.ts (CLAUDE.md: 'Cuándo dividir un hook') ──"

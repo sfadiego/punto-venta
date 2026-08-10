@@ -2,37 +2,48 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { IProduct } from "@/models/IProduct";
 import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
+import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { calcWeightFromPrice } from "@/utils/calcWeightFromPrice";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
+import { getAvailableStock } from "@/utils/stock";
 import { MAX_CANTIDAD_KG } from "../../quickSaleConstants";
 
 export const useProductCard = (
     product: IProduct,
-    onAdd: (product: IProduct, cantidadKg: number) => void,
+    quantity: number,
+    onAdd: (product: IProduct, cantidad: number) => void,
 ) => {
     const [mode, setMode] = useState<WeightInputModeEnum>(WeightInputModeEnum.Weight);
     const [moneyValue, setMoneyValue] = useState("");
 
-    // Monto máximo que este producto acepta en el modo $ antes de superar MAX_CANTIDAD_KG
-    // al convertirse a kilos — evita montos sin relación real con el producto (ej. "534534").
-    const maxMoneyValue = product.precio > 0 ? MAX_CANTIDAD_KG * product.precio : Infinity;
+    // Cuánto más se puede agregar de este producto: el menor entre MAX_CANTIDAD_KG y lo que
+    // queda de stock (existencia total menos lo que ya está en el carrito). Sin manage_stock,
+    // getAvailableStock devuelve Infinity y el tope queda solo en MAX_CANTIDAD_KG, como antes.
+    const remainingStock = getAvailableStock(product) - quantity;
+    const maxAddable = Math.max(0, Math.min(MAX_CANTIDAD_KG, remainingStock));
 
-    const addWeight = (kg: number) => onAdd(product, kg);
+    // Monto máximo que este producto acepta en el modo $ antes de superar maxAddable al
+    // convertirse a su unidad — evita montos sin relación real con el producto o que superen
+    // el stock disponible.
+    const maxMoneyValue = product.precio > 0 ? maxAddable * product.precio : Infinity;
+
+    const addWeight = (cantidad: number) => onAdd(product, cantidad);
 
     const commitMoney = () => {
         const pesos = parseFloat(moneyValue);
         if (!pesos || pesos <= 0) return;
         if (pesos > maxMoneyValue) {
+            const unitLabel = UNIDAD_LABELS[product.unidad_medida] ?? "kg";
             toast.error(
-                `El monto máximo para este producto es ${formatCurrencyTrimmed(maxMoneyValue)} (${MAX_CANTIDAD_KG} kg).`,
+                `El monto máximo para este producto es ${formatCurrencyTrimmed(maxMoneyValue)} (${maxAddable} ${unitLabel}).`,
             );
             return;
         }
-        const kg = calcWeightFromPrice(pesos, product.precio);
-        if (kg <= 0) return;
-        onAdd(product, kg);
+        const cantidad = calcWeightFromPrice(pesos, product.precio);
+        if (cantidad <= 0) return;
+        onAdd(product, cantidad);
         setMoneyValue("");
     };
 
-    return { mode, setMode, moneyValue, setMoneyValue, maxMoneyValue, addWeight, commitMoney };
+    return { mode, setMode, moneyValue, setMoneyValue, maxMoneyValue, maxAddable, addWeight, commitMoney };
 };
