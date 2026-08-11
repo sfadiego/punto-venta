@@ -147,6 +147,7 @@ class MenuController extends Controller
             OrderModel::IS_DELIVERY => $isDelivery,
             OrderModel::DELIVERY_ADDRESS => $request->delivery_address,
             OrderModel::DELIVERY_REFERENCE => $request->delivery_reference,
+            OrderModel::COSTO_DOMICILIO => $isDelivery ? ($tenant->costo_domicilio_default ?? 0) : 0,
             OrderModel::TOTAL => 0,
             OrderModel::SUBTOTAL => 0,
         ]);
@@ -157,6 +158,13 @@ class MenuController extends Controller
                 ->where('tenant_id', $tenant->id)
                 ->where(ProductModel::ACTIVO, true)
                 ->firstOrFail();
+
+            if ($product->manage_stock && (float) $item['cantidad'] > (float) $product->stock) {
+                return Response::error(
+                    "No hay suficiente stock disponible de \"{$product->nombre}\" ({$product->stock} disponibles).",
+                    null,
+                );
+            }
 
             $precio = $product->precio;
             $variantId = $item['variant_id'] ?? null;

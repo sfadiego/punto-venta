@@ -6,6 +6,7 @@ import { WeightControls } from "../ProductSelector/WeightControls/WeightControls
 import { isWeightUnit, formatPricePerUnit } from "@/utils/weightUnits";
 import { formatMoney } from "@/utils/formatCurrency";
 import { getCartItemUnitPrice } from "@/utils/menuCartCalc";
+import { getAvailableStock } from "@/utils/stock";
 
 interface CartItemProps {
     item: ICartItem;
@@ -23,6 +24,9 @@ export const CartItem = ({ item, primaryColor, onAdd, onRemove, onDelete, onSetW
     const unitPrice = getCartItemUnitPrice(item);
     const subtotal = unitPrice * item.cantidad;
     const variantId = item.variant?.id ?? null;
+    const availableStock = getAvailableStock(item.product);
+    const isManagedStock = availableStock !== Infinity;
+    const stockExhausted = isManagedStock && item.cantidad >= availableStock;
 
     return (
         <div className="py-2 border-b border-stone-100 last:border-0">
@@ -70,6 +74,7 @@ export const CartItem = ({ item, primaryColor, onAdd, onRemove, onDelete, onSetW
                             unit={unit}
                             precio={item.product.precio}
                             primaryColor={primaryColor}
+                            maxWeight={isManagedStock ? availableStock : undefined}
                             onChangeWeight={(weight) => onSetWeight(item.product.id, weight)}
                         />
                     </div>
@@ -89,8 +94,9 @@ export const CartItem = ({ item, primaryColor, onAdd, onRemove, onDelete, onSetW
 
                         <button
                             onClick={() => onAdd(item.product, item.variant ?? undefined)}
-                            className="w-9 h-9 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70"
-                            style={{ backgroundColor: primaryColor }}
+                            disabled={stockExhausted}
+                            className="w-9 h-9 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:active:opacity-100"
+                            style={stockExhausted ? undefined : { backgroundColor: primaryColor }}
                             aria-label="Agregar"
                         >
                             <Plus size={14} />
@@ -98,6 +104,12 @@ export const CartItem = ({ item, primaryColor, onAdd, onRemove, onDelete, onSetW
                     </div>
                 )}
             </div>
+
+            {stockExhausted && (
+                <p className="text-[11px] font-bold text-red-600 uppercase tracking-wide mt-1 text-right">
+                    Ya agregaste todo el stock disponible
+                </p>
+            )}
 
             <CartItemNote
                 observacion={item.observacion}

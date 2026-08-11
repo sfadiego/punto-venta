@@ -18,6 +18,8 @@ export interface IMenuProduct {
     precio: number;
     unidad_medida: "unidad" | "kg" | "gr" | "litro" | null;
     image_url: string | null;
+    manage_stock: boolean;
+    stock: string | null;
     variants?: IProductVariant[];
 }
 

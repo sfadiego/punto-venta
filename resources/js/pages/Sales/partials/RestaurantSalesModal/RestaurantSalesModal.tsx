@@ -1,6 +1,6 @@
 import { X, LayoutGrid } from "lucide-react";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { formatDateLabel, formatMonthLabel, formatWeekLabel } from "@/utils/dateUtils";
+import { resolveReportPeriodLabel } from "@/utils/dateUtils";
 
 interface RestaurantSalesModalProps {
     isOpen: boolean;
@@ -29,13 +29,7 @@ export const RestaurantSalesModal = ({
 }: RestaurantSalesModalProps) => {
     if (!isOpen) return null;
 
-    const fechaLabel = fecha
-        ? formatDateLabel(fecha)
-        : semana
-        ? formatWeekLabel(semana)
-        : mes
-        ? formatMonthLabel(mes)
-        : null;
+    const fechaLabel = resolveReportPeriodLabel(fecha, semana, mes);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">

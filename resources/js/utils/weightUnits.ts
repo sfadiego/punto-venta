@@ -1,5 +1,6 @@
 import { UnidadMedidaEnum, UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
+import { trimDecimalZeros } from "@/utils/formatDecimal";
 
 export type WeightUnit = UnidadMedidaEnum.Kg | UnidadMedidaEnum.Gr | UnidadMedidaEnum.Litro;
 
@@ -18,7 +19,7 @@ export const weightMax = (unit: WeightUnit): number =>
 export const formatWeight = (cantidad: number, unit: WeightUnit): string =>
     unit === UnidadMedidaEnum.Gr
         ? `${Math.round(cantidad)} gr`
-        : `${cantidad.toFixed(1)} ${UNIDAD_LABELS[unit]}`;
+        : `${trimDecimalZeros(cantidad.toFixed(1))} ${UNIDAD_LABELS[unit]}`;
 
 // Cantidad + unidad con conversión a la subunidad (g/ml) cuando es menor a 1 kg/L, con
 // más precisión que formatWeight (2 decimales en vez de 1) — pensado para el ticket de

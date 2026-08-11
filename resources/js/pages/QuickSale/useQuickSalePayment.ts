@@ -12,7 +12,7 @@ import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { resolveSaleName } from "@/utils/resolveSaleName";
 import { calcCostoDomicilio } from "@/utils/deliveryCalc";
-import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
+import { resolveDefaultPaymentMethodId, canPayOrder } from "@/utils/paymentMethods";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
@@ -83,9 +83,10 @@ export const useQuickSalePayment = ({
     const isCashMethod = !selectedPaymentMethod || selectedPaymentMethod.name.toLowerCase().includes("efectivo");
     const selectedCustomer = customers.find((c) => c.id === selectedCustomerId) ?? null;
     const hasProducts = cart.length > 0;
-    const canPay = hasProducts && (isCreditMode
-        ? !domicilioExcedeTotal && total > 0 && !!selectedCustomer && selectedCustomer.allow_credit
-        : !domicilioExcedeTotal && (isCashMethod ? cashNum >= total && total > 0 : total > 0));
+    const canPay =
+        hasProducts &&
+        !domicilioExcedeTotal &&
+        canPayOrder({ isCreditMode, isCash: isCashMethod, total, cashNum, selectedCustomer });
 
     const openPayModal = () => {
         if (!sistemaId) {

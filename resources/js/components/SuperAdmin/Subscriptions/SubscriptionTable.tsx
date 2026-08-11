@@ -12,6 +12,12 @@ const STATUS_CONFIG: Record<SubscriptionStatusEnum, { label: string; color: stri
     [SubscriptionStatusEnum.Pending]: { label: "Sin suscripción", color: "bg-slate-100 text-slate-500",     icon: <MinusCircle size={13} /> },
 };
 
+const getExpirationColor = (daysRemaining: number): string => {
+    if (daysRemaining > 7) return "text-slate-400";
+    if (daysRemaining >= 0) return "text-amber-600";
+    return "text-red-500";
+};
+
 interface SubscriptionTableProps {
     records: ITenantWithSubscription[];
     isLoading: boolean;
@@ -74,7 +80,7 @@ export const SubscriptionTable = ({ records, isLoading, onRegisterPayment, onVie
                 }
                 const days = row.days_remaining ?? 0;
                 const label = days >= 0 ? `${days}d restantes` : `Hace ${Math.abs(days)}d`;
-                const color = days > 7 ? "text-slate-400" : days >= 0 ? "text-amber-600" : "text-red-500";
+                const color = getExpirationColor(days);
                 return (
                     <div>
                         <p className="text-sm text-slate-700">

@@ -24,10 +24,16 @@ export const ProductCard = ({ product, quantity, primaryColor, readonly = false,
     const unit = product.unidad_medida;
     const byWeight = isWeightUnit(unit);
     const [imgError, setImgError] = useState(false);
-    const { hasVariants, isPickerOpen, closePicker, handleAddClick, handleSelectVariant } = useProductCard(
-        product,
-        onAdd,
-    );
+    const {
+        hasVariants,
+        isPickerOpen,
+        closePicker,
+        handleAddClick,
+        handleSelectVariant,
+        isManagedStock,
+        availableStock,
+        stockExhausted,
+    } = useProductCard(product, quantity, onAdd);
 
     return (
         <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden flex flex-col active:scale-[0.98] transition-transform">
@@ -60,6 +66,13 @@ export const ProductCard = ({ product, quantity, primaryColor, readonly = false,
                             {product.descripcion}
                         </p>
                     )}
+
+                    {/* Aviso de stock en la card, no como toast — mismo patrón que QuickSale */}
+                    {stockExhausted && (
+                        <p className="text-[11px] font-bold text-red-600 uppercase tracking-wide mt-1">
+                            {quantity > 0 ? "Ya agregaste todo el stock disponible" : "Sin stock"}
+                        </p>
+                    )}
                 </div>
 
                 <div className={`flex gap-2 mt-auto ${byWeight ? "flex-col items-stretch" : "items-center justify-between"}`}>
@@ -74,12 +87,14 @@ export const ProductCard = ({ product, quantity, primaryColor, readonly = false,
                         unit={unit}
                         precio={product.precio}
                         primaryColor={primaryColor}
+                        maxWeight={isManagedStock ? availableStock : undefined}
                         onChangeWeight={(w) => onAddWithWeight(product, w)}
                     />) : hasVariants ? (
                         <button
                             onClick={handleAddClick}
-                            className="relative w-10 h-10 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 shrink-0"
-                            style={{ backgroundColor: primaryColor }}
+                            disabled={stockExhausted}
+                            className="relative w-10 h-10 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 shrink-0 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:active:opacity-100"
+                            style={stockExhausted ? undefined : { backgroundColor: primaryColor }}
                             aria-label={`Elegir variante de ${product.nombre}`}
                         >
                             <Plus size={18} />
@@ -93,8 +108,9 @@ export const ProductCard = ({ product, quantity, primaryColor, readonly = false,
                         quantity === 0 ? (
                             <button
                                 onClick={handleAddClick}
-                                className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 shrink-0"
-                                style={{ backgroundColor: primaryColor }}
+                                disabled={stockExhausted}
+                                className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 shrink-0 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:active:opacity-100"
+                                style={stockExhausted ? undefined : { backgroundColor: primaryColor }}
                                 aria-label={`Agregar ${product.nombre}`}
                             >
                                 <Plus size={18} />
@@ -105,6 +121,7 @@ export const ProductCard = ({ product, quantity, primaryColor, readonly = false,
                                 primaryColor={primaryColor}
                                 onAdd={handleAddClick}
                                 onRemove={() => onRemove(product.id)}
+                                disableAdd={stockExhausted}
                             />
                         )
                     )}

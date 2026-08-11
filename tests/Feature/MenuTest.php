@@ -42,6 +42,18 @@ class MenuTest extends TestCase
         ]);
     }
 
+    private function crearProductoConStock(float $stock): ProductModel
+    {
+        return ProductModel::create([
+            ProductModel::NOMBRE => 'Producto Con Stock',
+            ProductModel::PRECIO => 55,
+            ProductModel::CATEGORIA_ID => CategoryModel::first()->id,
+            ProductModel::ACTIVO => true,
+            ProductModel::MANAGE_STOCK => true,
+            ProductModel::STOCK => $stock,
+        ]);
+    }
+
     // ── Show (info del negocio) ──────────────────────────────
 
     public function test_muestra_info_negocio_por_slug(): void
@@ -467,5 +479,129 @@ class MenuTest extends TestCase
             ->assertStatus(404)
             ->assertJsonPath('status', 'error')
             ->assertJsonPath('message', 'Negocio no encontrado');
+    }
+
+    // ── Costo de domicilio ─────────────────────────────────────
+
+    public function test_pedido_delivery_guarda_costo_domicilio_default_del_tenant(): void
+    {
+        $this->crearSesionActiva();
+        $product = $this->crearProducto();
+
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([
+            BusinessConfigModel::MENU_ENABLED => true,
+            BusinessConfigModel::COSTO_DOMICILIO_DEFAULT => 8000,
+        ]);
+
+        $slug = $this->getSlug();
+
+        $this->postJson("/api/menu/{$slug}/order", [
+            'customer_name' => 'Cliente Domicilio',
+            'customer_phone' => '3010001111',
+            'is_delivery' => true,
+            'delivery_address' => 'Calle 10 #20-30',
+            'items' => [['product_id' => $product->id, 'cantidad' => 1]],
+        ])->assertStatus(201);
+
+        $this->assertDatabaseHas('order', [
+            'nombre_pedido' => 'Cliente Domicilio',
+            'is_delivery' => true,
+            'costo_domicilio' => 8000,
+        ]);
+    }
+
+    public function test_pedido_sin_delivery_no_guarda_costo_domicilio(): void
+    {
+        $this->crearSesionActiva();
+        $product = $this->crearProducto();
+
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([
+            BusinessConfigModel::MENU_ENABLED => true,
+            BusinessConfigModel::COSTO_DOMICILIO_DEFAULT => 8000,
+        ]);
+
+        $slug = $this->getSlug();
+
+        $this->postJson("/api/menu/{$slug}/order", [
+            'customer_name' => 'Cliente Sin Domicilio',
+            'customer_phone' => '3010002222',
+            'is_delivery' => false,
+            'items' => [['product_id' => $product->id, 'cantidad' => 1]],
+        ])->assertStatus(201);
+
+        $this->assertDatabaseHas('order', [
+            'nombre_pedido' => 'Cliente Sin Domicilio',
+            'is_delivery' => false,
+            'costo_domicilio' => 0,
+        ]);
+    }
+
+    // ── Validación de stock ─────────────────────────────────────
+
+    public function test_pedido_publico_respeta_stock_disponible(): void
+    {
+        $this->crearSesionActiva();
+        $product = $this->crearProductoConStock(3);
+
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::MENU_ENABLED => true]);
+
+        $slug = $this->getSlug();
+
+        $this->postJson("/api/menu/{$slug}/order", [
+            'customer_name' => 'Cliente Stock OK',
+            'customer_phone' => '3010003333',
+            'is_delivery' => false,
+            'items' => [['product_id' => $product->id, 'cantidad' => 3]],
+        ])->assertStatus(201);
+    }
+
+    public function test_pedido_publico_falla_si_supera_el_stock_disponible(): void
+    {
+        $this->crearSesionActiva();
+        $product = $this->crearProductoConStock(2);
+
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::MENU_ENABLED => true]);
+
+        $slug = $this->getSlug();
+
+        $response = $this->postJson("/api/menu/{$slug}/order", [
+            'customer_name' => 'Cliente Sin Stock',
+            'customer_phone' => '3010004444',
+            'is_delivery' => false,
+            'items' => [['product_id' => $product->id, 'cantidad' => 5]],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        // La orden en sí queda rota por el rollback de TransactionMiddleware en producción
+        // (se salta en tests — ver App\Http\Middleware\TransactionMiddleware::handle), así
+        // que aquí solo verificamos lo que el propio controller garantiza: al fallar la
+        // validación de stock, ningún producto llega a crearse para esa orden.
+        $this->assertDatabaseMissing('order_product', [
+            'producto_id' => $product->id,
+        ]);
+    }
+
+    public function test_pedido_publico_sin_manage_stock_no_valida_existencia(): void
+    {
+        $this->crearSesionActiva();
+        $product = $this->crearProducto(); // manage_stock=false por default
+
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::MENU_ENABLED => true]);
+
+        $slug = $this->getSlug();
+
+        $this->postJson("/api/menu/{$slug}/order", [
+            'customer_name' => 'Cliente Sin Manage Stock',
+            'customer_phone' => '3010005555',
+            'is_delivery' => false,
+            'items' => [['product_id' => $product->id, 'cantidad' => 1000]],
+        ])->assertStatus(201);
     }
 }

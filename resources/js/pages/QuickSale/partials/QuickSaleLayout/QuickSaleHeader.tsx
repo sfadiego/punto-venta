@@ -14,10 +14,11 @@ export const QuickSaleHeader = () => {
         isSavingOrder,
         scaleSupported,
         scaleIsPaired,
+        isPairing,
         isReadingScale,
-        stagedWeightKg,
-        handleReadScale,
-        clearStagedWeight,
+        scaleWarning,
+        lastReadWeightKg,
+        handlePairScale,
     } = useQuickSaleContext();
     const appName = import.meta.env.VITE_APP_NAME;
 
@@ -60,10 +61,10 @@ export const QuickSaleHeader = () => {
                 <ScaleReadout
                     isSupported={scaleSupported}
                     isPaired={scaleIsPaired}
-                    isReading={isReadingScale}
-                    stagedWeightKg={stagedWeightKg}
-                    onRead={handleReadScale}
-                    onClearStaged={clearStagedWeight}
+                    isBusy={isPairing || isReadingScale}
+                    warningMessage={scaleWarning}
+                    lastReadWeightKg={lastReadWeightKg}
+                    onPair={handlePairScale}
                 />
             </div>
         </div>

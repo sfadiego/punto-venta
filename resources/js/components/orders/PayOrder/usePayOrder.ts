@@ -14,7 +14,7 @@ import { useAxios } from "@/hooks/useAxios";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
-import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
+import { resolveDefaultPaymentMethodId, canPayOrder } from "@/utils/paymentMethods";
 import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
 
 export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
@@ -39,11 +39,7 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
 
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - order.total;
-    const canPay = isCreditMode
-        ? order.total > 0 && !!selectedCustomer && selectedCustomer.allow_credit
-        : isCash
-            ? cashNum >= order.total && order.total > 0
-            : order.total > 0;
+    const canPay = canPayOrder({ isCreditMode, isCash, total: order.total, cashNum, selectedCustomer });
 
     const handleOpen = () => {
         setCash("");

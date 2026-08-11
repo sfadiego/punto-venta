@@ -17,9 +17,22 @@ import { MAX_CANTIDAD_KG } from "./quickSaleConstants";
 // guardar/cobrar — en una venta nueva es puro estado local hasta el checkout. El stock del
 // catálogo no cambia con estos movimientos (solo se descuenta al cerrar la orden — ver
 // useQuickSalePayment.ts), así que aquí no hace falta invalidar la query de productos.
+// Cuánto dura el resaltado del renglón recién agregado en el ticket (feedback visual breve).
+const LAST_ADDED_FLASH_MS = 600;
+
 export const useQuickSaleCart = (resumeOrderId: number | null) => {
     const invalidateResumeOrderQueries = useInvalidateResumeOrderQueries(resumeOrderId);
     const [cart, setCart] = useState<IModalCartItem[]>([]);
+    const [lastAddedOrderProductId, setLastAddedOrderProductId] = useState<number | null>(null);
+    const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Mismo patrón de useQuickSaleScale (ref-tracked timeout): limpia cualquier flash pendiente
+    // antes de programar el siguiente, para que toques rápidos no corten el resaltado a medias.
+    const flashLastAdded = (orderProductId: number) => {
+        if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
+        setLastAddedOrderProductId(orderProductId);
+        flashTimeoutRef.current = setTimeout(() => setLastAddedOrderProductId(null), LAST_ADDED_FLASH_MS);
+    };
 
     const { mutateAsync: createOrderProduct } = useCreateOrderProduct();
     const { mutateAsync: updateOrderProduct } = useUpdateOrderProduct();
@@ -75,6 +88,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
                                 item.orderProductId === existing.orderProductId ? { ...item, cantidad: newQty } : item,
                             ),
                         );
+                        flashLastAdded(existing.orderProductId);
                     } else {
                         const res = await createOrderProduct({
                             orderId: resumeOrderId,
@@ -91,6 +105,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
                                 precioEfectivo: product.precio,
                             },
                         ]);
+                        flashLastAdded(orderProduct.id!);
                     }
                 });
                 invalidateResumeOrderQueries();
@@ -100,6 +115,8 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
             }
             return;
         }
+
+        const orderProductId = existing?.orderProductId ?? Date.now() + Math.random();
 
         setCart((prev) => {
             const idx = prev.findIndex(
@@ -113,7 +130,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
             return [
                 ...prev,
                 {
-                    orderProductId: Date.now() + Math.random(),
+                    orderProductId,
                     productId: product.id,
                     product,
                     cantidad: cantidadKg,
@@ -121,6 +138,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
                 },
             ];
         });
+        flashLastAdded(orderProductId);
     };
 
     // Quita una unidad del producto (botón "-" de UnitControls, solo productos por unidad).
@@ -226,5 +244,16 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
         prevCartLengthRef.current = cart.length;
     }, [cart.length]);
 
-    return { cart, setCart, addToCart, decrementFromCart, quantityOf, removeFromCart, clearCart, isDrawerOpen, toggleDrawer };
+    return {
+        cart,
+        setCart,
+        addToCart,
+        decrementFromCart,
+        quantityOf,
+        removeFromCart,
+        clearCart,
+        isDrawerOpen,
+        toggleDrawer,
+        lastAddedOrderProductId,
+    };
 };

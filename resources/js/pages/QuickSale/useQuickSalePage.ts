@@ -32,16 +32,18 @@ export const useQuickSalePage = () => {
     const hasAnything = cart.cart.length > 0 || (delivery.domicilioActivo && delivery.domicilioNum > 0);
 
     // Toque directo sobre una card (fuera de los chips/toggle $): productos por unidad se
-    // agregan directo (sin báscula ni cálculo de peso). Productos por peso/volumen aplican
-    // el peso de báscula en espera si existe, o el peso rápido por defecto de la card.
-    const handleCardTap = (product: IProduct) => {
+    // agregan directo (sin báscula ni cálculo de peso). Productos por peso/volumen leen la
+    // báscula en vivo en ese mismo toque si ya está enlazada; si no, usan el peso rápido por
+    // defecto de la card (comportamiento sin báscula, sin cambios).
+    const handleCardTap = async (product: IProduct) => {
         if (!isWeightUnit(product.unidad_medida)) {
             cart.addToCart(product, 1);
             return;
         }
-        if (scale.stagedWeightKg !== null) {
-            cart.addToCart(product, scale.stagedWeightKg);
-            scale.clearStagedWeight();
+        if (scale.scaleIsPaired) {
+            const weightKg = await scale.readScaleForCart();
+            if (weightKg === null) return;
+            cart.addToCart(product, weightKg);
             return;
         }
         cart.addToCart(product, DEFAULT_TAP_KG);

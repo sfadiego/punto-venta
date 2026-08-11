@@ -2,6 +2,7 @@ import { useState } from "react";
 import { IMenuProduct, ICartItem } from "@/models/IMenu";
 import { IProductVariant } from "@/models/IProductVariant";
 import { isWeightUnit, weightStep, weightMin } from "@/utils/weightUnits";
+import { getAvailableStock } from "@/utils/stock";
 import { getCartItemUnitPrice, roundCartQuantity as round3, matchesCartLine as matchesLine } from "@/utils/menuCartCalc";
 
 export type { ICartItem };
@@ -9,13 +10,20 @@ export type { ICartItem };
 export const useCart = () => {
     const [items, setItems] = useState<ICartItem[]>([]);
 
+    // Respaldo silencioso: en flujo normal ProductCard ya deshabilita sus controles al llegar
+    // al tope de stock, así que este bloque no debería alcanzarse — mismo patrón que
+    // useQuickSaleCart.addToCart.
     const add = (product: IMenuProduct, variant?: IProductVariant) => {
         const unit = product.unidad_medida;
         const step = isWeightUnit(unit) ? weightStep(unit) : 1;
         const variantId = variant?.id ?? null;
+        const availableStock = getAvailableStock(product);
 
         setItems((prev) => {
             const existing = prev.find((i) => matchesLine(i, product.id, variantId));
+            const currentQty = existing?.cantidad ?? 0;
+            if (currentQty + step > availableStock) return prev;
+
             if (existing) {
                 return prev.map((i) =>
                     matchesLine(i, product.id, variantId)
@@ -52,6 +60,7 @@ export const useCart = () => {
                 ? weightMin(existing.product.unidad_medida)
                 : 1;
             if (weight < min) return prev.filter((i) => !matchesLine(i, productId, null));
+            if (weight > getAvailableStock(existing.product)) return prev;
             return prev.map((i) =>
                 matchesLine(i, productId, null) ? { ...i, cantidad: round3(weight) } : i
             );
@@ -69,6 +78,9 @@ export const useCart = () => {
     };
 
     const addWithWeight = (product: IMenuProduct, weight: number) => {
+        const availableStock = getAvailableStock(product);
+        if (weight > availableStock) return;
+
         setItems((prev) => {
             const existing = prev.find((i) => matchesLine(i, product.id, null));
             if (existing) {
