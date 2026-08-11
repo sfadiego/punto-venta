@@ -17,6 +17,7 @@ export const QuickSaleHeader = () => {
         isPairing,
         isReadingScale,
         scaleWarning,
+        lastReadWeightKg,
         handlePairScale,
     } = useQuickSaleContext();
     const appName = import.meta.env.VITE_APP_NAME;
@@ -62,6 +63,7 @@ export const QuickSaleHeader = () => {
                     isPaired={scaleIsPaired}
                     isBusy={isPairing || isReadingScale}
                     warningMessage={scaleWarning}
+                    lastReadWeightKg={lastReadWeightKg}
                     onPair={handlePairScale}
                 />
             </div>

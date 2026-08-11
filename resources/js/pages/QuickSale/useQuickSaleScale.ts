@@ -17,6 +17,7 @@ export const useQuickSaleScale = () => {
     const [isPairing, setIsPairing] = useState(false);
     const [isReadingScale, setIsReadingScale] = useState(false);
     const [scaleWarning, setScaleWarning] = useState<string | null>(null);
+    const [lastReadWeightKg, setLastReadWeightKg] = useState<number | null>(null);
     const warningTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isReadingRef = useRef(false);
 
@@ -70,6 +71,9 @@ export const useQuickSaleScale = () => {
                 setWarning("La báscula marca 0 — coloca el producto y vuelve a leer");
                 return null;
             }
+            // Refleja en ScaleReadout el peso que se acaba de agregar al carrito — confirmación
+            // visual del tap, sin reintroducir el paso de "peso en espera" de antes.
+            setLastReadWeightKg(weightKg);
             return weightKg;
         } catch (error) {
             if (error instanceof ScalePairingCancelledError) return null;
@@ -88,6 +92,7 @@ export const useQuickSaleScale = () => {
         isPairing,
         isReadingScale,
         scaleWarning,
+        lastReadWeightKg,
         handlePairScale,
         readScaleForCart,
     };
