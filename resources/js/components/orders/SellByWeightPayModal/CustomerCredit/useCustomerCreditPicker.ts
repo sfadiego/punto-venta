@@ -3,7 +3,7 @@ import { isValidPhone, phoneValidationMessage, normalizePhone } from "@/utils/ph
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import { ICustomer } from "@/models/ICustomer";
-import { useStoreCustomer } from "@/services/useCustomerService";
+import { invalidateCustomerQueries, useStoreCustomer } from "@/services/useCustomerService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -68,7 +68,7 @@ export const useCustomerCreditPicker = ({ customers, onSelect }: UseCustomerCred
             queryClient.setQueryData<ICustomer[]>([`${ApiRoutes.Customer}/list`], (prev) =>
                 prev ? [...prev, created] : [created]
             );
-            queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/list`] });
+            invalidateCustomerQueries(queryClient);
 
             onSelect(created.id);
             setShowNewForm(false);

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ApiRoutes } from "@/enums/ApiRoutesEnum";
-import { useIndexCustomersPaginated } from "@/services/useCustomerService";
+import { invalidateCustomerQueries, useIndexCustomersPaginated } from "@/services/useCustomerService";
 import { ICustomer } from "@/models/ICustomer";
 
 export const useCustomersPage = () => {
@@ -22,10 +21,7 @@ export const useCustomersPage = () => {
         }
     }, [data, isLoading, page]);
 
-    const invalidateCustomers = () => {
-        queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
-        queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/list`] });
-    };
+    const invalidateCustomers = () => invalidateCustomerQueries(queryClient);
 
     const pageSize = [10, 20, 50];
 
