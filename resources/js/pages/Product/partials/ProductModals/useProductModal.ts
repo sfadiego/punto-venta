@@ -72,6 +72,7 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
     const { data: categories } = useIndexCategories();
     const { features } = useAxios();
     const sellByWeight = features?.sell_by_weight === true;
+    const isRestaurant = features?.kitchen_view === true;
 
     const initialVariants: ProductVariantFormValue[] =
         product?.variants?.map((v) => ({ id: v.id, nombre: v.nombre, precio: v.precio.toString() })) ?? [];
@@ -157,6 +158,7 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
         formik,
         categories: categories ?? [],
         sellByWeight,
+        isRestaurant,
         currentStock: product?.stock ?? null,
     };
 };

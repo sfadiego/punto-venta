@@ -19,11 +19,21 @@ interface ProductModalProps {
     formik: FormikProps<ProductForm>;
     categories: ICategory[];
     sellByWeight: boolean;
+    isRestaurant: boolean;
     currentStock?: string | null;
     onClose: () => void;
 }
 
-export const ProductModal = ({ isOpen, isEdit, formik, categories, sellByWeight, currentStock, onClose }: ProductModalProps) => {
+export const ProductModal = ({
+    isOpen,
+    isEdit,
+    formik,
+    categories,
+    sellByWeight,
+    isRestaurant,
+    currentStock,
+    onClose,
+}: ProductModalProps) => {
     if (!isOpen) return null;
 
     return (
@@ -58,7 +68,7 @@ export const ProductModal = ({ isOpen, isEdit, formik, categories, sellByWeight,
 
                     <ProductCodeField formik={formik} />
 
-                    <ProductStockToggle formik={formik} />
+                    <ProductStockToggle formik={formik} disabled={isRestaurant} />
                     <ProductStockFields formik={formik} isEdit={isEdit} currentStock={currentStock} />
 
                     <ProductAvailabilityToggle formik={formik} />

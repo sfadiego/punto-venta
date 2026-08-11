@@ -45,7 +45,7 @@ export default function ProductsPage() {
         handleCloseModal,
     } = useProductsPage();
 
-    const { isEdit, formik, categories: modalCategories, sellByWeight, currentStock } = useProductModal(
+    const { isEdit, formik, categories: modalCategories, sellByWeight, isRestaurant, currentStock } = useProductModal(
         editingProduct,
         invalidateProducts,
         handleCloseModal,
@@ -259,6 +259,7 @@ export default function ProductsPage() {
                 formik={formik}
                 categories={modalCategories}
                 sellByWeight={sellByWeight}
+                isRestaurant={isRestaurant}
                 currentStock={currentStock}
                 onClose={handleModalClose}
             />

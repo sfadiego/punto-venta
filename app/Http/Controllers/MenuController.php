@@ -158,6 +158,13 @@ class MenuController extends Controller
                 ->where(ProductModel::ACTIVO, true)
                 ->firstOrFail();
 
+            if ($product->manage_stock && (float) $item['cantidad'] > (float) $product->stock) {
+                return Response::error(
+                    "No hay suficiente stock disponible de \"{$product->nombre}\" ({$product->stock} disponibles).",
+                    null,
+                );
+            }
+
             $precio = $product->precio;
             $variantId = $item['variant_id'] ?? null;
             if ($variantId) {

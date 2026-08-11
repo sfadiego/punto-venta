@@ -10,6 +10,7 @@ interface WeightControlsProps {
     unit: WeightUnit;
     precio: number;
     primaryColor: string;
+    maxWeight?: number;
     onChangeWeight: (weight: number) => void;
 }
 
@@ -18,6 +19,7 @@ export const WeightControls = ({
     unit,
     precio,
     primaryColor,
+    maxWeight,
     onChangeWeight,
 }: WeightControlsProps) => {
     const {
@@ -25,7 +27,7 @@ export const WeightControls = ({
         weightInput, handleWeightChange, applyWeight,
         priceInput, handlePriceChange, applyPrice,
         weightEquivalent, error,
-    } = useWeightControls({ cantidad, unit, precio, onChangeWeight });
+    } = useWeightControls({ cantidad, unit, precio, maxWeight, onChangeWeight });
 
     return (
         <div className="flex flex-col gap-1.5">
