@@ -3,6 +3,7 @@ import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
 import { WeightUnit, weightMin, weightMax, formatWeight } from "@/utils/weightUnits";
 import { calcWeightFromPrice } from "@/utils/calcWeightFromPrice";
+import { trimDecimalZeros } from "@/utils/formatDecimal";
 
 interface UseWeightControlsParams {
     cantidad: number;
@@ -17,7 +18,7 @@ interface UseWeightControlsParams {
 const formatWeightInput = (cantidad: number, unit: WeightUnit): string =>
     unit === UnidadMedidaEnum.Gr
         ? String(Math.round(cantidad))
-        : cantidad.toFixed(1);
+        : trimDecimalZeros(cantidad.toFixed(1));
 
 export const useWeightControls = ({ cantidad, unit, precio, maxWeight, onChangeWeight }: UseWeightControlsParams) => {
     const effectiveMax = (u: WeightUnit) => (maxWeight !== undefined ? Math.min(weightMax(u), maxWeight) : weightMax(u));

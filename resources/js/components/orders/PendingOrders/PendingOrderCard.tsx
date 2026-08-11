@@ -2,6 +2,7 @@ import { Check, X, Phone, MapPin, Store, Bike, Loader, ChevronDown, ChevronUp, S
 import { IOrder } from "@/models/IOrder";
 import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 import { usePendingOrderDetail } from "./usePendingOrderDetail";
+import { formatMoney } from "@/utils/formatCurrency";
 
 interface PendingOrderCardProps {
     order: IOrder;
@@ -58,7 +59,7 @@ export const PendingOrderCard = ({ order, isPending, onAccept, onReject }: Pendi
 
                 <div className="flex items-center justify-between pt-1 border-t border-stone-100">
                     <span className="text-sm font-bold text-stone-800 tabular-nums">
-                        ${calcOrderDisplayTotal(order).toFixed(2)}
+                        ${formatMoney(calcOrderDisplayTotal(order))}
                     </span>
                     <div className="flex items-center gap-2">
                         <button

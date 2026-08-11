@@ -147,6 +147,7 @@ class MenuController extends Controller
             OrderModel::IS_DELIVERY => $isDelivery,
             OrderModel::DELIVERY_ADDRESS => $request->delivery_address,
             OrderModel::DELIVERY_REFERENCE => $request->delivery_reference,
+            OrderModel::COSTO_DOMICILIO => $isDelivery ? ($tenant->costo_domicilio_default ?? 0) : 0,
             OrderModel::TOTAL => 0,
             OrderModel::SUBTOTAL => 0,
         ]);
