@@ -90,7 +90,11 @@ class OrderController extends Controller
             'subtotal' => $orderDetail['subtotal'],
         ]));
 
-        $creditService->applyIfClosingAsCredit($order, $becomingClosed);
+        // Una venta directa (QuickSale) ya llega Closed desde su creación — el PUT que
+        // fija is_credit/customer_id no vuelve a mandar estatus_pedido_id, así que
+        // $becomingClosed por sí solo no detecta este caso. credit_applied_at en el
+        // servicio garantiza que esto sea idempotente sin importar cuántas veces se llame.
+        $creditService->applyIfClosingAsCredit($order, $wasClosed || $becomingClosed);
 
         if ($becomingClosed && ! $wasClosed) {
             $activityService->log($order->tenant_id, ActivityTypeEnum::SALE_CLOSED);

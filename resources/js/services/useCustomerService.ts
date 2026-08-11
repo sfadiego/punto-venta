@@ -2,10 +2,18 @@ import { axiosGET, useDELETE, useGET, usePATCH, usePOST, usePUT } from "@/hooks/
 import { ICustomer, ICustomerDetail, ICustomerPayment } from "@/models/ICustomer";
 import { IPaginate } from "@/intefaces/IPaginate";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 import { useAxios } from "@/hooks/useAxios";
 
 const url = ApiRoutes.Customer;
+
+// Invalida tanto la lista paginada (DataTable de la página de Clientes) como la lista
+// liviana (picker de crédito en QuickSale/PayModal) — cualquier alta/edición/borrado de
+// cliente debe reflejarse en ambas, sin importar desde qué flujo se disparó la mutación.
+export const invalidateCustomerQueries = (queryClient: QueryClient) => {
+    queryClient.invalidateQueries({ queryKey: [url] });
+    queryClient.invalidateQueries({ queryKey: [`${url}/list`] });
+};
 
 // Paginated — used for the customers DataTable
 export const useIndexCustomersPaginated = ({

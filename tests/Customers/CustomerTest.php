@@ -84,6 +84,18 @@ class CustomerTest extends TestCase
             ->assertStatus(400);
     }
 
+    public function test_crea_cliente_reutilizando_nombre_de_cliente_borrado(): void
+    {
+        $borrado = $this->crearCliente(['name' => 'Loncheria Doña Mary']);
+        $borrado->delete();
+
+        $this->postJson('/api/customer', [
+            'name' => 'Loncheria Doña Mary',
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.name', 'Loncheria Doña Mary');
+    }
+
     public function test_no_crea_cliente_sin_nombre(): void
     {
         $this->postJson('/api/customer', [], $this->authHeaders())
@@ -124,6 +136,20 @@ class CustomerTest extends TestCase
             ->assertJsonPath('data.name', 'Nombre Actualizado');
 
         $this->assertDatabaseHas('customers', ['id' => $customer->id, 'name' => 'Nombre Actualizado']);
+    }
+
+    public function test_actualiza_cliente_reutilizando_nombre_de_cliente_borrado(): void
+    {
+        $borrado = $this->crearCliente(['name' => 'Loncheria Doña Mary']);
+        $borrado->delete();
+        $customer = $this->crearCliente(['name' => 'Otro Nombre']);
+
+        $this->putJson("/api/customer/{$customer->id}", [
+            'name' => 'Loncheria Doña Mary',
+            'phone' => $customer->phone,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.name', 'Loncheria Doña Mary');
     }
 
     // Regresión: a diferencia de Product (ver ProductTest), el update de Customer sobrescribe

@@ -20,7 +20,7 @@ class CustomerStoreRequest extends FormRequest
         return [
             CustomerModel::NAME => [
                 'required', 'string', 'max:255',
-                Rule::unique('customers', 'name')->where('tenant_id', $tenantId),
+                Rule::unique('customers', 'name')->where('tenant_id', $tenantId)->whereNull('deleted_at'),
             ],
             CustomerModel::PHONE => 'nullable|string|max:20',
             CustomerModel::NOTES => 'nullable|string|max:1000',

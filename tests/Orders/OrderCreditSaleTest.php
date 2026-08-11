@@ -93,6 +93,27 @@ class OrderCreditSaleTest extends TestCase
         $this->assertEquals(100, (float) $customer->fresh()->balance);
     }
 
+    public function test_venta_directa_quicksale_ya_cerrada_si_asigna_credito_al_cliente(): void
+    {
+        // Reproduce el flujo real de QuickSale (OrderSaleService::createDirectSale): la orden
+        // se crea y se cierra en el mismo POST /order/sale, y solo después llega un segundo
+        // PUT /order/{id} con is_credit/customer_id — sin estatus_pedido_id, porque ya está
+        // Closed. Antes del fix, ese PUT no incrementaba el balance del cliente.
+        $customer = $this->crearCliente(['allow_credit' => true]);
+        $order = $this->crearOrdenConProducto(100);
+        $order->update([OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value]);
+
+        $this->putJson("/api/order/{$order->id}", [
+            'is_credit' => true,
+            'customer_id' => $customer->id,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.is_credit', true)
+            ->assertJsonPath('data.customer_id', $customer->id);
+
+        $this->assertEquals(100, (float) $customer->fresh()->balance);
+    }
+
     public function test_no_duplica_credito_con_dos_instancias_cargadas_de_la_misma_orden(): void
     {
         // Simula dos requests concurrentes cerrando la misma orden a crédito: cada una
