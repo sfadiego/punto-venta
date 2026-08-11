@@ -10,7 +10,7 @@ interface CategoryFilterProps {
 export const CategoryFilter = ({ categories, selected, onChange }: CategoryFilterProps) => (
     <div className="flex flex-wrap gap-2">
         <CategoryFilterChip active={selected === null} onClick={() => onChange(null)}>
-            Todos
+            TODOS
         </CategoryFilterChip>
         {categories.map((cat) => (
             <CategoryFilterChip

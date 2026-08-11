@@ -1,5 +1,6 @@
 import { RotateCcw } from "lucide-react";
 import { ColorField } from "./ColorField";
+import { SectionSaveButton } from "./SectionSaveButton";
 import { TenantFormik } from "@/pages/SuperAdmin/Tenants/useTenantForm";
 
 interface TenantColorsSectionProps {
@@ -26,5 +27,6 @@ export const TenantColorsSection = ({ formik, onResetColors }: TenantColorsSecti
             <RotateCcw size={12} />
             Restablecer colores por defecto
         </button>
+        <SectionSaveButton onSave={formik.submitForm} isSaving={formik.isSubmitting} />
     </section>
 );

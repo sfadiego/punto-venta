@@ -1,10 +1,13 @@
 import { Truck, UserRound } from "lucide-react";
+import { SectionSaveButton } from "./SectionSaveButton";
 
 interface TenantProvidersEmployeesSectionProps {
     purchasesEnabled: boolean;
     onTogglePurchases: () => void;
     employeesEnabled: boolean;
     onToggleEmployees: () => void;
+    onSave: () => void;
+    isSaving: boolean;
 }
 
 const ToggleRow = ({
@@ -53,6 +56,8 @@ export const TenantProvidersEmployeesSection = ({
     onTogglePurchases,
     employeesEnabled,
     onToggleEmployees,
+    onSave,
+    isSaving,
 }: TenantProvidersEmployeesSectionProps) => (
     <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
         <ToggleRow
@@ -70,5 +75,6 @@ export const TenantProvidersEmployeesSection = ({
             enabled={employeesEnabled}
             onToggle={onToggleEmployees}
         />
+        <SectionSaveButton onSave={onSave} isSaving={isSaving} />
     </section>
 );

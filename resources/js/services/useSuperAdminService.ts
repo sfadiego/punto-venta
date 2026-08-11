@@ -78,5 +78,6 @@ export const useDeleteTenant = () => {
 
 export const useClearDemoData = () =>
     useMutation({
-        mutationFn: (id: number) => superAdminAxios.delete(`${url}/${id}/demo-data`),
+        mutationFn: ({ id, deepClean }: { id: number; deepClean: boolean }) =>
+            superAdminAxios.delete(`${url}/${id}/demo-data`, { data: { deep_clean: deepClean } }),
     });

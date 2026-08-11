@@ -8,6 +8,7 @@ use App\Enums\RoleEnum;
 use App\Enums\SubscriptionPlanEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\TrackActivity;
+use App\Http\Requests\TenantClearDemoDataRequest;
 use App\Http\Requests\TenantStoreRequest;
 use App\Http\Requests\TenantUpdateRequest;
 use App\Models\BusinessConfigModel;
@@ -16,11 +17,11 @@ use App\Models\SubscriptionModel;
 use App\Models\TenantActivityLogModel;
 use App\Models\User;
 use App\Services\TenantActivityService;
+use App\Services\TenantDemoDataService;
 use App\Services\TenantService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 
 class TenantManagementController extends Controller
@@ -132,20 +133,9 @@ class TenantManagementController extends Controller
         return Response::success($model);
     }
 
-    public function clearDemoData(BusinessConfigModel $tenant): JsonResponse
+    public function clearDemoData(BusinessConfigModel $tenant, TenantClearDemoDataRequest $param, TenantDemoDataService $service): JsonResponse
     {
-        $tenantId = $tenant->id;
-
-        $orderIds = DB::table('order')
-            ->where('tenant_id', $tenantId)
-            ->pluck('id');
-
-        if ($orderIds->isNotEmpty()) {
-            DB::table('order_product')->whereIn('pedido_id', $orderIds)->delete();
-            DB::table('order')->where('tenant_id', $tenantId)->delete();
-        }
-
-        DB::table('main_order_report')->where('tenant_id', $tenantId)->delete();
+        $service->clear($tenant->id, (bool) $param->boolean('deep_clean'));
 
         return Response::success(true);
     }
