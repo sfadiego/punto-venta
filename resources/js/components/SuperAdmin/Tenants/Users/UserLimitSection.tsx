@@ -1,5 +1,6 @@
 import { Users, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/form/Input";
+import { SectionSaveButton } from "@/components/SuperAdmin/Tenants/Sections/SectionSaveButton";
 import { PLAN_LABELS, PLAN_MAX_USERS, SubscriptionPlanEnum } from "@/enums/SubscriptionPlanEnum";
 
 interface UserLimitSectionProps {
@@ -8,6 +9,8 @@ interface UserLimitSectionProps {
     subscriptionPlan: string | null | undefined;
     usersCount: number;
     planDefaultMaxUsers: number | null | undefined;
+    onSave: () => void;
+    isSaving: boolean;
 }
 
 export const UserLimitSection = ({
@@ -16,6 +19,8 @@ export const UserLimitSection = ({
     subscriptionPlan,
     usersCount,
     planDefaultMaxUsers,
+    onSave,
+    isSaving,
 }: UserLimitSectionProps) => {
     const plan = subscriptionPlan
         ? SubscriptionPlanEnum[subscriptionPlan as keyof typeof SubscriptionPlanEnum] ?? null
@@ -110,6 +115,7 @@ export const UserLimitSection = ({
                     Cambia el plan de suscripción para actualizar el límite automáticamente, o establece un valor personalizado aquí.
                 </p>
             </div>
+            <SectionSaveButton onSave={onSave} isSaving={isSaving} />
         </section>
     );
 };

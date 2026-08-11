@@ -1,6 +1,7 @@
 import { FlaskConical } from "lucide-react";
 import { Input } from "@/components/ui/form/Input";
 import { SelectBusinessType } from "./SelectBusinessType";
+import { SectionSaveButton } from "./SectionSaveButton";
 import { TenantFormik } from "@/pages/SuperAdmin/Tenants/useTenantForm";
 
 interface TenantBusinessSectionProps {
@@ -47,5 +48,6 @@ export const TenantBusinessSection = ({ formik }: TenantBusinessSectionProps) =>
                 />
             </button>
         </div>
+        <SectionSaveButton onSave={formik.submitForm} isSaving={formik.isSubmitting} />
     </section>
 );

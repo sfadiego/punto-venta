@@ -93,6 +93,8 @@ export default function TenantFormPage() {
                                     subscriptionPlan={tenantDetail.subscription_plan}
                                     usersCount={tenantDetail.users_count ?? 0}
                                     planDefaultMaxUsers={tenantDetail.plan_default_max_users}
+                                    onSave={formik.submitForm}
+                                    isSaving={formik.isSubmitting}
                                 />
                             </div>
                         )}
@@ -102,6 +104,8 @@ export default function TenantFormPage() {
                                 <SubscriptionAmountSection
                                     amount={formik.values.subscription_amount}
                                     onAmountChange={(v) => formik.setFieldValue("subscription_amount", v)}
+                                    onSave={formik.submitForm}
+                                    isSaving={formik.isSubmitting}
                                 />
                             </div>
                         )}
@@ -115,6 +119,8 @@ export default function TenantFormPage() {
                                     onToggleBluetooth={() =>
                                         formik.setFieldValue("bluetooth_printing_enabled", !formik.values.bluetooth_printing_enabled)
                                     }
+                                    onSave={formik.submitForm}
+                                    isSaving={formik.isSubmitting}
                                 />
                             </div>
                         )}
@@ -130,6 +136,8 @@ export default function TenantFormPage() {
                                     onToggleEmployees={() =>
                                         formik.setFieldValue("employees_enabled", !formik.values.employees_enabled)
                                     }
+                                    onSave={formik.submitForm}
+                                    isSaving={formik.isSubmitting}
                                 />
                             </div>
                         )}
@@ -152,23 +160,18 @@ export default function TenantFormPage() {
                             </div>
                         )}
 
-                        <div className="flex justify-end gap-3">
-                            <button
-                                type="button"
-                                onClick={() => navigate(SuperAdminRoutes.Tenants)}
-                                className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={formik.isSubmitting}
-                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium transition-colors"
-                            >
-                                {formik.isSubmitting && <Loader size={14} className="animate-spin" />}
-                                {isEdit ? "Guardar cambios" : "Crear cliente"}
-                            </button>
-                        </div>
+                        {!isEdit && (
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="submit"
+                                    disabled={formik.isSubmitting}
+                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium transition-colors"
+                                >
+                                    {formik.isSubmitting && <Loader size={14} className="animate-spin" />}
+                                    Crear cliente
+                                </button>
+                            </div>
+                        )}
                     </form>
                 </div>
             </div>

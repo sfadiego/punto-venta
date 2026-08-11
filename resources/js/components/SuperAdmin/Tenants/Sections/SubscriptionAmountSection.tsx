@@ -1,12 +1,15 @@
 import { Banknote } from "lucide-react";
 import { Input } from "@/components/ui/form/Input";
+import { SectionSaveButton } from "./SectionSaveButton";
 
 interface SubscriptionAmountSectionProps {
     amount: number | null | undefined;
     onAmountChange: (value: number | null) => void;
+    onSave: () => void;
+    isSaving: boolean;
 }
 
-export const SubscriptionAmountSection = ({ amount, onAmountChange }: SubscriptionAmountSectionProps) => (
+export const SubscriptionAmountSection = ({ amount, onAmountChange, onSave, isSaving }: SubscriptionAmountSectionProps) => (
     <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
         <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
@@ -35,5 +38,6 @@ export const SubscriptionAmountSection = ({ amount, onAmountChange }: Subscripti
                 }}
             />
         </div>
+        <SectionSaveButton onSave={onSave} isSaving={isSaving} />
     </section>
 );
