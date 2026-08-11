@@ -13,7 +13,7 @@ import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { calcCostoDomicilio } from "@/utils/deliveryCalc";
-import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
+import { resolveDefaultPaymentMethodId, canPayOrder } from "@/utils/paymentMethods";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
@@ -47,11 +47,7 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
 
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - total;
-    const canPay = isCreditMode
-        ? total > 0 && !!selectedCustomer && selectedCustomer.allow_credit
-        : isCash
-            ? cashNum >= total && total > 0
-            : total > 0;
+    const canPay = canPayOrder({ isCreditMode, isCash, total, cashNum, selectedCustomer });
 
     const handleOpen = () => {
         setCash("");

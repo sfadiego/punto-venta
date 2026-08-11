@@ -86,6 +86,18 @@ export const formatWeekLabel = (semana: string): string => {
     return `${startLabel} - ${endLabel}`;
 };
 
+/** Resuelve la etiqueta del periodo activo de un reporte (día > semana > mes), null si ninguno. */
+export const resolveReportPeriodLabel = (
+    fecha?: string | null,
+    semana?: string | null,
+    mes?: string | null,
+): string | null => {
+    if (fecha) return formatDateLabel(fecha);
+    if (semana) return formatWeekLabel(semana);
+    if (mes) return formatMonthLabel(mes);
+    return null;
+};
+
 type DateMutator = (d: Date) => void;
 
 // null = plan sin vencimiento (Lifetime). undefined = plan desconocido → también retorna null.

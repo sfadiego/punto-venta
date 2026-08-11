@@ -14,7 +14,6 @@ export const ProductGrid = () => {
         decrementFromCart,
         quantityOf,
         handleCardTap,
-        stagedWeightKg,
     } = useQuickSaleContext();
 
     const sentinelRef = useRef<HTMLDivElement>(null);
@@ -64,7 +63,6 @@ export const ProductGrid = () => {
                         onAdd={addToCart}
                         onDecrement={decrementFromCart}
                         onTap={handleCardTap}
-                        hasStagedWeight={stagedWeightKg !== null}
                     />
                 ))}
             </div>

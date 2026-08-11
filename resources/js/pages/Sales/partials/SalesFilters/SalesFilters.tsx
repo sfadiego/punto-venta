@@ -34,12 +34,12 @@ export const SalesFilters = ({
     onCategoryReport,
     onClear,
 }: SalesFiltersProps) => {
-    const hasActive =
-        reportMode === SalesReportModeEnum.Day
-            ? !!fecha
-            : reportMode === SalesReportModeEnum.Week
-            ? !!semana
-            : !!mes;
+    const activeByMode: Record<SalesReportModeEnum, boolean> = {
+        [SalesReportModeEnum.Day]: !!fecha,
+        [SalesReportModeEnum.Week]: !!semana,
+        [SalesReportModeEnum.Month]: !!mes,
+    };
+    const hasActive = activeByMode[reportMode];
 
     return (
         <div className="flex flex-col gap-3 mb-5">

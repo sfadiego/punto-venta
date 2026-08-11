@@ -7,10 +7,15 @@ interface TicketRowProps {
     priceLabel: string;
     lineTotal: number;
     onRemove?: () => void;
+    highlighted?: boolean;
 }
 
-export const TicketRow = ({ name, quantityLabel, priceLabel, lineTotal, onRemove }: TicketRowProps) => (
-    <div className="flex items-center justify-between gap-3 py-2.5 border-b border-stone-100 last:border-b-0">
+export const TicketRow = ({ name, quantityLabel, priceLabel, lineTotal, onRemove, highlighted = false }: TicketRowProps) => (
+    <div
+        className={`flex items-center justify-between gap-3 py-2.5 px-2 -mx-2 rounded-lg border-b border-stone-100 last:border-b-0 transition-colors duration-500 ${
+            highlighted ? "bg-amber-100" : "bg-transparent"
+        }`}
+    >
         <div className="flex items-center gap-2.5 min-w-0">
             {onRemove && (
                 <button

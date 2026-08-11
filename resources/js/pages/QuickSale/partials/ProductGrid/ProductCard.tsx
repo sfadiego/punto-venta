@@ -16,10 +16,9 @@ interface ProductCardProps {
     onAdd: (product: IProduct, cantidad: number) => void;
     onDecrement: (product: IProduct) => void;
     onTap: (product: IProduct) => void;
-    hasStagedWeight?: boolean;
 }
 
-export const ProductCard = ({ product, quantity, onAdd, onDecrement, onTap, hasStagedWeight = false }: ProductCardProps) => {
+export const ProductCard = ({ product, quantity, onAdd, onDecrement, onTap }: ProductCardProps) => {
     const { mode, setMode, moneyValue, setMoneyValue, maxMoneyValue, maxAddable, addWeight, commitMoney } = useProductCard(
         product,
         quantity,
@@ -49,9 +48,7 @@ export const ProductCard = ({ product, quantity, onAdd, onDecrement, onTap, hasS
             className={`flex flex-col gap-2.5 text-left bg-white rounded-2xl border p-4 shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                 stockExhausted
                     ? "border-stone-100 cursor-not-allowed"
-                    : `hover:shadow-md active:scale-[0.98] cursor-pointer ${
-                          hasStagedWeight ? "border-amber-300 ring-1 ring-amber-200" : "border-stone-100 hover:border-amber-200"
-                      }`
+                    : "hover:shadow-md active:scale-[0.98] cursor-pointer border-stone-100 hover:border-amber-200"
             }`}
         >
             <div className="flex items-center justify-between gap-2">

@@ -13,7 +13,7 @@ import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IOrder } from "@/models/IOrder";
-import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
+import { resolveDefaultPaymentMethodId, canPayOrder } from "@/utils/paymentMethods";
 import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
 
 export const useSaleQuickPay = (order: IOrder) => {
@@ -37,11 +37,7 @@ export const useSaleQuickPay = (order: IOrder) => {
     const cashNum = parseFloat(cash) || 0;
     const change = cashNum - totalFinal;
     const selectedCustomer = customers.find((c) => c.id === selectedCustomerId) ?? null;
-    const canPay = isCreditMode
-        ? totalFinal > 0 && !!selectedCustomer && selectedCustomer.allow_credit
-        : isCashMethod
-            ? cashNum >= totalFinal && totalFinal > 0
-            : totalFinal > 0;
+    const canPay = canPayOrder({ isCreditMode, isCash: isCashMethod, total: totalFinal, cashNum, selectedCustomer });
 
     const openPayModal = () => {
         setCash("");

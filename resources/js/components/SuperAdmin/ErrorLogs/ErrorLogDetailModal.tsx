@@ -20,6 +20,12 @@ interface ErrorLogDetailModalProps {
     onClose: () => void;
 }
 
+const getStatusColor = (statusCode: number): string => {
+    if (statusCode >= 500) return "text-red-600 bg-red-50";
+    if (statusCode >= 400) return "text-amber-600 bg-amber-50";
+    return "text-slate-600 bg-slate-50";
+};
+
 const JsonBlock = ({ label, data }: { label: string; data: unknown }) => {
     if (!data) return null;
     return (
@@ -42,11 +48,7 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 export const ErrorLogDetailModal = ({ log, onClose }: ErrorLogDetailModalProps) => {
     if (!log) return null;
 
-    const statusColor = log.status_code >= 500
-        ? "text-red-600 bg-red-50"
-        : log.status_code >= 400
-        ? "text-amber-600 bg-amber-50"
-        : "text-slate-600 bg-slate-50";
+    const statusColor = getStatusColor(log.status_code);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

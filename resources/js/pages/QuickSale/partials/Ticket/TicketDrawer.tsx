@@ -7,7 +7,8 @@ import { DeliverySection } from "./DeliverySection";
 import { TicketRow } from "./TicketRow";
 
 export const TicketDrawer = () => {
-    const { cart, removeFromCart, clearCart, domicilioActivo, domicilioNum, deliveryPaidBy } = useQuickSaleContext();
+    const { cart, removeFromCart, clearCart, domicilioActivo, domicilioNum, deliveryPaidBy, lastAddedOrderProductId } =
+        useQuickSaleContext();
 
     return (
         <div className="max-h-[26rem] overflow-y-auto bg-white border-t border-stone-200">
@@ -37,6 +38,7 @@ export const TicketDrawer = () => {
                             priceLabel={formatCartUnitPrice(item.product.unidad_medida, item.precioEfectivo)}
                             lineTotal={item.precioEfectivo * item.cantidad}
                             onRemove={() => removeFromCart(item.orderProductId)}
+                            highlighted={item.orderProductId === lastAddedOrderProductId}
                         />
                     ))
                 )}
