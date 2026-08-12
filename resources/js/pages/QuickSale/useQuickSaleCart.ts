@@ -188,6 +188,43 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
         });
     };
 
+    // Reemplaza (no suma) la cantidad de una línea ya en el carrito — usado por la edición
+    // inline de peso en TicketRow para corregir un peso mal leído/agregado sin borrar y
+    // volver a agregar el producto desde cero.
+    const setLineWeight = async (orderProductId: number, weightKg: number) => {
+        if (weightKg <= 0) return;
+        const existing = cart.find((item) => item.orderProductId === orderProductId);
+        if (!existing) return;
+
+        const availableStock = getAvailableStock(existing.product);
+        if (weightKg > availableStock || weightKg > MAX_CANTIDAD_KG) return;
+
+        if (resumeOrderId) {
+            if (isRemoving(orderProductId) || isAdding(existing.productId)) return;
+            try {
+                await withRemoving([orderProductId], async () => {
+                    await updateOrderProduct({
+                        orderId: resumeOrderId,
+                        orderProductId,
+                        data: { cantidad: weightKg, precio: existing.precioEfectivo },
+                    });
+                    setCart((prev) =>
+                        prev.map((item) => (item.orderProductId === orderProductId ? { ...item, cantidad: weightKg } : item)),
+                    );
+                });
+                invalidateResumeOrderQueries();
+            } catch (error) {
+                logUnexpectedError(error, "useQuickSaleCart.setLineWeight");
+                toast.error(getUserFacingErrorMessage(error, "Error al actualizar el peso."));
+            }
+            return;
+        }
+
+        setCart((prev) =>
+            prev.map((item) => (item.orderProductId === orderProductId ? { ...item, cantidad: weightKg } : item)),
+        );
+    };
+
     // Cantidad actual en el carrito para un producto por unidad (UnitControls la usa para
     // decidir entre mostrar el botón "+" inicial o el stepper con "-").
     const quantityOf = (product: IProduct) =>
@@ -249,6 +286,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
         setCart,
         addToCart,
         decrementFromCart,
+        setLineWeight,
         quantityOf,
         removeFromCart,
         clearCart,
