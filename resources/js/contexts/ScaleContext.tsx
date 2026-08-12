@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { parseScaleWeightKg } from "@/utils/scaleProtocol";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 
@@ -105,6 +105,27 @@ export const ScaleProvider = ({ children, enabled = false }: ScaleProviderProps)
     const [isPaired, setIsPaired] = useState(() => loadIsPaired());
     const [isConnected, setIsConnected] = useState(false);
     const portRef = useRef<SerialPort | null>(null);
+
+    // El SO/navegador avisa cuando el puerto realmente se desconecta (cable retirado, báscula
+    // apagada) — sin esto, `isPaired` se queda pegado en true para siempre (solo se limpia
+    // desde Configuración > "Olvidar báscula"), y ScaleReadout sigue mostrando "conectada"
+    // aunque el hardware ya no esté ahí.
+    useEffect(() => {
+        if (!isSupported) return;
+
+        const handleDisconnect = (event: Event) => {
+            const disconnectedPort = (event as Event & { target: SerialPort | null }).target;
+            if (portRef.current && disconnectedPort === portRef.current) {
+                portRef.current = null;
+                setIsConnected(false);
+                setIsPaired(false);
+                saveIsPaired(false);
+            }
+        };
+
+        navigator.serial!.addEventListener("disconnect", handleDisconnect);
+        return () => navigator.serial!.removeEventListener("disconnect", handleDisconnect);
+    }, [isSupported]);
 
     // Reconecta en silencio a un puerto ya autorizado (sin mostrar el selector) —
     // usado por readWeightKg. Si nunca se emparejó desde Configuración, no hay

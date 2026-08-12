@@ -1,14 +1,22 @@
 import { Trash2 } from "lucide-react";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
-import { formatCartQuantity, formatCartUnitPrice } from "@/utils/weightUnits";
+import { formatCartQuantity, formatCartUnitPrice, isWeightUnit } from "@/utils/weightUnits";
 import { useQuickSaleContext } from "../../QuickSaleContext";
 import { DeliverySection } from "./DeliverySection";
 import { TicketRow } from "./TicketRow";
 
 export const TicketDrawer = () => {
-    const { cart, removeFromCart, clearCart, domicilioActivo, domicilioNum, deliveryPaidBy, lastAddedOrderProductId } =
-        useQuickSaleContext();
+    const {
+        cart,
+        removeFromCart,
+        setLineWeight,
+        clearCart,
+        domicilioActivo,
+        domicilioNum,
+        deliveryPaidBy,
+        lastAddedOrderProductId,
+    } = useQuickSaleContext();
 
     return (
         <div className="max-h-[26rem] overflow-y-auto bg-white border-t border-stone-200">
@@ -39,6 +47,15 @@ export const TicketDrawer = () => {
                             lineTotal={item.precioEfectivo * item.cantidad}
                             onRemove={() => removeFromCart(item.orderProductId)}
                             highlighted={item.orderProductId === lastAddedOrderProductId}
+                            editableWeight={
+                                isWeightUnit(item.product.unidad_medida)
+                                    ? {
+                                          cantidad: item.cantidad,
+                                          unit: item.product.unidad_medida,
+                                          onCommit: (weightKg) => setLineWeight(item.orderProductId, weightKg),
+                                      }
+                                    : undefined
+                            }
                         />
                     ))
                 )}
