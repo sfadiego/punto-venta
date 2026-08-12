@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAxios } from "@/hooks/useAxios";
 import { IProduct } from "@/models/IProduct";
 import { isWeightUnit } from "@/utils/weightUnits";
+import { ScaleReadStatusEnum } from "@/enums/ScaleReadStatusEnum";
 import { calcModalCartTotal } from "@/utils/sellByWeightCartCalc";
 import { calcDeliveryTotal } from "@/utils/deliveryCalc";
 import { useQuickSaleCatalog } from "./useQuickSaleCatalog";
@@ -33,17 +34,22 @@ export const useQuickSalePage = () => {
 
     // Toque directo sobre una card (fuera de los chips/toggle $): productos por unidad se
     // agregan directo (sin báscula ni cálculo de peso). Productos por peso/volumen leen la
-    // báscula en vivo en ese mismo toque si ya está enlazada; si no, usan el peso rápido por
-    // defecto de la card (comportamiento sin báscula, sin cambios).
+    // báscula en vivo en ese mismo toque si ya está enlazada; si no está enlazada, o si la
+    // lectura falla (báscula desconectada/apagada), cae al peso rápido por defecto en vez de
+    // dejar el toque sin efecto — el cajero siempre puede agregar algo y ajustar después.
     const handleCardTap = async (product: IProduct) => {
         if (!isWeightUnit(product.unidad_medida)) {
             cart.addToCart(product, 1);
             return;
         }
         if (scale.scaleIsPaired) {
-            const weightKg = await scale.readScaleForCart();
-            if (weightKg === null) return;
-            cart.addToCart(product, weightKg);
+            const result = await scale.readScaleForCart();
+            if (result.status === ScaleReadStatusEnum.Ok) {
+                cart.addToCart(product, result.weightKg);
+                return;
+            }
+            if (result.status === ScaleReadStatusEnum.Zero) return; // aviso ya mostrado junto a ScaleReadout
+            cart.addToCart(product, DEFAULT_TAP_KG); // "unreachable" — fallback manual
             return;
         }
         cart.addToCart(product, DEFAULT_TAP_KG);

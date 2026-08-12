@@ -2,8 +2,14 @@ import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useScale, ScaleNotConnectedError, ScalePairingCancelledError } from "@/contexts/ScaleContext";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { ScaleReadStatusEnum } from "@/enums/ScaleReadStatusEnum";
 
 const WARNING_TIMEOUT_MS = 4000;
+
+export type ScaleReadResult =
+    | { status: ScaleReadStatusEnum.Ok; weightKg: number }
+    | { status: ScaleReadStatusEnum.Zero } // báscula alcanzable pero en 0 — no hay nada que agregar todavía
+    | { status: ScaleReadStatusEnum.Unreachable }; // no se pudo leer (desconectada, error) — el llamador decide el fallback
 
 // Báscula real (ScaleContext / Web Serial) — lectura bajo demanda, sin polling: el hardware
 // no soporta un stream continuo, y este es el único patrón probado contra la báscula física
@@ -13,7 +19,7 @@ const WARNING_TIMEOUT_MS = 4000;
 // separadas: ScaleReadout solo enlaza, y tocar una card de producto por peso dispara la
 // lectura en vivo — sin paso intermedio de "peso en espera".
 export const useQuickSaleScale = () => {
-    const { readWeightKg, pair: pairScale, isSupported: scaleSupported, isPaired: scaleIsPaired } = useScale();
+    const { readWeightKg, pair: pairScale, forget: forgetScale, isSupported: scaleSupported, isPaired: scaleIsPaired } = useScale();
     const [isPairing, setIsPairing] = useState(false);
     const [isReadingScale, setIsReadingScale] = useState(false);
     const [scaleWarning, setScaleWarning] = useState<string | null>(null);
@@ -48,38 +54,37 @@ export const useQuickSaleScale = () => {
     };
 
     // Lectura en vivo disparada al tocar una card de producto por peso (solo si la báscula ya
-    // está enlazada — ver useQuickSalePage.handleCardTap). Retorna el peso en kg, o null si no
-    // se pudo leer (báscula en 0, error, o ya había una lectura en curso).
-    const readScaleForCart = async (): Promise<number | null> => {
-        if (isReadingRef.current) return null;
+    // está enlazada — ver useQuickSalePage.handleCardTap). Nunca abre el selector nativo de
+    // puertos por su cuenta — eso es una acción explícita del usuario (handlePairScale) — así
+    // que si la báscula ya no responde, esto falla con "unreachable" en vez de interrumpir el
+    // flujo con un diálogo del navegador.
+    const readScaleForCart = async (): Promise<ScaleReadResult> => {
+        if (isReadingRef.current) return { status: ScaleReadStatusEnum.Unreachable };
         isReadingRef.current = true;
         setIsReadingScale(true);
         setWarning(null);
         try {
-            let weightKg: number;
-            try {
-                weightKg = await readWeightKg();
-            } catch (error) {
-                // El flag local dice "emparejada" pero el navegador ya perdió el puerto
-                // (ej. Firefox no persiste permisos de Web Serial entre refrescos) —
-                // se reintenta pidiendo el puerto de nuevo.
-                if (!(error instanceof ScaleNotConnectedError)) throw error;
-                await pairScale();
-                weightKg = await readWeightKg();
-            }
+            const weightKg = await readWeightKg();
             if (weightKg <= 0) {
                 setWarning("La báscula marca 0 — coloca el producto y vuelve a leer");
-                return null;
+                return { status: ScaleReadStatusEnum.Zero };
             }
             // Refleja en ScaleReadout el peso que se acaba de agregar al carrito — confirmación
             // visual del tap, sin reintroducir el paso de "peso en espera" de antes.
             setLastReadWeightKg(weightKg);
-            return weightKg;
+            return { status: ScaleReadStatusEnum.Ok, weightKg };
         } catch (error) {
-            if (error instanceof ScalePairingCancelledError) return null;
-            logUnexpectedError(error, "useQuickSaleScale.readScaleForCart");
-            toast.error(error instanceof Error ? error.message : "No se pudo leer la báscula");
-            return null;
+            if (error instanceof ScaleNotConnectedError) {
+                // El flag local decía "emparejada" pero ya no hay puerto conocido (cable
+                // retirado, báscula apagada) — se corrige el estado para que ScaleReadout deje
+                // de mostrar "conectada" y vuelva a ofrecer enlazar de nuevo.
+                await forgetScale();
+                setWarning("Báscula desconectada — se agregó el peso por defecto, ajústalo si hace falta");
+            } else {
+                logUnexpectedError(error, "useQuickSaleScale.readScaleForCart");
+                toast.error(error instanceof Error ? error.message : "No se pudo leer la báscula");
+            }
+            return { status: ScaleReadStatusEnum.Unreachable };
         } finally {
             isReadingRef.current = false;
             setIsReadingScale(false);
