@@ -352,4 +352,26 @@ class ProductTest extends TestCase
             'manage_stock' => true,
         ]);
     }
+
+    public function test_actualiza_producto_permite_quitar_el_icono(): void
+    {
+        $product = ProductModel::factory()->create([
+            'icon_name' => 'Beef',
+            'icon_source' => IconSourceEnum::Lucide->value,
+        ]);
+
+        $this->putJson("/api/product/{$product->id}", [
+            'nombre' => $product->nombre,
+            'precio' => $product->precio,
+            'categoria_id' => $product->categoria_id,
+            'icon_name' => '',
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.icon_name', '');
+
+        $this->assertDatabaseHas('product', [
+            'id' => $product->id,
+            'icon_name' => '',
+        ]);
+    }
 }

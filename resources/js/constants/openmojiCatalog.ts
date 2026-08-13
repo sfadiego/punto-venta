@@ -155,4 +155,29 @@ export const OPENMOJI_CATALOG: IOpenmojiIcon[] = [
     { key: "1F6D2", label: "Carro de compras", group: "Tienda y compras" },
     { key: "1F9FA", label: "Canasta", group: "Tienda y compras" },
     { key: "1F6CD", label: "Bolsas de compras", group: "Tienda y compras" },
+    // Reutiliza íconos ya vendorizados en otros grupos (mismo archivo, etiqueta en español
+    // mexicano) más 1F335, agregado específicamente para este grupo.
+    { key: "1F32E", label: "Taco", group: "Comida mexicana" },
+    { key: "1F32F", label: "Burrito", group: "Comida mexicana" },
+    { key: "1FAD4", label: "Tamal", group: "Comida mexicana" },
+    { key: "1FAD3", label: "Tortilla", group: "Comida mexicana" },
+    { key: "1F336", label: "Chile", group: "Comida mexicana" },
+    { key: "1F33D", label: "Elote", group: "Comida mexicana" },
+    { key: "1F951", label: "Aguacate", group: "Comida mexicana" },
+    { key: "1FAD8", label: "Frijoles", group: "Comida mexicana" },
+    { key: "1F9C4", label: "Ajo", group: "Comida mexicana" },
+    { key: "1F9C5", label: "Cebolla", group: "Comida mexicana" },
+    { key: "1F345", label: "Tomate", group: "Comida mexicana" },
+    { key: "1F9C0", label: "Queso", group: "Comida mexicana" },
+    { key: "1F943", label: "Tequila", group: "Comida mexicana" },
+    { key: "1F335", label: "Nopal / cactus", group: "Comida mexicana" },
+    // OpenMoji solo define 4 íconos de carne-como-comida en todo el set (bacon, carne, costillar,
+    // hamburguesa) — no hay glifos separados para "cerdo preparado" o cortes específicos, así que
+    // se agrupan los mismos archivos de "Preparados y panadería" aquí para que sean fáciles de
+    // encontrar juntos al buscar carne/cerdo.
+    { key: "1F969", label: "Carne", group: "Carnes" },
+    { key: "1F356", label: "Costillar / jamón", group: "Carnes" },
+    { key: "1F953", label: "Tocino", group: "Carnes" },
+    { key: "1F357", label: "Pollo (trozo)", group: "Carnes" },
+    { key: "1F354", label: "Hamburguesa", group: "Carnes" },
 ];
