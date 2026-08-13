@@ -15,6 +15,6 @@ export const CategoryRailAllButton = ({ isActive, onSelect }: CategoryRailAllBut
         style={isActive ? { backgroundColor: "var(--color-primary)" } : undefined}
     >
         <LayoutGrid size={20} />
-        <span className="text-[11px] font-semibold leading-tight">Todos</span>
+        <span className="text-[11px] font-semibold leading-tight">TODOS</span>
     </button>
 );

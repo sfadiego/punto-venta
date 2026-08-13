@@ -16,7 +16,7 @@ export const CategoryFilter = ({ categories, activeId, onSelect, primaryColor }:
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
             >
                 <CategoryPill
-                    label="Todos"
+                    label="TODOS"
                     active={activeId === null}
                     onClick={() => onSelect(null)}
                     primaryColor={primaryColor}

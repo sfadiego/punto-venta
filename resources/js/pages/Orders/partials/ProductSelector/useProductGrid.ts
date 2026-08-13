@@ -17,7 +17,7 @@ const DEBOUNCE_MS = 350;
 export const useProductGrid = () => {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [activeCategory, setActiveCategoryName] = useState("Todos");
+    const [activeCategory, setActiveCategoryName] = useState("TODOS");
     const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -28,7 +28,7 @@ export const useProductGrid = () => {
     const { data: categoriesData } = useCategoryList();
 
     const categories = useMemo((): CategoryOption[] => [
-        { name: "Todos", icon: "Tag", iconSource: IconSourceEnum.Lucide },
+        { name: "TODOS", icon: "Tag", iconSource: IconSourceEnum.Lucide },
         ...(categoriesData ?? []).map((c) => ({
             id: c.id,
             name: c.nombre,
