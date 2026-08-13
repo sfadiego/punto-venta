@@ -41,7 +41,7 @@ export const TicketDrawer = () => {
                     cart.map((item) => (
                         <TicketRow
                             key={item.orderProductId}
-                            name={item.product.nombre}
+                            name={item.variantName ? `${item.product.nombre} (${item.variantName})` : item.product.nombre}
                             quantityLabel={formatCartQuantity(item.product.unidad_medida, item.cantidad)}
                             priceLabel={formatCartUnitPrice(item.product.unidad_medida, item.precioEfectivo)}
                             lineTotal={item.precioEfectivo * item.cantidad}

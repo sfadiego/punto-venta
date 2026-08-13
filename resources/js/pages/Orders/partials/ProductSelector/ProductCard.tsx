@@ -1,6 +1,7 @@
-import { Loader, Package } from "lucide-react";
+import { Loader } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
 import { IProductVariant } from "@/models/IProductVariant";
+import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { useProductCard } from "./useProductCard";
 import { VariantPickerModal } from "./VariantPickerModal";
 
@@ -58,7 +59,7 @@ export const ProductCard = ({
                     </span>
                 )}
                 <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center mb-2">
-                    <Package size={16} className="text-amber-500" />
+                    <CatalogIcon iconName={product.icon_name} iconSource={product.icon_source} size={16} className="text-amber-500" />
                 </div>
                 <p className="text-stone-900 font-medium text-sm leading-tight">{product.nombre}</p>
                 <p className="text-amber-600 font-bold text-sm mt-1">${product.precio}</p>

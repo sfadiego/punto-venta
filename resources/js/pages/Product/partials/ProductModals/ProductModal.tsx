@@ -1,5 +1,6 @@
 import { FormikProps } from "formik";
 import { ICategory } from "@/models/ICategory";
+import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { ProductForm } from "./useProductModal";
 import { ProductModalHeader } from "./ProductModalHeader";
 import { ProductPricingFields } from "./ProductPricingFields";
@@ -9,6 +10,7 @@ import { ProductAvailabilityToggle } from "./ProductAvailabilityToggle";
 import { ProductStockToggle } from "./ProductStockToggle";
 import { ProductStockFields } from "./ProductStockFields";
 import { ProductCodeField } from "./ProductCodeField";
+import { ProductIconField } from "./ProductIconField";
 import { ProductModalFooter } from "./ProductModalFooter";
 import { Input } from "@/components/ui/form/Input";
 import { Textarea } from "@/components/ui/form/textarea";
@@ -36,6 +38,13 @@ export const ProductModal = ({
 }: ProductModalProps) => {
     if (!isOpen) return null;
 
+    const hasVariants = formik.values.variants.length > 0;
+    // Una venta por variante no descuenta stock — no tiene sentido de negocio combinarlas con
+    // manage_stock en el mismo producto (ver ProductVariantStoreRequest/ProductUpdateRequest,
+    // que bloquean esta combinación en ambos sentidos también del lado del backend).
+    const canUseVariants = formik.values.unidad_medida === UnidadMedidaEnum.Unidad && !formik.values.manage_stock;
+    const stockToggleDisabled = isRestaurant || hasVariants;
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
@@ -60,15 +69,26 @@ export const ProductModal = ({
                         rows={2}
                     />
 
-                    <ProductPricingFields formik={formik} categories={categories} />
+                    <ProductIconField formik={formik} />
 
-                    {!sellByWeight && <ProductVariantsField formik={formik} />}
+                    <ProductPricingFields formik={formik} categories={categories} />
 
                     {sellByWeight && <UnidadMedidaField formik={formik} />}
 
+                    {/* En negocios de venta por peso, un producto puntual con unidad_medida
+                        "unidad" puede vender por pieza suelta además de su precio base (ej.
+                        Chorizo: bolsa a precio normal + variante "Pieza") — mismo campo de
+                        variantes que ya usan los negocios tipo restaurante, sin duplicar UI.
+                        No aplica si el producto maneja stock (ver nota en ProductStockToggle). */}
+                    {canUseVariants && <ProductVariantsField formik={formik} />}
+
                     <ProductCodeField formik={formik} />
 
-                    <ProductStockToggle formik={formik} disabled={isRestaurant} />
+                    <ProductStockToggle
+                        formik={formik}
+                        disabled={stockToggleDisabled}
+                        disabledMessage={hasVariants ? "No disponible en un producto con variantes" : undefined}
+                    />
                     <ProductStockFields formik={formik} isEdit={isEdit} currentStock={currentStock} />
 
                     <ProductAvailabilityToggle formik={formik} />

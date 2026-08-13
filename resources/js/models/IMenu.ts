@@ -10,6 +10,7 @@ export interface IMenuBusiness {
 }
 
 import { IProductVariant } from "@/models/IProductVariant";
+import { IconSourceEnum } from "@/enums/IconSourceEnum";
 
 export interface IMenuProduct {
     id: number;
@@ -18,6 +19,8 @@ export interface IMenuProduct {
     precio: number;
     unidad_medida: "unidad" | "kg" | "gr" | "litro" | null;
     image_url: string | null;
+    icon_name: string | null;
+    icon_source: IconSourceEnum | null;
     manage_stock: boolean;
     stock: string | null;
     variants?: IProductVariant[];
@@ -27,6 +30,7 @@ export interface IMenuCategory {
     id: number;
     nombre: string;
     icon: string | null;
+    icon_source: IconSourceEnum | null;
     products: IMenuProduct[];
 }
 

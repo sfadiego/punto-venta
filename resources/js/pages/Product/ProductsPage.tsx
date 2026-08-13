@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { DataTable, DataTableColumn } from "mantine-datatable";
-import { Package, Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
-import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
+import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { isLowStock } from "@/utils/stock";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
 import { useProductsPage } from "./useProductsPage";
@@ -82,21 +82,14 @@ export default function ProductsPage() {
     const columns = useMemo<DataTableColumn<IProduct>[]>(
         () => [
             {
-                accessor: "picture",
+                accessor: "icon_name",
                 title: "",
                 width: 52,
-                render: (p: IProduct) =>
-                    p.picture?.url ?? p.picture?.nombre_archivo ? (
-                        <img
-                            src={p.picture.url ?? `${ApiRoutes.Files}/${p.picture.nombre_archivo}`}
-                            alt={p.nombre}
-                            className="w-8 h-8 rounded-lg object-cover"
-                        />
-                    ) : (
-                        <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center">
-                            <Package size={14} className="text-stone-400" />
-                        </div>
-                    ),
+                render: (p: IProduct) => (
+                    <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center">
+                        <CatalogIcon iconName={p.icon_name} iconSource={p.icon_source} size={18} className="text-stone-500" />
+                    </div>
+                ),
             },
             {
                 accessor: "nombre",

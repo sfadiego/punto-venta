@@ -2,6 +2,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { ICategory } from "@/models/ICategory";
+import { IconSourceEnum } from "@/enums/IconSourceEnum";
 import { useStoreCategory, useUpdateCategory } from "@/services/useCategoriesService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getFieldErrors, getUserFacingErrorMessage } from "@/utils/axiosError";
@@ -11,6 +12,7 @@ export type CategoryForm = {
     nombre: string;
     orden: string;
     icon_name: string;
+    icon_source: IconSourceEnum;
 };
 
 const schema = Yup.object({
@@ -22,7 +24,9 @@ const schema = Yup.object({
         .max(2147483647, "Valor fuera de rango")
         .nullable(),
     icon_name: Yup.string()
-        .max(70, "Máximo 70 caracteres"),
+        .max(100, "Máximo 100 caracteres"),
+    icon_source: Yup.mixed<IconSourceEnum>()
+        .oneOf(Object.values(IconSourceEnum)),
 });
 
 export const useCategoryModal = (category: ICategory | null, nextOrder: number, onSuccess: () => void, onClose: () => void) => {
@@ -36,6 +40,7 @@ export const useCategoryModal = (category: ICategory | null, nextOrder: number, 
             nombre: category?.nombre ?? "",
             orden: category ? category.orden?.toString() ?? "" : nextOrder.toString(),
             icon_name: category?.icon_name ?? "",
+            icon_source: category?.icon_source ?? IconSourceEnum.Lucide,
         },
         validationSchema: schema,
         onSubmit: async (values, helpers) => {
@@ -43,6 +48,7 @@ export const useCategoryModal = (category: ICategory | null, nextOrder: number, 
                 nombre: capitalizeFirstLetter(values.nombre),
                 ...(values.orden !== "" ? { orden: Number(values.orden) } : {}),
                 icon_name: values.icon_name.trim(),
+                icon_source: values.icon_source,
             };
 
             try {

@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\BusinessConfigModel;
+use App\Enums\UnidadMedidaEnum;
 use App\Models\ProductVariantModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -45,13 +45,20 @@ class ProductVariantStoreRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
-            $sellByWeight = BusinessConfigModel::find($tenantId)?->tipo_negocio->features()['sell_by_weight'] ?? false;
+            $product = $this->route('product');
 
-            // Venta por peso ya resuelve su propio "precio variable" vía unidad_medida
-            // (kg/gr/litro) — mezclar eso con variantes de precio fijo es incoherente.
-            if ($sellByWeight) {
-                $validator->errors()->add('nombre', 'Los productos de negocios de venta por peso no admiten variantes.');
+            // Un producto por kg/gr/litro ya resuelve su "precio variable" vía báscula —
+            // mezclar eso con variantes de precio fijo es incoherente. Un producto por
+            // "unidad" sí puede tenerlas (ej. venta por pieza además del paquete), sea cual
+            // sea el tipo de negocio.
+            if ($product && $product->unidad_medida !== UnidadMedidaEnum::Unidad) {
+                $validator->errors()->add('nombre', 'Solo los productos por unidad admiten variantes.');
+            }
+
+            // Una venta por variante no descuenta stock (ver OrderSaleService) — mezclarlo con
+            // manage_stock dejaría el inventario del producto base desincronizado.
+            if ($product && $product->manage_stock) {
+                $validator->errors()->add('nombre', 'Un producto que maneja stock no admite variantes.');
             }
         });
     }

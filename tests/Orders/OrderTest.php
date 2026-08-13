@@ -11,8 +11,10 @@ use App\Models\CategoryModel;
 use App\Models\CustomerModel;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
+use App\Models\OrderProductModel;
 use App\Models\OrderStatusModel;
 use App\Models\ProductModel;
+use App\Models\ProductVariantModel;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Broadcasting\Factory as BroadcastingFactoryContract;
@@ -257,6 +259,28 @@ class OrderTest extends TestCase
 
         $response->assertJsonPath('data.customer.name', 'Cliente Show')
             ->assertJsonPath('data.customer.phone', '3101112222');
+    }
+
+    public function test_show_orden_incluye_variante_del_producto(): void
+    {
+        $orden = $this->crearOrden();
+        $product = ProductModel::factory()->create(['tenant_id' => $orden->tenant_id]);
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => $orden->tenant_id,
+            ProductVariantModel::NOMBRE => 'Pieza',
+        ]);
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::VARIANT_ID => $variant->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => $variant->precio,
+        ]);
+
+        $this->getJson("/api/order/{$orden->id}", $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.order_products.0.variant.nombre', 'Pieza');
     }
 
     // ── Update ───────────────────────────────────────────────

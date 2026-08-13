@@ -49,7 +49,7 @@ class OrderController extends Controller
             ]);
         }
 
-        return Response::success($order->load(['orderProducts.product', 'paymentMethod:id,name', 'customer:id,name,phone']));
+        return Response::success($order->load(['orderProducts.product', 'orderProducts.variant', 'paymentMethod:id,name', 'customer:id,name,phone']));
     }
 
     public function delete(OrderModel $order): JsonResponse
@@ -116,7 +116,9 @@ class OrderController extends Controller
             ->get()
             ->each(function (OrderProductModel $item) use ($stockService) {
                 $product = ProductModel::find($item->producto_id);
-                if ($product && $product->manage_stock) {
+                // Ver comentario equivalente en OrderSaleService::createDirectSale — una venta
+                // por variante no descuenta del stock del producto base.
+                if ($product && $product->manage_stock && !$item->variant_id) {
                     $stockService->deduct(
                         productId: $product->id,
                         quantity: (float) $item->cantidad,

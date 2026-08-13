@@ -127,7 +127,11 @@ export const useQuickSalePayment = ({
                     sistema_id: sistemaId,
                     nombre_pedido: resolveSaleName(nombrePedido),
                     costo_domicilio: calcCostoDomicilio(domicilioNum, domicilioActivo, customerPays),
-                    items: cart.map((item) => ({ producto_id: item.productId, cantidad: item.cantidad })),
+                    items: cart.map((item) => ({
+                        producto_id: item.productId,
+                        variant_id: item.variantId ?? null,
+                        cantidad: item.cantidad,
+                    })),
                 });
                 orderId = (res as { data: { data: IOrder } }).data.data.id;
             }

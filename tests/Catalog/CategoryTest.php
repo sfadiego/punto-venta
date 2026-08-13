@@ -2,6 +2,7 @@
 
 namespace Tests\Catalog;
 
+use App\Enums\IconSourceEnum;
 use App\Models\CategoryModel;
 use Tests\TestCase;
 
@@ -30,9 +31,43 @@ class CategoryTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('status', 'OK')
             ->assertJsonPath('data.nombre', 'Nueva Categoría')
-            ->assertJsonPath('data.icon_name', 'Coffee');
+            ->assertJsonPath('data.icon_name', 'Coffee')
+            ->assertJsonPath('data.icon_source', IconSourceEnum::Lucide->value);
 
-        $this->assertDatabaseHas('categories', ['nombre' => 'Nueva Categoría']);
+        $this->assertDatabaseHas('categories', [
+            'nombre' => 'Nueva Categoría',
+            'icon_source' => IconSourceEnum::Lucide->value,
+        ]);
+    }
+
+    public function test_crea_categoria_con_icono_openmoji(): void
+    {
+        $response = $this->postJson('/api/category', [
+            'nombre' => 'Carnes',
+            'orden' => 1,
+            'icon_name' => '1F969',
+            'icon_source' => IconSourceEnum::Openmoji->value,
+        ], $this->authHeaders());
+
+        $response->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonPath('data.icon_name', '1F969')
+            ->assertJsonPath('data.icon_source', IconSourceEnum::Openmoji->value);
+
+        $this->assertDatabaseHas('categories', [
+            'nombre' => 'Carnes',
+            'icon_name' => '1F969',
+            'icon_source' => IconSourceEnum::Openmoji->value,
+        ]);
+    }
+
+    public function test_no_crea_categoria_con_icon_source_invalido(): void
+    {
+        $this->postJson('/api/category', [
+            'nombre' => 'Categoría Inválida',
+            'icon_source' => 'invalido',
+        ], $this->authHeaders())
+            ->assertStatus(400);
     }
 
     public function test_no_crea_categoria_con_nombre_duplicado(): void
@@ -74,13 +109,19 @@ class CategoryTest extends TestCase
         $this->putJson("/api/category/{$category->id}", [
             'nombre' => 'Nombre Actualizado',
             'orden' => 2,
-            'icon_name' => 'Star',
+            'icon_name' => '1F955',
+            'icon_source' => IconSourceEnum::Openmoji->value,
         ], $this->authHeaders())
             ->assertStatus(200)
             ->assertJsonPath('status', 'OK')
-            ->assertJsonPath('data.nombre', 'Nombre Actualizado');
+            ->assertJsonPath('data.nombre', 'Nombre Actualizado')
+            ->assertJsonPath('data.icon_source', IconSourceEnum::Openmoji->value);
 
-        $this->assertDatabaseHas('categories', ['nombre' => 'Nombre Actualizado']);
+        $this->assertDatabaseHas('categories', [
+            'nombre' => 'Nombre Actualizado',
+            'icon_name' => '1F955',
+            'icon_source' => IconSourceEnum::Openmoji->value,
+        ]);
     }
 
     public function test_actualiza_categoria_con_mismo_nombre(): void

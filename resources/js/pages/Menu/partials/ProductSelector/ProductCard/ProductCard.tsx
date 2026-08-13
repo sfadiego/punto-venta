@@ -4,6 +4,7 @@ import { IMenuProduct } from "@/models/IMenu";
 import { IProductVariant } from "@/models/IProductVariant";
 import { isWeightUnit, formatPricePerUnit } from "@/utils/weightUnits";
 import { UnitControls } from "@/components/ui/UnitControls";
+import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { WeightControls } from "../WeightControls/WeightControls";
 import { VariantPickerModal } from "./VariantPickerModal";
 import { useProductCard } from "./useProductCard";
@@ -46,7 +47,7 @@ export const ProductCard = ({ product, quantity, primaryColor, readonly = false,
                     onError={() => setImgError(true)}
                 />
             ) : (
-                <ProductImagePlaceholder />
+                <ProductImagePlaceholder iconName={product.icon_name} iconSource={product.icon_source} />
             )}
 
             <div className="p-3 flex flex-col gap-2.5 flex-1">

@@ -15,6 +15,7 @@ import { capitalizeFirstLetter } from "@/utils/textCase";
 import { useAxios } from "@/hooks/useAxios";
 import { IProduct } from "@/models/IProduct";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
+import { IconSourceEnum } from "@/enums/IconSourceEnum";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
 
 export type ProductVariantFormValue = {
@@ -35,6 +36,8 @@ export type ProductForm = {
     stock: string;
     min_stock: string;
     product_code: string;
+    icon_name: string;
+    icon_source: IconSourceEnum;
 };
 
 const schema = Yup.object({
@@ -60,6 +63,8 @@ const schema = Yup.object({
     stock: Yup.number().typeError("Ingresa un stock inicial válido").min(0, "El stock inicial no puede ser negativo").nullable(),
     min_stock: Yup.number().typeError("Ingresa un stock mínimo válido").min(0, "El stock mínimo no puede ser negativo").nullable(),
     product_code: Yup.string().max(64, "Máximo 64 caracteres"),
+    icon_name: Yup.string().max(100, "Máximo 100 caracteres"),
+    icon_source: Yup.mixed<IconSourceEnum>().oneOf(Object.values(IconSourceEnum)),
 });
 
 export const useProductModal = (product: IProduct | null, onSuccess: () => void, onClose: () => void) => {
@@ -91,6 +96,8 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
             stock: "",
             min_stock: product?.min_stock ? trimDecimalZeros(product.min_stock) : "",
             product_code: product?.product_code ?? "",
+            icon_name: product?.icon_name ?? "",
+            icon_source: product?.icon_source ?? IconSourceEnum.Openmoji,
         },
         validationSchema: schema,
         onSubmit: async (values, helpers) => {
@@ -103,6 +110,8 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
                 activo: values.activo,
                 manage_stock: values.manage_stock,
                 product_code: values.product_code.trim() || undefined,
+                icon_name: values.icon_name.trim(),
+                icon_source: values.icon_source,
             };
 
             // El stock inicial solo aplica al crear — en edición se ajusta vía
@@ -126,10 +135,10 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
                     toast.success("Producto creado exitosamente");
                 }
 
-                // Venta por peso ya resuelve su propio precio variable vía unidad_medida
-                // (kg/gr/litro) — no tiene sentido de negocio mezclarlo con variantes de
-                // precio fijo, así que el campo ni se muestra ni se sincroniza para estos.
-                if (!sellByWeight) {
+                // Las variantes de precio fijo solo aplican a productos con unidad_medida
+                // "unidad" — un producto por kg/gr/litro ya resuelve su precio variable vía
+                // báscula y no tiene sentido de negocio mezclarlo con variantes.
+                if (values.unidad_medida === UnidadMedidaEnum.Unidad) {
                     await syncVariants(productId, initialVariants, values.variants, {
                         storeVariant,
                         updateVariant,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\IconSourceEnum;
 use App\Enums\UnidadMedidaEnum;
 use App\Models\ProductModel;
 use Illuminate\Foundation\Http\FormRequest;
@@ -50,6 +51,8 @@ class ProductStoreRequest extends FormRequest
                 'nullable', 'string', 'max:64',
                 Rule::unique('product', 'product_code')->where('tenant_id', $tenantId)->whereNull('deleted_at'),
             ],
+            ProductModel::ICON_NAME => 'nullable|string|max:100',
+            ProductModel::ICON_SOURCE => ['nullable', Rule::enum(IconSourceEnum::class)],
         ];
     }
 
@@ -74,6 +77,9 @@ class ProductStoreRequest extends FormRequest
             'min_stock.min' => 'El stock mínimo no puede ser negativo.',
             'product_code.max' => 'El código de barras no puede superar los 64 caracteres.',
             'product_code.unique' => 'Ya existe un producto con este código de barras.',
+            'icon_name.string' => 'El ícono debe ser texto.',
+            'icon_name.max' => 'El ícono no puede superar los 100 caracteres.',
+            'icon_source.enum' => 'El origen del ícono seleccionado no es válido.',
         ];
     }
 
@@ -86,6 +92,8 @@ class ProductStoreRequest extends FormRequest
             'manage_stock' => 'maneja stock',
             'min_stock' => 'stock mínimo',
             'product_code' => 'código de barras',
+            'icon_name' => 'ícono',
+            'icon_source' => 'origen del ícono',
         ];
     }
 }

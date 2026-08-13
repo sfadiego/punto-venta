@@ -48,6 +48,7 @@ class MenuService extends DataTable
             'id' => $c->id,
             'nombre' => $c->nombre,
             'icon' => $c->icon_name,
+            'icon_source' => $c->icon_source?->value,
             'products' => ($productsMap[$c->id] ?? collect())->map(fn ($p) => [
                 'id' => $p->id,
                 'nombre' => $p->nombre,
@@ -55,6 +56,8 @@ class MenuService extends DataTable
                 'precio' => $p->precio,
                 'unidad_medida' => $p->unidad_medida?->value,
                 'image_url' => $p->picture?->url ? "/api/files/{$p->picture->url}" : null,
+                'icon_name' => $p->icon_name,
+                'icon_source' => $p->icon_source?->value,
                 'manage_stock' => $p->manage_stock,
                 'stock' => $p->stock,
                 'variants' => $p->variants->where('activo', true)->values(),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\IconSourceEnum;
 use App\Models\CategoryModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,6 +27,7 @@ class CategoryUpdateRequest extends FormRequest
             CategoryModel::ORDEN => 'nullable|integer|min:0|max:2147483647',
             CategoryModel::FOTO_ID => 'nullable',
             CategoryModel::ICON_NAME => 'nullable|string|max:100',
+            CategoryModel::ICON_SOURCE => ['nullable', Rule::enum(IconSourceEnum::class)],
         ];
     }
 
@@ -41,6 +43,7 @@ class CategoryUpdateRequest extends FormRequest
             'orden.max' => 'El orden es demasiado grande.',
             'icon_name.string' => 'El ícono debe ser texto.',
             'icon_name.max' => 'El ícono no puede superar los 100 caracteres.',
+            'icon_source.enum' => 'El origen del ícono seleccionado no es válido.',
         ];
     }
 
@@ -48,6 +51,7 @@ class CategoryUpdateRequest extends FormRequest
     {
         return [
             'icon_name' => 'ícono',
+            'icon_source' => 'origen del ícono',
         ];
     }
 }

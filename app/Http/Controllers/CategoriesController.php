@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Core\Data\IndexData;
+use App\Enums\IconSourceEnum;
 use App\Http\Requests\CategoryStoreRequest;
 use App\Http\Requests\CategoryUpdateRequest;
 use App\Models\CategoryModel;
@@ -25,6 +26,7 @@ class CategoriesController extends Controller
             CategoryModel::NOMBRE => $param->nombre,
             CategoryModel::ORDEN => $param->orden ?? 1,
             CategoryModel::ICON_NAME => $param->icon_name ?? '',
+            CategoryModel::ICON_SOURCE => $param->icon_source ?? IconSourceEnum::Lucide->value,
         ]);
 
         $this->forgetListCache();
@@ -43,6 +45,7 @@ class CategoriesController extends Controller
             CategoryModel::NOMBRE => $param->nombre,
             CategoryModel::ORDEN => $param->orden,
             CategoryModel::ICON_NAME => $param->icon_name ?? '',
+            CategoryModel::ICON_SOURCE => $param->icon_source ?? IconSourceEnum::Lucide->value,
         ]);
 
         $this->forgetListCache();
@@ -63,7 +66,7 @@ class CategoriesController extends Controller
     {
         $tenantId = app()->bound('tenant_id') ? app('tenant_id') : 0;
 
-        $data = Cache::remember("categories_list_{$tenantId}", 600, fn () => CategoryModel::select('id', CategoryModel::NOMBRE, CategoryModel::ICON_NAME)
+        $data = Cache::remember("categories_list_{$tenantId}", 600, fn () => CategoryModel::select('id', CategoryModel::NOMBRE, CategoryModel::ICON_NAME, CategoryModel::ICON_SOURCE)
             ->orderBy(CategoryModel::ORDEN)
             ->get()
         );

@@ -1,4 +1,4 @@
-import { DynamicIcon } from "@/components/ui/DynamicIcon";
+import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { ICategory } from "@/models/ICategory";
 
 interface CategoryRailItemProps {
@@ -16,7 +16,7 @@ export const CategoryRailItem = ({ category, isActive, onSelect }: CategoryRailI
         }`}
         style={isActive ? { backgroundColor: "var(--color-primary)" } : undefined}
     >
-        <DynamicIcon name={category.icon_name || "Tag"} size={20} />
+        <CatalogIcon iconName={category.icon_name} iconSource={category.icon_source} size={20} />
         <span className="text-[11px] font-semibold leading-tight">{category.nombre}</span>
     </button>
 );
