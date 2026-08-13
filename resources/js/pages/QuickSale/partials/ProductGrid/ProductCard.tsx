@@ -101,19 +101,33 @@ export const ProductCard = ({
                           : "hover:shadow-md active:scale-[0.98] cursor-pointer border-stone-100 hover:border-amber-200"
                 }`}
             >
-                <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-7 h-7 shrink-0 rounded-lg bg-stone-100 flex items-center justify-center">
+                <div className="flex items-center justify-between gap-1.5">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="w-10 h-10 shrink-0 rounded-xl bg-stone-100 flex items-center justify-center">
                             <CatalogIcon
                                 iconName={product.icon_name}
                                 iconSource={product.icon_source}
-                                size={14}
+                                size={28}
                                 className="text-stone-500"
                             />
                         </span>
-                        <p className="text-sm font-semibold text-stone-900 leading-tight truncate">
-                            {product.nombre}
-                        </p>
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold text-stone-900 leading-tight truncate">
+                                {product.nombre}
+                            </p>
+                            <p
+                                className="text-base font-extrabold tabular-nums leading-tight truncate"
+                                style={{ color: "var(--color-primary)" }}
+                            >
+                                {formatCurrencyTrimmed(product.precio)}
+                                {weightUnit && (
+                                    <span className="text-[10px] font-semibold text-stone-400">
+                                        {" "}
+                                        /{UNIDAD_LABELS[weightUnit]}
+                                    </span>
+                                )}
+                            </p>
+                        </div>
                     </div>
                     {weightUnit && (
                         <div
@@ -125,7 +139,7 @@ export const ProductCard = ({
                                 onClick={() =>
                                     setMode(WeightInputModeEnum.Weight)
                                 }
-                                className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                                className={`px-2 py-1 rounded-full text-[10px] font-bold transition-colors ${
                                     isWeightMode
                                         ? "text-white"
                                         : "text-stone-500"
@@ -146,7 +160,7 @@ export const ProductCard = ({
                                 onClick={() =>
                                     setMode(WeightInputModeEnum.Price)
                                 }
-                                className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                                className={`px-2 py-1 rounded-full text-[10px] font-bold transition-colors ${
                                     !isWeightMode
                                         ? "text-white"
                                         : "text-stone-500"
@@ -166,25 +180,10 @@ export const ProductCard = ({
                     )}
                 </div>
 
-                <div className="flex items-center justify-between gap-2">
-                    <p
-                        className="text-xl font-extrabold tabular-nums"
-                        style={{ color: "var(--color-primary)" }}
-                    >
-                        {formatCurrencyTrimmed(product.precio)}
-                        {weightUnit && (
-                            <span className="text-xs font-semibold text-stone-400">
-                                {" "}
-                                / {UNIDAD_LABELS[weightUnit]}
-                            </span>
-                        )}
-                    </p>
-                </div>
-
                 {/* Aviso de stock en la card, no como toast — un toast tapaba los botones de
                 abajo (Cobrar, imprimir, etc.) sobre todo al tocar "+" repetido. */}
                 {stockExhausted && !hasVariants && (
-                    <p className="text-[11px] font-bold text-red-600 uppercase tracking-wide -mt-1.5">
+                    <p className="text-[11px] font-bold text-red-600 uppercase tracking-wide">
                         {quantity > 0
                             ? "Ya agregaste todo el stock disponible"
                             : "Sin stock"}
