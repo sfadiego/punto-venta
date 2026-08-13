@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { NavigateFunction } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -6,19 +6,19 @@ import Swal from "sweetalert2";
 import { usePrintAgent } from "@/hooks/usePrintAgent";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useStoreOrderSale, useUpdateOrderData, usePrintOrder, useFetchPrintBytes } from "@/services/useOrderService";
-import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
-import { useCustomerList } from "@/services/useCustomerService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { resolveSaleName } from "@/utils/resolveSaleName";
 import { calcCostoDomicilio } from "@/utils/deliveryCalc";
-import { resolveDefaultPaymentMethodId, canPayOrder } from "@/utils/paymentMethods";
+import { canPayOrder } from "@/utils/paymentMethods";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
 import { IModalCartItem } from "@/models/IModalCartItem";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
+import { usePaymentMethod } from "./usePaymentMethod";
+import { useCreditPayment } from "./useCreditPayment";
 import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
 
 interface UseQuickSalePaymentParams {
@@ -37,7 +37,9 @@ interface UseQuickSalePaymentParams {
 }
 
 // Cobro: efectivo / transferencia / crédito, más la impresión de ticket al cerrar la venta
-// (se pregunta solo si hay una impresora ya configurada).
+// (se pregunta solo si hay una impresora ya configurada). El método de pago/efectivo y el
+// modo de crédito viven en sus propios sub-hooks (usePaymentMethod, useCreditPayment); este
+// hook orquesta el modal, el pago en sí y la impresión.
 export const useQuickSalePayment = ({
     resumeOrderId,
     sistemaId,
@@ -60,33 +62,23 @@ export const useQuickSalePayment = ({
     const fetchPrintBytes = useFetchPrintBytes();
     const { mutateAsync: updateOrderData } = useUpdateOrderData();
     const { mutateAsync: storeOrderSale } = useStoreOrderSale();
-    const { data: paymentMethods = [] } = useIndexPaymentMethods();
-    const { data: customers = [] } = useCustomerList();
+    const paymentMethod = usePaymentMethod(total);
+    const creditPayment = useCreditPayment();
 
     const [showPayModal, setShowPayModal] = useState(false);
-    const [cash, setCash] = useState("");
-    const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
-    const [isCreditMode, setIsCreditMode] = useState(false);
-    const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
     const [isPaying, setIsPaying] = useState(false);
 
-    // Preselecciona "Efectivo" (método más usado) en cuanto se cargan los métodos de pago —
-    // se re-ejecuta después de cada venta porque handlePay resetea paymentMethodId a null.
-    useEffect(() => {
-        if (paymentMethodId !== null || paymentMethods.length === 0) return;
-        setPaymentMethodId(resolveDefaultPaymentMethodId(paymentMethods));
-    }, [paymentMethods, paymentMethodId]);
-
-    const cashNum = parseFloat(cash) || 0;
-    const change = cashNum - total;
-    const selectedPaymentMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
-    const isCashMethod = !selectedPaymentMethod || selectedPaymentMethod.name.toLowerCase().includes("efectivo");
-    const selectedCustomer = customers.find((c) => c.id === selectedCustomerId) ?? null;
     const hasProducts = cart.length > 0;
     const canPay =
         hasProducts &&
         !domicilioExcedeTotal &&
-        canPayOrder({ isCreditMode, isCash: isCashMethod, total, cashNum, selectedCustomer });
+        canPayOrder({
+            isCreditMode: creditPayment.isCreditMode,
+            isCash: paymentMethod.isCashMethod,
+            total,
+            cashNum: paymentMethod.cashNum,
+            selectedCustomer: creditPayment.selectedCustomer,
+        });
 
     const openPayModal = () => {
         if (!sistemaId) {
@@ -136,9 +128,9 @@ export const useQuickSalePayment = ({
                 orderId = (res as { data: { data: IOrder } }).data.data.id;
             }
 
-            const paymentData = isCreditMode
-                ? { is_credit: true, customer_id: selectedCustomerId }
-                : { payment_method_id: paymentMethodId };
+            const paymentData = creditPayment.isCreditMode
+                ? { is_credit: true, customer_id: creditPayment.selectedCustomerId }
+                : { payment_method_id: paymentMethod.paymentMethodId };
 
             await updateOrderData({
                 orderId,
@@ -164,13 +156,13 @@ export const useQuickSalePayment = ({
             queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
             invalidateSalesByCategory(queryClient);
 
-            toast.success(isCreditMode ? "Venta a crédito registrada correctamente." : "Venta registrada correctamente.");
+            toast.success(creditPayment.isCreditMode ? "Venta a crédito registrada correctamente." : "Venta registrada correctamente.");
             setShowPayModal(false);
             resetAfterSuccess();
-            setCash("");
-            setPaymentMethodId(null);
-            setIsCreditMode(false);
-            setSelectedCustomerId(null);
+            paymentMethod.setCash("");
+            paymentMethod.setPaymentMethodId(null);
+            creditPayment.setIsCreditMode(false);
+            creditPayment.setSelectedCustomerId(null);
 
             // Solo se pregunta si hay una impresora ya configurada (agente local o CUPS/red) —
             // si no, se omite el diálogo por completo.
@@ -198,23 +190,12 @@ export const useQuickSalePayment = ({
     };
 
     return {
+        ...paymentMethod,
+        ...creditPayment,
         openPayModal,
         showPayModal,
         setShowPayModal,
-        cash,
-        setCash,
-        cashNum,
-        change,
         canPay,
-        paymentMethods,
-        paymentMethodId,
-        setPaymentMethodId,
-        isCashMethod,
-        isCreditMode,
-        setIsCreditMode,
-        customers,
-        selectedCustomerId,
-        setSelectedCustomerId,
         isPaying,
         handlePay,
     };

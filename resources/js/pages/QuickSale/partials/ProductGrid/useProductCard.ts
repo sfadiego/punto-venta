@@ -8,6 +8,7 @@ import { calcWeightFromPrice } from "@/utils/calcWeightFromPrice";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { getAvailableStock } from "@/utils/stock";
 import { MAX_CANTIDAD_KG } from "../../quickSaleConstants";
+import { useVariantPicker } from "./useVariantPicker";
 
 export const useProductCard = (
     product: IProduct,
@@ -16,16 +17,7 @@ export const useProductCard = (
 ) => {
     const [mode, setMode] = useState<WeightInputModeEnum>(WeightInputModeEnum.Weight);
     const [moneyValue, setMoneyValue] = useState("");
-    // Productos "und" que también venden por pieza/paquete (variantes) eligen cuál agregar
-    // desde un modal — mismo patrón que Orders/Menu (VariantPickerModal) — en vez de un
-    // toggle inline, que no escala con muchas variantes.
-    const [isVariantPickerOpen, setIsVariantPickerOpen] = useState(false);
-    const activeVariants = (product.variants ?? []).filter((v) => v.activo);
-
-    const handleSelectVariant = (variant: IProductVariant | null) => {
-        setIsVariantPickerOpen(false);
-        onAdd(product, 1, variant);
-    };
+    const variantPicker = useVariantPicker(product, onAdd);
 
     // Cuánto más se puede agregar de este producto: el menor entre MAX_CANTIDAD_KG y lo que
     // queda de stock (existencia total menos lo que ya está en el carrito). Sin manage_stock,
@@ -72,9 +64,6 @@ export const useProductCard = (
         addWeight,
         addMoneyAmount,
         commitMoney,
-        isVariantPickerOpen,
-        setIsVariantPickerOpen,
-        activeVariants,
-        handleSelectVariant,
+        ...variantPicker,
     };
 };

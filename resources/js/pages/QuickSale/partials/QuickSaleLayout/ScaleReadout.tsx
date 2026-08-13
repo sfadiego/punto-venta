@@ -1,4 +1,5 @@
 import { Weight, Loader } from "lucide-react";
+import { getScaleStatusLabel } from "@/utils/scaleStatus";
 
 interface ScaleReadoutProps {
     isSupported: boolean;
@@ -9,19 +10,12 @@ interface ScaleReadoutProps {
     onPair: () => void;
 }
 
-const getStatusLabel = (isSupported: boolean, isBusy: boolean, isPaired: boolean): string => {
-    if (!isSupported) return "No disponible";
-    if (isBusy) return "Leyendo…";
-    if (isPaired) return "Báscula conectada";
-    return "Toca para conectar";
-};
-
 // Solo controla el enlace de la báscula (pairing) — la lectura para agregar al carrito ocurre
 // al tocar directamente una card de producto por peso (ver useQuickSalePage.handleCardTap).
 // Una vez enlazada, tocar este control ya no hace nada: reconectar/olvidar vive en
 // Configuración > Báscula.
 export const ScaleReadout = ({ isSupported, isPaired, isBusy, warningMessage, lastReadWeightKg, onPair }: ScaleReadoutProps) => {
-    const statusLabel = getStatusLabel(isSupported, isBusy, isPaired);
+    const statusLabel = getScaleStatusLabel(isSupported, isBusy, isPaired);
     const grams = lastReadWeightKg !== null ? Math.round(lastReadWeightKg * 1000) : null;
 
     return (

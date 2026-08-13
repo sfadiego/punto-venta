@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
@@ -11,6 +11,8 @@ import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { IModalCartItem } from "@/models/IModalCartItem";
 import { getAvailableStock } from "@/utils/stock";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
+import { useTicketDrawer } from "./useTicketDrawer";
+import { useLastAddedFlash } from "./useLastAddedFlash";
 import { MAX_CANTIDAD_KG } from "./quickSaleConstants";
 
 // Estado del carrito y su sincronización con el backend. Cuando se está retomando una orden
@@ -18,22 +20,11 @@ import { MAX_CANTIDAD_KG } from "./quickSaleConstants";
 // guardar/cobrar — en una venta nueva es puro estado local hasta el checkout. El stock del
 // catálogo no cambia con estos movimientos (solo se descuenta al cerrar la orden — ver
 // useQuickSalePayment.ts), así que aquí no hace falta invalidar la query de productos.
-// Cuánto dura el resaltado del renglón recién agregado en el ticket (feedback visual breve).
-const LAST_ADDED_FLASH_MS = 600;
-
 export const useQuickSaleCart = (resumeOrderId: number | null) => {
     const invalidateResumeOrderQueries = useInvalidateResumeOrderQueries(resumeOrderId);
     const [cart, setCart] = useState<IModalCartItem[]>([]);
-    const [lastAddedOrderProductId, setLastAddedOrderProductId] = useState<number | null>(null);
-    const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    // Mismo patrón de useQuickSaleScale (ref-tracked timeout): limpia cualquier flash pendiente
-    // antes de programar el siguiente, para que toques rápidos no corten el resaltado a medias.
-    const flashLastAdded = (orderProductId: number) => {
-        if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
-        setLastAddedOrderProductId(orderProductId);
-        flashTimeoutRef.current = setTimeout(() => setLastAddedOrderProductId(null), LAST_ADDED_FLASH_MS);
-    };
+    const { lastAddedOrderProductId, flashLastAdded } = useLastAddedFlash();
+    const { isDrawerOpen, toggleDrawer } = useTicketDrawer(cart.length);
 
     const { mutateAsync: createOrderProduct } = useCreateOrderProduct();
     const { mutateAsync: updateOrderProduct } = useUpdateOrderProduct();
@@ -280,21 +271,6 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
         }
         setCart([]);
     };
-
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const toggleDrawer = () => setIsDrawerOpen((prev) => !prev);
-    const prevCartLengthRef = useRef(0);
-
-    // El ticket se abre solo al agregar el primer producto y se cierra solo al vaciarse;
-    // el usuario puede seguir colapsándolo manualmente mientras haya artículos.
-    useEffect(() => {
-        if (cart.length === 0) {
-            setIsDrawerOpen(false);
-        } else if (prevCartLengthRef.current === 0) {
-            setIsDrawerOpen(true);
-        }
-        prevCartLengthRef.current = cart.length;
-    }, [cart.length]);
 
     return {
         cart,
