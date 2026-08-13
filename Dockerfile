@@ -19,7 +19,7 @@ ENV VITE_REVERB_SCHEME=$VITE_REVERB_SCHEME
 
 WORKDIR /app
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@9.3.0
 
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
