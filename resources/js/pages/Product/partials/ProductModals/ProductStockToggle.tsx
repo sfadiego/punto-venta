@@ -5,16 +5,19 @@ import { ProductForm } from "./useProductModal";
 interface ProductStockToggleProps {
     formik: FormikProps<ProductForm>;
     disabled?: boolean;
+    disabledMessage?: string;
 }
 
-export const ProductStockToggle = ({ formik, disabled = false }: ProductStockToggleProps) => (
+export const ProductStockToggle = ({
+    formik,
+    disabled = false,
+    disabledMessage = "No disponible para este negocio",
+}: ProductStockToggleProps) => (
     <div className="flex items-center justify-between p-3 bg-stone-50 rounded-xl">
         <div>
             <p className="text-sm font-medium text-stone-700">Maneja stock</p>
             <p className="text-xs text-stone-400">
-                {disabled
-                    ? "No disponible para este tipo de negocio"
-                    : "Descuenta existencia en cada venta y bloquea si no alcanza"}
+                {disabled ? disabledMessage : "Descuenta existencia en cada venta y bloquea si no alcanza"}
             </p>
         </div>
         <ToggleSwitch

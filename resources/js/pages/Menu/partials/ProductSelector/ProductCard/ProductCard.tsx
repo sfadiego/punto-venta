@@ -46,7 +46,7 @@ export const ProductCard = ({ product, quantity, primaryColor, readonly = false,
                     onError={() => setImgError(true)}
                 />
             ) : (
-                <ProductImagePlaceholder />
+                <ProductImagePlaceholder iconName={product.icon_name} iconSource={product.icon_source} />
             )}
 
             <div className="p-3 flex flex-col gap-2.5 flex-1">

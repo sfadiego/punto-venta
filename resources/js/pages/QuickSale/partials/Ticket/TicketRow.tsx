@@ -3,6 +3,7 @@ import { Trash2, Pencil, Check, X } from "lucide-react";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { UnidadMedidaEnum, UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { WeightUnit, weightMin, weightMax } from "@/utils/weightUnits";
+import { Input } from "@/components/ui/form/Input";
 
 interface TicketRowProps {
     name: string;
@@ -64,8 +65,9 @@ export const TicketRow = ({
 
                     {isEditing && editableWeight ? (
                         <div className="flex items-center gap-1.5 mt-0.5">
-                            <input
-                                type="number"
+                            <Input
+                                name="peso"
+                                inputType="number"
                                 autoFocus
                                 inputMode="decimal"
                                 min={weightMin(editableWeight.unit)}
@@ -77,7 +79,9 @@ export const TicketRow = ({
                                     if (e.key === "Enter") commitEdit();
                                     if (e.key === "Escape") cancelEdit();
                                 }}
-                                className="w-20 min-w-0 px-1.5 py-0.5 text-xs font-semibold tabular-nums border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                inputStyle="none"
+                                containerClassName="w-20 shrink-0"
+                                className="!w-20 !min-w-0 !px-1.5 !py-0.5 !text-xs font-semibold tabular-nums !border !border-amber-300 !rounded-lg focus:!ring-2 focus:!ring-amber-400"
                             />
                             <span className="text-xs text-stone-500 shrink-0">{UNIDAD_LABELS[editableWeight.unit]}</span>
                             <button

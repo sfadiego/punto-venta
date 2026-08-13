@@ -52,7 +52,10 @@ class OrderSaleService
             ]);
 
             $product = ProductModel::find($item['producto_id']);
-            if ($product && $product->manage_stock) {
+            // Una venta por variante (ej. "Pieza" de un producto que se lleva en existencia
+            // por bolsa/paquete) no representa la misma unidad que el stock del producto base
+            // — descontarla llevaría el inventario a un valor incorrecto, así que se excluye.
+            if ($product && $product->manage_stock && empty($item['variant_id'])) {
                 $this->stockService->deduct(
                     productId: $product->id,
                     quantity: (float) $item['cantidad'],

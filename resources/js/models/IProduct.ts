@@ -2,6 +2,7 @@ import { ICategory } from "@/models/ICategory";
 import { IFileProps } from "@/intefaces/IFileProps";
 import { IProductVariant } from "@/models/IProductVariant";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
+import { IconSourceEnum } from "@/enums/IconSourceEnum";
 
 export interface IProduct {
     id: number;
@@ -10,6 +11,8 @@ export interface IProduct {
     descripcion: string;
     foto_id: number | null;
     picture: IFileProps;
+    icon_name: string | null;
+    icon_source: IconSourceEnum | null;
     categoria_id: number;
     category: ICategory;
     activo: boolean;

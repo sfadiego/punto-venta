@@ -10,6 +10,8 @@ export const buildModalCartItems = (orderProducts: IOrderProduct[] = []): IModal
             product: op.product,
             cantidad: parseFloat(String(op.cantidad)),
             precioEfectivo: parseFloat(String(op.precio)),
+            variantId: op.variant_id ?? null,
+            variantName: op.variant?.nombre ?? null,
         }));
 
 export const calcModalCartTotal = (cart: IModalCartItem[]): number =>

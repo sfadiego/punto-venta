@@ -14,6 +14,10 @@ const inputVariant: Record<InputStyleTypes, string> = {
 
 interface InputProps<T> {
     className?: string;
+    /** Clases del div contenedor (por defecto "w-full") — úsalo para encajar el input en un
+     * layout compacto (ej. dentro de un flex row de ancho fijo) sin que el contenedor se
+     * estire al 100%. */
+    containerClassName?: string;
     inputStyle?: InputStyleTypes;
     name: Extract<keyof T, string>;
     placeholder?: string;
@@ -33,6 +37,8 @@ interface InputProps<T> {
     onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
     /** Mensaje de error para uso controlado (sin `formik`). Se ignora si se pasa `formik`. */
     error?: string;
+    autoFocus?: boolean;
+    inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
 }
 
 export const Input = <T = Record<string, string>,>({
@@ -43,6 +49,7 @@ export const Input = <T = Record<string, string>,>({
     name,
     inputStyle = "default",
     className = "",
+    containerClassName = "w-full",
     disabled = false,
     autoComplete,
     onFocus,
@@ -55,6 +62,8 @@ export const Input = <T = Record<string, string>,>({
     onBlur,
     onKeyDown,
     error,
+    autoFocus,
+    inputMode,
 }: InputProps<T>) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = inputType === "password";
@@ -71,7 +80,7 @@ export const Input = <T = Record<string, string>,>({
     const resolvedType = isPassword ? (showPassword ? "text" : "password") : inputType;
 
     return (
-        <div className="w-full">
+        <div className={containerClassName}>
             {label && (
                 <label
                     htmlFor={name}
@@ -87,6 +96,8 @@ export const Input = <T = Record<string, string>,>({
                     disabled={disabled}
                     placeholder={placeholder}
                     autoComplete={autoComplete}
+                    autoFocus={autoFocus}
+                    inputMode={inputMode}
                     onFocus={onFocus}
                     min={min}
                     max={max}

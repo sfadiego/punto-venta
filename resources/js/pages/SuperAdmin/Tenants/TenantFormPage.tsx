@@ -136,6 +136,10 @@ export default function TenantFormPage() {
                                     onToggleEmployees={() =>
                                         formik.setFieldValue("employees_enabled", !formik.values.employees_enabled)
                                     }
+                                    stockEnabled={formik.values.stock_enabled}
+                                    onToggleStock={() =>
+                                        formik.setFieldValue("stock_enabled", !formik.values.stock_enabled)
+                                    }
                                     onSave={formik.submitForm}
                                     isSaving={formik.isSubmitting}
                                 />

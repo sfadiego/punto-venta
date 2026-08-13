@@ -2,12 +2,14 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useInfiniteIndexProducts } from "@/services/useProductService";
 import { useCategoryList } from "@/services/useCategoriesService";
 import { IProduct } from "@/models/IProduct";
+import { IconSourceEnum } from "@/enums/IconSourceEnum";
 
 export type CategoryOption = {
     id?: number;
     name: string;
     count?: number;
     icon?: string;
+    iconSource?: IconSourceEnum;
 };
 
 const DEBOUNCE_MS = 350;
@@ -15,7 +17,7 @@ const DEBOUNCE_MS = 350;
 export const useProductGrid = () => {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [activeCategory, setActiveCategoryName] = useState("Todos");
+    const [activeCategory, setActiveCategoryName] = useState("TODOS");
     const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -26,11 +28,12 @@ export const useProductGrid = () => {
     const { data: categoriesData } = useCategoryList();
 
     const categories = useMemo((): CategoryOption[] => [
-        { name: "Todos" },
+        { name: "TODOS", icon: "Tag", iconSource: IconSourceEnum.Lucide },
         ...(categoriesData ?? []).map((c) => ({
             id: c.id,
             name: c.nombre,
             icon: c.icon_name,
+            iconSource: c.icon_source,
         })),
     ], [categoriesData]);
 

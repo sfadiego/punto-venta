@@ -22,6 +22,7 @@ export interface TenantFormValues {
     bluetooth_printing_enabled: boolean;
     purchases_enabled: boolean;
     employees_enabled: boolean;
+    stock_enabled: boolean;
     max_users: number | null;
     subscription_amount: number | null;
     admin_nombre: string;
@@ -89,6 +90,7 @@ export const useTenantForm = (tenantId?: number) => {
             bluetooth_printing_enabled: tenant?.bluetooth_printing_enabled ?? false,
             purchases_enabled: tenant?.purchases_enabled ?? false,
             employees_enabled: tenant?.employees_enabled ?? false,
+            stock_enabled:    tenant?.stock_enabled ?? false,
             max_users:        tenant?.max_users ?? null,
             subscription_amount: tenant?.subscription_amount ?? null,
             admin_nombre:     "",

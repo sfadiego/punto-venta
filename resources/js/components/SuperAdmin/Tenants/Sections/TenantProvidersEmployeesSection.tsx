@@ -1,4 +1,4 @@
-import { Truck, UserRound } from "lucide-react";
+import { Truck, UserRound, Package } from "lucide-react";
 import { SectionSaveButton } from "./SectionSaveButton";
 
 interface TenantProvidersEmployeesSectionProps {
@@ -6,6 +6,8 @@ interface TenantProvidersEmployeesSectionProps {
     onTogglePurchases: () => void;
     employeesEnabled: boolean;
     onToggleEmployees: () => void;
+    stockEnabled: boolean;
+    onToggleStock: () => void;
     onSave: () => void;
     isSaving: boolean;
 }
@@ -56,6 +58,8 @@ export const TenantProvidersEmployeesSection = ({
     onTogglePurchases,
     employeesEnabled,
     onToggleEmployees,
+    stockEnabled,
+    onToggleStock,
     onSave,
     isSaving,
 }: TenantProvidersEmployeesSectionProps) => (
@@ -74,6 +78,14 @@ export const TenantProvidersEmployeesSection = ({
             description="Habilita la administración de empleados (teléfono, salario, días laborales) para este cliente."
             enabled={employeesEnabled}
             onToggle={onToggleEmployees}
+        />
+        <div className="border-t border-slate-100" />
+        <ToggleRow
+            icon={<Package size={17} className="text-slate-500" />}
+            title="Control de stock"
+            description="Habilita 'Maneja stock' en el catálogo de productos para este cliente."
+            enabled={stockEnabled}
+            onToggle={onToggleStock}
         />
         <SectionSaveButton onSave={onSave} isSaving={isSaving} />
     </section>

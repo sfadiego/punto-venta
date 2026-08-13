@@ -1,5 +1,6 @@
 import { Plus, Minus, Trash2, Tag, X, Loader } from "lucide-react";
 import { ICartItem } from "@/models/ICartItem";
+import { getAvailableStock } from "@/utils/stock";
 import { CartItemNote } from "./CartItemNote";
 import { useCartItemRow } from "./useCartItemRow";
 
@@ -37,6 +38,11 @@ export const CartItemRow = ({
         handleDiscountKeyDown,
         clearProductDiscount,
     } = useCartItemRow(item, onUpdateProductDiscount);
+
+    // Una línea de variante no descuenta stock (ver OrderSaleService/OrderController) — el
+    // tope solo aplica a la línea del precio base del producto.
+    const stockExhausted =
+        !item.variantId && item.quantity >= getAvailableStock({ manage_stock: item.manageStock, stock: item.stock });
 
     return (
         <div className="py-3 border-b border-stone-100 last:border-0">
@@ -152,7 +158,8 @@ export const CartItemRow = ({
                         onClick={() =>
                             !item.isExtra && onUpdate(item.orderProductId, 1)
                         }
-                        disabled={isReadOnly || item.isExtra || isPending}
+                        disabled={isReadOnly || item.isExtra || isPending || stockExhausted}
+                        title={stockExhausted ? "Ya agregaste todo el stock disponible" : undefined}
                         className="w-7 h-7 rounded-lg bg-amber-100 hover:bg-amber-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                     >
                         <Plus size={12} className="text-amber-700" />

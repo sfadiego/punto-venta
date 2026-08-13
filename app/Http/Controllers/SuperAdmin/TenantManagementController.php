@@ -111,6 +111,7 @@ class TenantManagementController extends Controller
             BusinessConfigModel::BLUETOOTH_PRINTING_ENABLED => (bool) $param->bluetooth_printing_enabled,
             BusinessConfigModel::PURCHASES_ENABLED => (bool) $param->purchases_enabled,
             BusinessConfigModel::EMPLOYEES_ENABLED => (bool) $param->employees_enabled,
+            BusinessConfigModel::STOCK_ENABLED => (bool) $param->stock_enabled,
             BusinessConfigModel::MAX_USERS => $param->max_users !== null ? (int) $param->max_users : $tenant->max_users,
             BusinessConfigModel::SUBSCRIPTION_AMOUNT => $param->has('subscription_amount') ? $param->subscription_amount : $tenant->subscription_amount,
         ]);

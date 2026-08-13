@@ -1,15 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useCreateOrderProduct, useUpdateOrderProduct, useDeleteOrderItem, useClearOrderCart } from "@/services/useOrderService";
 import { IProduct } from "@/models/IProduct";
+import { IProductVariant } from "@/models/IProductVariant";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { IModalCartItem } from "@/models/IModalCartItem";
 import { getAvailableStock } from "@/utils/stock";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
+import { useTicketDrawer } from "./useTicketDrawer";
+import { useLastAddedFlash } from "./useLastAddedFlash";
 import { MAX_CANTIDAD_KG } from "./quickSaleConstants";
 
 // Estado del carrito y su sincronización con el backend. Cuando se está retomando una orden
@@ -17,22 +20,11 @@ import { MAX_CANTIDAD_KG } from "./quickSaleConstants";
 // guardar/cobrar — en una venta nueva es puro estado local hasta el checkout. El stock del
 // catálogo no cambia con estos movimientos (solo se descuenta al cerrar la orden — ver
 // useQuickSalePayment.ts), así que aquí no hace falta invalidar la query de productos.
-// Cuánto dura el resaltado del renglón recién agregado en el ticket (feedback visual breve).
-const LAST_ADDED_FLASH_MS = 600;
-
 export const useQuickSaleCart = (resumeOrderId: number | null) => {
     const invalidateResumeOrderQueries = useInvalidateResumeOrderQueries(resumeOrderId);
     const [cart, setCart] = useState<IModalCartItem[]>([]);
-    const [lastAddedOrderProductId, setLastAddedOrderProductId] = useState<number | null>(null);
-    const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    // Mismo patrón de useQuickSaleScale (ref-tracked timeout): limpia cualquier flash pendiente
-    // antes de programar el siguiente, para que toques rápidos no corten el resaltado a medias.
-    const flashLastAdded = (orderProductId: number) => {
-        if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
-        setLastAddedOrderProductId(orderProductId);
-        flashTimeoutRef.current = setTimeout(() => setLastAddedOrderProductId(null), LAST_ADDED_FLASH_MS);
-    };
+    const { lastAddedOrderProductId, flashLastAdded } = useLastAddedFlash();
+    const { isDrawerOpen, toggleDrawer } = useTicketDrawer(cart.length);
 
     const { mutateAsync: createOrderProduct } = useCreateOrderProduct();
     const { mutateAsync: updateOrderProduct } = useUpdateOrderProduct();
@@ -46,22 +38,31 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
     const { isPending: isAdding, withPending: withAdding } = useOptimisticPendingSet<number>();
     const { isPending: isRemoving, withPending: withRemoving } = useOptimisticPendingSet<number>();
 
-    const addToCart = async (product: IProduct, cantidadKg: number) => {
+    // Encuentra la línea del carrito de un producto, distinguiendo la línea del precio base
+    // (variant = null/undefined) de la de una variante puntual (ej. "Pieza") — dos líneas del
+    // mismo producto nunca se mezclan aunque coincida el precio.
+    const findCartItem = (productId: number, variantId?: number | null) =>
+        cart.find((item) => item.productId === productId && (item.variantId ?? null) === (variantId ?? null));
+
+    const addToCart = async (product: IProduct, cantidadKg: number, variant: IProductVariant | null = null) => {
         if (cantidadKg <= 0) return;
 
-        const existing = cart.find(
-            (item) => item.productId === product.id && item.precioEfectivo === product.precio,
-        );
+        const existing = findCartItem(product.id, variant?.id);
         const unitLabel = UNIDAD_LABELS[product.unidad_medida] ?? "kg";
         const currentQty = existing?.cantidad ?? 0;
+        const precioEfectivo = variant?.precio ?? product.precio;
 
         // No dejar reservar en el carrito más de lo que hay en existencia — el backend igual
         // lo bloquea al cerrar la venta. Sin toast aquí: la card (ProductCard) ya deshabilita
         // sus controles y muestra el aviso de stock inline cuando se llega al tope, así que en
         // flujo normal este bloque no debería alcanzarse — queda como respaldo silencioso.
-        const availableStock = getAvailableStock(product);
-        if (currentQty + cantidadKg > availableStock) {
-            return;
+        // Una línea de variante no descuenta stock (ver OrderSaleService), así que tampoco se
+        // limita contra la existencia del producto base.
+        if (!variant) {
+            const availableStock = getAvailableStock(product);
+            if (currentQty + cantidadKg > availableStock) {
+                return;
+            }
         }
 
         if (currentQty + cantidadKg > MAX_CANTIDAD_KG) {
@@ -73,9 +74,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
             if (isAdding(product.id)) return;
             try {
                 await withAdding([product.id], async () => {
-                    const existing = cart.find(
-                        (item) => item.productId === product.id && item.precioEfectivo === product.precio,
-                    );
+                    const existing = findCartItem(product.id, variant?.id);
                     if (existing) {
                         const newQty = existing.cantidad + cantidadKg;
                         await updateOrderProduct({
@@ -92,7 +91,12 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
                     } else {
                         const res = await createOrderProduct({
                             orderId: resumeOrderId,
-                            data: { producto_id: product.id, cantidad: cantidadKg, precio: product.precio },
+                            data: {
+                                producto_id: product.id,
+                                variant_id: variant?.id ?? null,
+                                cantidad: cantidadKg,
+                                precio: precioEfectivo,
+                            },
                         });
                         const orderProduct = (res as { data: { data: IOrderProduct } }).data.data;
                         setCart((prev) => [
@@ -102,7 +106,9 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
                                 productId: product.id,
                                 product,
                                 cantidad: cantidadKg,
-                                precioEfectivo: product.precio,
+                                precioEfectivo,
+                                variantId: variant?.id ?? null,
+                                variantName: variant?.nombre ?? null,
                             },
                         ]);
                         flashLastAdded(orderProduct.id!);
@@ -120,7 +126,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
 
         setCart((prev) => {
             const idx = prev.findIndex(
-                (item) => item.productId === product.id && item.precioEfectivo === product.precio,
+                (item) => item.productId === product.id && (item.variantId ?? null) === (variant?.id ?? null),
             );
             if (idx >= 0) {
                 const next = [...prev];
@@ -134,7 +140,9 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
                     productId: product.id,
                     product,
                     cantidad: cantidadKg,
-                    precioEfectivo: product.precio,
+                    precioEfectivo,
+                    variantId: variant?.id ?? null,
+                    variantName: variant?.nombre ?? null,
                 },
             ];
         });
@@ -143,10 +151,8 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
 
     // Quita una unidad del producto (botón "-" de UnitControls, solo productos por unidad).
     // Si la cantidad llega a 0 elimina la línea, igual que removeFromCart.
-    const decrementFromCart = async (product: IProduct) => {
-        const existing = cart.find(
-            (item) => item.productId === product.id && item.precioEfectivo === product.precio,
-        );
+    const decrementFromCart = async (product: IProduct, variant: IProductVariant | null = null) => {
+        const existing = findCartItem(product.id, variant?.id);
         if (!existing) return;
 
         if (resumeOrderId) {
@@ -227,8 +233,8 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
 
     // Cantidad actual en el carrito para un producto por unidad (UnitControls la usa para
     // decidir entre mostrar el botón "+" inicial o el stepper con "-").
-    const quantityOf = (product: IProduct) =>
-        cart.find((item) => item.productId === product.id && item.precioEfectivo === product.precio)?.cantidad ?? 0;
+    const quantityOf = (product: IProduct, variant: IProductVariant | null = null) =>
+        findCartItem(product.id, variant?.id)?.cantidad ?? 0;
 
     const removeFromCart = async (orderProductId: number) => {
         if (resumeOrderId) {
@@ -265,21 +271,6 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
         }
         setCart([]);
     };
-
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const toggleDrawer = () => setIsDrawerOpen((prev) => !prev);
-    const prevCartLengthRef = useRef(0);
-
-    // El ticket se abre solo al agregar el primer producto y se cierra solo al vaciarse;
-    // el usuario puede seguir colapsándolo manualmente mientras haya artículos.
-    useEffect(() => {
-        if (cart.length === 0) {
-            setIsDrawerOpen(false);
-        } else if (prevCartLengthRef.current === 0) {
-            setIsDrawerOpen(true);
-        }
-        prevCartLengthRef.current = cart.length;
-    }, [cart.length]);
 
     return {
         cart,

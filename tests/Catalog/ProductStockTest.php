@@ -4,6 +4,7 @@ namespace Tests\Catalog;
 
 use App\Enums\StockMovementReasonEnum;
 use App\Enums\StockMovementTypeEnum;
+use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use App\Models\ProductModel;
 use App\Models\StockMovementModel;
@@ -11,6 +12,15 @@ use Tests\TestCase;
 
 class ProductStockTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Toda esta suite prueba manage_stock — requiere que el tenant tenga
+        // business_config.stock_enabled activo (ver ProductStoreRequest/ProductUpdateRequest).
+        BusinessConfigModel::first()->update([BusinessConfigModel::STOCK_ENABLED => true]);
+    }
+
     private function basePayload(array $overrides = []): array
     {
         return array_merge([

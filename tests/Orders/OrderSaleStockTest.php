@@ -3,13 +3,18 @@
 namespace Tests\Orders;
 
 use App\Enums\MainOrderStatusEnum;
+use App\Enums\OrderStatusEnum;
 use App\Enums\RoleEnum;
 use App\Enums\StockMovementReasonEnum;
 use App\Enums\StockMovementTypeEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use App\Models\MainOrderReportModel;
+use App\Models\OrderModel;
+use App\Models\OrderProductModel;
+use App\Models\OrderStatusModel;
 use App\Models\ProductModel;
+use App\Models\ProductVariantModel;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -118,6 +123,72 @@ class OrderSaleStockTest extends TestCase
         ], $this->authHeaders())
             ->assertStatus(200);
 
+        $this->assertDatabaseMissing('stock_movements', ['product_id' => $product->id]);
+    }
+
+    public function test_venta_directa_con_variante_no_descuenta_stock(): void
+    {
+        $sistema = $this->crearSistema();
+        $product = $this->crearProductoConStock(10);
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+            ProductVariantModel::PRECIO => 18,
+        ]);
+
+        $this->postJson('/api/order/sale', [
+            'sistema_id' => $sistema->id,
+            'nombre_pedido' => 'Venta mostrador',
+            'items' => [
+                ['producto_id' => $product->id, 'variant_id' => $variant->id, 'cantidad' => 1],
+            ],
+        ], $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertEquals(10.0, (float) $product->fresh()->stock);
+        $this->assertDatabaseMissing('stock_movements', ['product_id' => $product->id]);
+        $this->assertDatabaseHas('order_product', [
+            'producto_id' => $product->id,
+            'variant_id' => $variant->id,
+            'precio' => 18,
+        ]);
+    }
+
+    public function test_cierre_de_orden_con_variante_no_descuenta_stock(): void
+    {
+        $sistema = $this->crearSistema();
+        $product = $this->crearProductoConStock(10);
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+            ProductVariantModel::PRECIO => 18,
+        ]);
+
+        $order = OrderModel::create([
+            OrderModel::TOTAL => 18,
+            OrderModel::SUBTOTAL => 18,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Test Orden Variante',
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusModel::first()->id,
+            OrderModel::SISTEMA_ID => $sistema->id,
+            OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
+        ]);
+
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $order->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::VARIANT_ID => $variant->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 18,
+        ]);
+
+        $this->putJson("/api/order/{$order->id}", [
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+
+        $this->assertEquals(10.0, (float) $product->fresh()->stock);
         $this->assertDatabaseMissing('stock_movements', ['product_id' => $product->id]);
     }
 }

@@ -50,6 +50,8 @@ class ProductController extends Controller
             ProductModel::STOCK => $manageStock ? 0 : null,
             ProductModel::MIN_STOCK => $manageStock ? ($param->min_stock ?? ProductModel::MIN_STOCK_DEFAULT) : null,
             ProductModel::PRODUCT_CODE => $productCode,
+            ProductModel::ICON_NAME => $param->icon_name ?? null,
+            ProductModel::ICON_SOURCE => $param->icon_source ?? null,
         ]);
 
         // la existencia inicial se registra como movimiento (no como valor directo
@@ -81,6 +83,8 @@ class ProductController extends Controller
                 manageStock: $param->has('manage_stock') ? (bool) $param->manage_stock : null,
                 minStock: $param->has('min_stock') ? $param->min_stock : null,
                 productCode: $param->has('product_code') ? ($param->product_code ?? '') : null,
+                iconName: $param->has('icon_name') ? $param->icon_name : null,
+                iconSource: $param->has('icon_source') ? $param->icon_source : null,
             )
         );
     }

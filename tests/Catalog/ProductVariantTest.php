@@ -3,6 +3,7 @@
 namespace Tests\Catalog;
 
 use App\Enums\BusinessTypeEnum;
+use App\Enums\UnidadMedidaEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
@@ -10,10 +11,11 @@ use Tests\TestCase;
 
 class ProductVariantTest extends TestCase
 {
-    private function crearProducto(): ProductModel
+    private function crearProducto(array $overrides = []): ProductModel
     {
         return ProductModel::factory()->create([
             'tenant_id' => BusinessConfigModel::first()->id,
+            ...$overrides,
         ]);
     }
 
@@ -130,16 +132,53 @@ class ProductVariantTest extends TestCase
         $this->assertDatabaseHas('product_variants', ['id' => $variant->id]);
     }
 
-    public function test_venta_por_peso_no_crea_variante(): void
+    public function test_producto_por_peso_no_crea_variante(): void
     {
         $tenant = BusinessConfigModel::first();
         $tenant->update([BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::VentaPorPeso]);
 
-        $product = $this->crearProducto();
+        $product = $this->crearProducto(['unidad_medida' => UnidadMedidaEnum::Kg->value]);
 
         $this->postJson(
             "/api/product/{$product->id}/variant",
             ['nombre' => 'Chica', 'precio' => 80],
+            $this->authHeaders()
+        )->assertStatus(400);
+
+        $this->assertDatabaseMissing('product_variants', [
+            'product_id' => $product->id,
+        ]);
+    }
+
+    public function test_producto_por_unidad_en_negocio_de_venta_por_peso_si_crea_variante(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::VentaPorPeso]);
+
+        $product = $this->crearProducto(['unidad_medida' => UnidadMedidaEnum::Unidad->value]);
+
+        $this->postJson(
+            "/api/product/{$product->id}/variant",
+            ['nombre' => 'Pieza', 'precio' => 18],
+            $this->authHeaders()
+        )->assertStatus(200);
+
+        $this->assertDatabaseHas('product_variants', [
+            'product_id' => $product->id,
+            'nombre' => 'Pieza',
+        ]);
+    }
+
+    public function test_producto_con_manage_stock_no_crea_variante(): void
+    {
+        $product = $this->crearProducto([
+            'unidad_medida' => UnidadMedidaEnum::Unidad->value,
+            'manage_stock' => true,
+        ]);
+
+        $this->postJson(
+            "/api/product/{$product->id}/variant",
+            ['nombre' => 'Pieza', 'precio' => 18],
             $this->authHeaders()
         )->assertStatus(400);
 

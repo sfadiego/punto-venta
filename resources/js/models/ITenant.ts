@@ -17,6 +17,7 @@ export interface ITenant {
     bluetooth_printing_enabled: boolean;
     purchases_enabled: boolean;
     employees_enabled: boolean;
+    stock_enabled: boolean;
     features?: IBusinessFeatures;
     users_count?: number;
     active_users_count?: number;
@@ -62,6 +63,7 @@ export interface IUpdateTenantPayload {
     bluetooth_printing_enabled: boolean;
     purchases_enabled: boolean;
     employees_enabled: boolean;
+    stock_enabled: boolean;
     max_users?: number | null;
     subscription_amount?: number | null;
 }

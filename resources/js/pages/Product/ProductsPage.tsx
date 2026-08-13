@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { DataTable, DataTableColumn } from "mantine-datatable";
-import { Package, Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
-import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
+import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { isLowStock } from "@/utils/stock";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
 import { useProductsPage } from "./useProductsPage";
@@ -45,7 +45,7 @@ export default function ProductsPage() {
         handleCloseModal,
     } = useProductsPage();
 
-    const { isEdit, formik, categories: modalCategories, sellByWeight, isRestaurant, currentStock } = useProductModal(
+    const { isEdit, formik, categories: modalCategories, sellByWeight, stockEnabled, currentStock } = useProductModal(
         editingProduct,
         invalidateProducts,
         handleCloseModal,
@@ -82,21 +82,14 @@ export default function ProductsPage() {
     const columns = useMemo<DataTableColumn<IProduct>[]>(
         () => [
             {
-                accessor: "picture",
+                accessor: "icon_name",
                 title: "",
                 width: 52,
-                render: (p: IProduct) =>
-                    p.picture?.url ?? p.picture?.nombre_archivo ? (
-                        <img
-                            src={p.picture.url ?? `${ApiRoutes.Files}/${p.picture.nombre_archivo}`}
-                            alt={p.nombre}
-                            className="w-8 h-8 rounded-lg object-cover"
-                        />
-                    ) : (
-                        <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center">
-                            <Package size={14} className="text-stone-400" />
-                        </div>
-                    ),
+                render: (p: IProduct) => (
+                    <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center">
+                        <CatalogIcon iconName={p.icon_name} iconSource={p.icon_source} size={18} className="text-stone-500" />
+                    </div>
+                ),
             },
             {
                 accessor: "nombre",
@@ -139,10 +132,9 @@ export default function ProductsPage() {
                     </span>
                 ),
             },
-            // Stock es un concepto de inventario por unidad/peso — no aplica al flujo de
-            // restaurante (platillos preparados al momento), así que la columna solo se
-            // muestra para negocios de venta por peso.
-            ...(sellByWeight
+            // La columna solo se muestra si el negocio tiene el control de stock habilitado
+            // (business_config.stock_enabled, gestionado desde SuperAdmin).
+            ...(stockEnabled
                 ? [
                       {
                           accessor: "stock" as keyof IProduct,
@@ -170,7 +162,7 @@ export default function ProductsPage() {
                 ),
             },
         ],
-        [openEditModal, openRestockModal, openMovementsModal, sellByWeight],
+        [openEditModal, openRestockModal, openMovementsModal, stockEnabled],
     );
 
     return (
@@ -220,8 +212,7 @@ export default function ProductsPage() {
                         </>
                     )}
 
-                    {/* Stock es un concepto de venta por peso — no aplica al flujo de restaurante */}
-                    {sellByWeight && (
+                    {stockEnabled && (
                         <LowStockFilter checked={lowStockOnly} onChange={handleLowStockOnlyChange} />
                     )}
                 </div>
@@ -259,7 +250,7 @@ export default function ProductsPage() {
                 formik={formik}
                 categories={modalCategories}
                 sellByWeight={sellByWeight}
-                isRestaurant={isRestaurant}
+                stockEnabled={stockEnabled}
                 currentStock={currentStock}
                 onClose={handleModalClose}
             />

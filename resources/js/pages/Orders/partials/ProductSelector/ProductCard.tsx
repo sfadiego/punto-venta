@@ -1,6 +1,7 @@
-import { Loader, Package } from "lucide-react";
+import { Loader } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
 import { IProductVariant } from "@/models/IProductVariant";
+import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { useProductCard } from "./useProductCard";
 import { VariantPickerModal } from "./VariantPickerModal";
 
@@ -25,8 +26,12 @@ export const ProductCard = ({
     isPending = false,
     onAdd,
 }: ProductCardProps) => {
-    const { isPickerOpen, closePicker, handleClick, handleSelectVariant } = useProductCard(product, onAdd);
-    const disabled = isReadOnly || isPending;
+    const { isPickerOpen, closePicker, handleClick, handleSelectVariant, stockExhausted } = useProductCard(
+        product,
+        quantityInCart,
+        onAdd,
+    );
+    const disabled = isReadOnly || isPending || stockExhausted;
     const inCart = quantityInCart > 0;
 
     return (
@@ -38,7 +43,7 @@ export const ProductCard = ({
                 }}
                 disabled={disabled}
                 className={`relative bg-white rounded-xl border-2 p-4 text-left transition-all duration-150 ${
-                    isReadOnly
+                    isReadOnly || stockExhausted
                         ? "border-stone-100 opacity-70 cursor-not-allowed"
                         : isPending
                           ? "border-amber-300 opacity-70 cursor-wait"
@@ -58,10 +63,15 @@ export const ProductCard = ({
                     </span>
                 )}
                 <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center mb-2">
-                    <Package size={16} className="text-amber-500" />
+                    <CatalogIcon iconName={product.icon_name} iconSource={product.icon_source} size={16} className="text-amber-500" />
                 </div>
                 <p className="text-stone-900 font-medium text-sm leading-tight">{product.nombre}</p>
                 <p className="text-amber-600 font-bold text-sm mt-1">${product.precio}</p>
+                {stockExhausted && (
+                    <p className="text-[10px] font-bold text-red-600 uppercase tracking-wide mt-1">
+                        {inCart ? "Ya agregaste todo el stock" : "Sin stock"}
+                    </p>
+                )}
             </button>
 
             <VariantPickerModal

@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { DynamicIcon } from "@/components/ui/DynamicIcon";
+import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { CategoryOption } from "./useProductGrid";
 
 interface CategoryTabsProps {
@@ -47,8 +47,9 @@ export const CategoryTabs = ({ categories, activeCategory, onSelect }: CategoryT
                                 isActive ? "bg-white/20" : "bg-white"
                             }`}
                         >
-                            <DynamicIcon
-                                name={cat.icon || "Tag"}
+                            <CatalogIcon
+                                iconName={cat.icon}
+                                iconSource={cat.iconSource}
                                 size={12}
                                 className={isActive ? "text-white" : "text-stone-400"}
                             />

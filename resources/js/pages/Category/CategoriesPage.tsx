@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { DataTable, DataTableColumn } from "mantine-datatable";
 import { Plus, RefreshCw } from "lucide-react";
 import { ICategory } from "@/models/ICategory";
-import { DynamicIcon } from "@/components/ui/DynamicIcon";
+import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { CategorySearch } from "./partials/CategorySearch";
 import { RoleEnum } from "@/enums/RoleEnum";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -44,8 +44,9 @@ export default function CategoriesPage() {
                 width: 68,
                 render: (cat: ICategory) => (
                     <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-amber-50 border border-amber-100">
-                        <DynamicIcon
-                            name={cat.icon_name || "Tag"}
+                        <CatalogIcon
+                            iconName={cat.icon_name}
+                            iconSource={cat.icon_source}
                             size={18}
                             className="text-amber-600"
                         />

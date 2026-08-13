@@ -2,8 +2,7 @@ import { X, Tag, Loader } from "lucide-react";
 import { FormikProps } from "formik";
 import { CategoryForm } from "./useCategoryModal";
 import { Input } from "@/components/ui/form/Input";
-import { DynamicIcon } from "@/components/ui/DynamicIcon";
-import { IconPicker } from "./IconPicker";
+import { IconPickerField } from "@/components/ui/IconPickerField";
 
 interface CategoryModalProps {
     isOpen: boolean;
@@ -70,22 +69,14 @@ export const CategoryModal = ({ isOpen, isEdit, formik, onClose }: CategoryModal
                         </p>
                     </div>
 
-                    <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                            <label className="block text-sm font-medium text-stone-700">Ícono</label>
-                            <div className="w-9 h-9 shrink-0 rounded-lg border border-stone-200 bg-stone-50 flex items-center justify-center">
-                                <DynamicIcon
-                                    name={formik.values.icon_name || "Tag"}
-                                    size={16}
-                                    className="text-stone-500"
-                                />
-                            </div>
-                        </div>
-                        <IconPicker
-                            value={formik.values.icon_name}
-                            onSelect={(name) => formik.setFieldValue("icon_name", name)}
-                        />
-                    </div>
+                    <IconPickerField
+                        iconName={formik.values.icon_name}
+                        iconSource={formik.values.icon_source}
+                        onChange={(name, source) => {
+                            formik.setFieldValue("icon_name", name);
+                            formik.setFieldValue("icon_source", source);
+                        }}
+                    />
 
                     <div className="flex gap-2 pt-1">
                         <button

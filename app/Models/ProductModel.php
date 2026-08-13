@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\IconSourceEnum;
 use App\Enums\UnidadMedidaEnum;
 use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -41,6 +42,10 @@ class ProductModel extends Model
 
     const PRODUCT_CODE = 'product_code';
 
+    const ICON_NAME = 'icon_name';
+
+    const ICON_SOURCE = 'icon_source';
+
     const MIN_STOCK_DEFAULT = 2;
 
     protected $casts = [
@@ -48,6 +53,7 @@ class ProductModel extends Model
         self::MANAGE_STOCK => 'boolean',
         self::STOCK => 'decimal:2',
         self::MIN_STOCK => 'decimal:2',
+        self::ICON_SOURCE => IconSourceEnum::class,
     ];
 
     protected $fillable = [
@@ -63,6 +69,8 @@ class ProductModel extends Model
         self::STOCK,
         self::MIN_STOCK,
         self::PRODUCT_CODE,
+        self::ICON_NAME,
+        self::ICON_SOURCE,
     ];
 
     public static function store(
@@ -71,6 +79,8 @@ class ProductModel extends Model
         string $descripcion,
         int $categoriaId,
         ?string $pictureId = null,
+        ?string $iconName = null,
+        ?string $iconSource = null,
     ): ProductModel {
 
         return ProductModel::create([
@@ -80,6 +90,8 @@ class ProductModel extends Model
             ProductModel::CATEGORIA_ID => $categoriaId,
             ProductModel::ACTIVO => 1,
             ProductModel::FOTO_ID => $pictureId,
+            ProductModel::ICON_NAME => $iconName,
+            ProductModel::ICON_SOURCE => $iconSource,
         ]);
     }
 
@@ -119,6 +131,8 @@ class ProductModel extends Model
         ?bool $manageStock = null,
         ?float $minStock = null,
         ?string $productCode = null,
+        ?string $iconName = null,
+        ?string $iconSource = null,
     ): ProductModel {
 
         $data = [];
@@ -167,6 +181,12 @@ class ProductModel extends Model
         }
         if ($productCode !== null) {
             $data[ProductModel::PRODUCT_CODE] = $productCode !== '' ? $productCode : null;
+        }
+        if ($iconName !== null) {
+            $data[ProductModel::ICON_NAME] = $iconName;
+        }
+        if ($iconSource !== null) {
+            $data[ProductModel::ICON_SOURCE] = $iconSource;
         }
 
         $this->update($data);

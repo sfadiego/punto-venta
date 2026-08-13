@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\IconSourceEnum;
 use App\Enums\UnidadMedidaEnum;
+use App\Models\BusinessConfigModel;
 use App\Models\ProductModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class ProductUpdateRequest extends FormRequest
 {
@@ -50,6 +53,8 @@ class ProductUpdateRequest extends FormRequest
                 'nullable', 'string', 'max:64',
                 Rule::unique('product', 'product_code')->where('tenant_id', $tenantId)->ignore($productId)->whereNull('deleted_at'),
             ],
+            ProductModel::ICON_NAME => 'nullable|string|max:100',
+            ProductModel::ICON_SOURCE => ['nullable', Rule::enum(IconSourceEnum::class)],
         ];
     }
 
@@ -72,7 +77,46 @@ class ProductUpdateRequest extends FormRequest
             'min_stock.min' => 'El stock mínimo no puede ser negativo.',
             'product_code.max' => 'El código de barras no puede superar los 64 caracteres.',
             'product_code.unique' => 'Ya existe un producto con este código de barras.',
+            'icon_name.string' => 'El ícono debe ser texto.',
+            'icon_name.max' => 'El ícono no puede superar los 100 caracteres.',
+            'icon_source.enum' => 'El origen del ícono seleccionado no es válido.',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $product = $this->route('product');
+
+            // Misma regla que ProductVariantStoreRequest en sentido inverso: no se puede
+            // activar manage_stock en un producto que ya tiene variantes activas, porque las
+            // ventas por variante no descuentan stock y dejarían el inventario desincronizado.
+            if ($product && $this->boolean(ProductModel::MANAGE_STOCK) && $product->variants()->where('activo', true)->exists()) {
+                $validator->errors()->add(
+                    ProductModel::MANAGE_STOCK,
+                    'No se puede activar el manejo de stock en un producto con variantes activas.',
+                );
+            }
+
+            // Defensa en profundidad: el frontend ya oculta el toggle cuando el tenant no
+            // tiene stock_enabled. Solo bloquea la transición false→true — un producto que ya
+            // tenía manage_stock=true antes de que el SuperAdmin apagara la bandera puede
+            // seguir guardándose sin tocar ese campo (el formulario lo reenvía tal cual).
+            if (
+                $this->boolean(ProductModel::MANAGE_STOCK)
+                && ! ($product?->manage_stock ?? false)
+            ) {
+                $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+                $stockEnabled = BusinessConfigModel::find($tenantId)?->stock_enabled ?? false;
+
+                if (! $stockEnabled) {
+                    $validator->errors()->add(
+                        ProductModel::MANAGE_STOCK,
+                        'El control de stock no está habilitado para este negocio.',
+                    );
+                }
+            }
+        });
     }
 
     public function attributes(): array
@@ -84,6 +128,8 @@ class ProductUpdateRequest extends FormRequest
             'manage_stock' => 'maneja stock',
             'min_stock' => 'stock mínimo',
             'product_code' => 'código de barras',
+            'icon_name' => 'ícono',
+            'icon_source' => 'origen del ícono',
         ];
     }
 }
