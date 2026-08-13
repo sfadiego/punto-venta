@@ -4,7 +4,6 @@ import { IMenuProduct } from "@/models/IMenu";
 import { IProductVariant } from "@/models/IProductVariant";
 import { isWeightUnit, formatPricePerUnit } from "@/utils/weightUnits";
 import { UnitControls } from "@/components/ui/UnitControls";
-import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { WeightControls } from "../WeightControls/WeightControls";
 import { VariantPickerModal } from "./VariantPickerModal";
 import { useProductCard } from "./useProductCard";
