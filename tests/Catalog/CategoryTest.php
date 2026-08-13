@@ -139,6 +139,25 @@ class CategoryTest extends TestCase
             ->assertJsonPath('status', 'OK');
     }
 
+    public function test_actualiza_categoria_permite_quitar_el_icono(): void
+    {
+        $category = CategoryModel::first();
+        $category->update(['icon_name' => 'Tag']);
+
+        $this->putJson("/api/category/{$category->id}", [
+            'nombre' => $category->nombre,
+            'orden' => $category->orden ?? 1,
+            'icon_name' => '',
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.icon_name', '');
+
+        $this->assertDatabaseHas('categories', [
+            'id' => $category->id,
+            'icon_name' => '',
+        ]);
+    }
+
     // ── Delete ───────────────────────────────────────────────
 
     public function test_elimina_categoria(): void
