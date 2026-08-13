@@ -102,18 +102,32 @@ export const ProductCard = ({
                 }`}
             >
                 <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-7 h-7 shrink-0 rounded-lg bg-stone-100 flex items-center justify-center">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <span className="w-11 h-11 shrink-0 rounded-xl bg-stone-100 flex items-center justify-center">
                             <CatalogIcon
                                 iconName={product.icon_name}
                                 iconSource={product.icon_source}
-                                size={14}
+                                size={24}
                                 className="text-stone-500"
                             />
                         </span>
-                        <p className="text-sm font-semibold text-stone-900 leading-tight truncate">
-                            {product.nombre}
-                        </p>
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold text-stone-900 leading-tight truncate">
+                                {product.nombre}
+                            </p>
+                            <p
+                                className="text-lg font-extrabold tabular-nums leading-tight"
+                                style={{ color: "var(--color-primary)" }}
+                            >
+                                {formatCurrencyTrimmed(product.precio)}
+                                {weightUnit && (
+                                    <span className="text-[11px] font-semibold text-stone-400">
+                                        {" "}
+                                        / {UNIDAD_LABELS[weightUnit]}
+                                    </span>
+                                )}
+                            </p>
+                        </div>
                     </div>
                     {weightUnit && (
                         <div
@@ -166,25 +180,10 @@ export const ProductCard = ({
                     )}
                 </div>
 
-                <div className="flex items-center justify-between gap-2">
-                    <p
-                        className="text-xl font-extrabold tabular-nums"
-                        style={{ color: "var(--color-primary)" }}
-                    >
-                        {formatCurrencyTrimmed(product.precio)}
-                        {weightUnit && (
-                            <span className="text-xs font-semibold text-stone-400">
-                                {" "}
-                                / {UNIDAD_LABELS[weightUnit]}
-                            </span>
-                        )}
-                    </p>
-                </div>
-
                 {/* Aviso de stock en la card, no como toast — un toast tapaba los botones de
                 abajo (Cobrar, imprimir, etc.) sobre todo al tocar "+" repetido. */}
                 {stockExhausted && !hasVariants && (
-                    <p className="text-[11px] font-bold text-red-600 uppercase tracking-wide -mt-1.5">
+                    <p className="text-[11px] font-bold text-red-600 uppercase tracking-wide">
                         {quantity > 0
                             ? "Ya agregaste todo el stock disponible"
                             : "Sin stock"}
