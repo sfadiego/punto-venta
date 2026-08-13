@@ -21,7 +21,7 @@ interface ProductModalProps {
     formik: FormikProps<ProductForm>;
     categories: ICategory[];
     sellByWeight: boolean;
-    isRestaurant: boolean;
+    stockEnabled: boolean;
     currentStock?: string | null;
     onClose: () => void;
 }
@@ -32,7 +32,7 @@ export const ProductModal = ({
     formik,
     categories,
     sellByWeight,
-    isRestaurant,
+    stockEnabled,
     currentStock,
     onClose,
 }: ProductModalProps) => {
@@ -43,7 +43,6 @@ export const ProductModal = ({
     // manage_stock en el mismo producto (ver ProductVariantStoreRequest/ProductUpdateRequest,
     // que bloquean esta combinación en ambos sentidos también del lado del backend).
     const canUseVariants = formik.values.unidad_medida === UnidadMedidaEnum.Unidad && !formik.values.manage_stock;
-    const stockToggleDisabled = isRestaurant || hasVariants;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -84,12 +83,19 @@ export const ProductModal = ({
 
                     <ProductCodeField formik={formik} />
 
-                    <ProductStockToggle
-                        formik={formik}
-                        disabled={stockToggleDisabled}
-                        disabledMessage={hasVariants ? "No disponible en un producto con variantes" : undefined}
-                    />
-                    <ProductStockFields formik={formik} isEdit={isEdit} currentStock={currentStock} />
+                    {/* stockEnabled es business_config.stock_enabled (bandera por tenant
+                        gestionada desde SuperAdmin) — si el negocio no tiene stock habilitado,
+                        la sección ni se muestra en vez de mostrarla deshabilitada. */}
+                    {stockEnabled && (
+                        <>
+                            <ProductStockToggle
+                                formik={formik}
+                                disabled={hasVariants}
+                                disabledMessage={hasVariants ? "No disponible en un producto con variantes" : undefined}
+                            />
+                            <ProductStockFields formik={formik} isEdit={isEdit} currentStock={currentStock} />
+                        </>
+                    )}
 
                     <ProductAvailabilityToggle formik={formik} />
 

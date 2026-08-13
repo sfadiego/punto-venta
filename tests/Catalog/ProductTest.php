@@ -294,4 +294,62 @@ class ProductTest extends TestCase
             'descripcion' => 'Descripción que debe permanecer',
         ]);
     }
+
+    public function test_no_crea_producto_con_manage_stock_si_el_tenant_no_lo_tiene_habilitado(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::STOCK_ENABLED => false]);
+        $categoria = CategoryModel::first();
+
+        $this->postJson('/api/product', [
+            'nombre' => 'Producto sin stock habilitado',
+            'precio' => 20,
+            'categoria_id' => $categoria->id,
+            'manage_stock' => true,
+        ], $this->authHeaders())
+            ->assertStatus(400);
+
+        $this->assertDatabaseMissing('product', ['nombre' => 'Producto sin stock habilitado']);
+    }
+
+    public function test_no_activa_manage_stock_si_el_tenant_no_lo_tiene_habilitado(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::STOCK_ENABLED => false]);
+        $product = ProductModel::factory()->create(['manage_stock' => false]);
+
+        $this->putJson("/api/product/{$product->id}", [
+            'nombre' => $product->nombre,
+            'precio' => $product->precio,
+            'categoria_id' => $product->categoria_id,
+            'manage_stock' => true,
+        ], $this->authHeaders())
+            ->assertStatus(400);
+
+        $this->assertDatabaseHas('product', ['id' => $product->id, 'manage_stock' => false]);
+    }
+
+    public function test_actualiza_producto_con_manage_stock_previo_aunque_el_tenant_lo_haya_deshabilitado(): void
+    {
+        // Un producto que ya tenía manage_stock=true antes de que el SuperAdmin apagara la
+        // bandera del tenant debe poder seguir guardándose (ej. editar el nombre) sin que el
+        // reenvío del campo, tal cual, dispare el bloqueo de la transición false→true.
+        $tenant = BusinessConfigModel::first();
+        $product = ProductModel::factory()->create(['manage_stock' => true]);
+        $tenant->update([BusinessConfigModel::STOCK_ENABLED => false]);
+
+        $this->putJson("/api/product/{$product->id}", [
+            'nombre' => 'Producto renombrado',
+            'precio' => $product->precio,
+            'categoria_id' => $product->categoria_id,
+            'manage_stock' => true,
+        ], $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertDatabaseHas('product', [
+            'id' => $product->id,
+            'nombre' => 'Producto renombrado',
+            'manage_stock' => true,
+        ]);
+    }
 }

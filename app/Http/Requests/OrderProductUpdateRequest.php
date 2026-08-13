@@ -3,8 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Models\OrderProductModel;
+use App\Models\ProductModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class OrderProductUpdateRequest extends FormRequest
 {
@@ -35,5 +37,36 @@ class OrderProductUpdateRequest extends FormRequest
             ],
             OrderProductModel::OBSERVACION => 'nullable|string|max:200',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            if (! isset($this->cantidad)) {
+                return;
+            }
+
+            $orderProduct = OrderProductModel::find($this->route('product'));
+            if (! $orderProduct || ! $orderProduct->producto_id) {
+                return;
+            }
+
+            // Igual que en OrderProductStoreRequest: el stock se descuenta recién al cerrar la
+            // orden, pero la reserva en el carrito se valida aquí también (no solo en el
+            // frontend). variant_id puede venir en el mismo request (cambio de variante) o
+            // heredarse de la línea existente.
+            $effectiveVariantId = $this->has('variant_id') ? $this->variant_id : $orderProduct->variant_id;
+            if ($effectiveVariantId) {
+                return;
+            }
+
+            $product = ProductModel::find($orderProduct->producto_id);
+            if ($product && $product->manage_stock && (float) $this->cantidad > (float) $product->stock) {
+                $validator->errors()->add(
+                    'cantidad',
+                    "Stock insuficiente de {$product->nombre}. Disponible: {$product->stock}.",
+                );
+            }
+        });
     }
 }

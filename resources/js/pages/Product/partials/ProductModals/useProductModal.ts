@@ -2,6 +2,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useIndexCategories } from "@/services/useCategoriesService";
+import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import {
     useStoreProduct,
     useUpdateProduct,
@@ -76,8 +77,12 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
     const { mutateAsync: deleteVariant } = useDeleteProductVariant();
     const { data: categories } = useIndexCategories();
     const { features } = useAxios();
+    const { data: businessConfig } = useGetBusinessConfig();
     const sellByWeight = features?.sell_by_weight === true;
-    const isRestaurant = features?.kitchen_view === true;
+    // Bandera por tenant (business_config.stock_enabled, gestionada desde SuperAdmin) — no
+    // depende del tipo de negocio: reemplaza el bloqueo anterior que deshabilitaba "Maneja
+    // stock" para todo negocio tipo restaurante sin excepción.
+    const stockEnabled = businessConfig?.stock_enabled === true;
 
     const initialVariants: ProductVariantFormValue[] =
         product?.variants?.map((v) => ({ id: v.id, nombre: v.nombre, precio: v.precio.toString() })) ?? [];
@@ -167,7 +172,7 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
         formik,
         categories: categories ?? [],
         sellByWeight,
-        isRestaurant,
+        stockEnabled,
         currentStock: product?.stock ?? null,
     };
 };

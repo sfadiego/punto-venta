@@ -48,6 +48,7 @@ export const useDeliverySection = (config: IBusinessConfig | undefined) => {
                     menu_enabled:            config.menu_enabled,
                     purchases_enabled:            config.purchases_enabled,
                     employees_enabled:            config.employees_enabled,
+                    stock_enabled:                config.stock_enabled,
                 });
                 toast.success("Configuración de domicilio guardada.");
             } catch (error) {

@@ -34,6 +34,7 @@ export const useIconSelector = (config: IBusinessConfig | undefined) => {
                 menu_enabled:              config.menu_enabled,
                 purchases_enabled:              config.purchases_enabled,
                 employees_enabled:              config.employees_enabled,
+                stock_enabled:                  config.stock_enabled,
             },
             {
                 onSuccess: () =>

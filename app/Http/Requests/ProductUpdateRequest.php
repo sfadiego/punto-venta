@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\IconSourceEnum;
 use App\Enums\UnidadMedidaEnum;
+use App\Models\BusinessConfigModel;
 use App\Models\ProductModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -95,6 +96,25 @@ class ProductUpdateRequest extends FormRequest
                     ProductModel::MANAGE_STOCK,
                     'No se puede activar el manejo de stock en un producto con variantes activas.',
                 );
+            }
+
+            // Defensa en profundidad: el frontend ya oculta el toggle cuando el tenant no
+            // tiene stock_enabled. Solo bloquea la transición false→true — un producto que ya
+            // tenía manage_stock=true antes de que el SuperAdmin apagara la bandera puede
+            // seguir guardándose sin tocar ese campo (el formulario lo reenvía tal cual).
+            if (
+                $this->boolean(ProductModel::MANAGE_STOCK)
+                && ! ($product?->manage_stock ?? false)
+            ) {
+                $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+                $stockEnabled = BusinessConfigModel::find($tenantId)?->stock_enabled ?? false;
+
+                if (! $stockEnabled) {
+                    $validator->errors()->add(
+                        ProductModel::MANAGE_STOCK,
+                        'El control de stock no está habilitado para este negocio.',
+                    );
+                }
             }
         });
     }

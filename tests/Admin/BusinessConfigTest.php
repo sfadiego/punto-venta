@@ -122,6 +122,30 @@ class BusinessConfigTest extends TestCase
         ]);
     }
 
+    public function test_stock_enabled_no_se_puede_modificar_desde_el_tenant(): void
+    {
+        // stock_enabled se gestiona exclusivamente desde SuperAdmin (ver
+        // TenantManagementController), igual que purchases_enabled/employees_enabled.
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::STOCK_ENABLED => false]);
+
+        $this->putJson('/api/admin/config', [
+            'business_name' => 'Cafe Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'stock_enabled' => true,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.stock_enabled', false);
+
+        $this->assertDatabaseHas('business_config', [
+            'id' => $tenant->id,
+            'stock_enabled' => false,
+        ]);
+    }
+
     public function test_actualiza_paper_width_a_80mm(): void
     {
         $this->putJson('/api/admin/config', [

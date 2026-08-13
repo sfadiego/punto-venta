@@ -45,7 +45,7 @@ export default function ProductsPage() {
         handleCloseModal,
     } = useProductsPage();
 
-    const { isEdit, formik, categories: modalCategories, sellByWeight, isRestaurant, currentStock } = useProductModal(
+    const { isEdit, formik, categories: modalCategories, sellByWeight, stockEnabled, currentStock } = useProductModal(
         editingProduct,
         invalidateProducts,
         handleCloseModal,
@@ -132,10 +132,9 @@ export default function ProductsPage() {
                     </span>
                 ),
             },
-            // Stock es un concepto de inventario por unidad/peso — no aplica al flujo de
-            // restaurante (platillos preparados al momento), así que la columna solo se
-            // muestra para negocios de venta por peso.
-            ...(sellByWeight
+            // La columna solo se muestra si el negocio tiene el control de stock habilitado
+            // (business_config.stock_enabled, gestionado desde SuperAdmin).
+            ...(stockEnabled
                 ? [
                       {
                           accessor: "stock" as keyof IProduct,
@@ -163,7 +162,7 @@ export default function ProductsPage() {
                 ),
             },
         ],
-        [openEditModal, openRestockModal, openMovementsModal, sellByWeight],
+        [openEditModal, openRestockModal, openMovementsModal, stockEnabled],
     );
 
     return (
@@ -213,8 +212,7 @@ export default function ProductsPage() {
                         </>
                     )}
 
-                    {/* Stock es un concepto de venta por peso — no aplica al flujo de restaurante */}
-                    {sellByWeight && (
+                    {stockEnabled && (
                         <LowStockFilter checked={lowStockOnly} onChange={handleLowStockOnlyChange} />
                     )}
                 </div>
@@ -252,7 +250,7 @@ export default function ProductsPage() {
                 formik={formik}
                 categories={modalCategories}
                 sellByWeight={sellByWeight}
-                isRestaurant={isRestaurant}
+                stockEnabled={stockEnabled}
                 currentStock={currentStock}
                 onClose={handleModalClose}
             />

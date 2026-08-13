@@ -14,6 +14,8 @@ export const buildCartItems = (orderProducts: IOrderProduct[] = []): ICartItem[]
         isReady: op.is_ready ?? false,
         variantId: op.variant_id ?? null,
         variantName: op.variant?.nombre ?? null,
+        manageStock: op.product?.manage_stock ?? false,
+        stock: op.product?.stock ?? null,
     }));
 
 export const getCartQuantityForProduct = (cart: ICartItem[], productId: number): number =>

@@ -4,9 +4,11 @@ namespace App\Http\Requests;
 
 use App\Enums\IconSourceEnum;
 use App\Enums\UnidadMedidaEnum;
+use App\Models\BusinessConfigModel;
 use App\Models\ProductModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class ProductStoreRequest extends FormRequest
 {
@@ -54,6 +56,23 @@ class ProductStoreRequest extends FormRequest
             ProductModel::ICON_NAME => 'nullable|string|max:100',
             ProductModel::ICON_SOURCE => ['nullable', Rule::enum(IconSourceEnum::class)],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+            $stockEnabled = BusinessConfigModel::find($tenantId)?->stock_enabled ?? false;
+
+            // Defensa en profundidad: el frontend ya oculta el toggle "Maneja stock" cuando el
+            // tenant no tiene stock_enabled, pero un request directo a la API podría saltárselo.
+            if ($this->boolean(ProductModel::MANAGE_STOCK) && ! $stockEnabled) {
+                $validator->errors()->add(
+                    ProductModel::MANAGE_STOCK,
+                    'El control de stock no está habilitado para este negocio.',
+                );
+            }
+        });
     }
 
     public function messages(): array

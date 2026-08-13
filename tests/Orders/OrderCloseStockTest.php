@@ -179,6 +179,85 @@ class OrderCloseStockTest extends TestCase
         $this->assertEquals(0, StockMovementModel::where('product_id', $product->id)->count());
     }
 
+    // ── Reservar más de lo disponible se bloquea al agregar/actualizar ──
+
+    public function test_no_agrega_producto_si_excede_el_stock_disponible(): void
+    {
+        $orden = $this->crearOrden();
+        $product = $this->crearProductoConStock(5);
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 6,
+            OrderProductModel::PRECIO => $product->precio,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())->assertStatus(400);
+
+        $this->assertDatabaseMissing('order_product', [
+            'pedido_id' => $orden->id,
+            'producto_id' => $product->id,
+        ]);
+    }
+
+    public function test_no_agrega_producto_si_suma_de_lineas_excede_stock(): void
+    {
+        // Cada POST crea una línea independiente (ver OrderProductTest::
+        // test_agregar_mismo_producto_acumula_total) — el tope debe sumar contra las líneas
+        // ya existentes de ese producto en la orden, no solo contra la cantidad del request.
+        $orden = $this->crearOrden();
+        $product = $this->crearProductoConStock(5);
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 3,
+            OrderProductModel::PRECIO => $product->precio,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())->assertStatus(200);
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 3,
+            OrderProductModel::PRECIO => $product->precio,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())->assertStatus(400);
+
+        $this->assertEquals(3, OrderProductModel::where('pedido_id', $orden->id)
+            ->where('producto_id', $product->id)->sum('cantidad'));
+    }
+
+    public function test_no_actualiza_cantidad_si_excede_el_stock_disponible(): void
+    {
+        $orden = $this->crearOrden();
+        $product = $this->crearProductoConStock(5);
+        $item = $this->agregarProducto($orden, $product, 3);
+
+        $this->putJson("/api/order/{$orden->id}/product/{$item->id}", [
+            OrderProductModel::CANTIDAD => 6,
+        ], $this->authHeaders())->assertStatus(400);
+
+        $this->assertEquals(3, $item->fresh()->cantidad);
+    }
+
+    public function test_agrega_producto_con_variante_sin_topar_por_stock(): void
+    {
+        // Una línea de variante no descuenta stock (ver OrderSaleService) — no debe limitarse
+        // por la existencia del producto base.
+        $orden = $this->crearOrden();
+        $product = $this->crearProductoConStock(1);
+        $variant = \App\Models\ProductVariantModel::factory()->create([
+            \App\Models\ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+        ]);
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::VARIANT_ID => $variant->id,
+            OrderProductModel::CANTIDAD => 10,
+            OrderProductModel::PRECIO => $variant->precio,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())->assertStatus(200);
+    }
+
     public function test_cerrar_orden_ya_cerrada_no_vuelve_a_descontar_stock(): void
     {
         $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);

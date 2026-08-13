@@ -375,6 +375,29 @@ class TenantManagementTest extends TestCase
         ]);
     }
 
+    public function test_activa_control_de_stock_del_tenant(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::STOCK_ENABLED => false]);
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", [
+            'slug' => $tenant->slug,
+            'business_name' => $tenant->business_name,
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'stock_enabled' => true,
+        ], $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.stock_enabled', true);
+
+        $this->assertDatabaseHas('business_config', [
+            'id' => $tenant->id,
+            'stock_enabled' => true,
+        ]);
+    }
+
     public function test_no_actualiza_tenant_con_slug_duplicado(): void
     {
         // Crear un segundo tenant para poder duplicar slug

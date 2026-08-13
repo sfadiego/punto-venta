@@ -11,7 +11,7 @@ interface ProductStockToggleProps {
 export const ProductStockToggle = ({
     formik,
     disabled = false,
-    disabledMessage = "No disponible para este tipo de negocio",
+    disabledMessage = "No disponible para este negocio",
 }: ProductStockToggleProps) => (
     <div className="flex items-center justify-between p-3 bg-stone-50 rounded-xl">
         <div>
