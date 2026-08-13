@@ -180,4 +180,10 @@ export const OPENMOJI_CATALOG: IOpenmojiIcon[] = [
     { key: "1F953", label: "Tocino", group: "Carnes" },
     { key: "1F357", label: "Pollo (trozo)", group: "Carnes" },
     { key: "1F354", label: "Hamburguesa", group: "Carnes" },
+    { key: "1F404", label: "Res / vaca", group: "Carnes" },
+    { key: "1F9B4", label: "Hueso", group: "Carnes" },
+    { key: "E312", label: "Hígado", group: "Carnes" },
+    { key: "1F9B6", label: "Pata / cuero", group: "Carnes" },
+    { key: "E0CE", label: "Especias", group: "Otros" },
+    { key: "1F33F", label: "Hierbas", group: "Otros" },
 ];
