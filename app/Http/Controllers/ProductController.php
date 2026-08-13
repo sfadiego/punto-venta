@@ -83,7 +83,7 @@ class ProductController extends Controller
                 manageStock: $param->has('manage_stock') ? (bool) $param->manage_stock : null,
                 minStock: $param->has('min_stock') ? $param->min_stock : null,
                 productCode: $param->has('product_code') ? ($param->product_code ?? '') : null,
-                iconName: $param->has('icon_name') ? $param->icon_name : null,
+                iconName: $param->has('icon_name') ? ($param->icon_name ?? '') : null,
                 iconSource: $param->has('icon_source') ? $param->icon_source : null,
             )
         );
