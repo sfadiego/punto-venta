@@ -16,7 +16,12 @@ export const CategoryRailItem = ({ category, isActive, onSelect }: CategoryRailI
         }`}
         style={isActive ? { backgroundColor: "var(--color-primary)" } : undefined}
     >
-        <CatalogIcon iconName={category.icon_name} iconSource={category.icon_source} size={20} />
-        <span className="text-[11px] font-semibold leading-tight">{category.nombre}</span>
+        {/* Sin el texto debajo (oculto hasta md:), el ícono queda chico dentro del mismo
+            ancho de botón — se agranda con scale en vez de tocar CatalogIcon, así funciona
+            igual para íconos Lucide (svg) y OpenMoji (img con tamaño inline). */}
+        <span className="inline-flex scale-125 md:scale-100 transition-transform">
+            <CatalogIcon iconName={category.icon_name} iconSource={category.icon_source} size={20} />
+        </span>
+        <span className="hidden md:inline lg:inline text-[11px] font-semibold leading-tight">{category.nombre}</span>
     </button>
 );

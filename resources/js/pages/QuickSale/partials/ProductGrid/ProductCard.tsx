@@ -101,13 +101,13 @@ export const ProductCard = ({
                           : "hover:shadow-md active:scale-[0.98] cursor-pointer border-stone-100 hover:border-amber-200"
                 }`}
             >
-                <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-3 min-w-0">
-                        <span className="w-11 h-11 shrink-0 rounded-xl bg-stone-100 flex items-center justify-center">
+                <div className="flex items-center justify-between gap-1.5">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="w-10 h-10 shrink-0 rounded-xl bg-stone-100 flex items-center justify-center">
                             <CatalogIcon
                                 iconName={product.icon_name}
                                 iconSource={product.icon_source}
-                                size={24}
+                                size={28}
                                 className="text-stone-500"
                             />
                         </span>
@@ -116,14 +116,14 @@ export const ProductCard = ({
                                 {product.nombre}
                             </p>
                             <p
-                                className="text-lg font-extrabold tabular-nums leading-tight"
+                                className="text-base font-extrabold tabular-nums leading-tight truncate"
                                 style={{ color: "var(--color-primary)" }}
                             >
                                 {formatCurrencyTrimmed(product.precio)}
                                 {weightUnit && (
-                                    <span className="text-[11px] font-semibold text-stone-400">
+                                    <span className="text-[10px] font-semibold text-stone-400">
                                         {" "}
-                                        / {UNIDAD_LABELS[weightUnit]}
+                                        /{UNIDAD_LABELS[weightUnit]}
                                     </span>
                                 )}
                             </p>
@@ -139,7 +139,7 @@ export const ProductCard = ({
                                 onClick={() =>
                                     setMode(WeightInputModeEnum.Weight)
                                 }
-                                className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                                className={`px-2 py-1 rounded-full text-[10px] font-bold transition-colors ${
                                     isWeightMode
                                         ? "text-white"
                                         : "text-stone-500"
@@ -160,7 +160,7 @@ export const ProductCard = ({
                                 onClick={() =>
                                     setMode(WeightInputModeEnum.Price)
                                 }
-                                className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                                className={`px-2 py-1 rounded-full text-[10px] font-bold transition-colors ${
                                     !isWeightMode
                                         ? "text-white"
                                         : "text-stone-500"
