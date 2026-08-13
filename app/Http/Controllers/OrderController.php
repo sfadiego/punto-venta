@@ -118,7 +118,7 @@ class OrderController extends Controller
                 $product = ProductModel::find($item->producto_id);
                 // Ver comentario equivalente en OrderSaleService::createDirectSale — una venta
                 // por variante no descuenta del stock del producto base.
-                if ($product && $product->manage_stock && !$item->variant_id) {
+                if ($product && $product->manage_stock && ! $item->variant_id) {
                     $stockService->deduct(
                         productId: $product->id,
                         quantity: (float) $item->cantidad,
