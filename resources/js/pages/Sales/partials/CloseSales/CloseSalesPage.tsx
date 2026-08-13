@@ -100,8 +100,10 @@ export default function CloseSalesPage() {
             )}
 
             <BestSellerWidget sistemaId={sistemaId} />
-            <CreditCustomersWidget sistemaId={sistemaId} />
-            
+            {/* Ventas a crédito hoy solo aplican a clientes de venta por peso — restaurante no
+                maneja clientes todavía. */}
+            {sellByWeight && <CreditCustomersWidget sistemaId={sistemaId} />}
+
             <CloseSalesSessionDetail activeSale={activeSale} />
 
             {hasActiveOrders && (
