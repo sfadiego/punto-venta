@@ -116,6 +116,7 @@ export const RestaurantPayModal = ({
                                 setCash={setCash}
                                 change={change}
                                 max={Math.ceil(totalFinal * 10)}
+                                totalFinal={totalFinal}
                             />
                         </>
                     )}

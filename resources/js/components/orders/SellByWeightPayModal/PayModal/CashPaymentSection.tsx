@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/form/Input";
 import { PayTransferAlert } from "@/components/orders/PayModal/PayTransferAlert";
 import { formatCurrencyTrimmed as formatCurrency } from "@/utils/formatCurrency";
-import { QuickCashChips } from "./QuickCashChips";
+import { QuickCashChips } from "@/components/orders/PayModal/QuickCashChips";
 
 interface CashPaymentSectionProps {
     isCashMethod: boolean;
