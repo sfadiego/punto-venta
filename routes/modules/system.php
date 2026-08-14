@@ -57,6 +57,7 @@ Route::prefix('admin')->group(function () {
             // roles (useDashboard.ts), no solo desde la página de Estadísticas (Admin-only).
             Route::controller(StatisticsController::class)->group(function () {
                 Route::get('best-seller', 'top3BestSeller');
+                Route::get('average-ticket', 'averageTicket');
             });
         });
     });

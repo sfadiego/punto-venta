@@ -1,4 +1,4 @@
-import { TrendingUp, ShoppingBag, Award, DollarSign } from "lucide-react";
+import { TrendingUp, Receipt, Award, DollarSign } from "lucide-react";
 import { IBestSellerItem } from "@/services/useStatisticsService";
 import { formatTotal } from "@/utils/formatUnits";
 
@@ -6,14 +6,15 @@ interface StatisticsSummaryCardsProps {
     cajaAbierta: boolean;
     totalVentas: string;
     topProduct?: IBestSellerItem;
-    totalLabel: string;
+    averageTicketLabel: string;
+    ordersCount: number;
     rankingCount: number;
 }
 
 export const StatisticsSummaryCards = ({
-    cajaAbierta, totalVentas, topProduct, totalLabel, rankingCount,
+    cajaAbierta, totalVentas, topProduct, averageTicketLabel, ordersCount, rankingCount,
 }: StatisticsSummaryCardsProps) => (
-    <div className={`grid grid-cols-1 gap-4 ${cajaAbierta ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2"}`}>
+    <div className={`grid grid-cols-1 gap-4 ${cajaAbierta ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
         {cajaAbierta && (
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 flex items-start gap-4">
                 <div className="p-2.5 rounded-xl shrink-0 bg-green-100">
@@ -42,17 +43,18 @@ export const StatisticsSummaryCards = ({
             </div>
         </div>
 
-        {cajaAbierta && (
-            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 flex items-start gap-4">
-                <div className="p-2.5 rounded-xl bg-emerald-100 shrink-0">
-                    <ShoppingBag size={20} className="text-emerald-600" />
-                </div>
-                <div>
-                    <p className="text-xs text-stone-500 font-medium">Total vendido</p>
-                    <p className="text-2xl font-bold text-stone-900 mt-0.5">{totalLabel}</p>
-                </div>
+        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 flex items-start gap-4">
+            <div className="p-2.5 rounded-xl bg-emerald-100 shrink-0">
+                <Receipt size={20} className="text-emerald-600" />
             </div>
-        )}
+            <div>
+                <p className="text-xs text-stone-500 font-medium">Venta promedio</p>
+                <p className="text-2xl font-bold text-stone-900 mt-0.5">{averageTicketLabel}</p>
+                <p className="text-xs text-stone-400 mt-0.5">
+                    {ordersCount} venta{ordersCount !== 1 ? "s" : ""} este mes
+                </p>
+            </div>
+        </div>
 
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 flex items-start gap-4">
             <div className="p-2.5 rounded-xl bg-blue-100 shrink-0">
