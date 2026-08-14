@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import { IconSourceEnum } from "@/enums/IconSourceEnum";
 import { IconPicker } from "@/components/ui/IconPicker";
 import { OpenmojiPicker } from "@/components/ui/OpenmojiPicker";
+import { NativeEmojiPicker } from "@/components/ui/NativeEmojiPicker";
 
 interface IconSourcePickerProps {
     iconName: string;
@@ -13,11 +14,14 @@ interface IconSourcePickerProps {
 const TABS: { source: IconSourceEnum; label: string }[] = [
     { source: IconSourceEnum.Lucide, label: "Íconos" },
     { source: IconSourceEnum.Openmoji, label: "Imágenes" },
+    { source: IconSourceEnum.Native, label: "Emoji" },
 ];
 
 export const IconSourcePicker = ({ iconName, iconSource, onChange }: IconSourcePickerProps) => {
     const [tab, setTab] = useState<IconSourceEnum>(
-        iconSource === IconSourceEnum.Openmoji ? IconSourceEnum.Openmoji : IconSourceEnum.Lucide,
+        Object.values(IconSourceEnum).includes(iconSource as IconSourceEnum)
+            ? (iconSource as IconSourceEnum)
+            : IconSourceEnum.Lucide,
     );
     const [search, setSearch] = useState("");
 
@@ -58,11 +62,17 @@ export const IconSourcePicker = ({ iconName, iconSource, onChange }: IconSourceP
                         search={search}
                         onSelect={(name) => onChange(name, IconSourceEnum.Lucide)}
                     />
-                ) : (
+                ) : tab === IconSourceEnum.Openmoji ? (
                     <OpenmojiPicker
                         value={iconSource === IconSourceEnum.Openmoji ? iconName : ""}
                         search={search}
                         onSelect={(key) => onChange(key, IconSourceEnum.Openmoji)}
+                    />
+                ) : (
+                    <NativeEmojiPicker
+                        value={iconSource === IconSourceEnum.Native ? iconName : ""}
+                        search={search}
+                        onSelect={(emoji) => onChange(emoji, IconSourceEnum.Native)}
                     />
                 )}
             </div>

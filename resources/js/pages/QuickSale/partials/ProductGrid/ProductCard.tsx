@@ -93,7 +93,7 @@ export const ProductCard = ({
                         handleCardClick();
                     }
                 }}
-                className={`flex flex-col gap-2.5 text-left bg-white rounded-2xl border p-4 shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
+                className={`relative overflow-hidden text-left bg-white rounded-2xl border p-4 shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                     stockExhausted && !hasVariants
                         ? "border-stone-100 cursor-not-allowed"
                         : tapToAddDisabled
@@ -101,169 +101,176 @@ export const ProductCard = ({
                           : "hover:shadow-md active:scale-[0.98] cursor-pointer border-stone-100 hover:border-amber-200"
                 }`}
             >
-                <div className="flex items-center justify-between gap-1.5">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <span className="w-10 h-10 shrink-0 rounded-xl bg-stone-100 flex items-center justify-center">
-                            <CatalogIcon
-                                iconName={product.icon_name}
-                                iconSource={product.icon_source}
-                                size={28}
-                                className="text-stone-500"
-                            />
-                        </span>
-                        <div className="min-w-0">
-                            <p className="text-sm font-semibold text-stone-900 leading-tight truncate">
-                                {product.nombre}
-                            </p>
-                            <p
-                                className="text-base font-extrabold tabular-nums leading-tight truncate"
-                                style={{ color: "var(--color-primary)" }}
+                {/* Ícono como marca de agua: da protagonismo visual sin competir por espacio
+                    horizontal con el nombre/toggle (a diferencia de un avatar inline, esto no
+                    reintroduce el problema de truncado en cards angostas). Sale del flujo
+                    normal, así que el resto del contenido va en su propio wrapper "relative"
+                    para pintarse por encima sin depender del orden en el DOM. */}
+                <CatalogIcon
+                    iconName={product.icon_name}
+                    iconSource={product.icon_source}
+                    size={88}
+                    className="absolute -right-2 -top-2 text-stone-200 opacity-25 pointer-events-none"
+                />
+                <div className="relative flex flex-col gap-2.5">
+                    <div className="flex items-center justify-between gap-1.5">
+                        <p className="text-sm font-semibold text-stone-900 leading-tight truncate min-w-0 flex-1">
+                            {product.nombre}
+                        </p>
+                        {weightUnit && (
+                            <div
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex gap-0.5 bg-stone-100 border border-stone-200 rounded-full p-0.5 shrink-0"
                             >
-                                {formatCurrencyTrimmed(product.precio)}
-                                {weightUnit && (
-                                    <span className="text-[10px] font-semibold text-stone-400">
-                                        {" "}
-                                        /{UNIDAD_LABELS[weightUnit]}
-                                    </span>
-                                )}
-                            </p>
-                        </div>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setMode(WeightInputModeEnum.Weight)
+                                    }
+                                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                                        isWeightMode
+                                            ? "text-white"
+                                            : "text-stone-500"
+                                    }`}
+                                    style={
+                                        isWeightMode
+                                            ? {
+                                                  backgroundColor:
+                                                      "var(--color-primary)",
+                                              }
+                                            : undefined
+                                    }
+                                >
+                                    {UNIDAD_LABELS[weightUnit]}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setMode(WeightInputModeEnum.Price)
+                                    }
+                                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                                        !isWeightMode
+                                            ? "text-white"
+                                            : "text-stone-500"
+                                    }`}
+                                    style={
+                                        !isWeightMode
+                                            ? {
+                                                  backgroundColor:
+                                                      "var(--color-primary)",
+                                              }
+                                            : undefined
+                                    }
+                                >
+                                    $
+                                </button>
+                            </div>
+                        )}
                     </div>
-                    {weightUnit && (
+
+                    <p
+                        className="text-xl font-extrabold tabular-nums"
+                        style={{ color: "var(--color-primary)" }}
+                    >
+                        {formatCurrencyTrimmed(product.precio)}
+                        {weightUnit && (
+                            <span className="text-xs font-semibold text-stone-400">
+                                {" "}
+                                / {UNIDAD_LABELS[weightUnit]}
+                            </span>
+                        )}
+                    </p>
+
+                    {/* Aviso de stock en la card, no como toast — un toast tapaba los botones de
+                    abajo (Cobrar, imprimir, etc.) sobre todo al tocar "+" repetido. */}
+                    {stockExhausted && !hasVariants && (
+                        <p className="text-[11px] font-bold text-red-600 uppercase tracking-wide -mt-1.5">
+                            {quantity > 0
+                                ? "Ya agregaste todo el stock disponible"
+                                : "Sin stock"}
+                        </p>
+                    )}
+
+                    {weightUnit ? (
+                        isWeightMode ? (
+                            <ProductCardChips
+                                options={weightChipOptions(weightUnit)}
+                                onAdd={addWeight}
+                                disabled={stockExhausted}
+                                maxAddable={
+                                    isManagedStock ? maxAddable : undefined
+                                }
+                            />
+                        ) : (
+                            <div className="flex flex-col gap-1.5">
+                                <ProductCardChips
+                                    options={QUICK_PRICE_OPTIONS}
+                                    onAdd={addMoneyAmount}
+                                    disabled={stockExhausted}
+                                    maxAddable={
+                                        Number.isFinite(maxMoneyValue)
+                                            ? maxMoneyValue
+                                            : undefined
+                                    }
+                                />
+                                <ProductCardMoneyEntry
+                                    value={moneyValue}
+                                    onChange={setMoneyValue}
+                                    onCommit={commitMoney}
+                                    maxValue={maxMoneyValue}
+                                    disabled={stockExhausted}
+                                />
+                            </div>
+                        )
+                    ) : hasVariants ? (
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsVariantPickerOpen(true);
+                            }}
+                            className="w-full flex items-center justify-center gap-1.5 text-xs font-bold py-2.5 rounded-lg text-white active:scale-95 transition-all"
+                            style={{ backgroundColor: "var(--color-primary)" }}
+                        >
+                            <Plus size={14} />
+                            Agregar
+                        </button>
+                    ) : quantity === 0 ? (
+                        <button
+                            type="button"
+                            disabled={stockExhausted}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAdd(product, 1);
+                            }}
+                            className="w-full flex items-center justify-center gap-1.5 text-xs font-bold py-2.5 rounded-lg text-white active:scale-95 transition-all disabled:bg-stone-300 disabled:cursor-not-allowed disabled:active:scale-100"
+                            style={
+                                stockExhausted
+                                    ? undefined
+                                    : {
+                                          backgroundColor:
+                                              "var(--color-primary)",
+                                      }
+                            }
+                        >
+                            <Plus size={14} />
+                            Agregar
+                        </button>
+                    ) : (
                         <div
                             onClick={(e) => e.stopPropagation()}
-                            className="flex gap-0.5 bg-stone-100 border border-stone-200 rounded-full p-0.5 shrink-0"
+                            className="flex justify-center"
                         >
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setMode(WeightInputModeEnum.Weight)
-                                }
-                                className={`px-2 py-1 rounded-full text-[10px] font-bold transition-colors ${
-                                    isWeightMode
-                                        ? "text-white"
-                                        : "text-stone-500"
-                                }`}
-                                style={
-                                    isWeightMode
-                                        ? {
-                                              backgroundColor:
-                                                  "var(--color-primary)",
-                                          }
-                                        : undefined
-                                }
-                            >
-                                {UNIDAD_LABELS[weightUnit]}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setMode(WeightInputModeEnum.Price)
-                                }
-                                className={`px-2 py-1 rounded-full text-[10px] font-bold transition-colors ${
-                                    !isWeightMode
-                                        ? "text-white"
-                                        : "text-stone-500"
-                                }`}
-                                style={
-                                    !isWeightMode
-                                        ? {
-                                              backgroundColor:
-                                                  "var(--color-primary)",
-                                          }
-                                        : undefined
-                                }
-                            >
-                                $
-                            </button>
+                            <UnitControls
+                                quantity={quantity}
+                                primaryColor="var(--color-primary)"
+                                onAdd={() => onAdd(product, 1)}
+                                onRemove={() => onDecrement(product)}
+                                disableAdd={stockExhausted}
+                            />
                         </div>
                     )}
                 </div>
-
-                {/* Aviso de stock en la card, no como toast — un toast tapaba los botones de
-                abajo (Cobrar, imprimir, etc.) sobre todo al tocar "+" repetido. */}
-                {stockExhausted && !hasVariants && (
-                    <p className="text-[11px] font-bold text-red-600 uppercase tracking-wide">
-                        {quantity > 0
-                            ? "Ya agregaste todo el stock disponible"
-                            : "Sin stock"}
-                    </p>
-                )}
-
-                {weightUnit ? (
-                    isWeightMode ? (
-                        <ProductCardChips
-                            options={weightChipOptions(weightUnit)}
-                            onAdd={addWeight}
-                            disabled={stockExhausted}
-                            maxAddable={isManagedStock ? maxAddable : undefined}
-                        />
-                    ) : (
-                        <div className="flex flex-col gap-1.5">
-                            <ProductCardChips
-                                options={QUICK_PRICE_OPTIONS}
-                                onAdd={addMoneyAmount}
-                                disabled={stockExhausted}
-                                maxAddable={
-                                    Number.isFinite(maxMoneyValue)
-                                        ? maxMoneyValue
-                                        : undefined
-                                }
-                            />
-                            <ProductCardMoneyEntry
-                                value={moneyValue}
-                                onChange={setMoneyValue}
-                                onCommit={commitMoney}
-                                maxValue={maxMoneyValue}
-                                disabled={stockExhausted}
-                            />
-                        </div>
-                    )
-                ) : hasVariants ? (
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setIsVariantPickerOpen(true);
-                        }}
-                        className="w-full flex items-center justify-center gap-1.5 text-xs font-bold py-2.5 rounded-lg text-white active:scale-95 transition-all"
-                        style={{ backgroundColor: "var(--color-primary)" }}
-                    >
-                        <Plus size={14} />
-                        Agregar
-                    </button>
-                ) : quantity === 0 ? (
-                    <button
-                        type="button"
-                        disabled={stockExhausted}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onAdd(product, 1);
-                        }}
-                        className="w-full flex items-center justify-center gap-1.5 text-xs font-bold py-2.5 rounded-lg text-white active:scale-95 transition-all disabled:bg-stone-300 disabled:cursor-not-allowed disabled:active:scale-100"
-                        style={
-                            stockExhausted
-                                ? undefined
-                                : { backgroundColor: "var(--color-primary)" }
-                        }
-                    >
-                        <Plus size={14} />
-                        Agregar
-                    </button>
-                ) : (
-                    <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex justify-center"
-                    >
-                        <UnitControls
-                            quantity={quantity}
-                            primaryColor="var(--color-primary)"
-                            onAdd={() => onAdd(product, 1)}
-                            onRemove={() => onDecrement(product)}
-                            disableAdd={stockExhausted}
-                        />
-                    </div>
-                )}
             </div>
 
             {hasVariants && (
