@@ -1,5 +1,7 @@
 import { Input } from "@/components/ui/form/Input";
 import { PayTransferAlert } from "@/components/orders/PayModal/PayTransferAlert";
+import { formatCurrencyTrimmed as formatCurrency } from "@/utils/formatCurrency";
+import { QuickCashChips } from "@/components/orders/PayModal/QuickCashChips";
 
 interface CashPaymentSectionProps {
     isCashMethod: boolean;
@@ -36,13 +38,15 @@ export const CashPaymentSection = ({
                 }}
             />
 
+            <QuickCashChips totalFinal={totalFinal} cashNum={cashNum} onSelect={(value) => setCash(String(value))} />
+
             {cashNum > 0 && (
                 <div className={`flex items-center justify-between p-3 rounded-xl transition-colors duration-200 ${
                     change >= 0 ? "bg-emerald-50" : "bg-red-50"
                 }`}>
                     <span className="text-sm text-stone-500">Cambio</span>
                     <span className={`text-lg font-bold ${change >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-                        ${change.toFixed(2)}
+                        {formatCurrency(change)}
                     </span>
                 </div>
             )}

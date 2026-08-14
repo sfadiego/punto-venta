@@ -21,6 +21,7 @@ export const TenantSidePanel = ({ tenant, isLoading }: Props) => {
         ? `${ApisEnum.BaseUrl}${ApiRoutes.Files}/${tenant.logo_path}`
         : null;
     const logoIcon = tenant?.logo_icon ?? null;
+    const logoIconSource = tenant?.logo_icon_source ?? null;
     const navigate = useNavigate();
     return (
         <div
@@ -43,6 +44,7 @@ export const TenantSidePanel = ({ tenant, isLoading }: Props) => {
                         <BusinessLogo
                             logoUrl={logoUrl}
                             logoIcon={logoIcon}
+                            logoIconSource={logoIconSource}
                             size={56}
                             imgClassName="w-14 h-14 object-contain rounded-xl cursor-pointer"
                             onClick={() => navigate('/auth')}

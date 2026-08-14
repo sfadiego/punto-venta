@@ -1,6 +1,7 @@
 import { Wallet, Loader } from "lucide-react";
 import { formatCurrencyTrimmed as formatCurrency } from "@/utils/formatCurrency";
 import { PayrollFilterPeriod } from "@/models/IEmployee";
+import { PAYROLL_FORMULA_LABELS } from "@/utils/salaryPeriodUtils";
 import { usePayrollSummaryCard } from "./usePayrollSummaryCard";
 
 const PERIOD_LABELS: Record<PayrollFilterPeriod, string> = {
@@ -27,6 +28,9 @@ export const PayrollSummaryCard = () => {
                         )}
                         <p className="text-xs text-stone-400 mt-0.5">
                             {employeesCount} {employeesCount === 1 ? "empleado activo" : "empleados activos"}
+                        </p>
+                        <p className="text-[11px] text-stone-300 mt-0.5">
+                            {PAYROLL_FORMULA_LABELS[period]}
                         </p>
                     </div>
                 </div>

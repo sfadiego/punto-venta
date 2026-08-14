@@ -1,15 +1,19 @@
 import { Modal } from "@mantine/core";
 import { IOrder } from "@/models/IOrder";
+import { IOrderProduct } from "@/models/IOrderProduct";
 import { Receipt, Landmark } from "lucide-react";
 import { OrderDeliveryBadge } from "@/components/orders/OrderDeliveryBadge";
 import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { PrintTicketButton } from "@/components/orders/PrintTicket/PrintTicketButton";
 import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
+import { OrderProductsList } from "./OrderProductsList";
 
 interface OrderDetailModalProps {
     isOpen: boolean;
     order: IOrder | null;
+    orderProducts: IOrderProduct[];
+    isLoadingProducts: boolean;
     onClose: () => void;
 }
 
@@ -22,7 +26,7 @@ const formatDate = (dateStr: string) =>
         minute: "2-digit",
     });
 
-export const OrderDetailModal = ({ isOpen, order, onClose }: OrderDetailModalProps) => {
+export const OrderDetailModal = ({ isOpen, order, orderProducts, isLoadingProducts, onClose }: OrderDetailModalProps) => {
     return (
         <Modal
             opened={isOpen}
@@ -73,6 +77,8 @@ export const OrderDetailModal = ({ isOpen, order, onClose }: OrderDetailModalPro
                     {Number(order.costo_domicilio) !== 0 && (
                         <OrderDeliveryBadge costoDomicilio={order.costo_domicilio} />
                     )}
+
+                    <OrderProductsList isLoading={isLoadingProducts} orderProducts={orderProducts} />
 
                     {/* Totals */}
                     <div className="bg-stone-50 rounded-2xl border border-stone-100 p-4 space-y-3">

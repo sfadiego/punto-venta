@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\IconSourceEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class BusinessConfigUpdateRequest extends FormRequest
 {
@@ -30,6 +32,7 @@ class BusinessConfigUpdateRequest extends FormRequest
             'printer_host' => 'nullable|string|max:100',
             'paper_width' => 'nullable|in:58,80',
             'logo_icon' => 'nullable|string|max:50',
+            'logo_icon_source' => ['nullable', Rule::enum(IconSourceEnum::class)],
             'costo_domicilio_default' => 'nullable|numeric|min:0',
             'menu_enabled' => 'nullable|boolean',
         ];

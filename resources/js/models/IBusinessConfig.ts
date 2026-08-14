@@ -1,3 +1,5 @@
+import { IconSourceEnum } from "@/enums/IconSourceEnum";
+
 export interface IBusinessConfig {
     id: number;
     slug: string;
@@ -25,6 +27,7 @@ export interface IBusinessConfig {
     stock_enabled: boolean;
     costo_domicilio_default: number;
     logo_icon: string | null;
+    logo_icon_source: IconSourceEnum | null;
     logo_upload_enabled: boolean;
     effective_max_users?: number;
     created_at: string;

@@ -1,4 +1,6 @@
 import { Input } from "@/components/ui/form/Input";
+import { formatCurrencyTrimmed as formatCurrency } from "@/utils/formatCurrency";
+import { QuickCashChips } from "./QuickCashChips";
 
 interface PayCashInputProps {
     isCash: boolean;
@@ -6,9 +8,10 @@ interface PayCashInputProps {
     setCash: (v: string) => void;
     change: number;
     max: number;
+    totalFinal: number;
 }
 
-export const PayCashInput = ({ isCash, cash, setCash, change, max }: PayCashInputProps) => (
+export const PayCashInput = ({ isCash, cash, setCash, change, max, totalFinal }: PayCashInputProps) => (
     <div className={`fade-collapse space-y-4 ${isCash ? "is-visible" : "is-hidden"}`}>
         <p className="text-sm font-medium text-stone-700 mb-1.5 text-left">Efectivo recibido</p>
         <Input
@@ -26,6 +29,8 @@ export const PayCashInput = ({ isCash, cash, setCash, change, max }: PayCashInpu
             }}
         />
 
+        <QuickCashChips totalFinal={totalFinal} cashNum={parseFloat(cash) || 0} onSelect={(value) => setCash(String(value))} />
+
         <div
             className={`rounded-xl p-4 flex items-center justify-between transition-colors duration-200 ${
                 change >= 0 && cash !== ""
@@ -39,7 +44,7 @@ export const PayCashInput = ({ isCash, cash, setCash, change, max }: PayCashInpu
                     change >= 0 && cash !== "" ? "text-emerald-700" : "text-stone-400"
                 }`}
             >
-                ${change >= 0 ? change.toFixed(2) : "0.00"}
+                {change >= 0 ? formatCurrency(change) : "$0"}
             </span>
         </div>
     </div>

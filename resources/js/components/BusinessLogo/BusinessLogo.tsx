@@ -1,9 +1,11 @@
 import { ShoppingCart } from "lucide-react";
-import { BUSINESS_ICONS } from "@/pages/Admin/partials/Logo/IconSelector";
+import { CatalogIcon } from "@/components/ui/CatalogIcon";
+import { IconSourceEnum } from "@/enums/IconSourceEnum";
 
 interface BusinessLogoProps {
     logoUrl: string | null;
     logoIcon: string | null;
+    logoIconSource?: IconSourceEnum | string | null;
     size?: number;
     iconClassName?: string;
     imgClassName?: string;
@@ -13,6 +15,7 @@ interface BusinessLogoProps {
 export function BusinessLogo({
     logoUrl,
     logoIcon,
+    logoIconSource,
     size = 20,
     iconClassName = "text-white",
     imgClassName = "w-full h-full object-cover",
@@ -23,11 +26,15 @@ export function BusinessLogo({
     }
 
     if (logoIcon) {
-        const def = BUSINESS_ICONS.find((i) => i.name === logoIcon);
-        if (def) {
-            const Icon = def.component;
-            return <Icon className={`${iconClassName} cursor-pointer`} size={size} onClick={() => onClick && onClick()} />;
-        }
+        return (
+            <CatalogIcon
+                iconName={logoIcon}
+                iconSource={logoIconSource}
+                size={size}
+                className={`${iconClassName} cursor-pointer`}
+                onClick={() => onClick && onClick()}
+            />
+        );
     }
 
     return <ShoppingCart className={`${iconClassName} cursor-pointer`} size={size} onClick={() => onClick && onClick()} />;

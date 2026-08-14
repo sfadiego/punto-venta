@@ -66,6 +66,7 @@ export const useBusinessInfoSection = (config: IBusinessConfig | undefined) => {
                     printer_host: config.printer_host,
                     paper_width: config.paper_width,
                     logo_icon: config.logo_icon,
+                    logo_icon_source: config.logo_icon_source,
                     costo_domicilio_default: config.costo_domicilio_default,
                     printer_enabled: config.printer_enabled,
                     menu_enabled: config.menu_enabled,

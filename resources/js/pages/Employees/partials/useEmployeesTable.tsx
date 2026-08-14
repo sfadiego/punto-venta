@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { DataTableColumn } from "mantine-datatable";
 import { IEmployee } from "@/models/IEmployee";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatCurrencyTrimmed as formatCurrency } from "@/utils/formatCurrency";
 import { getSalaryPeriodLabel } from "@/utils/salaryPeriodUtils";
 import { WorkDaysBadge } from "./WorkDaysBadge";
 import { EmployeeTableActions } from "./EmployeeTableActions";

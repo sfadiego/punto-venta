@@ -83,6 +83,8 @@ export default function SalesPage() {
             <OrderDetailModal
                 isOpen={modal.isOpen}
                 order={modal.order}
+                orderProducts={modal.orderProducts}
+                isLoadingProducts={modal.isLoadingProducts}
                 onClose={modal.close}
             />
 

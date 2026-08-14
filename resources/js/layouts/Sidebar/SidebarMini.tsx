@@ -81,6 +81,7 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
                     <BusinessLogo
                         logoUrl={logoUrl}
                         logoIcon={config?.logo_icon ?? null}
+                        logoIconSource={config?.logo_icon_source}
                         size={18}
                     />
                 </div>

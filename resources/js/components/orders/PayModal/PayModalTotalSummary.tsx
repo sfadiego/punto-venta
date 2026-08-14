@@ -1,3 +1,5 @@
+import { formatCurrencyTrimmed as formatCurrency } from "@/utils/formatCurrency";
+
 interface PayModalTotalSummaryProps {
     totalFinal: number;
     subtotal?: number;
@@ -15,7 +17,7 @@ export const PayModalTotalSummary = ({
         return (
             <div className="flex items-center justify-between py-2 border-b border-stone-100">
                 <span className="text-sm text-stone-500">Total a cobrar</span>
-                <span className="text-xl font-bold text-stone-900">${totalFinal.toFixed(2)}</span>
+                <span className="text-xl font-bold text-stone-900">{formatCurrency(totalFinal)}</span>
             </div>
         );
     }
