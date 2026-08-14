@@ -15,7 +15,8 @@ export default function StatisticsPage() {
         cajaAbierta,
         handleMonthChange,
         topProduct,
-        totalLabel,
+        averageTicketLabel,
+        ordersCount,
         sellByWeight,
     } = useStatisticsPage();
 
@@ -35,7 +36,8 @@ export default function StatisticsPage() {
                         cajaAbierta={cajaAbierta}
                         totalVentas={totalVentas}
                         topProduct={topProduct}
-                        totalLabel={totalLabel}
+                        averageTicketLabel={averageTicketLabel}
+                        ordersCount={ordersCount}
                         rankingCount={bestSellers.length}
                     />
 

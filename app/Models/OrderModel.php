@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\OrderStatusEnum;
 use App\Models\Traits\HasTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -152,5 +153,32 @@ class OrderModel extends Model
             ])
             ->whereNull('deleted_at')
             ->count();
+    }
+
+    /**
+     * averageTicket — ingresos totales y ticket promedio de las ventas cerradas en el rango
+     * dado. A diferencia de sumar cantidades (kg + piezas no son comparables), el monto en
+     * pesos sí es una métrica coherente sin importar la mezcla de unidades del catálogo.
+     */
+    public static function averageTicket(?Carbon $start = null, ?Carbon $end = null, ?int $sistemaId = null): array
+    {
+        $query = static::where(self::ESTATUS_PEDIDO_ID, OrderStatusEnum::CLOSED->value);
+
+        if ($start && $end) {
+            $query->whereBetween('created_at', [$start, $end]);
+        }
+
+        if ($sistemaId) {
+            $query->where(self::SISTEMA_ID, $sistemaId);
+        }
+
+        $totalRevenue = (float) round($query->sum(self::TOTAL), 2);
+        $ordersCount = (clone $query)->count();
+
+        return [
+            'total_revenue' => $totalRevenue,
+            'orders_count' => $ordersCount,
+            'average_ticket' => $ordersCount > 0 ? round($totalRevenue / $ordersCount, 2) : 0,
+        ];
     }
 }

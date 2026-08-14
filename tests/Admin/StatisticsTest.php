@@ -10,6 +10,7 @@ use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class StatisticsTest extends TestCase
@@ -118,5 +119,92 @@ class StatisticsTest extends TestCase
         // A diferencia de una unidad discreta (que se castea a entero), un
         // producto por litro conserva decimales — igual que kg/gr.
         $this->assertSame(1.5, $item['total']);
+    }
+
+    // ── Average ticket ───────────────────────────────────────
+
+    public function test_average_ticket_sin_ventas_retorna_ceros(): void
+    {
+        $this->getJson('/api/admin/system/statistics/average-ticket', $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.total_revenue', 0)
+            ->assertJsonPath('data.orders_count', 0)
+            ->assertJsonPath('data.average_ticket', 0);
+    }
+
+    public function test_average_ticket_calcula_promedio_de_ventas_cerradas(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $caja = MainOrderReportModel::create([
+            MainOrderReportModel::ESTATUS_CAJA => 'open',
+            MainOrderReportModel::EFECTIVO_CAJA_INICIO => 0,
+            MainOrderReportModel::USER_ID => 1,
+            MainOrderReportModel::TENANT_ID => $tenant->id,
+        ]);
+
+        foreach ([100, 200, 300] as $total) {
+            OrderModel::create([
+                OrderModel::TOTAL => $total,
+                OrderModel::SUBTOTAL => $total,
+                OrderModel::DESCUENTO => 0,
+                OrderModel::NOMBRE_PEDIDO => 'Venta',
+                OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
+                OrderModel::SISTEMA_ID => $caja->id,
+                OrderModel::TENANT_ID => $tenant->id,
+            ]);
+        }
+
+        // Orden no cerrada — no debe contarse en el promedio.
+        OrderModel::create([
+            OrderModel::TOTAL => 900,
+            OrderModel::SUBTOTAL => 900,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Venta abierta',
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS->value,
+            OrderModel::SISTEMA_ID => $caja->id,
+            OrderModel::TENANT_ID => $tenant->id,
+        ]);
+
+        $this->getJson('/api/admin/system/statistics/average-ticket', $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.total_revenue', 600)
+            ->assertJsonPath('data.orders_count', 3)
+            ->assertJsonPath('data.average_ticket', 200);
+    }
+
+    public function test_average_ticket_con_fecha_filtra_por_mes(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $caja = MainOrderReportModel::create([
+            MainOrderReportModel::ESTATUS_CAJA => 'open',
+            MainOrderReportModel::EFECTIVO_CAJA_INICIO => 0,
+            MainOrderReportModel::USER_ID => 1,
+            MainOrderReportModel::TENANT_ID => $tenant->id,
+        ]);
+
+        $orden = OrderModel::create([
+            OrderModel::TOTAL => 500,
+            OrderModel::SUBTOTAL => 500,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Venta mes pasado',
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
+            OrderModel::SISTEMA_ID => $caja->id,
+            OrderModel::TENANT_ID => $tenant->id,
+        ]);
+        // Eloquent no permite mass-assign de created_at (no está en $fillable) — se
+        // actualiza directo por query builder para simular una orden del mes pasado.
+        DB::table('order')->where('id', $orden->id)->update(['created_at' => now()->subMonthNoOverflow()]);
+
+        $this->getJson(
+            '/api/admin/system/statistics/average-ticket?date='.now()->format('Y-m'),
+            $this->authHeaders()
+        )
+            ->assertStatus(200)
+            ->assertJsonPath('data.orders_count', 0);
+    }
+
+    public function test_average_ticket_sin_autenticacion(): void
+    {
+        $this->getJson('/api/admin/system/statistics/average-ticket')->assertStatus(401);
     }
 }
