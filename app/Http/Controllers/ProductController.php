@@ -69,24 +69,41 @@ class ProductController extends Controller
         return Response::success($product->refresh());
     }
 
-    public function update(ProductModel $product, ProductUpdateRequest $param): JsonResponse
+    public function update(ProductModel $product, ProductUpdateRequest $param, StockService $stockService): JsonResponse
     {
-        return Response::success(
-            $product->updateProduct(
-                nombre: $param->has('nombre') ? $param->nombre : null,
-                precio: $param->has('precio') ? $param->precio : null,
-                descripcion: $param->has('descripcion') ? ($param->descripcion !== null ? $param->descripcion : '') : null,
-                categoriaId: $param->has('categoria_id') ? $param->categoria_id : null,
-                pictureId: $param->has('picture_id') ? $param->picture_id : null,
-                active: $param->has('activo') ? (bool) $param->activo : null,
-                unidadMedida: $param->has('unidad_medida') ? $param->unidad_medida : null,
-                manageStock: $param->has('manage_stock') ? (bool) $param->manage_stock : null,
-                minStock: $param->has('min_stock') ? $param->min_stock : null,
-                productCode: $param->has('product_code') ? ($param->product_code ?? '') : null,
-                iconName: $param->has('icon_name') ? ($param->icon_name ?? '') : null,
-                iconSource: $param->has('icon_source') ? $param->icon_source : null,
-            )
+        $wasManagingStock = $product->manage_stock;
+
+        $updated = $product->updateProduct(
+            nombre: $param->has('nombre') ? $param->nombre : null,
+            precio: $param->has('precio') ? $param->precio : null,
+            descripcion: $param->has('descripcion') ? ($param->descripcion !== null ? $param->descripcion : '') : null,
+            categoriaId: $param->has('categoria_id') ? $param->categoria_id : null,
+            pictureId: $param->has('picture_id') ? $param->picture_id : null,
+            active: $param->has('activo') ? (bool) $param->activo : null,
+            unidadMedida: $param->has('unidad_medida') ? $param->unidad_medida : null,
+            manageStock: $param->has('manage_stock') ? (bool) $param->manage_stock : null,
+            minStock: $param->has('min_stock') ? $param->min_stock : null,
+            productCode: $param->has('product_code') ? ($param->product_code ?? '') : null,
+            iconName: $param->has('icon_name') ? ($param->icon_name ?? '') : null,
+            iconSource: $param->has('icon_source') ? $param->icon_source : null,
         );
+
+        // Activación en caliente de manage_stock (antes false, ahora true): igual que al crear
+        // el producto, se puede capturar un stock inicial porque no hay historial que proteger
+        // todavía. updateProduct() ya dejó stock en 0 por default — se carga como movimiento
+        // auditado en vez de reescribir la columna directo.
+        $initialStock = (float) ($param->stock ?? 0);
+        if (! $wasManagingStock && $updated->manage_stock && $initialStock > 0) {
+            $updated = $stockService->adjust(
+                productId: $updated->id,
+                delta: $initialStock,
+                note: 'Carga inicial de stock',
+                createdBy: auth()->id(),
+                reason: StockMovementReasonEnum::InitialStock,
+            );
+        }
+
+        return Response::success($updated);
     }
 
     /**

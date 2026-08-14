@@ -6,23 +6,23 @@ import { ProductForm } from "./useProductModal";
 interface ProductStockFieldsProps {
     formik: FormikProps<ProductForm>;
     isEdit: boolean;
+    wasManagingStock: boolean;
     currentStock?: string | null;
 }
 
-export const ProductStockFields = ({ formik, isEdit, currentStock }: ProductStockFieldsProps) => {
+export const ProductStockFields = ({ formik, isEdit, wasManagingStock, currentStock }: ProductStockFieldsProps) => {
     if (!formik.values.manage_stock) return null;
+
+    // Si el producto ya manejaba stock antes de abrir el modal, "Stock actual" es de solo
+    // lectura (cada cambio se hace vía "Reabastecer stock", auditado). Si es una activación en
+    // caliente (se acaba de encender el toggle sobre un producto que antes no lo manejaba) —
+    // igual que al crear — sí se puede capturar el stock inicial aquí, porque no hay historial
+    // que proteger todavía.
+    const canCaptureInitialStock = !isEdit || !wasManagingStock;
 
     return (
         <div className="grid grid-cols-2 gap-3">
-            {isEdit ? (
-                <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Stock actual</label>
-                    <div className="px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm text-stone-600 tabular-nums">
-                        {trimDecimalZeros(currentStock ?? 0)}
-                    </div>
-                    <p className="text-xs text-stone-400 mt-1">No se edita aquí — cada cambio queda auditado como movimiento.</p>
-                </div>
-            ) : (
+            {canCaptureInitialStock ? (
                 <div>
                     <Input<ProductForm>
                         name="stock"
@@ -33,7 +33,15 @@ export const ProductStockFields = ({ formik, isEdit, currentStock }: ProductStoc
                         placeholder="0"
                         formik={formik}
                     />
-                    <p className="text-xs text-stone-400 mt-1">Existencia con la que arranca el producto al crearlo.</p>
+                    <p className="text-xs text-stone-400 mt-1">Existencia con la que arranca el producto.</p>
+                </div>
+            ) : (
+                <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1.5">Stock actual</label>
+                    <div className="px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm text-stone-600 tabular-nums">
+                        {trimDecimalZeros(currentStock ?? 0)}
+                    </div>
+                    <p className="text-xs text-stone-400 mt-1">No se edita aquí — cada cambio queda auditado como movimiento.</p>
                 </div>
             )}
 
