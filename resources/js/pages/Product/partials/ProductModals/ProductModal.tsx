@@ -43,6 +43,10 @@ export const ProductModal = ({
     // manage_stock en el mismo producto (ver ProductVariantStoreRequest/ProductUpdateRequest,
     // que bloquean esta combinación en ambos sentidos también del lado del backend).
     const canUseVariants = formik.values.unidad_medida === UnidadMedidaEnum.Unidad && !formik.values.manage_stock;
+    // manage_stock=true siempre implica stock no-null (ver ProductModel::updateProduct) — así
+    // que currentStock no-null es equivalente a "el producto ya manejaba stock antes de abrir
+    // este modal", sin necesitar una prop nueva solo para eso.
+    const wasManagingStock = currentStock !== null && currentStock !== undefined;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -93,7 +97,12 @@ export const ProductModal = ({
                                 disabled={hasVariants}
                                 disabledMessage={hasVariants ? "No disponible en un producto con variantes" : undefined}
                             />
-                            <ProductStockFields formik={formik} isEdit={isEdit} currentStock={currentStock} />
+                            <ProductStockFields
+                                formik={formik}
+                                isEdit={isEdit}
+                                wasManagingStock={wasManagingStock}
+                                currentStock={currentStock}
+                            />
                         </>
                     )}
 

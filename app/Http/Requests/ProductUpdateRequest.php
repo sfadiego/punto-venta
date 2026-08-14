@@ -48,6 +48,7 @@ class ProductUpdateRequest extends FormRequest
             ],
             ProductModel::UNIDAD_MEDIDA => ['nullable', Rule::enum(UnidadMedidaEnum::class)],
             ProductModel::MANAGE_STOCK => 'nullable|boolean',
+            ProductModel::STOCK => 'nullable|numeric|min:0',
             ProductModel::MIN_STOCK => 'nullable|numeric|min:0',
             ProductModel::PRODUCT_CODE => [
                 'nullable', 'string', 'max:64',
@@ -73,6 +74,8 @@ class ProductUpdateRequest extends FormRequest
             'picture_id.exists' => 'La imagen seleccionada no es válida.',
             'unidad_medida.enum' => 'La unidad de medida seleccionada no es válida.',
             'manage_stock.boolean' => 'El campo maneja stock debe ser verdadero o falso.',
+            'stock.numeric' => 'El stock inicial debe ser un número válido.',
+            'stock.min' => 'El stock inicial no puede ser negativo.',
             'min_stock.numeric' => 'El stock mínimo debe ser un número válido.',
             'min_stock.min' => 'El stock mínimo no puede ser negativo.',
             'product_code.max' => 'El código de barras no puede superar los 64 caracteres.',

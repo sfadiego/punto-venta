@@ -370,4 +370,65 @@ class ProductStockTest extends TestCase
 
         $this->assertNotEmpty($response->json('data'));
     }
+
+    // ── Activación en caliente de manage_stock (producto existente) ──
+
+    public function test_activar_manage_stock_en_producto_existente_permite_capturar_stock_inicial(): void
+    {
+        $product = ProductModel::factory()->create(['manage_stock' => false]);
+
+        $this->putJson("/api/product/{$product->id}", [
+            'nombre' => $product->nombre,
+            'precio' => $product->precio,
+            'categoria_id' => $product->categoria_id,
+            'manage_stock' => true,
+            'stock' => 15,
+            'min_stock' => 3,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.manage_stock', true)
+            ->assertJsonPath('data.stock', '15.00');
+
+        $this->assertDatabaseHas('stock_movements', [
+            'product_id' => $product->id,
+            'reason' => StockMovementReasonEnum::InitialStock->value,
+            'quantity' => 15,
+        ]);
+    }
+
+    public function test_activar_manage_stock_sin_indicar_stock_queda_en_cero(): void
+    {
+        $product = ProductModel::factory()->create(['manage_stock' => false]);
+
+        $this->putJson("/api/product/{$product->id}", [
+            'nombre' => $product->nombre,
+            'precio' => $product->precio,
+            'categoria_id' => $product->categoria_id,
+            'manage_stock' => true,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.stock', '0.00');
+
+        $this->assertDatabaseMissing('stock_movements', [
+            'product_id' => $product->id,
+            'reason' => StockMovementReasonEnum::InitialStock->value,
+        ]);
+    }
+
+    public function test_enviar_stock_en_producto_que_ya_manejaba_stock_no_lo_modifica(): void
+    {
+        // El campo "stock" del request solo se usa en la transición false→true — un producto
+        // que ya manejaba stock debe seguir el flujo auditado de Reabastecer, nunca esto.
+        $product = ProductModel::factory()->create(['manage_stock' => true, 'stock' => 10]);
+
+        $this->putJson("/api/product/{$product->id}", [
+            'nombre' => $product->nombre,
+            'precio' => $product->precio,
+            'categoria_id' => $product->categoria_id,
+            'manage_stock' => true,
+            'stock' => 999,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.stock', '10.00');
+    }
 }

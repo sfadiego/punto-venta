@@ -119,11 +119,15 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
                 icon_source: values.icon_source,
             };
 
-            // El stock inicial solo aplica al crear — en edición se ajusta vía
-            // StockService::adjust (auditado), nunca reescribiendo el valor directo.
+            // El stock inicial se puede capturar al crear, o al activar "Maneja stock" por
+            // primera vez sobre un producto existente (antes no lo manejaba) — en ambos casos
+            // no hay historial que proteger todavía. Si el producto YA manejaba stock, no se
+            // reenvía: se ajusta solo vía StockService::adjust (auditado), nunca reescribiendo
+            // el valor directo.
+            const isFreshStockActivation = !product?.manage_stock;
             if (values.manage_stock) {
                 payload.min_stock = values.min_stock !== "" ? Number(values.min_stock) : undefined;
-                if (!isEdit) {
+                if (isFreshStockActivation) {
                     payload.stock = values.stock !== "" ? Number(values.stock) : undefined;
                 }
             }
