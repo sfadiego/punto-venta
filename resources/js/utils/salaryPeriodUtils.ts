@@ -43,6 +43,13 @@ export const SALARY_PERIOD_PAYMENT_LABELS: Partial<Record<SalaryPeriod, string>>
 // Igual que SALARY_PERIOD_UNIT_LABELS pero sin la marca "(aprox.)" — se usa en el card de
 // salario total, donde el monto mostrado es siempre exacto (dato capturado o multiplicación
 // directa), nunca una estimación.
+// Fórmula usada por EmployeePayrollService::costFor() en el widget de nómina estimada, para
+// mostrarla junto al total — el mes se trata siempre como 30 días fijos.
+export const PAYROLL_FORMULA_LABELS: Record<"week" | "month", string> = {
+    week: "Fijos: (sueldo ÷ 30) × 7 · Por día: tarifa × días trabajados",
+    month: "Fijos: (sueldo ÷ 30) × 30 · Por día: tarifa × días trabajados × 30 ÷ 7",
+};
+
 export const SALARY_PERIOD_TOTAL_UNIT_LABELS: Record<SalaryPeriod, string> = {
     daily: "por día",
     weekly: "por semana",

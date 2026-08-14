@@ -40,6 +40,7 @@ export const usePrinterSection = (config: IBusinessConfig | undefined) => {
                     website:        config.website,
                     ticket_footer:  config.ticket_footer,
                     logo_icon:                config.logo_icon,
+                    logo_icon_source:         config.logo_icon_source,
                     printer_name:             values.printer_name || null,
                     printer_host:             values.printer_host || null,
                     paper_width:              values.paper_width as "58" | "80",

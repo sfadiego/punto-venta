@@ -28,6 +28,7 @@ export function SidebarBrand({ onClose, onDesktopToggle, alwaysShowClose = false
                     <BusinessLogo
                         logoUrl={logoUrl}
                         logoIcon={config?.logo_icon ?? null}
+                        logoIconSource={config?.logo_icon_source}
                         size={16}
                     />
                 </div>

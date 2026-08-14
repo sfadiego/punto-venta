@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\IconSourceEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BusinessConfigUpdateRequest;
 use App\Models\AppSettingModel;
@@ -44,6 +45,9 @@ class BusinessConfigController extends Controller
             'printer_host' => $request->printer_host,
             'paper_width' => $request->paper_width ?? '58',
             'logo_icon' => $request->logo_icon,
+            'logo_icon_source' => $request->logo_icon
+                ? ($request->logo_icon_source ?? IconSourceEnum::Lucide->value)
+                : null,
             'costo_domicilio_default' => $request->costo_domicilio_default ?? 0,
             'menu_enabled' => $request->boolean('menu_enabled'),
         ]);

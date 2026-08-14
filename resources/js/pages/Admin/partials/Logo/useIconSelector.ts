@@ -1,15 +1,16 @@
 import { toast } from "react-toastify";
 import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
+import { IconSourceEnum } from "@/enums/IconSourceEnum";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export const useIconSelector = (config: IBusinessConfig | undefined) => {
     const { mutate: update, isPending: saving } = useUpdateBusinessConfig();
 
-    const handleSelect = (iconName: string) => {
+    const handleSelect = (iconName: string, iconSource: IconSourceEnum) => {
         if (!config) return;
 
-        const isDeselect = config.logo_icon === iconName;
+        const isDeselect = iconName === "";
 
         update(
             {
@@ -29,6 +30,7 @@ export const useIconSelector = (config: IBusinessConfig | undefined) => {
                 printer_host:              config.printer_host,
                 paper_width:               config.paper_width,
                 logo_icon:                 isDeselect ? null : iconName,
+                logo_icon_source:          isDeselect ? null : iconSource,
                 costo_domicilio_default:   config.costo_domicilio_default,
                 printer_enabled:           config.printer_enabled,
                 menu_enabled:              config.menu_enabled,

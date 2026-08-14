@@ -7,6 +7,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";
 import { useOrderActions } from "./useOrderActions";
 import { useSaleQuickPay } from "./useSaleQuickPay";
+import { useShowOrder } from "@/services/useOrderService";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 
@@ -20,6 +21,7 @@ export const SaleActions = ({ order }: SaleActionsProps) => {
     const sellByWeight = features?.sell_by_weight === true;
     const [detailOpen, setDetailOpen] = useState(false);
     const { handleDelete, isDeleting } = useOrderActions(order);
+    const { data: orderDetail, isFetching: isLoadingProducts } = useShowOrder(order.id, detailOpen);
 
     const isClosed = order.estatus_pedido_id === OrderStatusEnum.Closed;
     const isInProcess = order.estatus_pedido_id === OrderStatusEnum.InProcess;
@@ -81,6 +83,8 @@ export const SaleActions = ({ order }: SaleActionsProps) => {
             <OrderDetailModal
                 isOpen={detailOpen}
                 order={order}
+                orderProducts={orderDetail?.order_products ?? []}
+                isLoadingProducts={isLoadingProducts}
                 onClose={() => setDetailOpen(false)}
             />
 

@@ -40,6 +40,7 @@ export const useDeliverySection = (config: IBusinessConfig | undefined) => {
                     website:                 config.website,
                     ticket_footer:           config.ticket_footer,
                     logo_icon:               config.logo_icon,
+                    logo_icon_source:        config.logo_icon_source,
                     printer_name:            config.printer_name,
                     printer_host:            config.printer_host,
                     paper_width:             config.paper_width,

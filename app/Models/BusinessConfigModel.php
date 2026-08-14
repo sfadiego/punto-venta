@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BusinessTypeEnum;
+use App\Enums\IconSourceEnum;
 use App\Enums\SubscriptionPlanEnum;
 use App\Enums\SubscriptionStatusEnum;
 use Carbon\Carbon;
@@ -69,6 +70,8 @@ class BusinessConfigModel extends Model
 
     const LOGO_ICON = 'logo_icon';
 
+    const LOGO_ICON_SOURCE = 'logo_icon_source';
+
     const TIPO_NEGOCIO = 'tipo_negocio';
 
     const COSTO_DOMICILIO_DEFAULT = 'costo_domicilio_default';
@@ -93,6 +96,7 @@ class BusinessConfigModel extends Model
         self::EMPLOYEES_ENABLED => 'boolean',
         self::STOCK_ENABLED => 'boolean',
         self::TIPO_NEGOCIO => BusinessTypeEnum::class,
+        self::LOGO_ICON_SOURCE => IconSourceEnum::class,
         self::SUBSCRIPTION_EXPIRES_AT => 'date',
         self::SUBSCRIPTION_AMOUNT => 'float',
     ];
@@ -124,6 +128,7 @@ class BusinessConfigModel extends Model
         self::EMPLOYEES_ENABLED,
         self::STOCK_ENABLED,
         self::LOGO_ICON,
+        self::LOGO_ICON_SOURCE,
         self::TIPO_NEGOCIO,
         self::COSTO_DOMICILIO_DEFAULT,
         self::SUBSCRIPTION_PLAN,

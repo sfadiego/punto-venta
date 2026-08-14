@@ -64,6 +64,7 @@ export default function TenantAuthPage() {
                             <BusinessLogo
                                 logoUrl={logoUrl}
                                 logoIcon={tenant?.logo_icon ?? null}
+                                logoIconSource={tenant?.logo_icon_source}
                                 size={36}
                                 imgClassName="w-9 h-9 object-contain"
                             />

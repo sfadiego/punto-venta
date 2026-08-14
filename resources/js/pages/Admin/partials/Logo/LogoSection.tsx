@@ -1,8 +1,9 @@
 import { Upload, Trash2, ImageOff } from "lucide-react";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
+import { CatalogIcon } from "@/components/ui/CatalogIcon";
+import { IconPickerField } from "@/components/ui/IconPickerField";
 import { useLogoSection } from "./useLogoSection";
 import { useIconSelector } from "./useIconSelector";
-import { IconSelector, BUSINESS_ICONS } from "./IconSelector";
 
 interface LogoSectionProps {
     config: IBusinessConfig | undefined;
@@ -14,11 +15,7 @@ function LogoPreview({ config, logoUrl }: { config: IBusinessConfig | undefined;
     }
 
     if (config?.logo_icon) {
-        const iconDef = BUSINESS_ICONS.find((i) => i.name === config.logo_icon);
-        if (iconDef) {
-            const Icon = iconDef.component;
-            return <Icon size={40} className="text-amber-500" />;
-        }
+        return <CatalogIcon iconName={config.logo_icon} iconSource={config.logo_icon_source} size={40} className="text-amber-500" />;
     }
 
     return <ImageOff size={32} className="text-stone-300" />;
@@ -84,11 +81,15 @@ export function LogoSection({ config }: LogoSectionProps) {
                 onChange={handleFileChange}
             />
 
-            <IconSelector
-                selected={config?.logo_icon ?? null}
-                saving={saving}
-                onSelect={handleSelect}
-            />
+            <div className="mt-5">
+                <IconPickerField
+                    label="Ícono predefinido"
+                    iconName={config?.logo_icon ?? ""}
+                    iconSource={config?.logo_icon_source ?? ""}
+                    onChange={handleSelect}
+                />
+                {saving && <p className="text-xs text-stone-400 mt-1.5">Guardando…</p>}
+            </div>
         </section>
     );
 }

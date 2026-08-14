@@ -19,7 +19,7 @@ export const TicketDrawer = () => {
     } = useQuickSaleContext();
 
     return (
-        <div className="max-h-[26rem] overflow-y-auto bg-white border-t border-stone-200">
+        <div className="max-h-72 overflow-y-auto bg-white border-t border-stone-200">
             <div className="flex items-center justify-between gap-3 px-5 py-2.5 bg-stone-50 border-b border-stone-200">
                 <DeliverySection />
                 <button

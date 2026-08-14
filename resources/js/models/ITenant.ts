@@ -1,4 +1,5 @@
 import { BusinessTypeEnum, IBusinessFeatures } from "@/enums/BusinessTypeEnum";
+import { IconSourceEnum } from "@/enums/IconSourceEnum";
 
 export interface ITenant {
     id: number;
@@ -12,6 +13,7 @@ export interface ITenant {
     label_color: string;
     logo_path: string | null;
     logo_icon: string | null;
+    logo_icon_source: IconSourceEnum | null;
     tipo_negocio: BusinessTypeEnum;
     printer_enabled: boolean;
     bluetooth_printing_enabled: boolean;
