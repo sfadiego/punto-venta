@@ -25,6 +25,7 @@ export interface IBusinessConfig {
     purchases_enabled: boolean;
     employees_enabled: boolean;
     stock_enabled: boolean;
+    customers_enabled: boolean;
     costo_domicilio_default: number;
     logo_icon: string | null;
     logo_icon_source: IconSourceEnum | null;

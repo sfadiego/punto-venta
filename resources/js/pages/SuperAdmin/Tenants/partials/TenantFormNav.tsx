@@ -11,7 +11,7 @@ const EDIT_SECTIONS = [
     { id: "limite", label: "Límite de usuarios", icon: <Users size={18} /> },
     { id: "suscripcion", label: "Suscripción", icon: <CreditCard size={18} /> },
     { id: "impresora", label: "Impresora", icon: <Printer size={18} /> },
-    { id: "proveedores-empleados", label: "Proveedores y empleados", icon: <Truck size={18} /> },
+    { id: "proveedores-empleados", label: "Módulos opcionales", icon: <Truck size={18} /> },
     { id: "actividad", label: "Actividad", icon: <Activity size={18} /> },
     { id: "novedades", label: "Novedades", icon: <Sparkles size={18} /> },
 ];

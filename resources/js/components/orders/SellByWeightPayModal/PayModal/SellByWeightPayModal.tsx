@@ -1,9 +1,9 @@
 import { X, Loader, ShoppingCart } from "lucide-react";
 import { IPaymentMethod } from "@/models/IPaymentMethod";
 import { ICustomer } from "@/models/ICustomer";
-import { CustomerCreditPicker } from "../CustomerCredit/CustomerCreditPicker";
+import { CustomerCreditPicker } from "@/components/orders/CustomerCredit/CustomerCreditPicker";
 import { PayModalTotalSummary } from "@/components/orders/PayModal/PayModalTotalSummary";
-import { PaymentMethodSelector } from "./PaymentMethodSelector";
+import { PaymentMethodSelector } from "@/components/orders/PayModal/PaymentMethodSelector";
 import { CashPaymentSection } from "./CashPaymentSection";
 
 interface SellByWeightPayModalProps {
@@ -65,10 +65,16 @@ export const SellByWeightPayModal = ({
                 <PaymentMethodSelector
                     paymentMethods={paymentMethods}
                     paymentMethodId={paymentMethodId}
-                    setPaymentMethodId={setPaymentMethodId}
+                    onSelect={(id) => {
+                        setIsCreditMode(false);
+                        setPaymentMethodId(id);
+                    }}
                     isCreditMode={isCreditMode}
-                    setIsCreditMode={setIsCreditMode}
                     creditModeAvailable={creditModeAvailable}
+                    onSelectCredit={() => {
+                        setIsCreditMode(true);
+                        setPaymentMethodId(null);
+                    }}
                 />
 
                 {isCreditMode ? (

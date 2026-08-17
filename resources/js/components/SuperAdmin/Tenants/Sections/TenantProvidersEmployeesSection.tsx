@@ -1,4 +1,4 @@
-import { Truck, UserRound, Package } from "lucide-react";
+import { Truck, UserRound, Package, HandCoins } from "lucide-react";
 import { SectionSaveButton } from "./SectionSaveButton";
 
 interface TenantProvidersEmployeesSectionProps {
@@ -8,6 +8,8 @@ interface TenantProvidersEmployeesSectionProps {
     onToggleEmployees: () => void;
     stockEnabled: boolean;
     onToggleStock: () => void;
+    customersEnabled: boolean;
+    onToggleCustomers: () => void;
     onSave: () => void;
     isSaving: boolean;
 }
@@ -60,6 +62,8 @@ export const TenantProvidersEmployeesSection = ({
     onToggleEmployees,
     stockEnabled,
     onToggleStock,
+    customersEnabled,
+    onToggleCustomers,
     onSave,
     isSaving,
 }: TenantProvidersEmployeesSectionProps) => (
@@ -86,6 +90,14 @@ export const TenantProvidersEmployeesSection = ({
             description="Habilita 'Maneja stock' en el catálogo de productos para este cliente."
             enabled={stockEnabled}
             onToggle={onToggleStock}
+        />
+        <div className="border-t border-slate-100" />
+        <ToggleRow
+            icon={<HandCoins size={17} className="text-slate-500" />}
+            title="Clientes"
+            description="Habilita la gestión de clientes y ventas a crédito para este cliente (aplica principalmente a negocios tipo restaurante — venta por peso ya la tiene siempre disponible)."
+            enabled={customersEnabled}
+            onToggle={onToggleCustomers}
         />
         <SectionSaveButton onSave={onSave} isSaving={isSaving} />
     </section>

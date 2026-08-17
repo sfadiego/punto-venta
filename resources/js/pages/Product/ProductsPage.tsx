@@ -237,6 +237,7 @@ export default function ProductsPage() {
                         rowClassName={(p) => (isLowStock(p) ? "!bg-red-100" : undefined)}
                         minHeight={300}
                         className="whitespace-nowrap"
+                        classNames={{ header: "pos-datatable-header" }}
                         paginationText={({ from, to, totalRecords }) =>
                             `Mostrando del ${from} al ${to} de ${totalRecords} registros`
                         }

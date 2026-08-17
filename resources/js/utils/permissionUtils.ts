@@ -95,11 +95,12 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
 };
 
 // Acciones cuya aplicabilidad depende del tipo de negocio (features), no del rol.
-// Un negocio de venta por peso no tiene vista de cocina; "viewCustomers" (clientes a
-// crédito) hoy solo aplica a venta por peso.
+// Un negocio de venta por peso no tiene vista de cocina. La disponibilidad de "viewCustomers"
+// ya no depende del tipo de negocio aquí — venta por peso siempre lo tiene (sell_by_weight) y
+// restaurante lo activa por tenant vía business_config.customers_enabled (ver SidebarNav,
+// RestaurantPayModal y CloseSalesPage, que combinan este permiso con esa bandera).
 export const isActionApplicable = (action: Action, features?: IBusinessFeatures | null): boolean => {
     if (action === "kitchenView" && features?.kitchen_view === false) return false;
-    if (action === "viewCustomers" && features?.sell_by_weight !== true) return false;
     return true;
 };
 

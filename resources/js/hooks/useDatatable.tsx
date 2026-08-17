@@ -74,6 +74,7 @@ export const useDataTable = ({
             striped: true,
             minHeight: 200,
             className: "whitespace-nowrap table-hover",
+            classNames: { header: "pos-datatable-header" },
             paginationText: ({
                 from,
                 to,

@@ -21,7 +21,7 @@ export const NewOrderButton = ({ className }: NewOrderButtonProps) => {
                 style={className ? undefined : { backgroundColor: "var(--color-primary)" }}
             >
                 <Plus size={15} />
-                Nueva orden
+                Nueva venta
             </button>
 
             <NewOrderModal

@@ -2,13 +2,14 @@ import { IPaymentMethod } from "@/models/IPaymentMethod";
 import { ICustomer } from "@/models/ICustomer";
 import { PayModalHeader } from "../PayModal/PayModalHeader";
 import { PayModalTotalSummary } from "../PayModal/PayModalTotalSummary";
-import { PayMethodSelector } from "../PayModal/PayMethodSelector";
+import { PaymentMethodSelector } from "../PayModal/PaymentMethodSelector";
 import { PayTransferAlert } from "../PayModal/PayTransferAlert";
 import { PayCashInput } from "../PayModal/PayCashInput";
 import { PayPropinaInput } from "../PayModal/PayPropinaInput";
 import { PayModalActions } from "../PayModal/PayModalActions";
-import { CustomerCreditPicker } from "@/components/orders/SellByWeightPayModal/CustomerCredit/CustomerCreditPicker";
+import { CustomerCreditPicker } from "@/components/orders/CustomerCredit/CustomerCreditPicker";
 import { useAxios } from "@/hooks/useAxios";
+import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 
 interface RestaurantPayModalProps {
     isOpen: boolean;
@@ -65,6 +66,8 @@ export const RestaurantPayModal = ({
 }: RestaurantPayModalProps) => {
     const { features } = useAxios();
     const sellByWeight = features?.sell_by_weight === true;
+    const { data: config } = useGetBusinessConfig();
+    const customersAvailable = sellByWeight || config?.customers_enabled === true;
 
     if (!isOpen) return null;
 
@@ -84,16 +87,16 @@ export const RestaurantPayModal = ({
                         customerPays={customerPays}
                     />
 
-                    <PayMethodSelector
+                    <PaymentMethodSelector
                         paymentMethods={paymentMethods}
                         paymentMethodId={paymentMethodId}
                         onSelect={onSelectMethod}
-                        creditModeAvailable={sellByWeight && !!onSelectCredit}
-                        isCreditMode={sellByWeight && isCreditMode}
-                        onSelectCredit={sellByWeight ? onSelectCredit : undefined}
+                        creditModeAvailable={customersAvailable && !!onSelectCredit}
+                        isCreditMode={customersAvailable && isCreditMode}
+                        onSelectCredit={customersAvailable ? onSelectCredit : undefined}
                     />
 
-                    {sellByWeight && isCreditMode ? (
+                    {customersAvailable && isCreditMode ? (
                         <CustomerCreditPicker
                             customers={customers}
                             selectedCustomerId={selectedCustomerId}
