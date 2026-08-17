@@ -1,6 +1,7 @@
 import { X, LayoutGrid } from "lucide-react";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { resolveReportPeriodLabel } from "@/utils/dateUtils";
+import { DownloadReportButton } from "../DownloadReportButton";
 
 interface RestaurantSalesModalProps {
     isOpen: boolean;
@@ -13,6 +14,9 @@ interface RestaurantSalesModalProps {
     fecha?: string | null;
     semana?: string | null;
     mes?: string | null;
+    canDownload?: boolean;
+    isDownloading?: boolean;
+    onDownload?: () => void;
 }
 
 export const RestaurantSalesModal = ({
@@ -26,6 +30,9 @@ export const RestaurantSalesModal = ({
     fecha,
     semana,
     mes,
+    canDownload = false,
+    isDownloading = false,
+    onDownload,
 }: RestaurantSalesModalProps) => {
     if (!isOpen) return null;
 
@@ -98,6 +105,16 @@ export const RestaurantSalesModal = ({
                         </div>
                     )}
                 </div>
+
+                {!isLoading && onDownload && (
+                    <div className="px-6 py-4 border-t border-stone-100">
+                        <DownloadReportButton
+                            onClick={onDownload}
+                            disabled={!canDownload}
+                            isDownloading={isDownloading}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

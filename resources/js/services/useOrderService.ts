@@ -290,3 +290,18 @@ export const useFetchPrintTestBytes = () => {
             responseType: "arraybuffer",
         });
 };
+
+export const useExportSalesReport = () => {
+    const { axiosApi } = useAxios();
+    return (params: {
+        sistema_id?: number | null;
+        fecha?: string | null;
+        semana?: string | null;
+        mes?: string | null;
+    }): Promise<Blob> =>
+        axiosGET(axiosApi, {
+            url: ApiRoutes.OrderSalesReportExport,
+            params,
+            responseType: "blob",
+        });
+};

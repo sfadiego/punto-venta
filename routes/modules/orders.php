@@ -11,6 +11,7 @@ Route::prefix('order')->group(function () {
         Route::post('/', 'store');
         Route::post('/sale', 'storeSale');
         Route::get('/sales-by-category', 'salesByCategory');
+        Route::get('/sales-report/export', 'exportSalesReport');
         Route::get('/credit-customers', 'creditCustomers');
         Route::get('/print/test-bytes', [PrintController::class, 'testBytes']);
         Route::prefix('{order}')->group(function () {

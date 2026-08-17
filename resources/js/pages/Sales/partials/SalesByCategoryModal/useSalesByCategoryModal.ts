@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { useAxios } from "@/hooks/useAxios";
 import { useSalesByCategory } from "@/services/useSalesByCategoryService";
+import { useExportSalesReport } from "@/services/useOrderService";
+import { downloadBlob } from "@/utils/downloadFile";
 
 export const useSalesByCategoryModal = (fecha?: string | null, mes?: string | null, semana?: string | null) => {
     const { sistemaId } = useAxios();
     const [isOpen, setIsOpen] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const exportSalesReport = useExportSalesReport();
 
     // Con fecha, semana o mes (vista histórica de SalesPage): agrega todas las sesiones de ese
     // período, sin importar cuál sea la sesión activa en este navegador. Sin ninguno
@@ -22,6 +26,23 @@ export const useSalesByCategoryModal = (fecha?: string | null, mes?: string | nu
     const totalBruto = categories.reduce((sum, cat) => sum + cat.total_revenue, 0);
     const totalDomicilios = data?.domicilios ?? 0;
     const totalNeto = totalBruto - totalDomicilios;
+    const canDownload = !isLoading && !isError && totalBruto > 0;
+
+    const handleDownload = async () => {
+        if (!canDownload || isDownloading) return;
+        setIsDownloading(true);
+        try {
+            const blob = await exportSalesReport({
+                sistema_id: scopedSistemaId,
+                fecha: isOpen ? fecha : null,
+                semana: isOpen ? semana : null,
+                mes: isOpen ? mes : null,
+            });
+            downloadBlob(blob, `reporte-ventas-${fecha || semana || mes || "sesion"}.pdf`);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     return {
         isOpen,
@@ -37,5 +58,8 @@ export const useSalesByCategoryModal = (fecha?: string | null, mes?: string | nu
         fecha: isOpen ? fecha : null,
         semana: isOpen ? semana : null,
         mes: isOpen ? mes : null,
+        canDownload,
+        isDownloading,
+        handleDownload,
     };
 };
