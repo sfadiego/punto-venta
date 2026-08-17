@@ -2,43 +2,17 @@ import { NavLink } from "react-router-dom";
 import {
     PanelLeftOpen,
     LogOut,
-    LayoutDashboard,
-    Package,
-    Tag,
-    BarChart2,
-    ShoppingBag,
-    Coffee,
     Settings,
     Users,
     HandCoins,
     Truck,
     UserRound,
-    LucideIcon,
 } from "lucide-react";
-import { usePermissions } from "@/hooks/usePermissions";
-import { useAxios } from "@/hooks/useAxios";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { ApisEnum } from "@/configs/apisEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { BusinessLogo } from "@/components/BusinessLogo/BusinessLogo";
-
-type Action = Parameters<ReturnType<typeof usePermissions>["can"]>[0];
-
-interface NavItem {
-    label: string;
-    icon: LucideIcon;
-    path: string;
-    permission: Action;
-}
-
-const navItems: NavItem[] = [
-    { label: "Dashboard",    icon: LayoutDashboard, path: "/",           permission: "viewDashboard" },
-    { label: "Órdenes",      icon: Package,         path: "/orders",     permission: "viewOrders" },
-    { label: "Productos",    icon: Coffee,          path: "/products",   permission: "viewProducts" },
-    { label: "Categorías",   icon: Tag,             path: "/categories", permission: "viewCategories" },
-    { label: "Ventas",       icon: ShoppingBag,     path: "/sales",      permission: "viewSales" },
-    { label: "Estadísticas", icon: BarChart2,       path: "/statistics", permission: "viewStatistics" },
-];
+import { useSidebarNav } from "./useSidebarNav";
 
 interface SidebarMiniProps {
     userName: string;
@@ -49,12 +23,8 @@ interface SidebarMiniProps {
 }
 
 export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogout }: SidebarMiniProps) {
-    const { features } = useAxios();
     const { data: config } = useGetBusinessConfig();
-    const { can: canAction } = usePermissions();
-    const sellByWeight = features?.sell_by_weight === true;
-    const providersEnabled = canAction("viewProviders") && config?.purchases_enabled === true;
-    const employeesEnabled = canAction("viewEmployees") && config?.employees_enabled === true;
+    const { can: canAction, items, providersEnabled, employeesEnabled, customersEnabled, hasFooterSection } = useSidebarNav();
 
     const logoUrl = config?.logo_path
         ? `${ApisEnum.BaseUrl}${ApiRoutes.Files}/${config.logo_path}`
@@ -100,36 +70,30 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
 
             {/* Nav icons */}
             <nav className="flex-1 flex flex-col items-center gap-1 py-4 px-2 overflow-y-auto overflow-x-hidden">
-                {navItems
-                    .filter((item) => canAction(item.permission))
-                    .map((item) => {
-                        const label =
-                            item.path === "/orders" && sellByWeight ? "Pedidos" : item.label;
-                        return (
-                            <MiniTooltipItem key={item.path} label={label} side="right">
-                                <NavLink
-                                    to={item.path}
-                                    end={item.path === "/"}
-                                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
-                                    style={({ isActive }) =>
-                                        isActive
-                                            ? {
-                                                  backgroundColor: "var(--color-primary)",
-                                                  color: "var(--color-font)",
-                                              }
-                                            : {
-                                                  color: "color-mix(in srgb, var(--color-font) 60%, transparent)",
-                                              }
-                                    }
-                                    aria-label={label}
-                                >
-                                    <item.icon size={18} />
-                                </NavLink>
-                            </MiniTooltipItem>
-                        );
-                    })}
+                {items.map((item) => (
+                    <MiniTooltipItem key={item.path} label={item.label} side="right">
+                        <NavLink
+                            to={item.path}
+                            end={item.path === "/"}
+                            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+                            style={({ isActive }) =>
+                                isActive
+                                    ? {
+                                          backgroundColor: "var(--color-primary)",
+                                          color: "var(--color-font)",
+                                      }
+                                    : {
+                                          color: "color-mix(in srgb, var(--color-font) 60%, transparent)",
+                                      }
+                            }
+                            aria-label={item.label}
+                        >
+                            <item.icon size={18} />
+                        </NavLink>
+                    </MiniTooltipItem>
+                ))}
 
-                {(canAction("viewCustomers") || canAction("viewUsers") || canAction("viewAdmin") || providersEnabled || employeesEnabled) && (
+                {hasFooterSection && (
                     <div className="mt-auto pt-3 w-full flex flex-col items-center gap-1 border-t border-white/10">
                         {providersEnabled && (
                             <MiniTooltipItem label="Proveedores" side="right">
@@ -173,7 +137,7 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
                                 </NavLink>
                             </MiniTooltipItem>
                         )}
-                        {canAction("viewCustomers") && (
+                        {customersEnabled && (
                             <MiniTooltipItem label="Clientes" side="right">
                                 <NavLink
                                     to="/customers"
