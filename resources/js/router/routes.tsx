@@ -21,7 +21,7 @@ const ProvidersPage       = lazy(() => import("@/pages/Providers/ProvidersPage")
 const ProviderDetailPage  = lazy(() => import("@/pages/Providers/ProviderDetailPage"));
 const EmployeesPage       = lazy(() => import("@/pages/Employees/EmployeesPage"));
 const EmployeeDetailPage  = lazy(() => import("@/pages/Employees/EmployeeDetailPage"));
-const CloseSalesPage   = lazy(() => import("@/pages/Sales/partials/CloseSales/CloseSalesPage"));
+const CloseSalesPage   = lazy(() => import("@/pages/CloseSales/CloseSalesPage"));
 const SalesPage        = lazy(() => import("@/pages/Sales/SalesPage"));
 const StatisticsPage   = lazy(() => import("@/pages/Statistics/StatisticsPage"));
 const AdminPage        = lazy(() => import("@/pages/Admin/AdminPage"));

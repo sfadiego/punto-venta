@@ -7,6 +7,9 @@ export const localDateString = (date = new Date()): string => {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 };
 
+/** Devuelve el mes actual en formato YYYY-MM. */
+export const currentMonthString = (): string => localDateString().slice(0, 7);
+
 /** Parsea una cadena YYYY-MM-DD como fecha local (sin desfase UTC). */
 export const parseDateLocal = (dateStr: string): Date | null => {
     const parts = dateStr.split("-").map(Number);

@@ -6,7 +6,7 @@ import { SalesReportModeEnum } from "@/enums/SalesReportModeEnum";
 import { OrderDetailModal } from "./partials/OrderDetailModal/OrderDetailModal";
 import { SalesByCategoryModal } from "./partials/SalesByCategoryModal/SalesByCategoryModal";
 import { useSalesByCategoryModal } from "./partials/SalesByCategoryModal/useSalesByCategoryModal";
-import { RestaurantSalesModal } from "./partials/RestaurantSalesModal/RestaurantSalesModal";
+import { RestaurantSalesModal } from "./partials/RestaurantSalesModal";
 
 export default function SalesPage() {
     const {

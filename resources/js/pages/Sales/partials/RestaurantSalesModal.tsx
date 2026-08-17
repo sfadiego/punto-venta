@@ -1,7 +1,7 @@
 import { X, LayoutGrid } from "lucide-react";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { resolveReportPeriodLabel } from "@/utils/dateUtils";
-import { DownloadReportButton } from "../DownloadReportButton";
+import { DownloadReportButton } from "./DownloadReportButton";
 
 interface RestaurantSalesModalProps {
     isOpen: boolean;
