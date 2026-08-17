@@ -1,10 +1,7 @@
 import { Users, Settings, HandCoins, Truck, UserRound } from "lucide-react";
-import { usePermissions } from "@/hooks/usePermissions";
-import { useAxios } from "@/hooks/useAxios";
-import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/FeatureSpotlight";
 import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
-import { navItems } from "./navItems";
+import { useSidebarNav } from "./useSidebarNav";
 import { SidebarNavItem } from "./SidebarNavItem";
 
 interface SidebarNavProps {
@@ -12,45 +9,32 @@ interface SidebarNavProps {
 }
 
 export function SidebarNav({ onItemClick }: SidebarNavProps) {
-    const { can } = usePermissions();
-    const { features } = useAxios();
-    const { data: config } = useGetBusinessConfig();
-    const sellByWeight = features?.sell_by_weight === true;
-    const providersEnabled = can("viewProviders") && config?.purchases_enabled === true;
-    const employeesEnabled = can("viewEmployees") && config?.employees_enabled === true;
-    const customersEnabled = can("viewCustomers") && (sellByWeight || config?.customers_enabled === true);
+    const { can, items, providersEnabled, employeesEnabled, customersEnabled, hasFooterSection } = useSidebarNav();
 
     return (
         <nav className="flex-1 px-3 py-5 overflow-y-auto flex flex-col">
             <div className="space-y-0.5 flex-1">
-                {navItems
-                    .filter((item) => can(item.permission))
-                    .map((item) => {
-                        const resolvedItem =
-                            item.path === "/orders" && sellByWeight
-                                ? { ...item, label: "Pedidos" }
-                                : item;
+                {items.map((item) => {
+                    if (!item.spotlight) {
+                        return <SidebarNavItem key={item.path} item={item} onClick={onItemClick} />;
+                    }
 
-                        if (!item.spotlight) {
-                            return <SidebarNavItem key={item.path} item={resolvedItem} onClick={onItemClick} />;
-                        }
-
-                        return (
-                            <FeatureSpotlight
-                                key={item.path}
-                                featureKey={item.spotlight.key}
-                                title={item.spotlight.title}
-                                description={item.spotlight.description}
-                                variant="block"
-                                placement="right-start"
-                            >
-                                <SidebarNavItem item={resolvedItem} onClick={onItemClick} />
-                            </FeatureSpotlight>
-                        );
-                    })}
+                    return (
+                        <FeatureSpotlight
+                            key={item.path}
+                            featureKey={item.spotlight.key}
+                            title={item.spotlight.title}
+                            description={item.spotlight.description}
+                            variant="block"
+                            placement="right-start"
+                        >
+                            <SidebarNavItem item={item} onClick={onItemClick} />
+                        </FeatureSpotlight>
+                    );
+                })}
             </div>
 
-            {(can("viewUsers") || can("viewAdmin") || customersEnabled || providersEnabled || employeesEnabled) && (
+            {hasFooterSection && (
                 <div className="pt-3 border-t border-white/10 mt-3 space-y-0.5">
                     {providersEnabled && (
                         <FeatureSpotlight

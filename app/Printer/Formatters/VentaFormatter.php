@@ -44,7 +44,7 @@ class VentaFormatter implements TicketFormatterInterface
         // ─── Info del pedido ──────────────────────────────────
         $printer->setJustification(Printer::JUSTIFY_LEFT);
         $printer->setEmphasis(true);
-        $printer->text((empty($business['sell_by_weight']) ? 'Mesa : ' : 'Pedido: ').$d['nombre_pedido']."\n");
+        $printer->text((! empty($business['kitchen_view']) ? 'Mesa : ' : 'Pedido: ').$d['nombre_pedido']."\n");
         $printer->setEmphasis(false);
 
         $prefix = $this->folioPrefix($business['name']);
@@ -91,7 +91,7 @@ class VentaFormatter implements TicketFormatterInterface
         $printer->text($this->totalRow('TOTAL:', '$'.number_format($totalTicket, 2))."\n");
         $printer->setEmphasis(false);
 
-        if (empty($business['sell_by_weight'])) {
+        if (! empty($business['kitchen_view'])) {
             $propina = round($subtotalConDescuento * 0.10, 2);
             $printer->feed(1);
             $printer->text($this->totalRow('Propina 10%:', '$'.number_format($propina, 2))."\n");

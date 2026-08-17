@@ -34,7 +34,7 @@ export const ReadonlyMenuQrSection = ({ config }: ReadonlyMenuQrSectionProps) =>
             <div>
                 <h2 className="text-sm font-semibold text-stone-700 mb-0.5">Menú de solo lectura</h2>
                 <p className="text-xs text-stone-400">
-                    Descarga un código QR que muestra el menú sin permitir hacer pedidos, ideal para imprimir y colocar en mesas
+                    Descarga un código QR que muestra el menú sin permitir hacer pedidos, ideal para imprimir y colocar en tu negocio
                 </p>
             </div>
 

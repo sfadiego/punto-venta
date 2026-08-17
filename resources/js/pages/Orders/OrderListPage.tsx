@@ -31,6 +31,7 @@ export default function OrderListPage() {
         search,
         showOrderServed,
         sellByWeight,
+        kitchenView,
         handleEstatusChange,
         handleSearchChange,
         handleClearFilters,
@@ -53,7 +54,7 @@ export default function OrderListPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                 <div>
                     <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-bold text-stone-900">{sellByWeight ? "Pedidos" : "Órdenes"}</h1>
+                        <h1 className="text-2xl font-bold text-stone-900">{kitchenView ? "Órdenes" : "Pedidos"}</h1>
                         {isRefetching && (
                             <Loader size={16} className="animate-spin text-amber-400" />
                         )}

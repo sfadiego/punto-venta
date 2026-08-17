@@ -56,6 +56,10 @@ export const useOrderList = () => {
     const { sistemaId, features } = useAxios();
     const showOrderServed = features?.order_served !== false;
     const sellByWeight = features?.sell_by_weight === true;
+    // "Pedidos" aplica a venta por peso y Retail (ambos sin kitchen_view); "Órdenes" solo a
+    // Restaurante (servicio en mesa). No usar sellByWeight aquí: Retail comparte sellByWeight=false
+    // con Restaurante, así que no distingue entre ambos.
+    const kitchenView = features?.kitchen_view === true;
     const defaultStatuses = sellByWeight
         ? String(OrderStatusEnum.InProcess)
         : getActiveStatuses(showOrderServed);
@@ -120,6 +124,7 @@ export const useOrderList = () => {
         search,
         showOrderServed,
         sellByWeight,
+        kitchenView,
         handleEstatusChange,
         handleSearchChange,
         handleClearFilters,
