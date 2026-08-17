@@ -162,6 +162,7 @@ export default function CustomersPage() {
                         striped
                         minHeight={200}
                         className="whitespace-nowrap"
+                        classNames={{ header: "pos-datatable-header" }}
                         paginationText={({ from, to, totalRecords }) =>
                             `Mostrando del ${from} al ${to} de ${totalRecords} registros`
                         }

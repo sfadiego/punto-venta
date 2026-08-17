@@ -34,6 +34,14 @@
 
 body { color: var(--color-label); }
 
+/* Encabezado de DataTable teñido con el color de marca del tenant (business_config.primary_color). */
+.pos-datatable-header th {
+    background: color-mix(in srgb, var(--color-primary) 14%, white);
+    color: var(--color-label);
+    font-weight: 700;
+    border-bottom: 2px solid var(--color-primary);
+}
+
 /* Fade + collapse animado — oculta/muestra secciones con transición suave */
 .fade-collapse {
     overflow: hidden;
