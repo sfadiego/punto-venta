@@ -9,7 +9,7 @@ interface NewOrderButtonProps {
 
 export const NewOrderButton = ({ className }: NewOrderButtonProps) => {
     const { can } = usePermissions();
-    const { isOpen, openModal, handleClose, formik, isPending } = useNewOrderModal();
+    const { isOpen, openModal, handleClose, formik, isPending, kitchenView } = useNewOrderModal();
 
     if (!can("takeOrder")) return null;
 
@@ -28,6 +28,7 @@ export const NewOrderButton = ({ className }: NewOrderButtonProps) => {
                 isOpen={isOpen}
                 isPending={isPending}
                 formik={formik}
+                kitchenView={kitchenView}
                 onClose={handleClose}
             />
         </>

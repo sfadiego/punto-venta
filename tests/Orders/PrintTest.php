@@ -221,7 +221,60 @@ class PrintTest extends TestCase
         $this->assertStringNotContainsString('Domicilio', $response->getContent());
     }
 
-    // ── Propina: solo aplica a restaurantes ─────────────────────
+    // ── Etiqueta de mesa/pedido según tipo de negocio ────────────
+
+    public function test_bytes_muestra_mesa_en_restaurante(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Restaurante,
+        ]);
+
+        $orden = $this->crearOrden();
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        $this->assertStringContainsString('Mesa :', $response->getContent());
+    }
+
+    public function test_bytes_muestra_pedido_en_venta_por_peso(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::VentaPorPeso,
+        ]);
+
+        $orden = $this->crearOrden();
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        $this->assertStringContainsString('Pedido:', $response->getContent());
+        $this->assertStringNotContainsString('Mesa :', $response->getContent());
+    }
+
+    public function test_bytes_muestra_pedido_en_retail(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Retail,
+        ]);
+
+        $orden = $this->crearOrden();
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        // Retail es venta de mostrador, no servicio en mesa — mismo texto que venta por peso.
+        $this->assertStringContainsString('Pedido:', $response->getContent());
+        $this->assertStringNotContainsString('Mesa :', $response->getContent());
+    }
+
+    // ── Propina: solo aplica a negocios con servicio en mesa (kitchen_view) ──
 
     public function test_bytes_propina_aparece_en_restaurante(): void
     {
@@ -243,6 +296,22 @@ class PrintTest extends TestCase
     {
         BusinessConfigModel::first()->update([
             BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::VentaPorPeso,
+        ]);
+
+        $orden = $this->crearOrden();
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        $this->assertStringNotContainsString('Propina', $response->getContent());
+    }
+
+    public function test_bytes_propina_no_aparece_en_retail(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Retail,
         ]);
 
         $orden = $this->crearOrden();

@@ -10,10 +10,11 @@ interface NewOrderModalProps {
     isOpen: boolean;
     isPending: boolean;
     formik: FormikProps<NewOrderForm>;
+    kitchenView: boolean;
     onClose: () => void;
 }
 
-export const NewOrderModal = ({ isOpen, isPending, formik, onClose }: NewOrderModalProps) => {
+export const NewOrderModal = ({ isOpen, isPending, formik, kitchenView, onClose }: NewOrderModalProps) => {
     if (!isOpen) return null;
 
     return (
@@ -39,8 +40,8 @@ export const NewOrderModal = ({ isOpen, isPending, formik, onClose }: NewOrderMo
                 <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
                     <Input<NewOrderForm>
                         name="nombre_pedido"
-                        label="Nombre de la mesa"
-                        placeholder="Ej: Mesa 4, Terraza, Barra..."
+                        label={kitchenView ? "Nombre de la mesa" : "Nombre de la venta"}
+                        placeholder={kitchenView ? "Ej: Mesa 4, Terraza, Barra..." : "Ej: Cliente, Turno, Mostrador..."}
                         maxLength={255}
                         formik={formik}
                     />

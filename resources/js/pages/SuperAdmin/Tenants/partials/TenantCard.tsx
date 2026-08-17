@@ -1,4 +1,4 @@
-import { Building2, Pencil, Trash2, Users, PowerOff, Power, RotateCcw, ExternalLink, UtensilsCrossed, Scale } from "lucide-react";
+import { Building2, Pencil, Trash2, Users, PowerOff, Power, RotateCcw, ExternalLink, UtensilsCrossed, Scale, Store } from "lucide-react";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 import { ITenant } from "@/models/ITenant";
 import { ActiveUsersBadge } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersBadge";
@@ -7,6 +7,13 @@ import { InactivityBadge } from "@/components/SuperAdmin/Tenants/Activity/Inacti
 const BUSINESS_TYPE_SHORT_LABELS: Record<BusinessTypeEnum, string> = {
     [BusinessTypeEnum.Restaurante]:  "Restaurante",
     [BusinessTypeEnum.VentaPorPeso]: "Venta por peso",
+    [BusinessTypeEnum.Retail]:       "Tienda",
+};
+
+const BUSINESS_TYPE_ICONS: Record<BusinessTypeEnum, typeof Scale> = {
+    [BusinessTypeEnum.VentaPorPeso]: Scale,
+    [BusinessTypeEnum.Retail]:       Store,
+    [BusinessTypeEnum.Restaurante]:  UtensilsCrossed,
 };
 
 interface TenantCardProps {
@@ -54,11 +61,10 @@ export const TenantCard = ({ tenant, isDeleted, onEdit, onToggle, onRestore, onD
                         </span>
                     )}
                     <span className="shrink-0 flex items-center gap-1 text-xs font-medium px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                        {tenant.tipo_negocio === BusinessTypeEnum.VentaPorPeso ? (
-                            <Scale size={11} />
-                        ) : (
-                            <UtensilsCrossed size={11} />
-                        )}
+                        {(() => {
+                            const BusinessTypeIcon = BUSINESS_TYPE_ICONS[tenant.tipo_negocio];
+                            return <BusinessTypeIcon size={11} />;
+                        })()}
                         {BUSINESS_TYPE_SHORT_LABELS[tenant.tipo_negocio]}
                     </span>
                     <ActiveUsersBadge count={tenant.active_users_count ?? 0} />

@@ -63,7 +63,7 @@ class MainOrderReportController extends Controller
         }
 
         if (OrderModel::hasActiveOrders($system)) {
-            return Response::error('Debes de finalizar todos las mesas para cerrar sistema.');
+            return Response::error('Debes finalizar todas las órdenes activas para cerrar la caja.');
         }
 
         if ($system->totalSalesByDay() == 0) {

@@ -11,15 +11,20 @@ type NewOrderForm = {
     nombre_pedido: string;
 };
 
-const schema = Yup.object({
-    nombre_pedido: Yup.string().trim().required("El nombre de la mesa es requerido").max(255, "Máximo 255 caracteres"),
-});
-
 export const useNewOrderModal = () => {
     const navigate = useNavigate();
     const { isOpen, openModal, closeModal } = useModal();
-    const { sistemaId } = useAxios();
+    const { sistemaId, features } = useAxios();
     const { mutateAsync: storeOrder, isPending } = useStoreOrder();
+    // kitchen_view distingue servicio en mesa (Restaurante) de venta de mostrador (Retail) —
+    // ambos comparten sell_by_weight=false, así que no sirve para esta distinción.
+    const kitchenView = features?.kitchen_view === true;
+
+    const schema = Yup.object({
+        nombre_pedido: Yup.string().trim()
+            .required(kitchenView ? "El nombre de la mesa es requerido" : "El nombre de la venta es requerido")
+            .max(255, "Máximo 255 caracteres"),
+    });
 
     const formik = useFormik<NewOrderForm>({
         initialValues: { nombre_pedido: "" },
@@ -46,5 +51,5 @@ export const useNewOrderModal = () => {
         closeModal();
     };
 
-    return { isOpen, openModal, handleClose, formik, isPending };
+    return { isOpen, openModal, handleClose, formik, isPending, kitchenView };
 };

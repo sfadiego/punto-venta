@@ -86,7 +86,7 @@ function AdminPage() {
                             <FeatureSpotlight
                                 featureKey={FeatureSpotlightKey.ReadonlyMenuSection}
                                 title="Menú de solo lectura"
-                                description="Descarga un código QR para que tus clientes vean el menú sin poder hacer pedidos, ideal para imprimir y colocar en mesas."
+                                description="Descarga un código QR para que tus clientes vean el menú sin poder hacer pedidos, ideal para imprimir y colocar en tu negocio."
                                 variant="block"
                                 placement="top-start"
                             >
