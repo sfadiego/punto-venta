@@ -37,6 +37,7 @@ export const useMenuSection = (config: IBusinessConfig | undefined) => {
                 purchases_enabled:       config.purchases_enabled,
                 employees_enabled:       config.employees_enabled,
                 stock_enabled:           config.stock_enabled,
+                customers_enabled:       config.customers_enabled,
             });
             toast.success(
                 !config.menu_enabled

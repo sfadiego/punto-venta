@@ -1,4 +1,5 @@
 import { AlertCircle } from "lucide-react";
+import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useCloseSalesPage } from "./useCloseSalesPage";
 import BestSellerWidget from "./partials/BestSellerWidget";
 import CreditCustomersWidget from "./partials/CreditCustomersWidget";
@@ -43,6 +44,8 @@ export default function CloseSalesPage() {
 
     const totalEnCaja = efectivoCierre + totalTransferenciaPagado;
     const categoryModal = useSalesByCategoryModal();
+    const { data: config } = useGetBusinessConfig();
+    const customersEnabled = sellByWeight || config?.customers_enabled === true;
 
     if (isLoading) {
         return (
@@ -100,9 +103,7 @@ export default function CloseSalesPage() {
             )}
 
             <BestSellerWidget sistemaId={sistemaId} />
-            {/* Ventas a crédito hoy solo aplican a clientes de venta por peso — restaurante no
-                maneja clientes todavía. */}
-            {sellByWeight && <CreditCustomersWidget sistemaId={sistemaId} />}
+            {customersEnabled && <CreditCustomersWidget sistemaId={sistemaId} />}
 
             <CloseSalesSessionDetail activeSale={activeSale} />
 

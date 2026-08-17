@@ -4,14 +4,21 @@ import { IPaymentMethod } from "@/models/IPaymentMethod";
 interface PaymentMethodSelectorProps {
     paymentMethods: IPaymentMethod[];
     paymentMethodId: number | null;
-    setPaymentMethodId: (id: number | null) => void;
-    isCreditMode: boolean;
-    setIsCreditMode: (v: boolean) => void;
-    creditModeAvailable: boolean;
+    onSelect: (id: number) => void;
+    /** Disponibilidad del modo crédito — la decide el caller (sell_by_weight siempre lo tiene,
+     * restaurante depende de business_config.customers_enabled). */
+    creditModeAvailable?: boolean;
+    isCreditMode?: boolean;
+    onSelectCredit?: () => void;
 }
 
 export const PaymentMethodSelector = ({
-    paymentMethods, paymentMethodId, setPaymentMethodId, isCreditMode, setIsCreditMode, creditModeAvailable,
+    paymentMethods,
+    paymentMethodId,
+    onSelect,
+    creditModeAvailable = false,
+    isCreditMode = false,
+    onSelectCredit,
 }: PaymentMethodSelectorProps) => {
     const activeMethods = paymentMethods.filter((m) => m.active);
 
@@ -28,10 +35,7 @@ export const PaymentMethodSelector = ({
                         <button
                             key={method.id}
                             type="button"
-                            onClick={() => {
-                                setIsCreditMode(false);
-                                setPaymentMethodId(method.id);
-                            }}
+                            onClick={() => onSelect(method.id)}
                             className={`flex items-center justify-center gap-1 px-2 py-2 rounded-xl border text-xs font-medium transition-all duration-200 whitespace-nowrap ${
                                 isSelected
                                     ? "bg-emerald-500 border-emerald-500 text-white shadow-sm"
@@ -46,14 +50,11 @@ export const PaymentMethodSelector = ({
                 {creditModeAvailable && (
                     <button
                         type="button"
-                        onClick={() => {
-                            setIsCreditMode(true);
-                            setPaymentMethodId(null);
-                        }}
+                        onClick={onSelectCredit}
                         className={`flex items-center justify-center gap-1 px-2 py-2 rounded-xl border text-xs font-medium transition-all duration-200 whitespace-nowrap ${
                             isCreditMode
-                                ? "bg-emerald-500 border-emerald-500 text-white shadow-sm"
-                                : "bg-white border-stone-200 text-stone-600 hover:border-emerald-300 hover:bg-emerald-50"
+                                ? "bg-amber-500 border-amber-500 text-white shadow-sm"
+                                : "bg-white border-stone-200 text-stone-600 hover:border-amber-300 hover:bg-amber-50"
                         }`}
                     >
                         <HandCoins size={13} />

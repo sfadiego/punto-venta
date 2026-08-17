@@ -13,7 +13,7 @@ export const PayModalActions = ({ canPay, isPending, onPay, onClose, confirmLabe
         <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-600 text-sm font-medium hover:bg-stone-50 transition-colors"
+            className="shrink-0 w-24 py-2.5 rounded-xl border border-stone-200 text-stone-600 text-sm font-medium hover:bg-stone-50 transition-colors"
         >
             Cancelar
         </button>
@@ -21,7 +21,7 @@ export const PayModalActions = ({ canPay, isPending, onPay, onClose, confirmLabe
             type="button"
             onClick={onPay}
             disabled={!canPay || isPending}
-            className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+            className="flex-1 min-w-0 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 text-center"
         >
             {isPending ? (
                 <>

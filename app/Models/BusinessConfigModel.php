@@ -68,6 +68,8 @@ class BusinessConfigModel extends Model
 
     const STOCK_ENABLED = 'stock_enabled';
 
+    const CUSTOMERS_ENABLED = 'customers_enabled';
+
     const LOGO_ICON = 'logo_icon';
 
     const LOGO_ICON_SOURCE = 'logo_icon_source';
@@ -95,6 +97,7 @@ class BusinessConfigModel extends Model
         self::PURCHASES_ENABLED => 'boolean',
         self::EMPLOYEES_ENABLED => 'boolean',
         self::STOCK_ENABLED => 'boolean',
+        self::CUSTOMERS_ENABLED => 'boolean',
         self::TIPO_NEGOCIO => BusinessTypeEnum::class,
         self::LOGO_ICON_SOURCE => IconSourceEnum::class,
         self::SUBSCRIPTION_EXPIRES_AT => 'date',
@@ -127,6 +130,7 @@ class BusinessConfigModel extends Model
         self::PURCHASES_ENABLED,
         self::EMPLOYEES_ENABLED,
         self::STOCK_ENABLED,
+        self::CUSTOMERS_ENABLED,
         self::LOGO_ICON,
         self::LOGO_ICON_SOURCE,
         self::TIPO_NEGOCIO,

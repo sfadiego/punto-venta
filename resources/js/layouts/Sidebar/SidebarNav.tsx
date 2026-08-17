@@ -18,6 +18,7 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
     const sellByWeight = features?.sell_by_weight === true;
     const providersEnabled = can("viewProviders") && config?.purchases_enabled === true;
     const employeesEnabled = can("viewEmployees") && config?.employees_enabled === true;
+    const customersEnabled = can("viewCustomers") && (sellByWeight || config?.customers_enabled === true);
 
     return (
         <nav className="flex-1 px-3 py-5 overflow-y-auto flex flex-col">
@@ -49,7 +50,7 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
                     })}
             </div>
 
-            {(can("viewUsers") || can("viewAdmin") || can("viewCustomers") || providersEnabled || employeesEnabled) && (
+            {(can("viewUsers") || can("viewAdmin") || customersEnabled || providersEnabled || employeesEnabled) && (
                 <div className="pt-3 border-t border-white/10 mt-3 space-y-0.5">
                     {providersEnabled && (
                         <FeatureSpotlight
@@ -79,7 +80,7 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
                             />
                         </FeatureSpotlight>
                     )}
-                    {can("viewCustomers") && (
+                    {customersEnabled && (
                         <FeatureSpotlight
                             featureKey={FeatureSpotlightKey.CustomerSection}
                             title="Sección de Clientes"
