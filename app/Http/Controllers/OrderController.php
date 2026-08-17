@@ -17,10 +17,12 @@ use App\Models\ProductModel;
 use App\Services\OrderCreditService;
 use App\Services\OrderSaleService;
 use App\Services\OrderService;
+use App\Services\SalesReportExportService;
 use App\Services\StockService;
 use App\Services\TenantActivityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 
@@ -168,6 +170,23 @@ class OrderController extends Controller
         }
 
         return Response::success($saleService->creditCustomersBySession((int) $sistemaId));
+    }
+
+    public function exportSalesReport(Request $request, SalesReportExportService $exportService): HttpResponse
+    {
+        $sistemaId = $request->query('sistema_id') ? (int) $request->query('sistema_id') : null;
+        $date = $request->query('fecha');
+        $week = $request->query('semana');
+        $month = $request->query('mes');
+        $sellByWeight = (bool) ($request->user()->tenant->tipo_negocio->features()['sell_by_weight'] ?? false);
+
+        $pdf = $exportService->buildPdf($sistemaId, $date, $week, $month, $sellByWeight);
+        $filename = 'reporte-ventas-'.now()->format('Y-m-d-His').'.pdf';
+
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
     // Se difiere con DB::afterCommit para que el broadcast (llamada HTTP síncrona a Reverb)

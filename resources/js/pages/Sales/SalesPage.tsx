@@ -6,7 +6,7 @@ import { SalesReportModeEnum } from "@/enums/SalesReportModeEnum";
 import { OrderDetailModal } from "./partials/OrderDetailModal/OrderDetailModal";
 import { SalesByCategoryModal } from "./partials/SalesByCategoryModal/SalesByCategoryModal";
 import { useSalesByCategoryModal } from "./partials/SalesByCategoryModal/useSalesByCategoryModal";
-import { RestaurantSalesModal } from "./partials/RestaurantSalesModal/RestaurantSalesModal";
+import { RestaurantSalesModal } from "./partials/RestaurantSalesModal";
 
 export default function SalesPage() {
     const {
@@ -59,7 +59,7 @@ export default function SalesPage() {
                     mes={mes}
                     reportMode={reportMode}
                     showCategoryReport={true}
-                    categoryReportLabel={sellByWeight ? "Reporte por categoría" : "Resumen de ventas"}
+                    categoryReportLabel="Reporte de ventas"
                     onReportModeChange={handleReportModeChange}
                     onFechaChange={handleFechaChange}
                     onSemanaChange={handleSemanaChange}
@@ -102,6 +102,9 @@ export default function SalesPage() {
                     fecha={categoryModal.fecha}
                     semana={categoryModal.semana}
                     mes={categoryModal.mes}
+                    canDownload={categoryModal.canDownload}
+                    isDownloading={categoryModal.isDownloading}
+                    onDownload={categoryModal.handleDownload}
                 />
             ) : (
                 <RestaurantSalesModal
@@ -115,6 +118,9 @@ export default function SalesPage() {
                     fecha={categoryModal.fecha}
                     semana={categoryModal.semana}
                     mes={categoryModal.mes}
+                    canDownload={categoryModal.canDownload}
+                    isDownloading={categoryModal.isDownloading}
+                    onDownload={categoryModal.handleDownload}
                 />
             )}
         </div>

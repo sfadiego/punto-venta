@@ -1,8 +1,8 @@
 import { AlertCircle } from "lucide-react";
 import { useCloseSalesPage } from "./useCloseSalesPage";
-import BestSellerWidget from "./BestSellerWidget";
-import CreditCustomersWidget from "./CreditCustomersWidget";
-import CloseSalesCategoryReportWidget from "./CloseSalesCategoryReportWidget";
+import BestSellerWidget from "./partials/BestSellerWidget";
+import CreditCustomersWidget from "./partials/CreditCustomersWidget";
+import CloseSalesCategoryReportWidget from "./partials/CloseSalesCategoryReportWidget";
 import { SalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/SalesByCategoryModal";
 import { useSalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/useSalesByCategoryModal";
 import { CloseSalesHeader } from "@/components/CloseSales/CloseSalesHeader";

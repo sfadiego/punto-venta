@@ -2,6 +2,7 @@ import { X, LayoutGrid, Loader, Bike, FileArchive } from "lucide-react";
 import { ISalesByCategory } from "@/models/ISalesByCategory";
 import { formatDateLabel, formatMonthLabel, formatWeekLabel } from "@/utils/dateUtils";
 import { formatCategoryUnits } from "@/utils/formatUnits";
+import { DownloadReportButton } from "../DownloadReportButton";
 
 interface SalesByCategoryModalProps {
     isOpen: boolean;
@@ -16,6 +17,9 @@ interface SalesByCategoryModalProps {
     fecha?: string | null;
     semana?: string | null;
     mes?: string | null;
+    canDownload?: boolean;
+    isDownloading?: boolean;
+    onDownload?: () => void;
 }
 
 export const SalesByCategoryModal = ({
@@ -31,6 +35,9 @@ export const SalesByCategoryModal = ({
     fecha,
     semana,
     mes,
+    canDownload = false,
+    isDownloading = false,
+    onDownload,
 }: SalesByCategoryModalProps) => {
     if (!isOpen) return null;
 
@@ -134,6 +141,16 @@ export const SalesByCategoryModal = ({
                             <span className="text-sm font-semibold text-stone-700">Ingreso neto</span>
                             <span className="text-lg font-bold text-emerald-700 tabular-nums">${totalNeto.toFixed(2)}</span>
                         </div>
+                    </div>
+                )}
+
+                {!isLoading && onDownload && (
+                    <div className="px-6 py-4 border-t border-stone-100">
+                        <DownloadReportButton
+                            onClick={onDownload}
+                            disabled={!canDownload}
+                            isDownloading={isDownloading}
+                        />
                     </div>
                 )}
             </div>

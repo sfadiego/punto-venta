@@ -10,12 +10,9 @@ import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
 import { useOrderDetailModal } from "./partials/OrderDetailModal/useOrderDetailModal";
 import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
 
-import { getWeekStart, localDateString } from "@/utils/dateUtils";
+import { getWeekStart, localDateString, currentMonthString } from "@/utils/dateUtils";
 import { SalesReportModeEnum } from "@/enums/SalesReportModeEnum";
 import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
-
-const today = () => localDateString();
-const currentMonth = () => today().slice(0, 7);
 
 const renderersMap: DataTableRenderersMap = {
     total: (o: IOrder) => `$${calcOrderDisplayTotal(o).toFixed(2)}`,
@@ -37,9 +34,9 @@ export const useSalesPage = () => {
     const sellByWeight = features?.sell_by_weight === true;
 
     const [reportMode, setReportMode] = useState<SalesReportModeEnum>(SalesReportModeEnum.Day);
-    const [fecha, setFecha] = useState<string | null>(today());
+    const [fecha, setFecha] = useState<string | null>(localDateString());
     const [semana, setSemana] = useState<string | null>(getWeekStart());
-    const [mes, setMes] = useState<string | null>(currentMonth());
+    const [mes, setMes] = useState<string | null>(currentMonthString());
     const modal = useOrderDetailModal();
 
     const actionsColumn: DataTableColumn<IOrder> = useMemo(
@@ -130,9 +127,9 @@ export const useSalesPage = () => {
 
     const handleClear = () => {
         setReportMode(SalesReportModeEnum.Day);
-        setFecha(today());
+        setFecha(localDateString());
         setSemana(getWeekStart());
-        setMes(currentMonth());
+        setMes(currentMonthString());
         setPage(1);
     };
 
