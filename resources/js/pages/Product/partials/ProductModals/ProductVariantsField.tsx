@@ -37,21 +37,19 @@ export const ProductVariantsField = ({ formik }: ProductVariantsFieldProps) => {
                             />
                         </div>
                         <div className="w-28">
-                            <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">$</span>
-                                <Input
-                                    name={`variant-precio-${index}`}
-                                    inputType="number"
-                                    min={0}
-                                    step={0.5}
-                                    placeholder="0.00"
-                                    value={variant.precio}
-                                    onChange={(e) => updateVariant(index, { precio: e.target.value })}
-                                    onBlur={() => touchVariantField(index, "precio")}
-                                    error={getVariantError(index, "precio")}
-                                    className="pl-7 tabular-nums"
-                                />
-                            </div>
+                            <Input
+                                name={`variant-precio-${index}`}
+                                inputType="number"
+                                min={0}
+                                step={0.5}
+                                placeholder="0.00"
+                                value={variant.precio}
+                                onChange={(e) => updateVariant(index, { precio: e.target.value })}
+                                onBlur={() => touchVariantField(index, "precio")}
+                                error={getVariantError(index, "precio")}
+                                icon="$"
+                                className="tabular-nums"
+                            />
                         </div>
                         <button
                             type="button"
