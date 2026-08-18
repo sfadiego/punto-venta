@@ -86,11 +86,18 @@ COPY --from=frontend --chown=www-data:www-data /app/public/build ./public/build
 # Copiar binarios del agente de impresión compilados en el stage frontend
 COPY --from=frontend --chown=www-data:www-data /app/storage/app/printer-agent ./storage/app/printer-agent
 
-# Instalar dependencias PHP de producción (con reintentos ante fallas de red transitorias)
-RUN for i in 1 2 3; do \
-        composer install --no-dev --optimize-autoloader --no-interaction && break || \
-        (echo "composer install falló (intento $i/3), reintentando en 5s..." && sleep 5); \
-    done
+# Instalar dependencias PHP de producción (con reintentos ante fallas de red transitorias).
+# Si los 3 intentos fallan, el último comando debe ser el que falló para que
+# el exit code del RUN refleje el error real en vez del "sleep" del retry.
+RUN success=0; \
+    for i in 1 2 3; do \
+        if composer install --no-dev --optimize-autoloader --no-interaction; then \
+            success=1; break; \
+        fi; \
+        echo "composer install falló (intento $i/3), reintentando en 5s..."; \
+        sleep 5; \
+    done; \
+    [ "$success" = "1" ]
 
 RUN mkdir -p /var/www/.cache storage/framework/sessions storage/framework/views \
     storage/framework/cache storage/logs bootstrap/cache \
