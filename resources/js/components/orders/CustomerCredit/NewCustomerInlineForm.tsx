@@ -20,18 +20,11 @@ export const NewCustomerInlineForm = ({
 }: NewCustomerInlineFormProps) => (
     <div className="space-y-2 border border-stone-100 rounded-xl p-3">
         <Input
-            name="new_customer_name"
-            inputType="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="Nombre del cliente"
-        />
-        <Input
             name="new_customer_phone"
             inputType="text"
             value={newPhone}
             onChange={(e) => setNewPhone(sanitizePhoneInput(e.target.value))}
-            placeholder="Teléfono (opcional)"
+            placeholder="Teléfono*"
         />
         {phoneError && (
             <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5">
@@ -43,6 +36,13 @@ export const NewCustomerInlineForm = ({
                 Ya existe un cliente con ese teléfono: <strong>{existingByPhone.name}</strong>. Se seleccionará automáticamente.
             </p>
         )}
+        <Input
+            name="new_customer_name"
+            inputType="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Nombre del cliente"
+        />
         <div className="flex gap-2">
             <button
                 type="button"
