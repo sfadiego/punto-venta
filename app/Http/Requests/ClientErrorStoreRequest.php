@@ -15,7 +15,7 @@ class ClientErrorStoreRequest extends FormRequest
     {
         return [
             'message' => 'required|string|max:1000',
-            'stack' => 'nullable|string|max:5000',
+            'stack' => 'nullable|string|max:20000',
             'url' => 'nullable|string|max:500',
             'context' => 'nullable|string|max:200',
             'level' => 'nullable|string|max:20',

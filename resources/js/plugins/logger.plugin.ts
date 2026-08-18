@@ -112,7 +112,7 @@ export const logUnexpectedError = (error: unknown, context: string): void => {
 
     sendToApi({
         message: message.slice(0, 1000),
-        stack: stack?.slice(0, 5000),
+        stack: stack?.slice(0, 20000),
         context,
         url: window.location.href,
         error_type: errorType,

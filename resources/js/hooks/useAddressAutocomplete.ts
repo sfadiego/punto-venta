@@ -13,7 +13,10 @@ export const useAddressAutocomplete = (value: string) => {
 
     useEffect(() => {
         if (value.length < 5) {
-            setSuggestions([]);
+            // Evita crear una referencia nueva de array (y por lo tanto un re-render) cuando
+            // ya está vacío — sin esto, este efecto crea un [] nuevo en cada montaje/keystroke
+            // corto sin importar si ya no había sugerencias.
+            setSuggestions((prev) => (prev.length > 0 ? [] : prev));
             setOpen(false);
             return;
         }
