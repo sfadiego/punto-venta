@@ -1,5 +1,5 @@
 import { HandCoins, ChevronRight } from "lucide-react";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { useTopDebtorsWidget } from "../useTopDebtorsWidget";
 
 export const TopDebtorsWidget = () => {
@@ -39,7 +39,7 @@ export const TopDebtorsWidget = () => {
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0">
                                 <span className="text-sm font-semibold text-red-600 tabular-nums">
-                                    {formatCurrency(customer.balance)}
+                                    {formatCurrencyTrimmed(customer.balance)}
                                 </span>
                                 <ChevronRight size={14} className="text-stone-300" />
                             </div>

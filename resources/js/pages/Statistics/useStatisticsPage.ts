@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAxios } from "@/hooks/useAxios";
 import { useBestSeller, useAverageTicket } from "@/services/useStatisticsService";
 import { useCurrentTotalSale } from "@/services/useOpenSalesService";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 
 const currentMonth = () => {
     const now = new Date();
@@ -25,8 +25,8 @@ export const useStatisticsPage = () => {
     const { data: totalVentasRaw } = useCurrentTotalSale(sistemaId);
     const { data: averageTicket } = useAverageTicket(month);
 
-    const totalVentas = formatCurrency(totalVentasRaw?.neto ?? 0);
-    const averageTicketLabel = formatCurrency(averageTicket?.average_ticket ?? 0);
+    const totalVentas = formatCurrencyTrimmed(totalVentasRaw?.neto ?? 0);
+    const averageTicketLabel = formatCurrencyTrimmed(averageTicket?.average_ticket ?? 0);
 
     const topProduct = bestSellers[0];
 
