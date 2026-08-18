@@ -73,6 +73,10 @@ RUN docker-php-ext-enable opcache
 
 WORKDIR /var/www/html
 
+# Timeout más generoso: la descarga de paquetes desde GitHub ocasionalmente
+# responde 504 y Composer no reintenta solo dentro del tiempo por defecto.
+ENV COMPOSER_PROCESS_TIMEOUT=600
+
 # Copiar código fuente
 COPY --chown=www-data:www-data . .
 
@@ -82,8 +86,11 @@ COPY --from=frontend --chown=www-data:www-data /app/public/build ./public/build
 # Copiar binarios del agente de impresión compilados en el stage frontend
 COPY --from=frontend --chown=www-data:www-data /app/storage/app/printer-agent ./storage/app/printer-agent
 
-# Instalar dependencias PHP de producción
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Instalar dependencias PHP de producción (con reintentos ante fallas de red transitorias)
+RUN for i in 1 2 3; do \
+        composer install --no-dev --optimize-autoloader --no-interaction && break || \
+        (echo "composer install falló (intento $i/3), reintentando en 5s..." && sleep 5); \
+    done
 
 RUN mkdir -p /var/www/.cache storage/framework/sessions storage/framework/views \
     storage/framework/cache storage/logs bootstrap/cache \
