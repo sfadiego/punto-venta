@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, Trash2, Loader, DollarSign } from "lucide-react";
 import { PrintTicketButton } from "../PrintTicket/PrintTicketButton";
-import { OrderDetailModal } from "@/pages/Sales/partials/OrderDetailModal/OrderDetailModal";
+import { OrderDetailModal } from "@/components/orders/OrderDetailModal/OrderDetailModal";
 import { SellByWeightPayModal } from "@/components/orders/SellByWeightPayModal/PayModal/SellByWeightPayModal";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";

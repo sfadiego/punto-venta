@@ -3,7 +3,7 @@ import { ShoppingBag, RefreshCw } from "lucide-react";
 import { useSalesPage } from "./useSalesPage";
 import { SalesFilters } from "./partials/SalesFilters/SalesFilters";
 import { SalesReportModeEnum } from "@/enums/SalesReportModeEnum";
-import { OrderDetailModal } from "./partials/OrderDetailModal/OrderDetailModal";
+import { OrderDetailModal } from "@/components/orders/OrderDetailModal/OrderDetailModal";
 import { SalesByCategoryModal } from "./partials/SalesByCategoryModal/SalesByCategoryModal";
 import { useSalesByCategoryModal } from "./partials/SalesByCategoryModal/useSalesByCategoryModal";
 import { RestaurantSalesModal } from "./partials/RestaurantSalesModal";

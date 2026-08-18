@@ -8,6 +8,8 @@ import { CustomerBalanceCard } from "./partials/CustomerBalanceCard";
 import { CustomerPaymentForm } from "./partials/Payment/CustomerPaymentForm";
 import { CustomerCreditOrdersList } from "./partials/CustomerCreditOrdersList";
 import { CustomerPaymentHistoryList } from "./partials/Payment/CustomerPaymentHistoryList";
+import { OrderDetailModal } from "@/components/orders/OrderDetailModal/OrderDetailModal";
+import { useOrderDetailModal } from "@/components/orders/OrderDetailModal/useOrderDetailModal";
 
 export default function CustomerDetailPage() {
     const navigate = useNavigate();
@@ -25,6 +27,7 @@ export default function CustomerDetailPage() {
         handleToggleCredit,
         isTogglingCredit,
     } = useCustomerDetailPage(customerId);
+    const orderDetailModal = useOrderDetailModal();
 
     if (isLoading || !customer) {
         return (
@@ -65,9 +68,17 @@ export default function CustomerDetailPage() {
             </fieldset>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <CustomerCreditOrdersList orders={customer.credit_orders} />
+                <CustomerCreditOrdersList orders={customer.credit_orders} onViewOrder={orderDetailModal.open} />
                 <CustomerPaymentHistoryList payments={customer.payments} />
             </div>
+
+            <OrderDetailModal
+                isOpen={orderDetailModal.isOpen}
+                order={orderDetailModal.order}
+                orderProducts={orderDetailModal.orderProducts}
+                isLoadingProducts={orderDetailModal.isLoadingProducts}
+                onClose={orderDetailModal.close}
+            />
         </div>
     );
 }
