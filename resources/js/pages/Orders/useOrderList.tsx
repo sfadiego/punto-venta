@@ -11,8 +11,9 @@ import { OrderActionButtons } from "@/components/orders/OrderActions/OrderAction
 import { SaleActions } from "@/components/orders/OrderActions/SaleActions";
 import { getActiveStatuses } from "./partials/OrderFilters";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
-import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
+import { PaymentOrCreditBadge } from "@/components/orders/PaymentOrCreditBadge";
 import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
+import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 
 const renderersMap: DataTableRenderersMap = {
     nombre_pedido: (o: IOrder) => (
@@ -25,10 +26,10 @@ const renderersMap: DataTableRenderersMap = {
             )}
         </span>
     ),
-    total: (o: IOrder) => `$${calcOrderDisplayTotal(o).toFixed(2)}`,
-    subtotal: (o: IOrder) => `$${o.subtotal.toFixed(2)}`,
+    total: (o: IOrder) => formatCurrencyTrimmed(calcOrderDisplayTotal(o)),
+    subtotal: (o: IOrder) => formatCurrencyTrimmed(o.subtotal),
     descuento: (o: IOrder) => (o.descuento > 0 ? `${o.descuento}%` : "—"),
-    payment_method: (o: IOrder) => <PaymentMethodBadge name={o.payment_method?.name ?? "Efectivo"} />,
+    payment_method: (o: IOrder) => <PaymentOrCreditBadge order={o} />,
     created_at: (o: IOrder) => formatOrderTime(o.created_at),
     estatus_pedido_id: (o: IOrder) => (
         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(o.estatus_pedido_id)}`}>

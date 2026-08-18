@@ -8,17 +8,18 @@ import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
 import { useOrderDetailModal } from "./partials/OrderDetailModal/useOrderDetailModal";
-import { PaymentMethodBadge } from "@/components/orders/PaymentMethodBadge";
+import { PaymentOrCreditBadge } from "@/components/orders/PaymentOrCreditBadge";
 
 import { getWeekStart, localDateString, currentMonthString } from "@/utils/dateUtils";
 import { SalesReportModeEnum } from "@/enums/SalesReportModeEnum";
 import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
+import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 
 const renderersMap: DataTableRenderersMap = {
-    total: (o: IOrder) => `$${calcOrderDisplayTotal(o).toFixed(2)}`,
-    subtotal: (o: IOrder) => `$${o.subtotal.toFixed(2)}`,
+    total: (o: IOrder) => formatCurrencyTrimmed(calcOrderDisplayTotal(o)),
+    subtotal: (o: IOrder) => formatCurrencyTrimmed(o.subtotal),
     descuento: (o: IOrder) => (o.descuento > 0 ? `${o.descuento}%` : "—"),
-    payment_method: (o: IOrder) => <PaymentMethodBadge name={o.payment_method?.name} />,
+    payment_method: (o: IOrder) => <PaymentOrCreditBadge order={o} />,
     created_at: (o: IOrder) =>
         new Date(o.created_at).toLocaleString("es-MX", {
             year: "numeric",

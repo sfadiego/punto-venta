@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { DataTable, DataTableColumn } from "mantine-datatable";
 import { Plus, RefreshCw, Search } from "lucide-react";
 import { ICustomer } from "@/models/ICustomer";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { Input } from "@/components/ui/form/Input";
 import { useCustomersPage } from "./useCustomersPage";
 import { AddCustomerModal } from "./partials/CustomerModals/AddCustomerModal";
@@ -63,7 +63,7 @@ export default function CustomersPage() {
                         className={`text-sm font-semibold tabular-nums ${Number(customer.balance) > 0 ? "text-red-600" : "text-stone-400"
                             }`}
                     >
-                        {formatCurrency(Number(customer.balance))}
+                        {formatCurrencyTrimmed(Number(customer.balance))}
                     </span>
                 ),
             },

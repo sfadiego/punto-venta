@@ -48,6 +48,11 @@ export const useCustomerCreditPicker = ({ customers, onSelect }: UseCustomerCred
             toast.error("Ingresa el nombre del cliente");
             return;
         }
+
+        if (!newPhone.trim()) {
+            toast.error("Ingresa el teléfono del nuevo cliente");
+            return;
+        }
         if (phoneError) return;
         if (existingByPhone) {
             onSelect(existingByPhone.id);
