@@ -7,7 +7,7 @@ import { useAxios } from "@/hooks/useAxios";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
-import { useOrderDetailModal } from "./partials/OrderDetailModal/useOrderDetailModal";
+import { useOrderDetailModal } from "@/components/orders/OrderDetailModal/useOrderDetailModal";
 import { PaymentOrCreditBadge } from "@/components/orders/PaymentOrCreditBadge";
 
 import { getWeekStart, localDateString, currentMonthString } from "@/utils/dateUtils";

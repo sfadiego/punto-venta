@@ -1,5 +1,5 @@
 import { ICustomerPayment } from "@/models/ICustomer";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { formatOrderTime } from "@/utils/dateUtils";
 
 interface CustomerPaymentHistoryListProps {
@@ -20,7 +20,7 @@ export const CustomerPaymentHistoryList = ({ payments }: CustomerPaymentHistoryL
                             {payment.note && <p className="text-xs text-stone-400 truncate">{payment.note}</p>}
                         </div>
                         <span className="font-semibold text-green-600 tabular-nums shrink-0 ml-2">
-                            {formatCurrency(Number(payment.amount))}
+                            {formatCurrencyTrimmed(Number(payment.amount))}
                         </span>
                     </div>
                 ))}

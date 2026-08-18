@@ -1,6 +1,6 @@
 import { Lock, LockOpen } from "lucide-react";
 import { ICustomerDetail } from "@/models/ICustomer";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 
 interface CustomerBalanceCardProps {
     customer: ICustomerDetail;
@@ -17,7 +17,7 @@ export const CustomerBalanceCard = ({ customer, onToggleCredit, isTogglingCredit
                 <div>
                     <p className="text-xs text-stone-400 font-medium uppercase tracking-wide">Adeudo actual</p>
                     <p className={`text-3xl font-bold tabular-nums mt-1 ${balance > 0 ? "text-red-600" : "text-stone-800"}`}>
-                        {formatCurrency(balance)}
+                        {formatCurrencyTrimmed(balance)}
                     </p>
                 </div>
                 <button
