@@ -2,7 +2,7 @@ import { useState } from "react";
 import { IMenuProduct, ICartItem } from "@/models/IMenu";
 import { IProductVariant } from "@/models/IProductVariant";
 import { isWeightUnit, weightStep, weightMin } from "@/utils/weightUnits";
-import { getAvailableStock } from "@/utils/stock";
+import { getAvailableStockFor } from "@/utils/stock";
 import { getCartItemUnitPrice, roundCartQuantity as round3, matchesCartLine as matchesLine } from "@/utils/menuCartCalc";
 
 export type { ICartItem };
@@ -17,7 +17,7 @@ export const useCart = () => {
         const unit = product.unidad_medida;
         const step = isWeightUnit(unit) ? weightStep(unit) : 1;
         const variantId = variant?.id ?? null;
-        const availableStock = getAvailableStock(product);
+        const availableStock = getAvailableStockFor(product, variantId);
 
         setItems((prev) => {
             const existing = prev.find((i) => matchesLine(i, product.id, variantId));
@@ -60,7 +60,7 @@ export const useCart = () => {
                 ? weightMin(existing.product.unidad_medida)
                 : 1;
             if (weight < min) return prev.filter((i) => !matchesLine(i, productId, null));
-            if (weight > getAvailableStock(existing.product)) return prev;
+            if (weight > getAvailableStockFor(existing.product, null)) return prev;
             return prev.map((i) =>
                 matchesLine(i, productId, null) ? { ...i, cantidad: round3(weight) } : i
             );
@@ -78,7 +78,7 @@ export const useCart = () => {
     };
 
     const addWithWeight = (product: IMenuProduct, weight: number) => {
-        const availableStock = getAvailableStock(product);
+        const availableStock = getAvailableStockFor(product, null);
         if (weight > availableStock) return;
 
         setItems((prev) => {

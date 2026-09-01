@@ -4,8 +4,6 @@ import { useScale, ScaleNotConnectedError, ScalePairingCancelledError } from "@/
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { ScaleReadStatusEnum } from "@/enums/ScaleReadStatusEnum";
 
-const WARNING_TIMEOUT_MS = 4000;
-
 export type ScaleReadResult =
     | { status: ScaleReadStatusEnum.Ok; weightKg: number }
     | { status: ScaleReadStatusEnum.Zero } // báscula alcanzable pero en 0 — no hay nada que agregar todavía
@@ -22,18 +20,8 @@ export const useQuickSaleScale = () => {
     const { readWeightKg, pair: pairScale, forget: forgetScale, isSupported: scaleSupported, isPaired: scaleIsPaired } = useScale();
     const [isPairing, setIsPairing] = useState(false);
     const [isReadingScale, setIsReadingScale] = useState(false);
-    const [scaleWarning, setScaleWarning] = useState<string | null>(null);
     const [lastReadWeightKg, setLastReadWeightKg] = useState<number | null>(null);
-    const warningTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isReadingRef = useRef(false);
-
-    const setWarning = (message: string | null) => {
-        if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
-        setScaleWarning(message);
-        if (message) {
-            warningTimeoutRef.current = setTimeout(() => setScaleWarning(null), WARNING_TIMEOUT_MS);
-        }
-    };
 
     const handlePairScale = async () => {
         if (!scaleSupported) {
@@ -62,11 +50,10 @@ export const useQuickSaleScale = () => {
         if (isReadingRef.current) return { status: ScaleReadStatusEnum.Unreachable };
         isReadingRef.current = true;
         setIsReadingScale(true);
-        setWarning(null);
         try {
             const weightKg = await readWeightKg();
             if (weightKg <= 0) {
-                setWarning("La báscula marca 0 — coloca el producto y vuelve a leer");
+                toast.info("La báscula marca 0 — coloca el producto y vuelve a leer");
                 return { status: ScaleReadStatusEnum.Zero };
             }
             // Refleja en ScaleReadout el peso que se acaba de agregar al carrito — confirmación
@@ -79,7 +66,7 @@ export const useQuickSaleScale = () => {
                 // retirado, báscula apagada) — se corrige el estado para que ScaleReadout deje
                 // de mostrar "conectada" y vuelva a ofrecer enlazar de nuevo.
                 await forgetScale();
-                setWarning("Báscula desconectada — se agregó el peso por defecto, ajústalo si hace falta");
+                toast.warning("Báscula desconectada — se agregó el peso por defecto, ajústalo si hace falta");
             } else {
                 logUnexpectedError(error, "useQuickSaleScale.readScaleForCart");
                 toast.error(error instanceof Error ? error.message : "No se pudo leer la báscula");
@@ -96,7 +83,6 @@ export const useQuickSaleScale = () => {
         scaleIsPaired,
         isPairing,
         isReadingScale,
-        scaleWarning,
         lastReadWeightKg,
         handlePairScale,
         readScaleForCart,

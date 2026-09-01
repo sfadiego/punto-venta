@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
 import { IProductVariant } from "@/models/IProductVariant";
 import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
@@ -7,12 +7,12 @@ import { UnitControls } from "@/components/ui/UnitControls";
 import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { isWeightUnit, weightChipOptions } from "@/utils/weightUnits";
-import { getAvailableStock } from "@/utils/stock";
+import { getAvailableStockFor } from "@/utils/stock";
+import { VariantPickerModal } from "@/components/orders/VariantPickerModal/VariantPickerModal";
 import { QUICK_PRICE_AMOUNTS } from "../../quickSaleConstants";
 import { useProductCard } from "./useProductCard";
 import { ProductCardChips } from "./ProductCardChips";
 import { ProductCardMoneyEntry } from "./ProductCardMoneyEntry";
-import { VariantPickerModal } from "./VariantPickerModal";
 
 const QUICK_PRICE_OPTIONS = QUICK_PRICE_AMOUNTS.map((amount) => ({
     value: amount,
@@ -22,6 +22,7 @@ const QUICK_PRICE_OPTIONS = QUICK_PRICE_AMOUNTS.map((amount) => ({
 interface ProductCardProps {
     product: IProduct;
     quantity: number;
+    quantityOf: (product: IProduct, variant?: IProductVariant | null) => number;
     onAdd: (
         product: IProduct,
         cantidad: number,
@@ -34,6 +35,7 @@ interface ProductCardProps {
 export const ProductCard = ({
     product,
     quantity,
+    quantityOf,
     onAdd,
     onDecrement,
     onTap,
@@ -52,13 +54,14 @@ export const ProductCard = ({
         setIsVariantPickerOpen,
         activeVariants,
         handleSelectVariant,
-    } = useProductCard(product, quantity, onAdd);
+        variantOptions,
+    } = useProductCard(product, quantity, quantityOf, onAdd);
     const isWeightMode = mode === WeightInputModeEnum.Weight;
     const weightUnit = isWeightUnit(product.unidad_medida)
         ? product.unidad_medida
         : null;
     const hasVariants = !weightUnit && activeVariants.length > 0;
-    const isManagedStock = getAvailableStock(product) !== Infinity;
+    const isManagedStock = getAvailableStockFor(product, null) !== Infinity;
     // Sin stock disponible: ya sea porque el producto no tiene existencia, o porque el
     // carrito ya se llevó todo lo que había. maxAddable ya incluye ambos casos. Solo aplica a
     // la línea del precio base ("Paquete") — una línea de variante no descuenta stock.
@@ -168,18 +171,25 @@ export const ProductCard = ({
                         )}
                     </div>
 
-                    <p
-                        className="text-xl font-extrabold tabular-nums"
-                        style={{ color: "var(--color-primary)" }}
-                    >
-                        {formatCurrencyTrimmed(product.precio)}
-                        {weightUnit && (
-                            <span className="text-xs font-semibold text-stone-400">
-                                {" "}
-                                / {UNIDAD_LABELS[weightUnit]}
-                            </span>
-                        )}
-                    </p>
+                    {!hasVariants ? (
+                        <p
+                            className="text-xl font-extrabold tabular-nums"
+                            style={{ color: "var(--color-primary)" }}
+                        >
+                            {formatCurrencyTrimmed(product.precio)}
+                            {weightUnit && (
+                                <span className="text-xs font-semibold text-stone-400">
+                                    {" "}
+                                    / {UNIDAD_LABELS[weightUnit]}
+                                </span>
+                            )}
+                        </p>
+                    ) : (
+                        // Espacio invisible del alto del precio — así "Ver variantes" (que va
+                        // más abajo, en el lugar del botón) queda alineado con el "+ Agregar"
+                        // de las demás cards en vez de subirse a ocupar el hueco del precio.
+                        <div className="h-7" aria-hidden="true" />
+                    )}
 
                     {/* Aviso de stock en la card, no como toast — un toast tapaba los botones de
                     abajo (Cobrar, imprimir, etc.) sobre todo al tocar "+" repetido. */}
@@ -229,11 +239,10 @@ export const ProductCard = ({
                                 e.stopPropagation();
                                 setIsVariantPickerOpen(true);
                             }}
-                            className="w-full flex items-center justify-center gap-1.5 text-xs font-bold py-2.5 rounded-lg text-white active:scale-95 transition-all"
-                            style={{ backgroundColor: "var(--color-primary)" }}
+                            className="w-full flex items-center justify-center gap-1 text-xs font-bold text-stone-600 py-2.5 rounded-lg border border-stone-200 hover:bg-stone-50 active:scale-95 transition-all"
                         >
-                            <Plus size={14} />
-                            Agregar
+                            Ver variantes
+                            <ChevronRight size={14} />
                         </button>
                     ) : quantity === 0 ? (
                         <button
@@ -276,9 +285,8 @@ export const ProductCard = ({
             {hasVariants && (
                 <VariantPickerModal
                     isOpen={isVariantPickerOpen}
-                    product={product}
-                    activeVariants={activeVariants}
-                    packageDisabled={stockExhausted}
+                    title={product.nombre}
+                    options={variantOptions}
                     onSelect={handleSelectVariant}
                     onClose={() => setIsVariantPickerOpen(false)}
                 />

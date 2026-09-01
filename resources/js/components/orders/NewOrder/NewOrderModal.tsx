@@ -11,10 +11,11 @@ interface NewOrderModalProps {
     isPending: boolean;
     formik: FormikProps<NewOrderForm>;
     kitchenView: boolean;
+    isRetail: boolean;
     onClose: () => void;
 }
 
-export const NewOrderModal = ({ isOpen, isPending, formik, kitchenView, onClose }: NewOrderModalProps) => {
+export const NewOrderModal = ({ isOpen, isPending, formik, kitchenView, isRetail, onClose }: NewOrderModalProps) => {
     if (!isOpen) return null;
 
     return (
@@ -38,13 +39,22 @@ export const NewOrderModal = ({ isOpen, isPending, formik, kitchenView, onClose 
                 </div>
 
                 <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
-                    <Input<NewOrderForm>
-                        name="nombre_pedido"
-                        label={kitchenView ? "Nombre de la mesa" : "Nombre de la venta"}
-                        placeholder={kitchenView ? "Ej: Mesa 4, Terraza, Barra..." : "Ej: Cliente, Turno, Mostrador..."}
-                        maxLength={255}
-                        formik={formik}
-                    />
+                    {/* Retail no necesita nombrar la venta — se autogenera un folio al crear la
+                        orden (ver useNewOrderModal/resolveSaleName), así que el campo ni se
+                        muestra en vez de pedirlo como opcional. */}
+                    {isRetail ? (
+                        <p className="text-xs text-stone-400">
+                            Se generará un folio automático para esta venta.
+                        </p>
+                    ) : (
+                        <Input<NewOrderForm>
+                            name="nombre_pedido"
+                            label={kitchenView ? "Nombre de la mesa" : "Nombre de la venta"}
+                            placeholder={kitchenView ? "Ej: Mesa 4, Terraza, Barra..." : "Ej: Cliente, Turno, Mostrador..."}
+                            maxLength={255}
+                            formik={formik}
+                        />
+                    )}
 
                     <div className="flex gap-2 pt-1">
                         <button

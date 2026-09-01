@@ -4,8 +4,8 @@ import { IMenuProduct } from "@/models/IMenu";
 import { IProductVariant } from "@/models/IProductVariant";
 import { isWeightUnit, formatPricePerUnit } from "@/utils/weightUnits";
 import { UnitControls } from "@/components/ui/UnitControls";
+import { VariantPickerModal } from "@/components/orders/VariantPickerModal/VariantPickerModal";
 import { WeightControls } from "../WeightControls/WeightControls";
-import { VariantPickerModal } from "./VariantPickerModal";
 import { useProductCard } from "./useProductCard";
 import { formatMoney } from "@/utils/formatCurrency";
 import { ProductImagePlaceholder } from "./ProductImagePlaceholder";
@@ -13,6 +13,7 @@ import { ProductImagePlaceholder } from "./ProductImagePlaceholder";
 interface ProductCardProps {
     product: IMenuProduct;
     quantity: number;
+    quantityOf: (productId: number, variantId?: number | null) => number;
     primaryColor: string;
     readonly?: boolean;
     onAdd: (product: IMenuProduct, variant?: IProductVariant) => void;
@@ -20,7 +21,16 @@ interface ProductCardProps {
     onAddWithWeight: (product: IMenuProduct, weight: number) => void;
 }
 
-export const ProductCard = ({ product, quantity, primaryColor, readonly = false, onAdd, onRemove, onAddWithWeight }: ProductCardProps) => {
+export const ProductCard = ({
+    product,
+    quantity,
+    quantityOf,
+    primaryColor,
+    readonly = false,
+    onAdd,
+    onRemove,
+    onAddWithWeight,
+}: ProductCardProps) => {
     const unit = product.unidad_medida;
     const byWeight = isWeightUnit(unit);
     const [imgError, setImgError] = useState(false);
@@ -33,7 +43,8 @@ export const ProductCard = ({ product, quantity, primaryColor, readonly = false,
         isManagedStock,
         availableStock,
         stockExhausted,
-    } = useProductCard(product, quantity, onAdd);
+        variantOptions,
+    } = useProductCard(product, quantity, quantityOf, onAdd);
 
     return (
         <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden flex flex-col active:scale-[0.98] transition-transform">
@@ -130,8 +141,8 @@ export const ProductCard = ({ product, quantity, primaryColor, readonly = false,
 
             <VariantPickerModal
                 isOpen={isPickerOpen}
-                product={product}
-                primaryColor={primaryColor}
+                title={product.nombre}
+                options={variantOptions}
                 onSelect={handleSelectVariant}
                 onClose={closePicker}
             />

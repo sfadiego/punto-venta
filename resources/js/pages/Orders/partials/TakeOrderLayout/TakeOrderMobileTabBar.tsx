@@ -1,9 +1,10 @@
 import { Package, ShoppingCart } from "lucide-react";
+import { TakeOrderMobileTabEnum } from "@/enums/TakeOrderMobileTabEnum";
 
 interface TakeOrderMobileTabBarProps {
-    activeTab: "products" | "cart";
+    activeTab: TakeOrderMobileTabEnum;
     cartCount: number;
-    onTabChange: (tab: "products" | "cart") => void;
+    onTabChange: (tab: TakeOrderMobileTabEnum) => void;
 }
 
 export const TakeOrderMobileTabBar = ({
@@ -13,18 +14,18 @@ export const TakeOrderMobileTabBar = ({
 }: TakeOrderMobileTabBarProps) => (
     <div className="bg-white border-t border-stone-200 flex flex-shrink-0 safe-area-bottom">
         <button
-            onClick={() => onTabChange("products")}
+            onClick={() => onTabChange(TakeOrderMobileTabEnum.Products)}
             className={`flex-1 flex flex-col items-center py-3 gap-0.5 text-xs font-medium transition-colors ${
-                activeTab === "products" ? "text-amber-600" : "text-stone-400"
+                activeTab === TakeOrderMobileTabEnum.Products ? "text-amber-600" : "text-stone-400"
             }`}
         >
             <Package size={20} />
             Productos
         </button>
         <button
-            onClick={() => onTabChange("cart")}
+            onClick={() => onTabChange(TakeOrderMobileTabEnum.Cart)}
             className={`flex-1 flex flex-col items-center py-3 gap-0.5 text-xs font-medium transition-colors relative ${
-                activeTab === "cart" ? "text-amber-600" : "text-stone-400"
+                activeTab === TakeOrderMobileTabEnum.Cart ? "text-amber-600" : "text-stone-400"
             }`}
         >
             <div className="relative">

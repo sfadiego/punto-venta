@@ -1,7 +1,7 @@
 import { FormikProps } from "formik";
 import { ProductForm, ProductVariantFormValue } from "./useProductModal";
 
-type VariantFieldName = "nombre" | "precio";
+type VariantFieldName = "nombre" | "precio" | "stock" | "min_stock";
 
 export const useProductVariantsField = (formik: FormikProps<ProductForm>) => {
     const { variants } = formik.values;
@@ -12,7 +12,7 @@ export const useProductVariantsField = (formik: FormikProps<ProductForm>) => {
     };
 
     const addVariant = () => {
-        formik.setFieldValue("variants", [...variants, { nombre: "", precio: "" }]);
+        formik.setFieldValue("variants", [...variants, { nombre: "", precio: "", stock: "", min_stock: "" }]);
     };
 
     const removeVariant = (index: number) => {

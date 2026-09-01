@@ -18,6 +18,8 @@ class StockMovementModel extends Model
 
     const PRODUCT_ID = 'product_id';
 
+    const VARIANT_ID = 'variant_id';
+
     const TYPE = 'type';
 
     const QUANTITY = 'quantity';
@@ -44,6 +46,7 @@ class StockMovementModel extends Model
 
     protected $fillable = [
         self::PRODUCT_ID,
+        self::VARIANT_ID,
         self::TYPE,
         self::QUANTITY,
         self::STOCK_BEFORE,
@@ -59,6 +62,11 @@ class StockMovementModel extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(ProductModel::class, self::PRODUCT_ID, 'id');
+    }
+
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariantModel::class, self::VARIANT_ID, 'id');
     }
 
     public function reference(): MorphTo

@@ -69,8 +69,25 @@ class OrderProductStoreRequest extends FormRequest
             // El stock recién se descuenta al cerrar la orden, pero reservar en el carrito más
             // de lo que hay en existencia deja el cierre destinado a fallar — se valida aquí
             // también, no solo en el frontend (que es solo un tope de UX, no la fuente de
-            // verdad). Una línea de variante no descuenta stock, así que no se limita por esto.
-            if ($this->producto_id && ! $this->variant_id) {
+            // verdad). Una línea con variante valida contra el stock de esa variante, no el
+            // del producto base (ver StockService — el stock vive en la variante en ese caso).
+            if ($this->producto_id && $this->variant_id) {
+                $variant = ProductVariantModel::find($this->variant_id);
+                $product = $variant?->product;
+
+                if ($product && $product->manage_stock && $variant->stock !== null) {
+                    $alreadyInOrder = (float) OrderProductModel::where(OrderProductModel::PEDIDO_ID, $this->route('order'))
+                        ->where(OrderProductModel::VARIANT_ID, $this->variant_id)
+                        ->sum(OrderProductModel::CANTIDAD);
+
+                    if ($alreadyInOrder + (float) $this->cantidad > (float) $variant->stock) {
+                        $validator->errors()->add(
+                            'cantidad',
+                            "Stock insuficiente de {$product->nombre} ({$variant->nombre}). Disponible: {$variant->stock}.",
+                        );
+                    }
+                }
+            } elseif ($this->producto_id) {
                 $product = ProductModel::find($this->producto_id);
 
                 if ($product && $product->manage_stock) {

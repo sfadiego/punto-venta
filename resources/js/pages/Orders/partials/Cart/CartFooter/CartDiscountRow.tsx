@@ -1,4 +1,5 @@
 import { Tag, X } from "lucide-react";
+import { formatMoney } from "@/utils/formatCurrency";
 import { useCartFooter } from "./useCartFooter";
 
 interface CartDiscountRowProps {
@@ -30,7 +31,7 @@ export const CartDiscountRow = ({
         <>
             <div className="flex items-center justify-between text-sm">
                 <span className="text-stone-500">Subtotal</span>
-                <span className="text-stone-700 tabular-nums">${subtotal.toFixed(2)}</span>
+                <span className="text-stone-700 tabular-nums">${formatMoney(subtotal)}</span>
             </div>
 
             <div className="flex items-center justify-between text-sm">
@@ -59,7 +60,7 @@ export const CartDiscountRow = ({
                         <>
                             {orderDiscount > 0 && (
                                 <span className="text-emerald-600 tabular-nums text-xs">
-                                    -${discountAmount.toFixed(2)}
+                                    -${formatMoney(discountAmount)}
                                 </span>
                             )}
                             {!isReadOnly ? (

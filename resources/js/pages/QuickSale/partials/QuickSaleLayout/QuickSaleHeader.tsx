@@ -1,26 +1,18 @@
 import { ChevronLeft, Menu, Search } from "lucide-react";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useLayout } from "@/contexts/LayoutContext";
+import { useAxios } from "@/hooks/useAxios";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Input } from "@/components/ui/form/Input";
+import { ExpensesButton } from "@/components/orders/ExpensesButton";
 import { useQuickSaleContext } from "../../QuickSaleContext";
-import { ScaleReadout } from "./ScaleReadout";
 
 export const QuickSaleHeader = () => {
     const { data: config } = useGetBusinessConfig();
     const { toggleSidebar } = useLayout();
-    const {
-        search,
-        setSearch,
-        handleBack,
-        isSavingOrder,
-        scaleSupported,
-        scaleIsPaired,
-        isPairing,
-        isReadingScale,
-        scaleWarning,
-        lastReadWeightKg,
-        handlePairScale,
-    } = useQuickSaleContext();
+    const { sistemaId } = useAxios();
+    const { can } = usePermissions();
+    const { search, setSearch, handleBack, isSavingOrder } = useQuickSaleContext();
     const appName = import.meta.env.VITE_APP_NAME;
 
     return (
@@ -61,14 +53,7 @@ export const QuickSaleHeader = () => {
                         className="!w-full !p-0 !border-0 !rounded-none !bg-transparent !text-sm !text-stone-900 focus:!ring-0"
                     />
                 </label>
-                <ScaleReadout
-                    isSupported={scaleSupported}
-                    isPaired={scaleIsPaired}
-                    isBusy={isPairing || isReadingScale}
-                    warningMessage={scaleWarning}
-                    lastReadWeightKg={lastReadWeightKg}
-                    onPair={handlePairScale}
-                />
+                {sistemaId && can("registerExpense") && <ExpensesButton />}
             </div>
         </div>
     );

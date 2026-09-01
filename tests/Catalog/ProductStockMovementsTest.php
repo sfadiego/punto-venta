@@ -7,6 +7,7 @@ use App\Enums\StockMovementReasonEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use App\Models\ProductModel;
+use App\Models\ProductVariantModel;
 use App\Models\StockMovementModel;
 use App\Models\User;
 use Tests\TestCase;
@@ -138,5 +139,36 @@ class ProductStockMovementsTest extends TestCase
 
         $this->getJson("/api/product/{$product->id}/stock-movements")
             ->assertStatus(401);
+    }
+
+    public function test_movimientos_filtrados_por_variant_id_solo_incluyen_esa_variante(): void
+    {
+        $product = $this->crearProductoConStock(10);
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+            ProductVariantModel::STOCK => 5,
+        ]);
+
+        // movimiento a nivel producto (sin variante)
+        $this->postJson("/api/product/{$product->id}/stock-adjustment", [
+            'delta' => 1,
+        ], $this->authHeaders())->assertStatus(200);
+
+        // movimiento de la variante
+        $this->postJson("/api/product/{$product->id}/stock-adjustment", [
+            'delta' => 2,
+            'variant_id' => $variant->id,
+        ], $this->authHeaders())->assertStatus(200);
+
+        $this->getJson("/api/product/{$product->id}/stock-movements?variant_id={$variant->id}", $this->authHeaders())
+            ->assertStatus(206)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.quantity', '2.00');
+
+        $this->getJson("/api/product/{$product->id}/stock-movements", $this->authHeaders())
+            ->assertStatus(206)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.quantity', '1.00');
     }
 }

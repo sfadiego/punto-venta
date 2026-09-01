@@ -7,6 +7,7 @@ interface TakeOrderHeaderProps {
     onAddExtra: () => void;
     onMenuClick?: () => void;
     compact?: boolean;
+    showAddExtra?: boolean;
 }
 
 export const TakeOrderHeader = ({
@@ -16,6 +17,7 @@ export const TakeOrderHeader = ({
     onAddExtra,
     onMenuClick,
     compact = false,
+    showAddExtra = true,
 }: TakeOrderHeaderProps) => (
     <div
         className={`bg-white border-b border-stone-200 flex items-center gap-3 flex-shrink-0 ${
@@ -57,7 +59,9 @@ export const TakeOrderHeader = ({
                 </p>
             )}
         </div>
-        {!isReadOnly && (
+        {/* show_extras: false para negocios tipo Retail — no aplica agregar líneas de extra
+            sueltas a una venta de mostrador (ver BusinessTypeEnum::features()). */}
+        {!isReadOnly && showAddExtra && (
             <button
                 onClick={onAddExtra}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-600 font-medium text-xs transition-colors border border-violet-200 shrink-0"

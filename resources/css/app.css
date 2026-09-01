@@ -56,4 +56,9 @@ body { color: var(--color-label); }
     max-height: 0;
     opacity: 0;
     pointer-events: none;
+    /* Estos divs suelen ser hijos directos de un contenedor `space-y-*` (a través de un
+       Fragment de React, que no crea nodo propio) — Tailwind les sigue aplicando margin-top
+       aunque su altura ya esté colapsada, dejando un hueco vacío. Se anula ese margen aquí en
+       vez de tocar el JSX de cada modal que use esta clase. */
+    margin-top: 0 !important;
 }

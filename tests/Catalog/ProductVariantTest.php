@@ -169,7 +169,7 @@ class ProductVariantTest extends TestCase
         ]);
     }
 
-    public function test_producto_con_manage_stock_no_crea_variante(): void
+    public function test_producto_con_manage_stock_si_crea_variante_con_stock_propio(): void
     {
         $product = $this->crearProducto([
             'unidad_medida' => UnidadMedidaEnum::Unidad->value,
@@ -178,12 +178,123 @@ class ProductVariantTest extends TestCase
 
         $this->postJson(
             "/api/product/{$product->id}/variant",
-            ['nombre' => 'Pieza', 'precio' => 18],
+            ['nombre' => 'Talla 26', 'precio' => 18, 'stock' => 5, 'min_stock' => 2],
             $this->authHeaders()
-        )->assertStatus(400);
+        )->assertStatus(200);
 
-        $this->assertDatabaseMissing('product_variants', [
+        $this->assertDatabaseHas('product_variants', [
+            'product_id' => $product->id,
+            'nombre' => 'Talla 26',
+            'stock' => 5,
+            'min_stock' => 2,
+        ]);
+
+        // el producto base no lleva su propio stock cuando la existencia vive en variantes.
+        $this->assertEquals(0, (float) $product->fresh()->stock);
+
+        $this->assertDatabaseHas('stock_movements', [
+            'product_id' => $product->id,
+            'reason' => 'initial_stock',
+            'quantity' => 5,
+        ]);
+    }
+
+    public function test_producto_con_manage_stock_sin_stock_indicado_crea_variante_en_cero(): void
+    {
+        $product = $this->crearProducto([
+            'unidad_medida' => UnidadMedidaEnum::Unidad->value,
+            'manage_stock' => true,
+        ]);
+
+        $this->postJson(
+            "/api/product/{$product->id}/variant",
+            ['nombre' => 'Talla 27', 'precio' => 18],
+            $this->authHeaders()
+        )->assertStatus(200);
+
+        $this->assertDatabaseHas('product_variants', [
+            'product_id' => $product->id,
+            'nombre' => 'Talla 27',
+            'stock' => 0,
+            'min_stock' => 2,
+        ]);
+        $this->assertDatabaseMissing('stock_movements', [
             'product_id' => $product->id,
         ]);
+    }
+
+    public function test_actualiza_min_stock_de_variante(): void
+    {
+        $product = $this->crearProducto([
+            'unidad_medida' => UnidadMedidaEnum::Unidad->value,
+            'manage_stock' => true,
+        ]);
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+            ProductVariantModel::STOCK => 10,
+            ProductVariantModel::MIN_STOCK => 2,
+        ]);
+
+        $this->putJson(
+            "/api/product/{$product->id}/variant/{$variant->id}",
+            ['min_stock' => 5],
+            $this->authHeaders()
+        )->assertStatus(200)
+            ->assertJsonPath('data.min_stock', '5.00');
+
+        $this->assertDatabaseHas('product_variants', [
+            'id' => $variant->id,
+            'min_stock' => 5,
+            'stock' => 10,
+        ]);
+    }
+
+    public function test_actualizar_variante_no_permite_modificar_stock_directamente(): void
+    {
+        $product = $this->crearProducto([
+            'unidad_medida' => UnidadMedidaEnum::Unidad->value,
+            'manage_stock' => true,
+        ]);
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+            ProductVariantModel::STOCK => 10,
+        ]);
+
+        // "stock" no es una regla de ProductVariantUpdateRequest — un valor extra en el
+        // payload se ignora silenciosamente (mismo comportamiento que Laravel con campos no
+        // declarados en rules()), confirmando que la única vía para cambiar stock es el
+        // endpoint de ajuste (StockService).
+        $this->putJson(
+            "/api/product/{$product->id}/variant/{$variant->id}",
+            ['stock' => 999],
+            $this->authHeaders()
+        )->assertStatus(200);
+
+        $this->assertEquals(10.0, (float) $variant->fresh()->stock);
+    }
+
+    public function test_variante_has_low_stock_sin_min_stock_configurado_trata_como_cero(): void
+    {
+        $product = $this->crearProducto([
+            'unidad_medida' => UnidadMedidaEnum::Unidad->value,
+            'manage_stock' => true,
+        ]);
+        $sinExistencia = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+            ProductVariantModel::STOCK => 0,
+            ProductVariantModel::MIN_STOCK => null,
+        ]);
+        $conExistencia = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+            ProductVariantModel::STOCK => 3,
+            ProductVariantModel::MIN_STOCK => null,
+        ]);
+
+        $this->assertTrue($sinExistencia->hasLowStock());
+        $this->assertFalse($conExistencia->hasLowStock());
     }
 }

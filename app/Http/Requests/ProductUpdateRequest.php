@@ -91,16 +91,6 @@ class ProductUpdateRequest extends FormRequest
         $validator->after(function (Validator $validator) {
             $product = $this->route('product');
 
-            // Misma regla que ProductVariantStoreRequest en sentido inverso: no se puede
-            // activar manage_stock en un producto que ya tiene variantes activas, porque las
-            // ventas por variante no descuentan stock y dejarían el inventario desincronizado.
-            if ($product && $this->boolean(ProductModel::MANAGE_STOCK) && $product->variants()->where('activo', true)->exists()) {
-                $validator->errors()->add(
-                    ProductModel::MANAGE_STOCK,
-                    'No se puede activar el manejo de stock en un producto con variantes activas.',
-                );
-            }
-
             // Defensa en profundidad: el frontend ya oculta el toggle cuando el tenant no
             // tiene stock_enabled. Solo bloquea la transición false→true — un producto que ya
             // tenía manage_stock=true antes de que el SuperAdmin apagara la bandera puede

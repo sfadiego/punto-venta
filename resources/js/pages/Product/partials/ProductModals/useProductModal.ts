@@ -23,6 +23,8 @@ export type ProductVariantFormValue = {
     id?: number;
     nombre: string;
     precio: string;
+    stock: string;
+    min_stock: string;
 };
 
 export type ProductForm = {
@@ -58,6 +60,8 @@ const schema = Yup.object({
                 .typeError("Ingresa un precio válido")
                 .min(0, "El precio no puede ser negativo")
                 .required("El precio es requerido"),
+            stock: Yup.number().typeError("Ingresa un stock inicial válido").min(0, "El stock inicial no puede ser negativo").nullable(),
+            min_stock: Yup.number().typeError("Ingresa un stock mínimo válido").min(0, "El stock mínimo no puede ser negativo").nullable(),
         }),
     ),
     manage_stock: Yup.boolean(),
@@ -84,8 +88,16 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
     // stock" para todo negocio tipo restaurante sin excepción.
     const stockEnabled = businessConfig?.stock_enabled === true;
 
+    // stock nunca se prellena al editar (mismo criterio que el stock a nivel producto):
+    // una variante existente solo se ajusta vía reposición, nunca reescribiendo el valor.
     const initialVariants: ProductVariantFormValue[] =
-        product?.variants?.map((v) => ({ id: v.id, nombre: v.nombre, precio: v.precio.toString() })) ?? [];
+        product?.variants?.map((v) => ({
+            id: v.id,
+            nombre: v.nombre,
+            precio: v.precio.toString(),
+            stock: "",
+            min_stock: v.min_stock ? trimDecimalZeros(v.min_stock) : "",
+        })) ?? [];
 
     const formik = useFormik<ProductForm>({
         enableReinitialize: true,
@@ -148,7 +160,7 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
                 // "unidad" — un producto por kg/gr/litro ya resuelve su precio variable vía
                 // báscula y no tiene sentido de negocio mezclarlo con variantes.
                 if (values.unidad_medida === UnidadMedidaEnum.Unidad) {
-                    await syncVariants(productId, initialVariants, values.variants, {
+                    await syncVariants(productId, initialVariants, values.variants, values.manage_stock, {
                         storeVariant,
                         updateVariant,
                         deleteVariant,
@@ -185,6 +197,7 @@ const syncVariants = async (
     productId: number,
     initialVariants: ProductVariantFormValue[],
     currentVariants: ProductVariantFormValue[],
+    manageStock: boolean,
     mutations: {
         storeVariant: ReturnType<typeof useStoreProductVariant>["mutateAsync"];
         updateVariant: ReturnType<typeof useUpdateProductVariant>["mutateAsync"];
@@ -196,7 +209,17 @@ const syncVariants = async (
 
     await Promise.all([
         ...currentVariants.map((variant) => {
-            const data = { nombre: variant.nombre.trim(), precio: Number(variant.precio) };
+            const data: Record<string, unknown> = { nombre: variant.nombre.trim(), precio: Number(variant.precio) };
+
+            // min_stock siempre se puede editar; el stock inicial solo aplica a variantes
+            // nuevas (sin id) — igual que el criterio de "carga inicial" a nivel producto.
+            if (manageStock) {
+                data.min_stock = variant.min_stock !== "" ? Number(variant.min_stock) : undefined;
+                if (!variant.id) {
+                    data.stock = variant.stock !== "" ? Number(variant.stock) : undefined;
+                }
+            }
+
             return variant.id
                 ? mutations.updateVariant({ productId, variantId: variant.id, data })
                 : mutations.storeVariant({ productId, data });

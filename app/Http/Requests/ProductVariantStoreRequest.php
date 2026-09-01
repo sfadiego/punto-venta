@@ -29,6 +29,8 @@ class ProductVariantStoreRequest extends FormRequest
             ProductVariantModel::PRECIO => 'required|decimal:0,2',
             ProductVariantModel::ORDEN => 'nullable|integer|min:0',
             ProductVariantModel::ACTIVO => 'bool',
+            ProductVariantModel::STOCK => 'nullable|numeric|min:0',
+            ProductVariantModel::MIN_STOCK => 'nullable|numeric|min:0',
         ];
     }
 
@@ -39,6 +41,10 @@ class ProductVariantStoreRequest extends FormRequest
             'nombre.max' => 'El nombre no puede superar los 100 caracteres.',
             'precio.required' => 'El precio es requerido.',
             'precio.decimal' => 'El precio debe ser un número válido con hasta 2 decimales.',
+            'stock.numeric' => 'El stock inicial debe ser un número válido.',
+            'stock.min' => 'El stock inicial no puede ser negativo.',
+            'min_stock.numeric' => 'El stock mínimo debe ser un número válido.',
+            'min_stock.min' => 'El stock mínimo no puede ser negativo.',
         ];
     }
 
@@ -53,12 +59,6 @@ class ProductVariantStoreRequest extends FormRequest
             // sea el tipo de negocio.
             if ($product && $product->unidad_medida !== UnidadMedidaEnum::Unidad) {
                 $validator->errors()->add('nombre', 'Solo los productos por unidad admiten variantes.');
-            }
-
-            // Una venta por variante no descuenta stock (ver OrderSaleService) — mezclarlo con
-            // manage_stock dejaría el inventario del producto base desincronizado.
-            if ($product && $product->manage_stock) {
-                $validator->errors()->add('nombre', 'Un producto que maneja stock no admite variantes.');
             }
         });
     }
