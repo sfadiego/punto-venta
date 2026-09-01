@@ -1,90 +1,50 @@
-import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { useIndexProducts } from "@/services/useProductService";
 import { useIndexCategories } from "@/services/useCategoriesService";
-import { IProduct } from "@/models/IProduct";
+import { useProductFilters } from "./useProductFilters";
+import { useProductModalState } from "./useProductModalState";
 
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
+
+// Compone los filtros (useProductFilters) y el estado del modal (useProductModalState), y
+// agrega la query de productos/categorías + la invalidación tras guardar un producto.
 export const useProductsPage = () => {
     const queryClient = useQueryClient();
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
-    const [categoryId, setCategoryId] = useState<number | null>(null);
-    const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [lowStockOnly, setLowStockOnly] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingProduct, setEditingProduct] = useState<IProduct | null>(null);
-
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(search), 400);
-        return () => clearTimeout(timer);
-    }, [search]);
+    const filters = useProductFilters();
+    const modalState = useProductModalState();
 
     const { data, isLoading, refetch } = useIndexProducts({
-        page,
-        limit,
-        categoria_id: categoryId,
-        nombre: debouncedSearch || undefined,
-        low_stock: lowStockOnly,
+        page: filters.page,
+        limit: filters.limit,
+        categoria_id: filters.categoryId,
+        nombre: filters.debouncedSearch || undefined,
+        low_stock: filters.lowStockOnly,
     });
     const { data: categories } = useIndexCategories();
-
-    const handleCategoryChange = (id: number | null) => {
-        setCategoryId(id);
-        setPage(1);
-    };
-
-    const handleSearchChange = (value: string) => {
-        setSearch(value);
-        setPage(1);
-    };
-
-    const handleLowStockOnlyChange = (value: boolean) => {
-        setLowStockOnly(value);
-        setPage(1);
-    };
 
     const invalidateProducts = () => {
         queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
     };
 
-    const pageSize = [10, 20, 50];
-
-    const handleCloseModal = () => setIsModalOpen(false);
-
-    const openAddModal = () => {
-        setEditingProduct(null);
-        setIsModalOpen(true);
-    };
-
-    const openEditModal = (product: IProduct) => {
-        setEditingProduct(product);
-        setIsModalOpen(true);
-    };
-
     return {
         products: data?.data ?? [],
         total: data?.total ?? 0,
-        page,
-        limit,
-        pageSize,
+        page: filters.page,
+        limit: filters.limit,
+        pageSize: PAGE_SIZE_OPTIONS,
         isLoading,
         categories: categories ?? [],
-        categoryId,
-        search,
-        lowStockOnly,
-        setPage,
-        setLimit,
+        categoryId: filters.categoryId,
+        search: filters.search,
+        lowStockOnly: filters.lowStockOnly,
+        setPage: filters.setPage,
+        setLimit: filters.setLimit,
         refetch,
-        handleCategoryChange,
-        handleSearchChange,
-        handleLowStockOnlyChange,
+        handleCategoryChange: filters.handleCategoryChange,
+        handleSearchChange: filters.handleSearchChange,
+        handleLowStockOnlyChange: filters.handleLowStockOnlyChange,
         invalidateProducts,
-        isModalOpen,
-        editingProduct,
-        openAddModal,
-        openEditModal,
-        handleCloseModal,
+        ...modalState,
     };
 };

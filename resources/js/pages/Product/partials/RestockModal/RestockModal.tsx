@@ -1,20 +1,43 @@
 import { X } from "lucide-react";
 import { FormikProps } from "formik";
 import { IProduct } from "@/models/IProduct";
+import { IProductVariant } from "@/models/IProductVariant";
 import { Input } from "@/components/ui/form/Input";
 import { Textarea } from "@/components/ui/form/textarea";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
 import { RestockForm } from "./useRestockModal";
+import { SelectRestockVariant } from "./SelectRestockVariant";
 
 interface RestockModalProps {
     isOpen: boolean;
     product: IProduct | null;
+    hasVariants: boolean;
+    activeVariants: IProductVariant[];
+    variantId: string;
+    setVariantId: (value: string) => void;
+    selectedVariant: IProductVariant | null;
     formik: FormikProps<RestockForm>;
     onClose: () => void;
 }
 
-export const RestockModal = ({ isOpen, product, formik, onClose }: RestockModalProps) => {
+export const RestockModal = ({
+    isOpen,
+    product,
+    hasVariants,
+    activeVariants,
+    variantId,
+    setVariantId,
+    selectedVariant,
+    formik,
+    onClose,
+}: RestockModalProps) => {
     if (!isOpen || !product) return null;
+
+    // Con variantes, el stock vive en cada una — no hay ajuste "agregado" del producto, hay
+    // que elegir cuál variante se está reabasteciendo antes de mostrar su stock/mínimo.
+    const currentStock = hasVariants ? selectedVariant?.stock : product.stock;
+    const currentMinStock = hasVariants ? selectedVariant?.min_stock : product.min_stock;
+    const canSubmit = !hasVariants || !!selectedVariant;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -37,11 +60,17 @@ export const RestockModal = ({ isOpen, product, formik, onClose }: RestockModalP
                 </div>
 
                 <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
-                    <div className="px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-sm text-stone-600">
-                        Stock actual: <span className="font-semibold text-stone-900">{trimDecimalZeros(product.stock ?? 0)}</span>
-                        {" · "}
-                        Mínimo: <span className="font-semibold text-stone-900">{trimDecimalZeros(product.min_stock ?? 0)}</span>
-                    </div>
+                    {hasVariants && (
+                        <SelectRestockVariant variants={activeVariants} value={variantId} onChange={setVariantId} />
+                    )}
+
+                    {(!hasVariants || selectedVariant) && (
+                        <div className="px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-sm text-stone-600">
+                            Stock actual: <span className="font-semibold text-stone-900">{trimDecimalZeros(currentStock ?? 0)}</span>
+                            {" · "}
+                            Mínimo: <span className="font-semibold text-stone-900">{trimDecimalZeros(currentMinStock ?? 0)}</span>
+                        </div>
+                    )}
 
                     <Input<RestockForm>
                         name="delta"
@@ -51,6 +80,7 @@ export const RestockModal = ({ isOpen, product, formik, onClose }: RestockModalP
                         step={1}
                         placeholder="0"
                         formik={formik}
+                        disabled={!canSubmit}
                     />
 
                     <Textarea<RestockForm>
@@ -71,7 +101,7 @@ export const RestockModal = ({ isOpen, product, formik, onClose }: RestockModalP
                         </button>
                         <button
                             type="submit"
-                            disabled={formik.isSubmitting}
+                            disabled={formik.isSubmitting || !canSubmit}
                             className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {formik.isSubmitting ? "Guardando..." : "Reabastecer"}

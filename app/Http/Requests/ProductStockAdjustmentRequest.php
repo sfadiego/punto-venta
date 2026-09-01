@@ -18,6 +18,10 @@ class ProductStockAdjustmentRequest extends FormRequest
             // positivo = se encontró/cargó más stock (reposición, conteo), negativo = merma/faltante.
             'delta' => ['required', 'numeric', Rule::notIn([0])],
             'note' => 'nullable|string|max:255',
+            'variant_id' => [
+                'nullable',
+                Rule::exists('product_variants', 'id')->where('product_id', $this->route('product')?->id),
+            ],
         ];
     }
 
@@ -28,6 +32,7 @@ class ProductStockAdjustmentRequest extends FormRequest
             'delta.numeric' => 'La cantidad a ajustar debe ser un número válido.',
             'delta.not_in' => 'La cantidad a ajustar no puede ser cero.',
             'note.max' => 'La nota no puede superar los 255 caracteres.',
+            'variant_id.exists' => 'La variante seleccionada no pertenece a este producto.',
         ];
     }
 

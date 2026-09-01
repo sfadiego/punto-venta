@@ -6,23 +6,24 @@ import { WeightInputModeEnum } from "@/enums/WeightInputModeEnum";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { calcWeightFromPrice } from "@/utils/calcWeightFromPrice";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
-import { getAvailableStock } from "@/utils/stock";
+import { getAvailableStockFor } from "@/utils/stock";
 import { MAX_CANTIDAD_KG } from "../../quickSaleConstants";
 import { useVariantPicker } from "./useVariantPicker";
 
 export const useProductCard = (
     product: IProduct,
     quantity: number,
+    quantityOf: (product: IProduct, variant?: IProductVariant | null) => number,
     onAdd: (product: IProduct, cantidad: number, variant?: IProductVariant | null) => void,
 ) => {
     const [mode, setMode] = useState<WeightInputModeEnum>(WeightInputModeEnum.Weight);
     const [moneyValue, setMoneyValue] = useState("");
-    const variantPicker = useVariantPicker(product, onAdd);
+    const variantPicker = useVariantPicker(product, quantityOf, onAdd);
 
-    // Cuánto más se puede agregar de este producto: el menor entre MAX_CANTIDAD_KG y lo que
-    // queda de stock (existencia total menos lo que ya está en el carrito). Sin manage_stock,
-    // getAvailableStock devuelve Infinity y el tope queda solo en MAX_CANTIDAD_KG, como antes.
-    const remainingStock = getAvailableStock(product) - quantity;
+    // Cuánto más se puede agregar de este producto (línea "Paquete", sin variante): el menor
+    // entre MAX_CANTIDAD_KG y lo que queda de stock (existencia menos lo ya reservado). Sin
+    // manage_stock, getAvailableStockFor devuelve Infinity y el tope queda solo en MAX_CANTIDAD_KG.
+    const remainingStock = getAvailableStockFor(product, null) - quantity;
     const maxAddable = Math.max(0, Math.min(MAX_CANTIDAD_KG, remainingStock));
 
     // Monto máximo que este producto acepta en el modo $ antes de superar maxAddable al

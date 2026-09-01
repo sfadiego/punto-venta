@@ -5,4 +5,6 @@ export interface IProductVariant {
     precio: number;
     orden: number;
     activo: boolean;
+    stock: string | null;
+    min_stock: string | null;
 }

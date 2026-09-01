@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/form/Input";
 import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { useQuickSaleContext } from "../../QuickSaleContext";
+import { ScaleReadout } from "../QuickSaleLayout/ScaleReadout";
 import { TicketDrawer } from "./TicketDrawer";
 
 const printButtonClass =
@@ -23,6 +24,12 @@ export const TicketBar = () => {
         domicilioNum,
         ensureOrderForPrint,
         isPreparingPrint,
+        scaleSupported,
+        scaleIsPaired,
+        isPairing,
+        isReadingScale,
+        lastReadWeightKg,
+        handlePairScale,
     } = useQuickSaleContext();
     const { print, isPending: isPrinting, isVisible: printVisible } = usePrintTicket();
     const hasAnything = cart.length > 0 || (domicilioActivo && domicilioNum > 0);
@@ -46,6 +53,15 @@ export const TicketBar = () => {
                 </button>
 
                 <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                    <div className="hidden sm:block">
+                        <ScaleReadout
+                            isSupported={scaleSupported}
+                            isPaired={scaleIsPaired}
+                            isBusy={isPairing || isReadingScale}
+                            lastReadWeightKg={lastReadWeightKg}
+                            onPair={handlePairScale}
+                        />
+                    </div>
                     <div className="hidden sm:flex items-center gap-1.5 w-80 max-w-[28vw] bg-white border border-stone-200 rounded-lg px-2.5 py-2 min-w-0">
                         <Pencil size={13} className="shrink-0 text-stone-400" />
                         <Input
@@ -58,6 +74,7 @@ export const TicketBar = () => {
                             className="!w-full !px-0 !py-0 !border-0 !bg-transparent !text-sm !font-medium !text-stone-700 placeholder:!text-stone-400 focus:!ring-0"
                         />
                     </div>
+
                     {printVisible && (
                         <button
                             type="button"

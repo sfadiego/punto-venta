@@ -9,7 +9,7 @@ import { IProductVariant } from "@/models/IProductVariant";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { IModalCartItem } from "@/models/IModalCartItem";
-import { getAvailableStock } from "@/utils/stock";
+import { getAvailableStockFor } from "@/utils/stock";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
 import { useTicketDrawer } from "./useTicketDrawer";
 import { useLastAddedFlash } from "./useLastAddedFlash";
@@ -55,14 +55,11 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
         // No dejar reservar en el carrito más de lo que hay en existencia — el backend igual
         // lo bloquea al cerrar la venta. Sin toast aquí: la card (ProductCard) ya deshabilita
         // sus controles y muestra el aviso de stock inline cuando se llega al tope, así que en
-        // flujo normal este bloque no debería alcanzarse — queda como respaldo silencioso.
-        // Una línea de variante no descuenta stock (ver OrderSaleService), así que tampoco se
-        // limita contra la existencia del producto base.
-        if (!variant) {
-            const availableStock = getAvailableStock(product);
-            if (currentQty + cantidadKg > availableStock) {
-                return;
-            }
+        // flujo normal este bloque no debería alcanzarse — queda como respaldo silencioso. Una
+        // línea con variante topa contra el stock de esa variante, no el del producto base.
+        const availableStock = getAvailableStockFor(product, variant?.id ?? null);
+        if (currentQty + cantidadKg > availableStock) {
+            return;
         }
 
         if (currentQty + cantidadKg > MAX_CANTIDAD_KG) {
@@ -202,7 +199,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
         const existing = cart.find((item) => item.orderProductId === orderProductId);
         if (!existing) return;
 
-        const availableStock = getAvailableStock(existing.product);
+        const availableStock = getAvailableStockFor(existing.product, existing.variantId);
         if (weightKg > availableStock || weightKg > MAX_CANTIDAD_KG) return;
 
         if (resumeOrderId) {

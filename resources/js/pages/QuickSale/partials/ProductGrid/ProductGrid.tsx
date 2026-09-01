@@ -60,6 +60,7 @@ export const ProductGrid = () => {
                         key={product.id}
                         product={product}
                         quantity={quantityOf(product)}
+                        quantityOf={quantityOf}
                         onAdd={addToCart}
                         onDecrement={decrementFromCart}
                         onTap={handleCardTap}

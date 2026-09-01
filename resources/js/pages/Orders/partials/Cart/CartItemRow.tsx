@@ -1,6 +1,7 @@
 import { Plus, Minus, Trash2, Tag, X, Loader } from "lucide-react";
 import { ICartItem } from "@/models/ICartItem";
 import { getAvailableStock } from "@/utils/stock";
+import { formatMoney } from "@/utils/formatCurrency";
 import { CartItemNote } from "./CartItemNote";
 import { useCartItemRow } from "./useCartItemRow";
 
@@ -39,10 +40,14 @@ export const CartItemRow = ({
         clearProductDiscount,
     } = useCartItemRow(item, onUpdateProductDiscount);
 
-    // Una línea de variante no descuenta stock (ver OrderSaleService/OrderController) — el
-    // tope solo aplica a la línea del precio base del producto.
+    // Una línea con variante topa contra el stock de esa variante; sin variante, contra el
+    // stock del producto base (ver StockService en el backend — misma regla).
     const stockExhausted =
-        !item.variantId && item.quantity >= getAvailableStock({ manage_stock: item.manageStock, stock: item.stock });
+        item.quantity >=
+        getAvailableStock({
+            manage_stock: item.manageStock,
+            stock: item.variantId ? item.variantStock : item.stock,
+        });
 
     return (
         <div className="py-3 border-b border-stone-100 last:border-0">
@@ -67,15 +72,14 @@ export const CartItemRow = ({
                         <p
                             className={`text-xs tabular-nums ${item.descuento > 0 ? "line-through text-stone-300" : "text-stone-400"}`}
                         >
-                            ${item.price.toFixed(2)} c/u
+                            ${formatMoney(item.price)} c/u
                         </p>
                         {item.descuento > 0 && (
                             <p className="text-xs text-emerald-600 tabular-nums">
                                 $
-                                {(
-                                    item.price *
-                                    (1 - item.descuento / 100)
-                                ).toFixed(2)}{" "}
+                                {formatMoney(
+                                    item.price * (1 - item.descuento / 100),
+                                )}{" "}
                                 c/u
                             </p>
                         )}
@@ -167,7 +171,7 @@ export const CartItemRow = ({
                 </div>
                 <div className="flex items-center gap-2 ml-1">
                     <span className="text-stone-900 font-semibold text-sm w-16 text-right tabular-nums">
-                        ${itemTotal.toFixed(2)}
+                        ${formatMoney(itemTotal)}
                     </span>
                     {!isReadOnly && (
                         <button

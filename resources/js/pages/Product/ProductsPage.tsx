@@ -4,11 +4,13 @@ import { Plus, RefreshCw } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { CatalogIcon } from "@/components/ui/CatalogIcon";
-import { isLowStock } from "@/utils/stock";
+import { getAggregateVariantStock, hasActiveVariants, isProductRowLowStock } from "@/utils/stock";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
 import { useProductsPage } from "./useProductsPage";
 import { CategoryFilter } from "./partials/CategoryFilter";
 import { LowStockFilter } from "./partials/LowStockFilter";
+import { VariantStockExpansion } from "./partials/VariantStockExpansion";
+import { PRODUCT_TABLE_COLUMN_WIDTHS } from "./partials/productTableColumnWidths";
 import { ProductModal } from "./partials/ProductModals/ProductModal";
 import { useProductModal } from "./partials/ProductModals/useProductModal";
 import { RestockModal } from "./partials/RestockModal/RestockModal";
@@ -54,6 +56,11 @@ export default function ProductsPage() {
     const {
         isOpen: isRestockOpen,
         product: restockProduct,
+        hasVariants: restockHasVariants,
+        activeVariants: restockActiveVariants,
+        variantId: restockVariantId,
+        setVariantId: setRestockVariantId,
+        selectedVariant: restockSelectedVariant,
         formik: restockFormik,
         openRestockModal,
         closeRestockModal,
@@ -62,6 +69,11 @@ export default function ProductsPage() {
     const {
         isOpen: isMovementsOpen,
         product: movementsProduct,
+        hasVariants: movementsHasVariants,
+        activeVariants: movementsActiveVariants,
+        variantId: movementsVariantId,
+        setVariantId: setMovementsVariantId,
+        selectedVariant: movementsSelectedVariant,
         movements,
         isLoading: isLoadingMovements,
         isFetchingNextPage: isFetchingNextMovementsPage,
@@ -84,7 +96,7 @@ export default function ProductsPage() {
             {
                 accessor: "icon_name",
                 title: "",
-                width: 52,
+                width: PRODUCT_TABLE_COLUMN_WIDTHS.icon,
                 render: (p: IProduct) => (
                     <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center">
                         <CatalogIcon iconName={p.icon_name} iconSource={p.icon_source} size={18} className="text-stone-500" />
@@ -94,6 +106,7 @@ export default function ProductsPage() {
             {
                 accessor: "nombre",
                 title: "Nombre",
+                width: PRODUCT_TABLE_COLUMN_WIDTHS.nombre,
                 render: (p: IProduct) => (
                     <span className="font-medium text-stone-900 text-sm">{p.nombre}</span>
                 ),
@@ -101,6 +114,7 @@ export default function ProductsPage() {
             {
                 accessor: "category",
                 title: "Categoría",
+                width: PRODUCT_TABLE_COLUMN_WIDTHS.categoria,
                 render: (p: IProduct) => (
                     <span className="text-stone-600 text-sm">{p.category?.nombre ?? "—"}</span>
                 ),
@@ -108,6 +122,7 @@ export default function ProductsPage() {
             {
                 accessor: "precio",
                 title: "Precio",
+                width: PRODUCT_TABLE_COLUMN_WIDTHS.precio,
                 render: (p: IProduct) => (
                     <span className="font-semibold text-stone-900 tabular-nums text-sm">
                         ${formatMoney(p.precio)}
@@ -120,6 +135,7 @@ export default function ProductsPage() {
             {
                 accessor: "activo",
                 title: "Estado",
+                width: PRODUCT_TABLE_COLUMN_WIDTHS.estado,
                 render: (p: IProduct) => (
                     <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -139,18 +155,27 @@ export default function ProductsPage() {
                       {
                           accessor: "stock" as keyof IProduct,
                           title: "Stock",
-                          render: (p: IProduct) => (
-                              <span className="text-sm tabular-nums text-stone-700">
-                                  {p.manage_stock ? trimDecimalZeros(p.stock ?? 0) : <span className="text-stone-400">N/A</span>}
-                              </span>
-                          ),
+                          width: PRODUCT_TABLE_COLUMN_WIDTHS.stock,
+                          render: (p: IProduct) => {
+                              const aggregateStock = getAggregateVariantStock(p);
+
+                              if (aggregateStock !== null) {
+                                  return <span className="text-sm tabular-nums text-stone-700">{trimDecimalZeros(aggregateStock)}</span>;
+                              }
+
+                              return (
+                                  <span className="text-sm tabular-nums text-stone-700">
+                                      {p.manage_stock ? trimDecimalZeros(p.stock ?? 0) : <span className="text-stone-400">N/A</span>}
+                                  </span>
+                              );
+                          },
                       } as DataTableColumn<IProduct>,
                   ]
                 : []),
             {
                 accessor: "_acciones" as keyof IProduct,
                 title: "Acciones",
-                width: 150,
+                width: PRODUCT_TABLE_COLUMN_WIDTHS.acciones,
                 textAlign: "center",
                 render: (p: IProduct) => (
                     <ProductTableActions
@@ -234,7 +259,12 @@ export default function ProductsPage() {
                         withTableBorder
                         withColumnBorders
                         striped
-                        rowClassName={(p) => (isLowStock(p) ? "!bg-red-100" : undefined)}
+                        rowClassName={(p) => (isProductRowLowStock(p) ? "!bg-red-100" : undefined)}
+                        rowExpansion={{
+                            allowMultiple: true,
+                            expandable: ({ record }) => hasActiveVariants(record),
+                            content: ({ record }) => <VariantStockExpansion product={record} />,
+                        }}
                         minHeight={300}
                         className="whitespace-nowrap"
                         classNames={{ header: "pos-datatable-header" }}
@@ -253,12 +283,18 @@ export default function ProductsPage() {
                 sellByWeight={sellByWeight}
                 stockEnabled={stockEnabled}
                 currentStock={currentStock}
+                productVariants={editingProduct?.variants ?? []}
                 onClose={handleModalClose}
             />
 
             <RestockModal
                 isOpen={isRestockOpen}
                 product={restockProduct}
+                hasVariants={restockHasVariants}
+                activeVariants={restockActiveVariants}
+                variantId={restockVariantId}
+                setVariantId={setRestockVariantId}
+                selectedVariant={restockSelectedVariant}
                 formik={restockFormik}
                 onClose={closeRestockModal}
             />
@@ -266,6 +302,11 @@ export default function ProductsPage() {
             <StockMovementsModal
                 isOpen={isMovementsOpen}
                 product={movementsProduct}
+                hasVariants={movementsHasVariants}
+                activeVariants={movementsActiveVariants}
+                variantId={movementsVariantId}
+                setVariantId={setMovementsVariantId}
+                selectedVariant={movementsSelectedVariant}
                 movements={movements}
                 isLoading={isLoadingMovements}
                 isFetchingNextPage={isFetchingNextMovementsPage}

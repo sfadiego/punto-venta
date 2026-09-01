@@ -238,10 +238,10 @@ class OrderCloseStockTest extends TestCase
         $this->assertEquals(3, $item->fresh()->cantidad);
     }
 
-    public function test_agrega_producto_con_variante_sin_topar_por_stock(): void
+    public function test_agrega_producto_con_variante_sin_stock_propio_no_topa(): void
     {
-        // Una línea de variante no descuenta stock (ver OrderSaleService) — no debe limitarse
-        // por la existencia del producto base.
+        // Una variante sin stock explícito (null) se considera no gestionada — no debe
+        // limitarse por la existencia del producto base ni de ninguna otra cosa.
         $orden = $this->crearOrden();
         $product = $this->crearProductoConStock(1);
         $variant = \App\Models\ProductVariantModel::factory()->create([
@@ -256,6 +256,57 @@ class OrderCloseStockTest extends TestCase
             OrderProductModel::PRECIO => $variant->precio,
             OrderProductModel::DESCUENTO => 0,
         ], $this->authHeaders())->assertStatus(200);
+    }
+
+    public function test_no_agrega_producto_si_excede_el_stock_de_la_variante(): void
+    {
+        $orden = $this->crearOrden();
+        $product = $this->crearProductoConStock(100);
+        $variant = \App\Models\ProductVariantModel::factory()->create([
+            \App\Models\ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+            \App\Models\ProductVariantModel::STOCK => 5,
+        ]);
+
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::VARIANT_ID => $variant->id,
+            OrderProductModel::CANTIDAD => 6,
+            OrderProductModel::PRECIO => $variant->precio,
+            OrderProductModel::DESCUENTO => 0,
+        ], $this->authHeaders())->assertStatus(400);
+
+        // el stock del producto base (100) no debe usarse como tope de la línea de variante.
+        $this->assertDatabaseMissing('order_product', [
+            'pedido_id' => $orden->id,
+            'variant_id' => $variant->id,
+        ]);
+    }
+
+    public function test_no_actualiza_cantidad_de_linea_con_variante_si_excede_su_stock(): void
+    {
+        $orden = $this->crearOrden();
+        $product = $this->crearProductoConStock(100);
+        $variant = \App\Models\ProductVariantModel::factory()->create([
+            \App\Models\ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+            \App\Models\ProductVariantModel::STOCK => 5,
+        ]);
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::VARIANT_ID => $variant->id,
+            OrderProductModel::CANTIDAD => 3,
+            OrderProductModel::PRECIO => $variant->precio,
+        ]);
+
+        $this->putJson("/api/order/{$orden->id}/product/{$item->id}", [
+            OrderProductModel::CANTIDAD => 6,
+        ], $this->authHeaders())->assertStatus(400);
+
+        // el stock del producto base (100) no debe usarse como tope de la línea de variante.
+        $this->assertEquals(3, $item->fresh()->cantidad);
     }
 
     public function test_cerrar_orden_ya_cerrada_no_vuelve_a_descontar_stock(): void

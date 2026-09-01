@@ -1,10 +1,6 @@
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { X } from "lucide-react";
-
-export const getActiveStatuses = (showOrderServed: boolean): string =>
-    showOrderServed
-        ? `${OrderStatusEnum.InProcess},${OrderStatusEnum.Served}`
-        : String(OrderStatusEnum.InProcess);
+import { getActiveStatuses } from "@/utils/orderStatus";
 
 const BASE_STATUS_OPTIONS = [
     { value: String(OrderStatusEnum.InProcess),    label: "En proceso",        dot: "bg-amber-400",   orderServedOnly: false, hideWhenNoServed: true },

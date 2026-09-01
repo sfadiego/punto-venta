@@ -1,12 +1,19 @@
 import { useEffect, useRef } from "react";
 import { X, History, Loader } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
+import { IProductVariant } from "@/models/IProductVariant";
 import { IStockMovement } from "@/models/IStockMovement";
 import { StockMovementRow } from "./StockMovementRow";
+import { SelectRestockVariant } from "../RestockModal/SelectRestockVariant";
 
 interface StockMovementsModalProps {
     isOpen: boolean;
     product: IProduct | null;
+    hasVariants: boolean;
+    activeVariants: IProductVariant[];
+    variantId: string;
+    setVariantId: (value: string) => void;
+    selectedVariant: IProductVariant | null;
     movements: IStockMovement[];
     isLoading: boolean;
     isFetchingNextPage: boolean;
@@ -18,6 +25,11 @@ interface StockMovementsModalProps {
 export const StockMovementsModal = ({
     isOpen,
     product,
+    hasVariants,
+    activeVariants,
+    variantId,
+    setVariantId,
+    selectedVariant,
     movements,
     isLoading,
     isFetchingNextPage,
@@ -65,7 +77,18 @@ export const StockMovementsModal = ({
                 </div>
 
                 <div className="px-5 py-2 overflow-y-auto">
-                    {isLoading ? (
+                    {hasVariants && (
+                        <div className="pb-3">
+                            <SelectRestockVariant variants={activeVariants} value={variantId} onChange={setVariantId} />
+                        </div>
+                    )}
+
+                    {hasVariants && !selectedVariant ? (
+                        <div className="flex flex-col items-center justify-center py-10 text-stone-400">
+                            <History size={28} className="mb-2 opacity-40" />
+                            <p className="text-sm">Elige una variante para ver su historial</p>
+                        </div>
+                    ) : isLoading ? (
                         <div className="py-10 flex justify-center">
                             <Loader size={24} className="animate-spin text-stone-300" />
                         </div>

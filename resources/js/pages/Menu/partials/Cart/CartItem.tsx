@@ -6,7 +6,7 @@ import { WeightControls } from "../ProductSelector/WeightControls/WeightControls
 import { isWeightUnit, formatPricePerUnit } from "@/utils/weightUnits";
 import { formatMoney } from "@/utils/formatCurrency";
 import { getCartItemUnitPrice } from "@/utils/menuCartCalc";
-import { getAvailableStock } from "@/utils/stock";
+import { getAvailableStockFor } from "@/utils/stock";
 
 interface CartItemProps {
     item: ICartItem;
@@ -24,7 +24,7 @@ export const CartItem = ({ item, primaryColor, onAdd, onRemove, onDelete, onSetW
     const unitPrice = getCartItemUnitPrice(item);
     const subtotal = unitPrice * item.cantidad;
     const variantId = item.variant?.id ?? null;
-    const availableStock = getAvailableStock(item.product);
+    const availableStock = getAvailableStockFor(item.product, variantId);
     const isManagedStock = availableStock !== Infinity;
     const stockExhausted = isManagedStock && item.cantidad >= availableStock;
 

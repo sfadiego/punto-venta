@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { AdminRoutes } from "@/enums/RoutesEnum";
+import { TakeOrderMobileTabEnum } from "@/enums/TakeOrderMobileTabEnum";
 
 export const useTakeOrderPage = (loadingOrder: boolean, isError: boolean) => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const [mobileTab, setMobileTab] = useState<"products" | "cart">("products");
+    const [mobileTab, setMobileTab] = useState<TakeOrderMobileTabEnum>(TakeOrderMobileTabEnum.Products);
 
     const handleBack = () => {
         queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });

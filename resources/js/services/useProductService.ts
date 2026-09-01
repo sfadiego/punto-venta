@@ -120,14 +120,18 @@ export const useDeleteProductVariant = () => {
 // reciente primero.
 const STOCK_MOVEMENTS_PAGE_SIZE = 20;
 
-export const useInfiniteStockMovements = (productId: number | null) => {
+export const useInfiniteStockMovements = (productId: number | null, variantId?: number | null) => {
     const { axiosApi } = useAxios();
     return useInfiniteQuery<IPaginate<IStockMovement>>({
-        queryKey: [adminUrl, "stock-movements", "infinite", productId],
+        queryKey: [adminUrl, "stock-movements", "infinite", productId, variantId ?? null],
         queryFn: ({ pageParam }) =>
             axiosGET(axiosApi, {
                 url: `${adminUrl}/${productId}/stock-movements`,
-                params: { page: pageParam as number, limit: STOCK_MOVEMENTS_PAGE_SIZE },
+                params: {
+                    page: pageParam as number,
+                    limit: STOCK_MOVEMENTS_PAGE_SIZE,
+                    ...(variantId ? { variant_id: variantId } : {}),
+                },
             }),
         getNextPageParam: (lastPage) =>
             lastPage.current_page < lastPage.last_page
@@ -140,10 +144,17 @@ export const useInfiniteStockMovements = (productId: number | null) => {
 
 // Ajuste manual de stock (reposición, conteo físico, merma) — productId dinámico, el mismo
 // hook ajusta cualquier producto sin remontar (ej. desde un modal compartido en el listado).
+// variant_id opcional en data: cuando el producto lleva stock por variante, el ajuste se
+// aplica a esa variante en vez de al producto.
 export const useAdjustProductStock = () => {
     const { axiosApi } = useAxios();
     return useMutation({
-        mutationFn: ({ productId, data }: { productId: number; data: { delta: number; note?: string } }) =>
-            axiosPOST(axiosApi, { url: `${adminUrl}/${productId}/stock-adjustment`, data }),
+        mutationFn: ({
+            productId,
+            data,
+        }: {
+            productId: number;
+            data: { delta: number; note?: string; variant_id?: number };
+        }) => axiosPOST(axiosApi, { url: `${adminUrl}/${productId}/stock-adjustment`, data }),
     });
 };

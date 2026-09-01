@@ -157,12 +157,20 @@ class ProductModel extends Model
         if ($unidadMedida !== null) {
             $data[ProductModel::UNIDAD_MEDIDA] = $unidadMedida;
         }
+        $hasActiveVariants = $this->variants()->where(ProductVariantModel::ACTIVO, true)->exists();
+
         if ($manageStock !== null) {
             $data[ProductModel::MANAGE_STOCK] = $manageStock;
             // al desactivar el control de stock se limpia la existencia y el mínimo:
             // hasLowStock() y el resto del flujo asumen que ambos son null cuando
             // manage_stock es false, para no mostrar cifras obsoletas.
             if (! $manageStock) {
+                $data[ProductModel::STOCK] = null;
+                $data[ProductModel::MIN_STOCK] = null;
+            } elseif ($hasActiveVariants) {
+                // Con variantes activas el stock vive por variante — el nivel producto
+                // queda sin usar (ver ProductVariantService::backfillStockOnActivation()
+                // para la inicialización de las variantes existentes).
                 $data[ProductModel::STOCK] = null;
                 $data[ProductModel::MIN_STOCK] = null;
             } else {
@@ -176,7 +184,7 @@ class ProductModel extends Model
                 }
             }
         }
-        if ($minStock !== null && ($manageStock ?? $this->manage_stock)) {
+        if ($minStock !== null && ($manageStock ?? $this->manage_stock) && ! $hasActiveVariants) {
             $data[ProductModel::MIN_STOCK] = $minStock;
         }
         if ($productCode !== null) {
@@ -226,10 +234,14 @@ class ProductModel extends Model
 
     public function hasLowStock(): bool
     {
-        if (! $this->manage_stock || $this->min_stock === null || $this->stock === null) {
+        if (! $this->manage_stock || $this->stock === null) {
             return false;
         }
 
-        return (float) $this->stock <= (float) $this->min_stock;
+        // Sin min_stock configurado se asume 0 — un producto en 0 existencias siempre debe
+        // marcarse como bajo stock, tenga o no un mínimo definido.
+        $minStock = $this->min_stock !== null ? (float) $this->min_stock : 0;
+
+        return (float) $this->stock <= $minStock;
     }
 }

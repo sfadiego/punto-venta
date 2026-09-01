@@ -10,9 +10,10 @@ export interface ICartItem {
     isReady: boolean;
     variantId: number | null;
     variantName: string | null;
-    // Del producto base — para topar el stepper "+" contra el stock disponible (ver
-    // CartItemRow). Una línea de variante (variantId != null) no descuenta stock, así que no
-    // se limita por esto.
+    // Para topar el stepper "+" contra el stock disponible (ver CartItemRow). Si la línea
+    // tiene variante, el tope usa variantStock (existencia propia de esa variante) en vez de
+    // stock (del producto base).
     manageStock: boolean;
     stock: string | null;
+    variantStock: string | null;
 }

@@ -32,9 +32,15 @@ class StockMovementsService extends DataTable
         /** @var ProductModel $product */
         $product = request()->route('product');
 
-        return $this->model->newQuery()
+        $query = $this->model->newQuery()
             ->with('createdBy:id,nombre')
             ->where('product_id', $product->id);
+
+        // ?variant_id=X filtra al kardex de esa variante; sin el parámetro se muestran
+        // solo los movimientos a nivel producto (comportamiento actual sin variantes).
+        $variantId = request()->query('variant_id');
+
+        return $variantId ? $query->where('variant_id', $variantId) : $query->whereNull('variant_id');
     }
 
     // El historial siempre se lee más reciente primero — no tiene sentido de negocio

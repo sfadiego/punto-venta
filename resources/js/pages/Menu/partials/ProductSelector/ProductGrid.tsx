@@ -10,6 +10,7 @@ interface ProductGridProps {
     hasNextPage: boolean;
     sentinelRef: React.RefObject<HTMLDivElement | null>;
     totalQuantityOf: (id: number) => number;
+    quantityOf: (productId: number, variantId?: number | null) => number;
     readonly?: boolean;
     onAdd: (product: IMenuProduct, variant?: IProductVariant) => void;
     onRemove: (productId: number) => void;
@@ -23,6 +24,7 @@ export const ProductGrid = ({
     hasNextPage,
     sentinelRef,
     totalQuantityOf,
+    quantityOf,
     readonly = false,
     onAdd,
     onRemove,
@@ -52,6 +54,7 @@ export const ProductGrid = ({
                                 key={product.id}
                                 product={product}
                                 quantity={totalQuantityOf(product.id)}
+                                quantityOf={quantityOf}
                                 primaryColor={primaryColor}
                                 readonly={readonly}
                                 onAdd={onAdd}

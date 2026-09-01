@@ -12,6 +12,7 @@ use App\Http\Requests\ProductUpdateRequest;
 use App\Models\ProductImageModel;
 use App\Models\ProductModel;
 use App\Services\ProductsService;
+use App\Services\ProductVariantService;
 use App\Services\StockMovementsService;
 use App\Services\StockService;
 use Illuminate\Http\JsonResponse;
@@ -69,8 +70,12 @@ class ProductController extends Controller
         return Response::success($product->refresh());
     }
 
-    public function update(ProductModel $product, ProductUpdateRequest $param, StockService $stockService): JsonResponse
-    {
+    public function update(
+        ProductModel $product,
+        ProductUpdateRequest $param,
+        StockService $stockService,
+        ProductVariantService $variantService,
+    ): JsonResponse {
         $wasManagingStock = $product->manage_stock;
 
         $updated = $product->updateProduct(
@@ -88,19 +93,30 @@ class ProductController extends Controller
             iconSource: $param->has('icon_source') ? $param->icon_source : null,
         );
 
-        // Activación en caliente de manage_stock (antes false, ahora true): igual que al crear
-        // el producto, se puede capturar un stock inicial porque no hay historial que proteger
-        // todavía. updateProduct() ya dejó stock en 0 por default — se carga como movimiento
-        // auditado en vez de reescribir la columna directo.
-        $initialStock = (float) ($param->stock ?? 0);
-        if (! $wasManagingStock && $updated->manage_stock && $initialStock > 0) {
-            $updated = $stockService->adjust(
-                productId: $updated->id,
-                delta: $initialStock,
-                note: 'Carga inicial de stock',
-                createdBy: auth()->id(),
-                reason: StockMovementReasonEnum::InitialStock,
-            );
+        // Activación en caliente de manage_stock (antes false, ahora true):
+        if (! $wasManagingStock && $updated->manage_stock) {
+            $hasActiveVariants = $updated->variants()->where('activo', true)->exists();
+
+            if ($hasActiveVariants) {
+                // El stock vive por variante — inicializa en 0 las que se crearon antes de
+                // esta activación (ver ProductVariantService::backfillStockOnActivation()).
+                $variantService->backfillStockOnActivation($updated);
+            } else {
+                // Igual que al crear el producto, se puede capturar un stock inicial porque
+                // no hay historial que proteger todavía. updateProduct() ya dejó stock en 0
+                // por default — se carga como movimiento auditado en vez de reescribir la
+                // columna directo.
+                $initialStock = (float) ($param->stock ?? 0);
+                if ($initialStock > 0) {
+                    $updated = $stockService->adjust(
+                        productId: $updated->id,
+                        delta: $initialStock,
+                        note: 'Carga inicial de stock',
+                        createdBy: auth()->id(),
+                        reason: StockMovementReasonEnum::InitialStock,
+                    );
+                }
+            }
         }
 
         return Response::success($updated);
@@ -123,6 +139,7 @@ class ProductController extends Controller
                 delta: (float) $param->delta,
                 note: $param->note,
                 createdBy: auth()->id(),
+                variantId: $param->variant_id ?? null,
             );
         } catch (InsufficientStockException $e) {
             return Response::error($e->getMessage());

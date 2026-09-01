@@ -8,6 +8,7 @@ use App\Http\Requests\ProductVariantUpdateRequest;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
 use App\Services\ProductVariantService;
+use App\Services\StockService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Response;
 
@@ -18,9 +19,13 @@ class ProductVariantController extends Controller
         return Response::success($product->variants()->get());
     }
 
-    public function store(ProductModel $product, ProductVariantStoreRequest $params, ProductVariantService $service): JsonResponse
-    {
-        return Response::success($service->create($product, $params));
+    public function store(
+        ProductModel $product,
+        ProductVariantStoreRequest $params,
+        ProductVariantService $service,
+        StockService $stockService,
+    ): JsonResponse {
+        return Response::success($service->create($product, $params, $stockService));
     }
 
     public function update(

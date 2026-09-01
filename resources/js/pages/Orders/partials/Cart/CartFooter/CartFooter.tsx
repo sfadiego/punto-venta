@@ -21,6 +21,7 @@ interface CartFooterProps {
     customerPays: boolean;
     hasItems: boolean;
     isReadOnly?: boolean;
+    showDelivery?: boolean;
     orderId: number;
     canPay: boolean;
     onPay: () => void;
@@ -42,6 +43,7 @@ export const CartFooter = ({
     customerPays,
     hasItems,
     isReadOnly = false,
+    showDelivery = true,
     orderId,
     canPay,
     onPay,
@@ -58,25 +60,29 @@ export const CartFooter = ({
                     isReadOnly={isReadOnly}
                     onUpdateDiscount={onUpdateDiscount}
                 />
-                <FeatureSpotlight
-                    featureKey={FeatureSpotlightKey.DeliverySectionButton}
-                    title="Envio Domicilio"
-                    description="Envio a domicilio, podrás gestionar los pedidos a domicilio."
-                    variant="block"
-                    placement="top-start"
-                >
-                    <CartDeliveryFields
-                        domicilioActivo={domicilioActivo}
-                        toggleDomicilio={toggleDomicilio}
-                        costoDomicilio={costoDomicilio}
-                        setCostoDomicilio={setCostoDomicilio}
-                        onCostoDomicilioBlur={onCostoDomicilioBlur}
-                        setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
-                        domicilio={domicilio}
-                        customerPays={customerPays}
-                        isReadOnly={isReadOnly}
-                    />
-                </FeatureSpotlight>
+                {/* show_delivery: false para negocios tipo Retail (venta de mostrador) — el
+                    envío a domicilio no aplica a ese flujo (ver BusinessTypeEnum::features()). */}
+                {showDelivery && (
+                    <FeatureSpotlight
+                        featureKey={FeatureSpotlightKey.DeliverySectionButton}
+                        title="Envio Domicilio"
+                        description="Envio a domicilio, podrás gestionar los pedidos a domicilio."
+                        variant="block"
+                        placement="top-start"
+                    >
+                        <CartDeliveryFields
+                            domicilioActivo={domicilioActivo}
+                            toggleDomicilio={toggleDomicilio}
+                            costoDomicilio={costoDomicilio}
+                            setCostoDomicilio={setCostoDomicilio}
+                            onCostoDomicilioBlur={onCostoDomicilioBlur}
+                            setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
+                            domicilio={domicilio}
+                            customerPays={customerPays}
+                            isReadOnly={isReadOnly}
+                        />
+                    </FeatureSpotlight>
+                )}
                 <CartTotalRow totalFinal={totalFinal} domicilioExcedeTotal={domicilioExcedeTotal} />
             </div>
 

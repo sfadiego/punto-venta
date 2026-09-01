@@ -52,14 +52,15 @@ class OrderSaleService
             ]);
 
             $product = ProductModel::find($item['producto_id']);
-            // Una venta por variante (ej. "Pieza" de un producto que se lleva en existencia
-            // por bolsa/paquete) no representa la misma unidad que el stock del producto base
-            // — descontarla llevaría el inventario a un valor incorrecto, así que se excluye.
-            if ($product && $product->manage_stock && empty($item['variant_id'])) {
+            // Una línea con variante descuenta el stock de esa variante (ver StockService)
+            // en vez del stock del producto base — cada talla/variante lleva su propia
+            // existencia cuando el producto maneja stock.
+            if ($product && $product->manage_stock) {
                 $this->stockService->deduct(
                     productId: $product->id,
                     quantity: (float) $item['cantidad'],
                     reason: StockMovementReasonEnum::Sale,
+                    variantId: $item['variant_id'] ?? null,
                     reference: $orderProduct,
                 );
             }

@@ -56,7 +56,7 @@ export const ProductStockFields = ({ formik, isEdit, wasManagingStock, currentSt
                     formik={formik}
                 />
                 <p className="text-xs text-stone-400 mt-1">
-                    Se marca como stock bajo cuando la existencia llega a este nivel. Si se deja vacío, se usa 2 por defecto.
+                    Cantidad mínima antes de marcar stock bajo; si se deja vacío, usa 2.
                 </p>
             </div>
         </div>

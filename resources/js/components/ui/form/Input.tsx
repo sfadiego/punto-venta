@@ -39,6 +39,8 @@ interface InputProps<T> {
     error?: string;
     autoFocus?: boolean;
     inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+    /** Contenido fijo a la izquierda del input (ej. "$"). Ajusta el padding automáticamente. */
+    icon?: React.ReactNode;
 }
 
 export const Input = <T = Record<string, string>,>({
@@ -64,6 +66,7 @@ export const Input = <T = Record<string, string>,>({
     error,
     autoFocus,
     inputMode,
+    icon,
 }: InputProps<T>) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = inputType === "password";
@@ -89,7 +92,12 @@ export const Input = <T = Record<string, string>,>({
                     {label}
                 </label>
             )}
-            <div className={isPassword ? "relative" : undefined}>
+            <div className={isPassword || icon ? "relative" : undefined}>
+                {icon && (
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm z-10 pointer-events-none">
+                        {icon}
+                    </span>
+                )}
                 <input
                     id={name}
                     type={resolvedType}
@@ -112,6 +120,7 @@ export const Input = <T = Record<string, string>,>({
                         hover:border-stone-400
                         disabled:bg-stone-100 disabled:cursor-not-allowed disabled:hover:border-stone-300
                         ${isPassword ? "pr-12" : ""}
+                        ${icon ? "pl-7" : ""}
                         ${styleVariant} ${className}`}
                 />
                 {isPassword && (

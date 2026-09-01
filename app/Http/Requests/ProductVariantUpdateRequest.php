@@ -28,6 +28,7 @@ class ProductVariantUpdateRequest extends FormRequest
             ProductVariantModel::PRECIO => 'sometimes|decimal:0,2',
             ProductVariantModel::ORDEN => 'nullable|integer|min:0',
             ProductVariantModel::ACTIVO => 'bool',
+            ProductVariantModel::MIN_STOCK => 'nullable|numeric|min:0',
         ];
     }
 
@@ -36,6 +37,8 @@ class ProductVariantUpdateRequest extends FormRequest
         return [
             'nombre.max' => 'El nombre no puede superar los 100 caracteres.',
             'precio.decimal' => 'El precio debe ser un número válido con hasta 2 decimales.',
+            'min_stock.numeric' => 'El stock mínimo debe ser un número válido.',
+            'min_stock.min' => 'El stock mínimo no puede ser negativo.',
         ];
     }
 

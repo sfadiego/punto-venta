@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { IProduct } from "@/models/IProduct";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { useDeleteProduct } from "@/services/useProductService";
-import { isLowStock } from "@/utils/stock";
+import { isProductRowLowStock } from "@/utils/stock";
 
 interface ProductTableActionsProps {
     product: IProduct;
@@ -47,7 +47,7 @@ export const ProductTableActions = ({ product, onEdit, onRestock, onViewMovement
                     <History size={16} />
                 </button>
             )}
-            {isLowStock(product) && (
+            {isProductRowLowStock(product) && (
                 <button
                     onClick={() => onRestock(product)}
                     title="Reabastecer stock"

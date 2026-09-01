@@ -5,8 +5,10 @@ namespace Tests\Catalog;
 use App\Enums\RoleEnum;
 use App\Enums\StockMovementReasonEnum;
 use App\Enums\StockMovementTypeEnum;
+use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use App\Models\ProductModel;
+use App\Models\ProductVariantModel;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -120,5 +122,49 @@ class ProductStockAdjustmentTest extends TestCase
 
         $this->postJson("/api/product/{$product->id}/stock-adjustment", ['delta' => 5])
             ->assertStatus(401);
+    }
+
+    public function test_ajuste_con_variant_id_modifica_stock_de_la_variante_no_del_producto(): void
+    {
+        $product = $this->crearProductoConStock(10);
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+            ProductVariantModel::STOCK => 5,
+        ]);
+
+        $this->postJson("/api/product/{$product->id}/stock-adjustment", [
+            'delta' => 3,
+            'variant_id' => $variant->id,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.stock', '8.00');
+
+        $this->assertEquals(10.0, (float) $product->fresh()->stock);
+        $this->assertDatabaseHas('stock_movements', [
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'type' => StockMovementTypeEnum::Adjustment->value,
+            'quantity' => 3,
+            'stock_before' => 5,
+            'stock_after' => 8,
+        ]);
+    }
+
+    public function test_ajuste_con_variant_id_de_otro_producto_falla_validacion(): void
+    {
+        $product = $this->crearProductoConStock(10);
+        $otroProducto = $this->crearProductoConStock(10);
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $otroProducto->id,
+            'tenant_id' => BusinessConfigModel::first()->id,
+            ProductVariantModel::STOCK => 5,
+        ]);
+
+        $this->postJson("/api/product/{$product->id}/stock-adjustment", [
+            'delta' => 3,
+            'variant_id' => $variant->id,
+        ], $this->authHeaders())
+            ->assertStatus(400);
     }
 }

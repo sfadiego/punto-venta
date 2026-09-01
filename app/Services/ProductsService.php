@@ -52,13 +52,18 @@ class ProductsService extends DataTable
             $query->where('categoria_id', (int) $categoriaId);
         }
 
-        // Mismo criterio que ProductModel::hasLowStock(): stock en 0 ya cumple la condición
-        // "stock <= min_stock" mientras min_stock sea >= 0, así que no hace falta un OR aparte.
+        // Mismo criterio que ProductModel::hasLowStock(): sin min_stock configurado se asume
+        // 0, así que un producto en 0 existencias siempre cumple la condición aunque no tenga
+        // mínimo definido.
         if ($lowStock) {
             $query->where('manage_stock', true)
-                ->whereNotNull('min_stock')
                 ->whereNotNull('stock')
-                ->whereColumn('stock', '<=', 'min_stock');
+                ->where(function (Builder $query) {
+                    $query->whereColumn('stock', '<=', 'min_stock')
+                        ->orWhere(function (Builder $query) {
+                            $query->whereNull('min_stock')->where('stock', '<=', 0);
+                        });
+                });
         }
 
         return $query;

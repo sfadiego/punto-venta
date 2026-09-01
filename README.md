@@ -242,3 +242,10 @@ se agregaron iconos, correr manualmente
 php artisan db:seed --class=CategoriesIconsSeeder
 php artisan db:seed --class={SeederName}
 ```
+
+
+### Levantar servidores locales
+
+```
+composer run dev
+```

@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import { formatMoney } from "@/utils/formatCurrency";
 
 interface CartTotalRowProps {
     totalFinal: number;
@@ -10,7 +11,7 @@ export const CartTotalRow = ({ totalFinal, domicilioExcedeTotal }: CartTotalRowP
         <div className="flex items-center justify-between pt-2 border-t border-stone-200">
             <span className="font-bold text-stone-900">Total</span>
             <span className="font-bold text-stone-900 text-lg tabular-nums">
-                ${totalFinal.toFixed(2)}
+                ${formatMoney(totalFinal)}
             </span>
         </div>
 

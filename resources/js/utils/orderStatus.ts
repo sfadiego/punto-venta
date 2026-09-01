@@ -21,3 +21,10 @@ export const getStatusStyle = (statusId: number): string =>
 
 export const getStatusLabel = (statusId: number): string =>
     STATUS_LABELS[statusId] ?? "—";
+
+// Valor de filtro "Activos" del listado de órdenes: incluye Servida solo si el negocio usa
+// order_served (Restaurante) — ver OrderFilters.tsx / useOrderList.tsx.
+export const getActiveStatuses = (showOrderServed: boolean): string =>
+    showOrderServed
+        ? `${OrderStatusEnum.InProcess},${OrderStatusEnum.Served}`
+        : String(OrderStatusEnum.InProcess);

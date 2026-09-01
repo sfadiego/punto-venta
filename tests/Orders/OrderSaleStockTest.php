@@ -126,7 +126,7 @@ class OrderSaleStockTest extends TestCase
         $this->assertDatabaseMissing('stock_movements', ['product_id' => $product->id]);
     }
 
-    public function test_venta_directa_con_variante_no_descuenta_stock(): void
+    public function test_venta_directa_con_variante_descuenta_stock_de_la_variante(): void
     {
         $sistema = $this->crearSistema();
         $product = $this->crearProductoConStock(10);
@@ -134,6 +134,7 @@ class OrderSaleStockTest extends TestCase
             ProductVariantModel::PRODUCT_ID => $product->id,
             'tenant_id' => BusinessConfigModel::first()->id,
             ProductVariantModel::PRECIO => 18,
+            ProductVariantModel::STOCK => 5,
         ]);
 
         $this->postJson('/api/order/sale', [
@@ -145,8 +146,16 @@ class OrderSaleStockTest extends TestCase
         ], $this->authHeaders())
             ->assertStatus(200);
 
+        // el stock del producto base queda intacto: la existencia vive en la variante.
         $this->assertEquals(10.0, (float) $product->fresh()->stock);
-        $this->assertDatabaseMissing('stock_movements', ['product_id' => $product->id]);
+        $this->assertEquals(4.0, (float) $variant->fresh()->stock);
+        $this->assertDatabaseHas('stock_movements', [
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'type' => StockMovementTypeEnum::Exit->value,
+            'reason' => StockMovementReasonEnum::Sale->value,
+            'quantity' => 1,
+        ]);
         $this->assertDatabaseHas('order_product', [
             'producto_id' => $product->id,
             'variant_id' => $variant->id,
@@ -154,7 +163,7 @@ class OrderSaleStockTest extends TestCase
         ]);
     }
 
-    public function test_cierre_de_orden_con_variante_no_descuenta_stock(): void
+    public function test_cierre_de_orden_con_variante_descuenta_stock_de_la_variante(): void
     {
         $sistema = $this->crearSistema();
         $product = $this->crearProductoConStock(10);
@@ -162,6 +171,7 @@ class OrderSaleStockTest extends TestCase
             ProductVariantModel::PRODUCT_ID => $product->id,
             'tenant_id' => BusinessConfigModel::first()->id,
             ProductVariantModel::PRECIO => 18,
+            ProductVariantModel::STOCK => 5,
         ]);
 
         $order = OrderModel::create([
@@ -189,6 +199,13 @@ class OrderSaleStockTest extends TestCase
             ->assertJsonPath('status', 'OK');
 
         $this->assertEquals(10.0, (float) $product->fresh()->stock);
-        $this->assertDatabaseMissing('stock_movements', ['product_id' => $product->id]);
+        $this->assertEquals(4.0, (float) $variant->fresh()->stock);
+        $this->assertDatabaseHas('stock_movements', [
+            'product_id' => $product->id,
+            'variant_id' => $variant->id,
+            'type' => StockMovementTypeEnum::Exit->value,
+            'reason' => StockMovementReasonEnum::Sale->value,
+            'quantity' => 1,
+        ]);
     }
 }

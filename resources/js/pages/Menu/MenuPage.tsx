@@ -82,6 +82,7 @@ function MenuPage() {
                         hasNextPage={!!hasNextPage}
                         sentinelRef={sentinelRef}
                         totalQuantityOf={cart.totalQuantityOf}
+                        quantityOf={cart.quantityOf}
                         readonly={readonly}
                         onAdd={cart.add}
                         onRemove={cart.remove}

@@ -14,4 +14,7 @@ export interface IBusinessFeatures {
     kitchen_view:   boolean;
     order_served:   boolean;
     sell_by_weight: boolean;
+    show_delivery:  boolean;
+    show_extras:    boolean;
+    is_retail:      boolean;
 }
