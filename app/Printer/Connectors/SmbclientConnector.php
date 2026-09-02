@@ -48,7 +48,7 @@ class SmbclientConnector extends AbstractConnector
             'smbclient //%s/%s -U %s -m SMB2 -c "print -"',
             $host,
             escapeshellarg($this->printerName),
-            escapeshellarg(env('PRINTER_SMB_USER').'%'.env('PRINTER_SMB_PASS'))
+            escapeshellarg(config('printer.smb_user').'%'.config('printer.smb_pass'))
         );
 
         $handle = popen($command, 'w');

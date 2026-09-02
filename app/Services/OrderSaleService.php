@@ -10,6 +10,8 @@ use App\Models\OrderProductModel;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Collection;
 
 class OrderSaleService
 {
@@ -25,8 +27,19 @@ class OrderSaleService
      */
     public function createDirectSale(array $data): OrderModel
     {
-        $items = collect($data['items'])->map(function ($item) {
-            $item['precio'] = $this->resolveCatalogPrice($item['producto_id'], $item['variant_id'] ?? null);
+        $rawItems = collect($data['items']);
+
+        // Precarga productos/variantes referenciados en un solo whereIn cada uno, en vez de
+        // una query por línea (precio + chequeo de manage_stock) — un ticket de 10 líneas
+        // pasaba de 20+ queries a 2.
+        $products = ProductModel::whereIn('id', $rawItems->pluck('producto_id')->unique())->get()->keyBy('id');
+        $variantIds = $rawItems->pluck('variant_id')->filter()->unique();
+        $variants = $variantIds->isNotEmpty()
+            ? ProductVariantModel::whereIn('id', $variantIds)->get()->keyBy('id')
+            : collect();
+
+        $items = $rawItems->map(function ($item) use ($products, $variants) {
+            $item['precio'] = $this->resolveCatalogPrice($item['producto_id'], $item['variant_id'] ?? null, $products, $variants);
 
             return $item;
         });
@@ -51,7 +64,7 @@ class OrderSaleService
                 OrderProductModel::PRECIO => $item['precio'],
             ]);
 
-            $product = ProductModel::find($item['producto_id']);
+            $product = $products->get($item['producto_id']);
             // Una línea con variante descuenta el stock de esa variante (ver StockService)
             // en vez del stock del producto base — cada talla/variante lleva su propia
             // existencia cuando el producto maneja stock.
@@ -78,15 +91,25 @@ class OrderSaleService
     /**
      * resolveCatalogPrice — el precio de un item de venta directa nunca se toma
      * del cliente: se resuelve desde la variante seleccionada o desde el precio
-     * base del producto.
+     * base del producto, tomados del mapa ya precargado (ver createDirectSale).
      */
-    private function resolveCatalogPrice(int $productId, ?int $variantId): float
+    private function resolveCatalogPrice(int $productId, ?int $variantId, Collection $products, Collection $variants): float
     {
         if ($variantId) {
-            return (float) ProductVariantModel::findOrFail($variantId)->precio;
+            $variant = $variants->get($variantId);
+            if (! $variant) {
+                throw (new ModelNotFoundException)->setModel(ProductVariantModel::class, [$variantId]);
+            }
+
+            return (float) $variant->precio;
         }
 
-        return (float) ProductModel::findOrFail($productId)->precio;
+        $product = $products->get($productId);
+        if (! $product) {
+            throw (new ModelNotFoundException)->setModel(ProductModel::class, [$productId]);
+        }
+
+        return (float) $product->precio;
     }
 
     /**

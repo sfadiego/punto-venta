@@ -10,14 +10,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * A diferencia de AdminOnlyMiddleware, no exige rol Admin — permite el paso si el rol
- * del usuario tiene el permiso indicado otorgado en "Roles y permisos" (role_permissions).
- * Admin siempre pasa. Uso: ->middleware('permission:viewUsers').
+ * del usuario tiene alguno de los permisos indicados otorgado en "Roles y permisos"
+ * (role_permissions). Admin siempre pasa. Uso: ->middleware('permission:viewUsers') o,
+ * cuando dos flujos de UI con permisos distintos legítimamente llegan al mismo endpoint
+ * (ej. TakeOrder vs QuickSale), ->middleware('permission:takeOrder,viewOrders') — pasa
+ * con cualquiera de los dos (OR), no exige ambos.
  */
 class PermissionMiddleware
 {
     public function __construct(private readonly RolePermissionService $rolePermissionService) {}
 
-    public function handle(Request $request, Closure $next, string $permission): Response
+    public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
         $user = $request->user();
 
@@ -31,7 +34,7 @@ class PermissionMiddleware
 
         $granted = $this->rolePermissionService->grantedKeys($user->rol_id);
 
-        if (! in_array($permission, $granted, true)) {
+        if (array_intersect($permissions, $granted) === []) {
             return response()->json(['message' => 'Acceso no autorizado.'], 403);
         }
 

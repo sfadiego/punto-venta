@@ -2,17 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ActivityTypeEnum;
-use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
-use App\Enums\SubscriptionStatusEnum;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
-use App\Models\BusinessConfigModel;
-use App\Models\PersonalAccessToken;
 use App\Models\User;
-use App\Services\RolePermissionService;
-use App\Services\TenantActivityService;
+use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -20,11 +14,6 @@ use Illuminate\Support\Facades\Response;
 
 class AuthController extends Controller
 {
-    public function __construct(
-        private readonly RolePermissionService $rolePermissionService,
-        private readonly TenantActivityService $activityService,
-    ) {}
-
     public function register(RegisterRequest $params): JsonResponse
     {
         $user = User::register(
@@ -45,89 +34,17 @@ class AuthController extends Controller
         );
     }
 
-    public function login(LoginRequest $params): JsonResponse
+    public function login(LoginRequest $params, AuthService $authService): JsonResponse
     {
-        $result = User::login(
-            email: $params->email,
-            password: $params->password
-        );
+        $result = $authService->login($params->email, $params->password, $params->slug);
 
-        if ($result === User::LOGIN_INACTIVE) {
-            return Response::error(__('Tu cuenta ha sido desactivada. Contacta al administrador.'));
+        if (! $result->success) {
+            $data = $result->code ? ['code' => $result->code] : null;
+
+            return Response::error($result->message, $data, $result->status);
         }
 
-        if (! $result) {
-            return Response::error(__('Credenciales no válidas.'));
-        }
-
-        if ($result['user']->rol_id === RoleEnum::SUPERADMIN->value) {
-            $result['user']->tokens()->latest()->first()?->delete();
-
-            return Response::error(__('Accede desde el panel de super administrador.'));
-        }
-
-        if ($params->filled('slug')) {
-            $tenant = BusinessConfigModel::where(BusinessConfigModel::SLUG, $params->slug)->first();
-
-            if (! $tenant || $result['user']->tenant_id !== $tenant->id) {
-                $result['user']->tokens()->latest()->first()?->delete();
-
-                return Response::error(__('Credenciales no válidas.'));
-            }
-        }
-
-        $tenant = $result['user']->tenant;
-
-        if ($tenant) {
-            $status = $tenant->subscription_status;
-
-            if (in_array($status, [SubscriptionStatusEnum::Expired->value, SubscriptionStatusEnum::Pending->value])) {
-                $result['user']->tokens()->latest()->first()?->delete();
-
-                $message = $status === SubscriptionStatusEnum::Pending->value
-                    ? 'Este negocio aún no tiene una suscripción activa. Contacta al administrador para activar tu plan.'
-                    : 'La suscripción de este negocio ha vencido. Contacta al administrador para renovarla.';
-
-                return response()->json([
-                    'success' => false,
-                    'message' => $message,
-                    'code' => 'SUBSCRIPTION_EXPIRED',
-                ], 403);
-            }
-        }
-
-        // A partir de aquí el login es válido salvo por el cupo del plan. Se cierra
-        // cualquier otra sesión de la MISMA cuenta antes de evaluar el cupo, para que
-        // reloguear desde un dispositivo nuevo reemplace la sesión anterior en vez de
-        // competir por cupo contra sí misma.
-        $result['user']->revokeOtherSessions($result['access_token_id']);
-        unset($result['access_token_id']);
-
-        if ($tenant) {
-            $activeSessions = PersonalAccessToken::query()
-                ->activeForTenant($tenant->id)
-                ->count();
-
-            if ($activeSessions >= $tenant->effectiveMaxUsers()) {
-                $result['user']->tokens()->latest()->first()?->delete();
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Se alcanzó el límite de usuarios simultáneos. Intenta más tarde.',
-                    'code' => 'CONCURRENT_USERS_LIMIT',
-                ], 403);
-            }
-        }
-
-        if ($tenant) {
-            $this->activityService->log($tenant->id, ActivityTypeEnum::LOGIN);
-        }
-
-        $result['features'] = $tenant?->tipo_negocio->features() ?? BusinessTypeEnum::Restaurante->features();
-        $result['role_permissions'] = $tenant ? $this->rolePermissionService->grantedMapForTenant($tenant->id) : null;
-        $result['tenant_slug'] = $tenant?->slug;
-
-        return Response::success($result);
+        return Response::success($result->data);
     }
 
     public function logout(Request $request): JsonResponse

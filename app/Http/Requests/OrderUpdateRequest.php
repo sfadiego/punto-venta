@@ -4,8 +4,10 @@ namespace App\Http\Requests;
 
 use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
+use App\Enums\RoleEnum;
 use App\Models\CustomerModel;
 use App\Models\OrderModel;
+use App\Services\RolePermissionService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -13,10 +15,44 @@ use Illuminate\Validation\Validator;
 class OrderUpdateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * update() atiende varias intenciones distintas del frontend con el mismo endpoint
+     * (editar descuento/domicilio mientras se toma el pedido, renombrar, cerrar/cobrar,
+     * marcar servida) — un solo permission:xxx en la ruta sería incorrecto, así que se
+     * autoriza aquí por campo. Admin siempre pasa (igual que PermissionMiddleware).
      */
     public function authorize(): bool
     {
+        $user = $this->user();
+        if (! $user) {
+            return false;
+        }
+        if ($user->rol_id === RoleEnum::ADMIN->value) {
+            return true;
+        }
+
+        $granted = app(RolePermissionService::class)->grantedKeys($user->rol_id);
+
+        // Sin ningún permiso relacionado a órdenes, no hay ninguna intención legítima de
+        // este endpoint que aplique.
+        if (array_intersect(['takeOrder', 'payOrder', 'kitchenView', 'editOrderName'], $granted) === []) {
+            return false;
+        }
+
+        if ($this->filled(OrderModel::NOMBRE_PEDIDO) && ! in_array('editOrderName', $granted, true)) {
+            return false;
+        }
+
+        if ($this->has(OrderModel::ESTATUS_PEDIDO_ID)) {
+            $status = (int) $this->input(OrderModel::ESTATUS_PEDIDO_ID);
+
+            if ($status === OrderStatusEnum::CLOSED->value && ! in_array('payOrder', $granted, true)) {
+                return false;
+            }
+            if ($status === OrderStatusEnum::SERVED->value && ! in_array('kitchenView', $granted, true)) {
+                return false;
+            }
+        }
+
         return true;
     }
 

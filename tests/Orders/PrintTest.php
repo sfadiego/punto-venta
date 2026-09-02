@@ -49,6 +49,17 @@ class PrintTest extends TestCase
             ->assertStatus(422);
     }
 
+    public function test_print_error_no_expone_mensaje_interno(): void
+    {
+        // El mensaje de la excepción real (rutas, detalles de conexión) no debe llegar
+        // al cliente — solo un mensaje genérico; el detalle real queda en el log.
+        $orden = $this->crearOrden();
+
+        $this->postJson("/api/order/{$orden->id}/print", [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'No se pudo imprimir el ticket, intenta de nuevo.');
+    }
+
     public function test_bytes_sin_autenticacion_retorna_401(): void
     {
         $orden = $this->crearOrden();
@@ -107,6 +118,26 @@ class PrintTest extends TestCase
         )->assertStatus(200);
 
         $this->assertStringContainsString(str_repeat('=', 48), $response->getContent());
+    }
+
+    // ── Ticket de prueba del agente (test-bytes) ──────────────
+
+    public function test_ticket_prueba_sin_autenticacion_retorna_401(): void
+    {
+        $this->getJson('/api/order/print/test-bytes')
+            ->assertStatus(401);
+    }
+
+    public function test_ticket_prueba_retorna_contenido_binario(): void
+    {
+        $response = $this->get(
+            '/api/order/print/test-bytes',
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        );
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('application/octet-stream', $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('PRUEBA DE IMPRESION', $response->getContent());
     }
 
     public function test_chars_for_paper_width_58mm_retorna_32(): void

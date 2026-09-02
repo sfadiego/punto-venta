@@ -53,8 +53,17 @@ abstract class TestCase extends BaseTestCase
         }
     }
 
+    /**
+     * El guard de Sanctum cachea el usuario resuelto en la primera llamada y lo reutiliza en
+     * requests posteriores dentro del mismo test (Illuminate\Auth\RequestGuard::$user), sin
+     * importar el bearer token que se envíe después — un problema real solo en tests que hacen
+     * más de una request autenticada como usuarios distintos dentro del mismo método. Se limpia
+     * aquí para que authHeaders() sea seguro de usar así, sin que cada test tenga que saberlo.
+     */
     protected function authHeaders(?User $user = null): array
     {
+        $this->app['auth']->forgetGuards();
+
         $user ??= User::where('rol_id', RoleEnum::ADMIN->value)->first();
         $token = $user->createToken('test')->plainTextToken;
 

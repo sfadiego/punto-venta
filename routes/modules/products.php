@@ -5,7 +5,11 @@ use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ProductVariantController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('product')->group(function () {
+// El frontend gatea toda la página /products (listar, crear, editar, borrar, reabastecer,
+// variantes) con un solo permiso viewProducts — todavía no distingue "ver" de "administrar".
+// Este middleware cierra el acceso directo al backend sin el permiso, sin cambiar nada para
+// quien ya lo tiene (Employe lo trae por default).
+Route::middleware('permission:viewProducts')->prefix('product')->group(function () {
     Route::controller(ProductController::class)->group(function () {
         Route::get('/', 'index');
         Route::get('{product}', 'show');

@@ -207,4 +207,39 @@ class StatisticsTest extends TestCase
     {
         $this->getJson('/api/admin/system/statistics/average-ticket')->assertStatus(401);
     }
+
+    public function test_average_ticket_incluye_ventas_de_las_primeras_horas_del_mes(): void
+    {
+        // Regresión: monthRange() convertía el rango a UTC antes de compararlo contra
+        // created_at (guardado en hora local, America/Mexico_City) — una venta a las 2am
+        // del día 1 quedaba fuera del rango porque el inicio de mes se corría a las 6am.
+        $tenant = BusinessConfigModel::first();
+        $caja = MainOrderReportModel::create([
+            MainOrderReportModel::ESTATUS_CAJA => 'open',
+            MainOrderReportModel::EFECTIVO_CAJA_INICIO => 0,
+            MainOrderReportModel::USER_ID => 1,
+            MainOrderReportModel::TENANT_ID => $tenant->id,
+        ]);
+
+        $orden = OrderModel::create([
+            OrderModel::TOTAL => 150,
+            OrderModel::SUBTOTAL => 150,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Venta madrugada inicio de mes',
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
+            OrderModel::SISTEMA_ID => $caja->id,
+            OrderModel::TENANT_ID => $tenant->id,
+        ]);
+        DB::table('order')->where('id', $orden->id)->update([
+            'created_at' => now()->startOfMonth()->addHours(2),
+        ]);
+
+        $this->getJson(
+            '/api/admin/system/statistics/average-ticket?date='.now()->format('Y-m'),
+            $this->authHeaders()
+        )
+            ->assertStatus(200)
+            ->assertJsonPath('data.orders_count', 1)
+            ->assertJsonPath('data.total_revenue', 150);
+    }
 }

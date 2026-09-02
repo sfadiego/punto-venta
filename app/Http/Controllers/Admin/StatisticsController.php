@@ -40,9 +40,13 @@ class StatisticsController extends Controller
         $tz = config('app.timezone');
         $date = Carbon::parse($raw, $tz);
 
+        // Sin conversión a UTC: created_at se guarda en hora local (ver
+        // LoadConfiguration::bootstrap, que fija la timezone por defecto de PHP), así que
+        // el rango de comparación debe quedarse en esa misma zona horaria. Convertir a UTC
+        // aquí desplazaba la ventana ~6h, excluyendo ventas de las primeras horas del mes.
         return [
-            $date->copy()->startOfMonth()->utc(),
-            $date->copy()->endOfMonth()->utc(),
+            $date->copy()->startOfMonth(),
+            $date->copy()->endOfMonth(),
         ];
     }
 }

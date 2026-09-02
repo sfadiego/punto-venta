@@ -289,7 +289,7 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(403)
-            ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
+            ->assertJsonPath('data.code', 'CONCURRENT_USERS_LIMIT');
     }
 
     public function test_login_de_la_misma_cuenta_no_compite_por_cupo_contra_si_misma(): void
@@ -377,7 +377,7 @@ class AuthTest extends TestCase
             'email' => $admin->email,
             'password' => env('APP_ADMIN_PASSWORD'),
         ])->assertStatus(403)
-            ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
+            ->assertJsonPath('data.code', 'CONCURRENT_USERS_LIMIT');
     }
 
     public function test_limite_manual_sobreescribe_limite_del_plan_permitiendo_mas_sesiones(): void
@@ -423,7 +423,7 @@ class AuthTest extends TestCase
             'email' => $admin->email,
             'password' => env('APP_ADMIN_PASSWORD'),
         ])->assertStatus(403)
-            ->assertJsonPath('code', 'CONCURRENT_USERS_LIMIT');
+            ->assertJsonPath('data.code', 'CONCURRENT_USERS_LIMIT');
     }
 
     // ── Login bloquea usuarios inactivos ─────────────────────

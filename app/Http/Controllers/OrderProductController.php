@@ -4,21 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
-use App\Events\OrdersUpdated;
 use App\Http\Requests\OrderProductStoreRequest;
 use App\Http\Requests\OrderProductUpdateRequest;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
-use App\Models\ProductModel;
-use App\Models\ProductVariantModel;
+use App\Services\OrderProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 
 class OrderProductController extends Controller
 {
+    public function __construct(private readonly OrderProductService $service) {}
+
     /**
      * index
      */
@@ -44,9 +43,7 @@ class OrderProductController extends Controller
     }
 
     /**
-     * store — adds a product (or extra) to the order using incremental total update.
-     * Avoids a full SUM recalculation by computing only the delta for the added item.
-     * El stock no se toca aquí — se descuenta recién al cerrar la orden (OrderController::update).
+     * store — agrega un producto (o extra) a la orden.
      */
     public function store(string $orderId, OrderProductStoreRequest $params): JsonResponse
     {
@@ -55,50 +52,11 @@ class OrderProductController extends Controller
             return $error;
         }
 
-        $orderDiscount = $order->descuento ?? 0;
-        $itemDescuento = $params->descuento ?? 0;
-
-        OrderModel::lockForUpdate()->find($orderId);
-
-        if ($params->nombre_extra) {
-            $precio = (float) $params->precio;
-            $data = OrderProductModel::create([
-                OrderProductModel::PEDIDO_ID => $orderId,
-                OrderProductModel::NOMBRE_EXTRA => $params->nombre_extra,
-                OrderProductModel::CANTIDAD => $params->cantidad,
-                OrderProductModel::PRECIO => $precio,
-                OrderProductModel::DESCUENTO => $itemDescuento,
-            ]);
-        } else {
-            $precio = $this->resolveCatalogPrice($params->producto_id, $params->variant_id ?? null);
-            $data = OrderProductModel::create([
-                OrderProductModel::PRODUCTO_ID => $params->producto_id,
-                OrderProductModel::VARIANT_ID => $params->variant_id ?? null,
-                OrderProductModel::PEDIDO_ID => $orderId,
-                OrderProductModel::CANTIDAD => $params->cantidad,
-                OrderProductModel::PRECIO => $precio,
-                OrderProductModel::DESCUENTO => $itemDescuento,
-                OrderProductModel::IS_READY => false,
-            ]);
-        }
-
-        $delta = round($precio * $params->cantidad * (1 - $itemDescuento / 100), 2);
-        $deltaTotal = round($delta * (1 - $orderDiscount / 100), 2);
-
-        DB::table('order')->where('id', $orderId)->update([
-            'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$delta}"),
-            'total' => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
-        ]);
-
-        $this->resetStatusIfReady($order->fresh());
-        $this->dispatchProductUpdated($orderId);
-
-        return Response::success($data);
+        return Response::success($this->service->addProduct($order, $params));
     }
 
     /**
-     * update — changes quantity or discount for a product in the order.
-     * Uses the delta between old and new line subtotal to avoid a full SUM recalculation.
+     * update — cambia cantidad o descuento de un producto de la orden.
      */
     public function update(string $orderId, string $productId, OrderProductUpdateRequest $params): JsonResponse
     {
@@ -114,54 +72,12 @@ class OrderProductController extends Controller
         if ($error = $this->assertOrderEditable($order)) {
             return $error;
         }
-        $orderDiscount = $order->descuento ?? 0;
 
-        $oldLineSubtotal = round($orderProduct->precio * $orderProduct->cantidad * (1 - $orderProduct->descuento / 100), 2);
-
-        $data = [];
-        if (isset($params->cantidad)) {
-            $data[OrderProductModel::CANTIDAD] = $params->cantidad;
-        }
-        if (isset($params->descuento)) {
-            $data[OrderProductModel::DESCUENTO] = $params->descuento;
-        }
-        if (isset($params->variant_id)) {
-            $data[OrderProductModel::VARIANT_ID] = $params->variant_id;
-            $data[OrderProductModel::PRECIO] = ProductVariantModel::findOrFail($params->variant_id)->precio;
-        } elseif ($orderProduct->nombre_extra && isset($params->precio)) {
-            $data[OrderProductModel::PRECIO] = $params->precio;
-        }
-
-        OrderModel::lockForUpdate()->find($orderId);
-
-        $orderProduct->update($data);
-        $orderProduct->refresh();
-
-        $newLineSubtotal = round($orderProduct->precio * $orderProduct->cantidad * (1 - $orderProduct->descuento / 100), 2);
-        $deltaSubtotal = $newLineSubtotal - $oldLineSubtotal;
-        $deltaTotal = round($deltaSubtotal * (1 - $orderDiscount / 100), 2);
-
-        DB::table('order')->where('id', $orderId)->update([
-            'subtotal' => DB::raw("COALESCE(subtotal, 0) + {$deltaSubtotal}"),
-            'total' => DB::raw("COALESCE(total, 0) + {$deltaTotal}"),
-        ]);
-
-        $this->resetStatusIfReady($order->fresh());
-        $this->dispatchProductUpdated($orderId);
-
-        return Response::success($orderProduct->refresh());
+        return Response::success($this->service->updateProduct($order, $orderProduct, $params));
     }
 
     /**
-     * toggleReady — marks/unmarks an order_product as ready to serve by order_product.id.
-     *
-     * Also decides here (server-side, under a row lock) whether this toggle completes
-     * or breaks the "all products ready" condition for the order, promoting/reverting
-     * its status accordingly. This used to be computed in the frontend from the local
-     * products snapshot, which raced when two products were checked near-simultaneously
-     * (common on slow networks): each request evaluated a stale snapshot of the other's
-     * in-flight change and neither detected "all ready". Doing it here per-request against
-     * the committed DB state, serialized by the lock, makes it race-proof.
+     * toggleReady — marca/desmarca un order_product como listo para servir.
      */
     public function toggleReady(int $orderId, int $item): JsonResponse
     {
@@ -178,23 +94,11 @@ class OrderProductController extends Controller
             return Response::error('no existe la orden');
         }
 
-        $orderProduct->update([
-            OrderProductModel::IS_READY => ! $orderProduct->is_ready,
-        ]);
-
-        if ($orderProduct->is_ready) {
-            $this->restoreServedIfAllReady($order);
-        } else {
-            $this->resetStatusIfReady($order);
-        }
-
-        $this->dispatchProductUpdated($orderId);
-
-        return Response::success($orderProduct->refresh());
+        return Response::success($this->service->toggleReady($order, $orderProduct));
     }
 
     /**
-     * updateNote — updates observacion by order_product.id (works for products and extras)
+     * updateNote — actualiza la observación por id de order_product (aplica a productos y extras).
      */
     public function updateNote(int $orderId, int $item, Request $request): JsonResponse
     {
@@ -211,13 +115,13 @@ class OrderProductController extends Controller
         ]);
 
         $order = OrderModel::find($orderId);
-        $this->resetStatusIfReady($order);
+        $this->service->resetStatusIfReady($order);
 
         return Response::success($orderProduct->refresh());
     }
 
     /**
-     * deleteExtra — deletes any order_product record by its own id
+     * deleteExtra — borra cualquier order_product por su propio id.
      */
     public function deleteExtra(int $orderId, int $extra): JsonResponse
     {
@@ -234,25 +138,13 @@ class OrderProductController extends Controller
             return Response::error('elemento no encontrado');
         }
 
-        $orderDiscount = $order->descuento ?? 0;
-        $lineSubtotal = round($item->precio * $item->cantidad * (1 - $item->descuento / 100), 2);
-        $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
-
-        $item->delete();
-
-        DB::table('order')->where('id', $orderId)->update([
-            'subtotal' => max(0, round(($order->subtotal ?? 0) - $lineSubtotal, 2)),
-            'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
-        ]);
-
-        $this->restoreServedIfAllReady($order->fresh());
-        $this->dispatchProductUpdated($orderId);
+        $this->service->removeItem($order, $item);
 
         return Response::success('elemento borrado de la orden');
     }
 
     /**
-     * clearCart — deletes every order_product (products and extras) of the order in one shot
+     * clearCart — borra todos los order_product (productos y extras) de la orden en un paso.
      */
     public function clearCart(int $orderId): JsonResponse
     {
@@ -261,20 +153,13 @@ class OrderProductController extends Controller
             return $error;
         }
 
-        OrderProductModel::where('pedido_id', $orderId)->delete();
-
-        DB::table('order')->where('id', $orderId)->update([
-            'subtotal' => 0,
-            'total' => 0,
-        ]);
-
-        $this->dispatchProductUpdated($orderId);
+        $this->service->clearCart($order);
 
         return Response::success('carrito vaciado');
     }
 
     /**
-     * delete — removes a regular product from the order by producto_id
+     * delete — borra un producto regular de la orden por producto_id.
      */
     public function delete(int $orderId, int $product): JsonResponse
     {
@@ -283,46 +168,19 @@ class OrderProductController extends Controller
             return $error;
         }
 
-        $delete = OrderProductModel::where('pedido_id', $orderId)
+        $item = OrderProductModel::where('pedido_id', $orderId)
             ->where('producto_id', $product)
             ->first();
 
-        if (! $delete) {
+        if (! $item) {
             Log::error('producto no encontrado', [$product]);
 
             return Response::error('producto no encontrado');
         }
 
-        $orderDiscount = $order->descuento ?? 0;
-        $lineSubtotal = round($delete->precio * $delete->cantidad * (1 - $delete->descuento / 100), 2);
-        $lineTotal = round($lineSubtotal * (1 - $orderDiscount / 100), 2);
-
-        $delete->delete();
-
-        DB::table('order')->where('id', $orderId)->update([
-            'subtotal' => max(0, round(($order->subtotal ?? 0) - $lineSubtotal, 2)),
-            'total' => max(0, round(($order->total ?? 0) - $lineTotal, 2)),
-        ]);
-
-        $this->restoreServedIfAllReady($order->fresh());
-        $this->dispatchProductUpdated($orderId);
+        $this->service->removeItem($order, $item);
 
         return Response::success('elemento borrado de la orden');
-    }
-
-    /**
-     * resolveCatalogPrice — el precio de un producto de catálogo nunca se toma del
-     * cliente: se resuelve aquí desde la variante seleccionada, o desde el precio
-     * base del producto si no tiene variante. Cierra el hueco de que el cliente
-     * pudiera mandar un precio arbitrario en el payload.
-     */
-    private function resolveCatalogPrice(int $productId, ?int $variantId): float
-    {
-        if ($variantId) {
-            return (float) ProductVariantModel::findOrFail($variantId)->precio;
-        }
-
-        return (float) ProductModel::findOrFail($productId)->precio;
     }
 
     /**
@@ -346,63 +204,5 @@ class OrderProductController extends Controller
         }
 
         return null;
-    }
-
-    /**
-     * afterCommit: el broadcast es una llamada HTTP a Reverb — no debe correr mientras
-     * el lockForUpdate() sigue sosteniendo la fila de la orden, o requests concurrentes
-     * sobre la misma orden se encolan detrás del lock además del broadcast.
-     */
-    private function dispatchProductUpdated(int|string $orderId): void
-    {
-        DB::afterCommit(function () use ($orderId) {
-            try {
-                OrdersUpdated::dispatch('product_updated', (int) $orderId);
-            } catch (\Throwable) {
-            }
-        });
-    }
-
-    private function resetStatusIfReady(OrderModel $order): void
-    {
-        if ($order->estatus_pedido_id === OrderStatusEnum::SERVED->value) {
-            $order->update(['estatus_pedido_id' => OrderStatusEnum::IN_PROCESS->value]);
-            DB::afterCommit(function () use ($order) {
-                try {
-                    OrdersUpdated::dispatch('updated', $order->id);
-                } catch (\Throwable) {
-                }
-            });
-        }
-    }
-
-    /**
-     * After a product is removed, if the order is still InProcess and every
-     * remaining product is ready, auto-promote it back to Served.
-     */
-    private function restoreServedIfAllReady(OrderModel $order): void
-    {
-        if ($order->estatus_pedido_id !== OrderStatusEnum::IN_PROCESS->value) {
-            return;
-        }
-
-        $remaining = OrderProductModel::where('pedido_id', $order->id)->count();
-        if ($remaining === 0) {
-            return;
-        }
-
-        $hasUnready = OrderProductModel::where('pedido_id', $order->id)
-            ->where('is_ready', false)
-            ->exists();
-
-        if (! $hasUnready) {
-            $order->update(['estatus_pedido_id' => OrderStatusEnum::SERVED->value]);
-            DB::afterCommit(function () use ($order) {
-                try {
-                    OrdersUpdated::dispatch('restored_served', $order->id);
-                } catch (\Throwable) {
-                }
-            });
-        }
     }
 }

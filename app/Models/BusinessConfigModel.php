@@ -207,7 +207,7 @@ class BusinessConfigModel extends Model
         return self::firstOrCreate(
             [self::SLUG => $slug],
             [
-                self::BUSINESS_NAME => env('APP_FULL_NAME', 'pos-app'),
+                self::BUSINESS_NAME => config('business.full_name'),
                 self::PRIMARY_COLOR => '#f59e0b',
                 self::SIDEBAR_COLOR => '#1c1917',
                 self::FONT_COLOR => '#ffffff',

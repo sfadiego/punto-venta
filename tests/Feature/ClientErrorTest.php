@@ -26,7 +26,7 @@ class ClientErrorTest extends TestCase
             'context' => 'Dashboard',
         ]);
 
-        $response->assertStatus(200)
+        $response->assertStatus(201)
             ->assertJsonPath('status', 'OK');
 
         $this->assertDatabaseHas('error_reporting', [
@@ -57,7 +57,7 @@ class ClientErrorTest extends TestCase
             'usuario' => $user->usuario,
         ]);
 
-        $response->assertStatus(200)
+        $response->assertStatus(201)
             ->assertJsonPath('status', 'OK');
     }
 
@@ -73,7 +73,7 @@ class ClientErrorTest extends TestCase
         // No se pasan headers — el endpoint no requiere auth
         $this->postJson('/api/client-error', [
             'message' => 'Error público sin auth',
-        ])->assertStatus(200);
+        ])->assertStatus(201);
     }
 
     // ── Index (solo superadmin) ───────────────────────────────

@@ -93,7 +93,7 @@ class BusinessConfigController extends Controller
                 : null,
             'expires_at' => $tenant->subscription_expires_at?->toDateString(),
             'business_name' => $tenant->business_name,
-            'payment_whatsapp' => env('PAYMENT_WHATSAPP'),
+            'payment_whatsapp' => config('business.payment_whatsapp'),
             'payment_info' => json_decode(AppSettingModel::getValue('payment_info', 'null'), true),
             'amount_due' => $tenant->subscription_amount,
         ]);
