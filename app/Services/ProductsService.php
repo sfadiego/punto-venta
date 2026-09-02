@@ -52,17 +52,32 @@ class ProductsService extends DataTable
             $query->where('categoria_id', (int) $categoriaId);
         }
 
-        // Mismo criterio que ProductModel::hasLowStock(): sin min_stock configurado se asume
-        // 0, así que un producto en 0 existencias siempre cumple la condición aunque no tenga
-        // mínimo definido.
+        // Mismo criterio que ProductModel::hasLowStock()/ProductVariantModel::hasLowStock()
+        // (espejo en frontend: isProductRowLowStock()): sin min_stock configurado se asume 0.
+        // Un producto con variantes activas lleva el stock por variante (product.stock queda
+        // null en ese caso — ver ProductModel::updateProduct()), así que hay que evaluar el
+        // mínimo ahí en vez del nivel producto; si no tiene variantes, se evalúa a nivel producto.
         if ($lowStock) {
             $query->where('manage_stock', true)
-                ->whereNotNull('stock')
                 ->where(function (Builder $query) {
-                    $query->whereColumn('stock', '<=', 'min_stock')
-                        ->orWhere(function (Builder $query) {
-                            $query->whereNull('min_stock')->where('stock', '<=', 0);
-                        });
+                    $query->where(function (Builder $query) {
+                        $query->whereNotNull('stock')
+                            ->where(function (Builder $query) {
+                                $query->whereColumn('stock', '<=', 'min_stock')
+                                    ->orWhere(function (Builder $query) {
+                                        $query->whereNull('min_stock')->where('stock', '<=', 0);
+                                    });
+                            });
+                    })->orWhereHas('variants', function (Builder $query) {
+                        $query->where('activo', true)
+                            ->whereNotNull('stock')
+                            ->where(function (Builder $query) {
+                                $query->whereColumn('stock', '<=', 'min_stock')
+                                    ->orWhere(function (Builder $query) {
+                                        $query->whereNull('min_stock')->where('stock', '<=', 0);
+                                    });
+                            });
+                    });
                 });
         }
 

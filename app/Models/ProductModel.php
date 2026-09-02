@@ -234,7 +234,21 @@ class ProductModel extends Model
 
     public function hasLowStock(): bool
     {
-        if (! $this->manage_stock || $this->stock === null) {
+        if (! $this->manage_stock) {
+            return false;
+        }
+
+        // Con variantes activas el stock vive por variante (product.stock queda null en ese
+        // caso — ver updateProduct()), así que el mínimo se evalúa ahí en vez del nivel producto.
+        $activeVariants = $this->relationLoaded('variants')
+            ? $this->variants->where(ProductVariantModel::ACTIVO, true)
+            : $this->variants()->where(ProductVariantModel::ACTIVO, true)->get();
+
+        if ($activeVariants->isNotEmpty()) {
+            return $activeVariants->contains(fn (ProductVariantModel $variant) => $variant->hasLowStock());
+        }
+
+        if ($this->stock === null) {
             return false;
         }
 
