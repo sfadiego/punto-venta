@@ -23,8 +23,8 @@ class NetworkConnector implements PrinterConnectorInterface
 
     public function __construct(BusinessConfigModel $tenant)
     {
-        $this->printerName = $tenant->printer_name ?? env('PRINTER_NAME', '');
-        $this->printerHost = $tenant->printer_host ?? env('PRINTER_HOST', '');
+        $this->printerName = $tenant->printer_name ?? config('printer.name');
+        $this->printerHost = $tenant->printer_host ?? config('printer.host');
     }
 
     public function init(): void

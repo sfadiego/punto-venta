@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\RoleEnum;
 use App\Models\Permission;
 use App\Models\RolePermission;
+use App\Models\RolePermissionConfig;
 use Illuminate\Support\Collection;
 
 class RolePermissionService
@@ -47,23 +48,36 @@ class RolePermissionService
         return $map;
     }
 
-    /** Usado dentro de requests autenticadas, donde el tenant ya está resuelto por ResolveTenant. */
+    /**
+     * Usado dentro de requests autenticadas, donde el tenant ya está resuelto por ResolveTenant.
+     * Si el rol nunca fue configurado (ni por el Admin en "Roles y permisos" ni por el seeding de
+     * SuperAdmin — sin fila en role_permission_configs), cae a DEFAULTS: un rol sin configurar
+     * debe comportarse como los permisos por defecto, no como "sin acceso a nada". Si el rol SÍ
+     * fue configurado, se respeta el resultado real aunque sea vacío (Admin quitó todos los
+     * permisos a propósito) — de ahí que no baste con mirar si role_permissions tiene filas, ya
+     * que "nunca configurado" y "configurado con cero permisos" se ven igual en esa tabla.
+     */
     public function grantedKeys(int $roleId): array
     {
-        return RolePermission::where(RolePermission::ROLE_ID, $roleId)
+        $grants = RolePermission::where(RolePermission::ROLE_ID, $roleId)
             ->with('permission')
-            ->get()
-            ->pluck('permission.key')
-            ->values()
-            ->all();
+            ->get();
+
+        if ($grants->isNotEmpty()) {
+            return $grants->pluck('permission.key')->values()->all();
+        }
+
+        $configured = RolePermissionConfig::where(RolePermissionConfig::ROLE_ID, $roleId)->exists();
+
+        return $configured ? [] : (self::DEFAULTS[$roleId] ?? []);
     }
 
     /** Siembra los permisos default para un tenant nuevo — idempotente por rol (no pisa configuraciones existentes). */
     public function seedDefaultsForTenant(int $tenantId): void
     {
         foreach (self::DEFAULTS as $roleId => $keys) {
-            $alreadyConfigured = RolePermission::where(RolePermission::TENANT_ID, $tenantId)
-                ->where(RolePermission::ROLE_ID, $roleId)
+            $alreadyConfigured = RolePermissionConfig::where(RolePermissionConfig::TENANT_ID, $tenantId)
+                ->where(RolePermissionConfig::ROLE_ID, $roleId)
                 ->exists();
 
             if ($alreadyConfigured) {
@@ -80,6 +94,11 @@ class RolePermissionService
             if ($rows !== []) {
                 RolePermission::insert($rows);
             }
+
+            RolePermissionConfig::create([
+                RolePermissionConfig::TENANT_ID => $tenantId,
+                RolePermissionConfig::ROLE_ID => $roleId,
+            ]);
         }
     }
 
@@ -99,5 +118,10 @@ class RolePermissionService
         if ($rows !== []) {
             RolePermission::insert($rows);
         }
+
+        RolePermissionConfig::firstOrCreate([
+            RolePermissionConfig::TENANT_ID => $tenantId,
+            RolePermissionConfig::ROLE_ID => $roleId,
+        ]);
     }
 }

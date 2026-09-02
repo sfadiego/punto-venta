@@ -16,7 +16,7 @@ abstract class AbstractConnector implements PrinterConnectorInterface
 
     public function __construct(BusinessConfigModel $tenant)
     {
-        $this->printerName = $tenant->printer_name ?? env('PRINTER_NAME', '');
+        $this->printerName = $tenant->printer_name ?? config('printer.name');
     }
 
     abstract public function init(): void;

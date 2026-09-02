@@ -18,7 +18,7 @@ class FileConnector extends AbstractConnector
     {
         parent::__construct($tenant);
         $this->fileName = 'ticket';
-        $this->host = $tenant->printer_host ?? env('PRINTER_HOST', '');
+        $this->host = $tenant->printer_host ?? config('printer.host');
         $this->tempFile = tempnam(sys_get_temp_dir(), 'ticket-');
     }
 

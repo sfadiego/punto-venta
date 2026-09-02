@@ -66,7 +66,7 @@ class VentaTicketData implements TicketDataInterface
             'products' => $products,
             'sell_by_weight' => (bool) ($config?->tipo_negocio?->features()['sell_by_weight'] ?? false),
             'business' => [
-                'name' => $config?->business_name ?? env('APP_FULL_NAME', 'Punto de venta'),
+                'name' => $config?->business_name ?? config('business.full_name'),
                 'phone' => $config?->phone,
                 'address' => $config?->address,
                 'facebook' => $config?->facebook,

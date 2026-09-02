@@ -15,7 +15,7 @@ class ConnectorFactory
 {
     public static function make(BusinessConfigModel $tenant): PrinterConnectorInterface
     {
-        $driver = env('PRINTER_DRIVER', 'network');
+        $driver = config('printer.driver');
 
         return match ($driver) {
             'smbclient' => new SmbclientConnector($tenant),
