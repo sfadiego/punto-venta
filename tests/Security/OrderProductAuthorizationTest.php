@@ -234,7 +234,7 @@ class OrderProductAuthorizationTest extends TestCase
         ], $this->authHeaders($empleado))->assertStatus(200);
     }
 
-    public function test_caja_con_viewOrders_puede_agregar_producto_al_retomar_una_venta(): void
+    public function test_caja_con_view_orders_puede_agregar_producto_al_retomar_una_venta(): void
     {
         // QuickSale (venta por peso) retoma una orden en proceso y edita su carrito con
         // estos mismos endpoints — Caja no tiene takeOrder por default, pero sí viewOrders

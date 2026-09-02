@@ -12,7 +12,7 @@ class PrinterAgentPackageService
 {
     /**
      * @return string|null Ruta del ZIP generado, o null si el binario para esa
-     *                      plataforma no está disponible en el storage.
+     *                     plataforma no está disponible en el storage.
      */
     public function buildZip(string $platform, array $config): ?string
     {
