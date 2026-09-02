@@ -473,6 +473,54 @@ class ProductStockTest extends TestCase
         $this->assertEmpty($response->json('data'));
     }
 
+    public function test_filtro_low_stock_incluye_producto_con_variante_en_cero(): void
+    {
+        // Con variantes activas, el stock vive por variante — product.stock/min_stock quedan
+        // null (ver ProductModel::updateProduct()). Reproduce el bug reportado: "Gorra" con
+        // variantes Mediana/Chica/Grande en 0 no aparecía en el filtro.
+        $gorra = ProductModel::factory()->create([
+            'nombre' => 'Gorra', 'manage_stock' => true, 'stock' => null, 'min_stock' => null,
+        ]);
+        foreach (['Mediana', 'Chica', 'Grande'] as $i => $nombre) {
+            ProductVariantModel::factory()->create([
+                ProductVariantModel::PRODUCT_ID => $gorra->id, ProductVariantModel::NOMBRE => $nombre,
+                ProductVariantModel::ACTIVO => true, ProductVariantModel::ORDEN => $i,
+                ProductVariantModel::STOCK => 0, ProductVariantModel::MIN_STOCK => 2,
+                ProductVariantModel::TENANT_ID => BusinessConfigModel::first()->id,
+            ]);
+        }
+
+        $sobrado = ProductModel::factory()->create([
+            'nombre' => 'Con variantes sobradas', 'manage_stock' => true, 'stock' => null, 'min_stock' => null,
+        ]);
+        ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $sobrado->id, ProductVariantModel::NOMBRE => 'Unica',
+            ProductVariantModel::ACTIVO => true, ProductVariantModel::ORDEN => 0,
+            ProductVariantModel::STOCK => 20, ProductVariantModel::MIN_STOCK => 2,
+            ProductVariantModel::TENANT_ID => BusinessConfigModel::first()->id,
+        ]);
+
+        $response = $this->getJson('/api/product?page=1&limit=10&low_stock=1', $this->authHeaders())
+            ->assertStatus(206);
+
+        $ids = array_column($response->json('data'), 'id');
+        $this->assertContains($gorra->id, $ids);
+        $this->assertNotContains($sobrado->id, $ids);
+    }
+
+    public function test_has_low_stock_evalua_variantes_activas_cuando_el_producto_no_lleva_stock_propio(): void
+    {
+        $gorra = ProductModel::factory()->create(['manage_stock' => true, 'stock' => null, 'min_stock' => null]);
+        ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $gorra->id, ProductVariantModel::NOMBRE => 'Chica',
+            ProductVariantModel::ACTIVO => true, ProductVariantModel::ORDEN => 0,
+            ProductVariantModel::STOCK => 0, ProductVariantModel::MIN_STOCK => 2,
+            ProductVariantModel::TENANT_ID => BusinessConfigModel::first()->id,
+        ]);
+
+        $this->assertTrue($gorra->fresh()->hasLowStock());
+    }
+
     public function test_sin_filtro_low_stock_muestra_todos_los_productos(): void
     {
         ProductModel::factory()->create([
