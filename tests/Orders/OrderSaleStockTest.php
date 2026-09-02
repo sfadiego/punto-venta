@@ -16,6 +16,7 @@ use App\Models\OrderStatusModel;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class OrderSaleStockTest extends TestCase
@@ -102,6 +103,35 @@ class OrderSaleStockTest extends TestCase
 
         $this->assertEquals(7.0, (float) $productA->fresh()->stock);
         $this->assertEquals(3.0, (float) $productB->fresh()->stock);
+    }
+
+    public function test_venta_directa_con_muchos_items_precarga_productos_en_una_sola_query(): void
+    {
+        // Regresión N+1: antes, resolveCatalogPrice() + el chequeo de manage_stock hacían
+        // 1 query de producto por línea del carrito. Ahora se precargan todos con un solo
+        // whereIn — confirmamos que esa query batched existe. No afirmamos que sea la
+        // única query a "product" en todo el request: la validación de la request
+        // (Rule::exists por línea) y el lockForUpdate() de StockService siguen corriendo
+        // una vez por línea por diseño — no son parte de este fix.
+        $sistema = $this->crearSistema();
+        $productos = collect(range(1, 5))->map(fn () => $this->crearProductoConStock(10));
+
+        DB::enableQueryLog();
+
+        $this->postJson('/api/order/sale', [
+            'sistema_id' => $sistema->id,
+            'nombre_pedido' => 'Venta mostrador',
+            'items' => $productos->map(fn ($p) => ['producto_id' => $p->id, 'cantidad' => 1])->values()->all(),
+        ], $this->authHeaders())->assertStatus(200);
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $batchedLookup = collect($queries)->first(
+            fn ($q) => str_contains($q['query'], 'from "product"') && preg_match('/\bin\s*\(/i', $q['query']) === 1
+        );
+
+        $this->assertNotNull($batchedLookup, 'Se esperaba una query batched (whereIn) a la tabla product.');
     }
 
     public function test_venta_directa_sin_manage_stock_no_genera_movimiento(): void

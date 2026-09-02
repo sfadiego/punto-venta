@@ -910,6 +910,40 @@ class OrderTest extends TestCase
         $this->assertEquals(2, $units[UnidadMedidaEnum::Litro->value]['total_cantidad']);
     }
 
+    // ── ExportSalesReport ────────────────────────────────────
+
+    public function test_export_reporte_ventas_sin_ningun_parametro_falla(): void
+    {
+        // Sin filtro exportaría el historial completo de órdenes del tenant en un solo PDF
+        // — se exige al menos un período, igual que salesByCategory.
+        $this->getJson('/api/order/sales-report/export', $this->authHeaders())
+            ->assertStatus(422);
+    }
+
+    public function test_export_reporte_ventas_con_sistema_id_genera_pdf(): void
+    {
+        $report = $this->crearReporte();
+
+        $response = $this->get(
+            "/api/order/sales-report/export?sistema_id={$report->id}",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        );
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
+    }
+
+    public function test_export_reporte_ventas_con_fecha_genera_pdf(): void
+    {
+        $response = $this->get(
+            '/api/order/sales-report/export?fecha='.now()->toDateString(),
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        );
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
+    }
+
     // ── CreditCustomers ──────────────────────────────────────
 
     private function venderACredito(int $sistemaId, CustomerModel $customer, float $total, bool $cerrada = true): OrderModel

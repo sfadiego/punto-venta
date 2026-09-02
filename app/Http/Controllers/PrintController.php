@@ -10,7 +10,9 @@ use App\Printer\Factory\PrinterServiceFactory;
 use App\Printer\Formatters\TestTicketFormatter;
 use App\Printer\Formatters\VentaFormatter;
 use App\Printer\Service\PrinterService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 
 class PrintController extends Controller
@@ -24,7 +26,7 @@ class PrintController extends Controller
 
             return Response::success($order, 'Impresión enviada');
         } catch (\Throwable $th) {
-            return Response::error($th->getMessage());
+            return $this->printFailure($th, 'print');
         }
     }
 
@@ -46,7 +48,7 @@ class PrintController extends Controller
                 'Content-Length' => strlen($bytes),
             ]);
         } catch (\Throwable $th) {
-            return Response::error($th->getMessage());
+            return $this->printFailure($th, 'test-bytes');
         }
     }
 
@@ -69,7 +71,22 @@ class PrintController extends Controller
                 'Content-Length' => strlen($bytes),
             ]);
         } catch (\Throwable $th) {
-            return Response::error($th->getMessage());
+            return $this->printFailure($th, 'raw-bytes');
         }
+    }
+
+    /**
+     * Un \Throwable de impresión puede traer detalles internos (rutas de archivo, errores
+     * de conexión SMB, etc.) que no deben llegar al cliente — se loguea completo y se
+     * responde un mensaje genérico.
+     */
+    private function printFailure(\Throwable $th, string $context): JsonResponse
+    {
+        Log::error("Error al imprimir ({$context})", [
+            'message' => $th->getMessage(),
+            'trace' => $th->getTraceAsString(),
+        ]);
+
+        return Response::error('No se pudo imprimir el ticket, intenta de nuevo.');
     }
 }

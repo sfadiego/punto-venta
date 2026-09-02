@@ -14,6 +14,8 @@ use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Collection;
 
 /**
  * Crea una orden desde el menú público (sin autenticación) — espejo de OrderSaleService
@@ -56,8 +58,27 @@ class PublicOrderService
             OrderModel::SUBTOTAL => 0,
         ]);
 
-        foreach ($request->items as $item) {
-            $this->addItem($order, $tenant, $item);
+        // Precarga productos/variantes referenciados en un solo whereIn cada uno, en vez de
+        // 1-2 queries por línea del pedido dentro del loop de abajo.
+        $rawItems = collect($request->items);
+        $products = ProductModel::withoutGlobalScopes()
+            ->whereIn('id', $rawItems->pluck('product_id')->unique())
+            ->where('tenant_id', $tenant->id)
+            ->where(ProductModel::ACTIVO, true)
+            ->get()
+            ->keyBy('id');
+
+        $variantIds = $rawItems->pluck('variant_id')->filter()->unique();
+        $variants = $variantIds->isNotEmpty()
+            ? ProductVariantModel::withoutGlobalScopes()
+                ->whereIn('id', $variantIds)
+                ->where('tenant_id', $tenant->id)
+                ->get()
+                ->keyBy('id')
+            : collect();
+
+        foreach ($rawItems as $item) {
+            $this->addItem($order, $item, $products, $variants);
         }
 
         $totals = $order->totalAndSubTotalOrder();
@@ -106,13 +127,12 @@ class PublicOrderService
     /**
      * @throws InsufficientStockException
      */
-    private function addItem(OrderModel $order, BusinessConfigModel $tenant, array $item): void
+    private function addItem(OrderModel $order, array $item, Collection $products, Collection $variants): void
     {
-        $product = ProductModel::withoutGlobalScopes()
-            ->where('id', $item['product_id'])
-            ->where('tenant_id', $tenant->id)
-            ->where(ProductModel::ACTIVO, true)
-            ->firstOrFail();
+        $product = $products->get($item['product_id']);
+        if (! $product) {
+            throw (new ModelNotFoundException)->setModel(ProductModel::class, [$item['product_id']]);
+        }
 
         if ($product->manage_stock && (float) $item['cantidad'] > (float) $product->stock) {
             throw new InsufficientStockException(
@@ -123,11 +143,10 @@ class PublicOrderService
         $precio = $product->precio;
         $variantId = $item['variant_id'] ?? null;
         if ($variantId) {
-            $variant = ProductVariantModel::withoutGlobalScopes()
-                ->where('id', $variantId)
-                ->where(ProductVariantModel::PRODUCT_ID, $product->id)
-                ->where('tenant_id', $tenant->id)
-                ->firstOrFail();
+            $variant = $variants->get($variantId);
+            if (! $variant || $variant->product_id !== $product->id) {
+                throw (new ModelNotFoundException)->setModel(ProductVariantModel::class, [$variantId]);
+            }
             $precio = $variant->precio;
         }
 

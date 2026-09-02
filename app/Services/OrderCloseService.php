@@ -68,22 +68,25 @@ class OrderCloseService
      */
     private function deductStockForOrder(OrderModel $order): void
     {
-        $order->orderProducts()
-            ->whereNotNull('producto_id')
-            ->get()
-            ->each(function (OrderProductModel $item) {
-                $product = ProductModel::find($item->producto_id);
-                // Ver comentario equivalente en OrderSaleService::createDirectSale — una línea
-                // con variante descuenta el stock de esa variante, no el del producto base.
-                if ($product && $product->manage_stock) {
-                    $this->stockService->deduct(
-                        productId: $product->id,
-                        quantity: (float) $item->cantidad,
-                        reason: StockMovementReasonEnum::Sale,
-                        variantId: $item->variant_id,
-                        reference: $item,
-                    );
-                }
-            });
+        $items = $order->orderProducts()->whereNotNull('producto_id')->get();
+
+        // Precarga todos los productos referenciados en un solo whereIn, en vez de una
+        // query por línea dentro del each() de abajo.
+        $products = ProductModel::whereIn('id', $items->pluck('producto_id')->unique())->get()->keyBy('id');
+
+        $items->each(function (OrderProductModel $item) use ($products) {
+            $product = $products->get($item->producto_id);
+            // Ver comentario equivalente en OrderSaleService::createDirectSale — una línea
+            // con variante descuenta el stock de esa variante, no el del producto base.
+            if ($product && $product->manage_stock) {
+                $this->stockService->deduct(
+                    productId: $product->id,
+                    quantity: (float) $item->cantidad,
+                    reason: StockMovementReasonEnum::Sale,
+                    variantId: $item->variant_id,
+                    reference: $item,
+                );
+            }
+        });
     }
 }

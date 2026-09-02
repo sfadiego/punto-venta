@@ -49,6 +49,17 @@ class PrintTest extends TestCase
             ->assertStatus(422);
     }
 
+    public function test_print_error_no_expone_mensaje_interno(): void
+    {
+        // El mensaje de la excepción real (rutas, detalles de conexión) no debe llegar
+        // al cliente — solo un mensaje genérico; el detalle real queda en el log.
+        $orden = $this->crearOrden();
+
+        $this->postJson("/api/order/{$orden->id}/print", [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'No se pudo imprimir el ticket, intenta de nuevo.');
+    }
+
     public function test_bytes_sin_autenticacion_retorna_401(): void
     {
         $orden = $this->crearOrden();

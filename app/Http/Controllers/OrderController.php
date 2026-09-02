@@ -107,12 +107,17 @@ class OrderController extends Controller
         return Response::success($saleService->creditCustomersBySession((int) $sistemaId));
     }
 
-    public function exportSalesReport(Request $request, SalesReportExportService $exportService): HttpResponse
+    public function exportSalesReport(Request $request, SalesReportExportService $exportService): JsonResponse|HttpResponse
     {
         $sistemaId = $request->query('sistema_id') ? (int) $request->query('sistema_id') : null;
         $date = $request->query('fecha');
         $week = $request->query('semana');
         $month = $request->query('mes');
+
+        if (! $sistemaId && ! $date && ! $week && ! $month) {
+            return Response::error('Se requiere sistema_id, fecha, semana o mes.');
+        }
+
         $sellByWeight = (bool) ($request->user()->tenant->tipo_negocio->features()['sell_by_weight'] ?? false);
 
         $pdf = $exportService->buildPdf($sistemaId, $date, $week, $month, $sellByWeight);
