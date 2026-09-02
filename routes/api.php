@@ -29,7 +29,7 @@ require base_path('routes/modules/menu.php');
 // Panel super-admin
 require base_path('routes/modules/superadmin.php');
 
-Route::middleware(['auth:sanctum', ResolveTenant::class, 'check.subscription', 'track.activity'])->group(function () {
+Route::middleware(['auth:sanctum', ResolveTenant::class, 'check.subscription'])->group(function () {
     require base_path('routes/modules/categories.php');
     require base_path('routes/modules/customers.php');
     require base_path('routes/modules/providers.php');

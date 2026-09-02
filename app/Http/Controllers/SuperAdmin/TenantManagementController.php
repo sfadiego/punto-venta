@@ -7,7 +7,6 @@ use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionPlanEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Middleware\TrackActivity;
 use App\Http\Requests\TenantClearDemoDataRequest;
 use App\Http\Requests\TenantStoreRequest;
 use App\Http\Requests\TenantUpdateRequest;
@@ -77,7 +76,7 @@ class TenantManagementController extends Controller
 
     public function show(BusinessConfigModel $tenant): JsonResponse
     {
-        $activeWindow = now()->subMinutes(TrackActivity::activeWindowMinutes());
+        $activeWindow = now()->subMinutes(PersonalAccessToken::activeWindowMinutes());
 
         $tenant->loadCount([
             'users',

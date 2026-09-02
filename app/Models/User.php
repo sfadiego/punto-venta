@@ -33,9 +33,6 @@ class User extends Authenticatable
 
     const TENANT_ID = 'tenant_id';
 
-    /** @deprecated para conteo de "usuarios activos"/límite de plan — ver App\Models\PersonalAccessToken::scopeActiveForTenant(). Sigue en uso para limpiar el valor en logout (ver AuthController::logout()). */
-    const LAST_SEEN_AT = 'last_seen_at';
-
     const LOGIN_INACTIVE = 'login_inactive';
 
     protected $fillable = [
@@ -48,7 +45,6 @@ class User extends Authenticatable
         self::ACTIVO,
         self::PASSWORD,
         self::TENANT_ID,
-        self::LAST_SEEN_AT,
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -58,7 +54,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            self::LAST_SEEN_AT => 'datetime',
         ];
     }
 

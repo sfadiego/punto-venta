@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Response;
 
 class AuthController extends Controller
@@ -52,8 +51,6 @@ class AuthController extends Controller
         $user = $request->user();
 
         if ($user) {
-            $user->updateQuietly([User::LAST_SEEN_AT => null]);
-            Cache::forget("user_last_seen_{$user->id}");
             $request->user()->currentAccessToken()->delete();
         }
 
