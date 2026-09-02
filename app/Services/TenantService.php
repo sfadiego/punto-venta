@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Core\Data\IndexData;
 use App\Core\Paginator\DataTable;
 use App\Enums\TenantStatusEnum;
-use App\Http\Middleware\TrackActivity;
 use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
 use App\Models\TenantActivityLogModel;
@@ -36,7 +35,7 @@ class TenantService extends DataTable
             ? $this->model->onlyTrashed()
             : $this->model->newQuery();
 
-        $activeWindow = now()->subMinutes(TrackActivity::activeWindowMinutes());
+        $activeWindow = now()->subMinutes(PersonalAccessToken::activeWindowMinutes());
 
         $query->withCount([
             'users',

@@ -6,7 +6,6 @@ use App\Http\Middleware\CheckSubscription;
 use App\Http\Middleware\ErrorReporting;
 use App\Http\Middleware\PermissionMiddleware;
 use App\Http\Middleware\ResolveTenant;
-use App\Http\Middleware\TrackActivity;
 use App\Http\Middleware\TransactionMiddleware;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -31,7 +30,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('api', ErrorReporting::class);
         $middleware->alias([
             'check.subscription' => CheckSubscription::class,
-            'track.activity' => TrackActivity::class,
             'role.admin' => AdminOnlyMiddleware::class,
             'permission' => PermissionMiddleware::class,
         ]);
