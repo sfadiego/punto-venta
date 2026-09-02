@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Core\Data\IndexData;
+use App\Core\Enums\Http;
 use App\Http\Requests\ClientErrorStoreRequest;
 use App\Http\Requests\ErrorReportingPruneRequest;
 use App\Models\ErrorReporting;
@@ -76,6 +77,6 @@ class ClientErrorController extends Controller
             'error_code' => $errorCode,
         ]);
 
-        return Response::success(null, 201);
+        return Response::success(null, null, Http::Created);
     }
 }

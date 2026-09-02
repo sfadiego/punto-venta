@@ -10,6 +10,7 @@ use App\Printer\Formatters\VentaFormatter;
 use App\Printer\Service\PrinterService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Mike42\Escpos\Printer;
 
 class PrintController extends Controller
 {
@@ -44,7 +45,7 @@ class PrintController extends Controller
             $dline = str_repeat('-', $chars);
             $now = now()->setTimezone(config('app.timezone'));
 
-            $p->setJustification(\Mike42\Escpos\Printer::JUSTIFY_CENTER);
+            $p->setJustification(Printer::JUSTIFY_CENTER);
             $p->setEmphasis(true);
             $p->setTextSize(1, 2);
             $p->text("PRUEBA DE IMPRESION\n");
@@ -52,12 +53,12 @@ class PrintController extends Controller
             $p->setEmphasis(false);
             $p->text($line."\n");
 
-            $p->setJustification(\Mike42\Escpos\Printer::JUSTIFY_LEFT);
+            $p->setJustification(Printer::JUSTIFY_LEFT);
             $p->text('Negocio : '.($tenant->business_name ?? 'POS')."\n");
             $p->text('Fecha   : '.$now->format('d/m/Y H:i:s')."\n");
             $p->text($dline."\n");
 
-            $p->setJustification(\Mike42\Escpos\Printer::JUSTIFY_CENTER);
+            $p->setJustification(Printer::JUSTIFY_CENTER);
             $p->setEmphasis(true);
             $p->text("Agente de impresion: OK\n");
             $p->setEmphasis(false);

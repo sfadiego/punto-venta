@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Core\Enums\Http;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
@@ -23,7 +24,7 @@ class PrinterAgentController extends Controller
         $binaryPath = storage_path("app/printer-agent/{$binaryName}");
 
         if (! file_exists($binaryPath)) {
-            return Response::json(['message' => 'Binario no disponible. Contacta al administrador del sistema.'], 404);
+            return Response::error('Binario no disponible. Contacta al administrador del sistema.', null, Http::NotFound);
         }
 
         $config = json_encode([

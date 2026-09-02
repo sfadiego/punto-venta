@@ -13,6 +13,7 @@ use App\Models\PersonalAccessToken;
 use App\Models\User;
 use App\Services\RolePermissionService;
 use App\Services\TenantActivityService;
+use App\Core\Enums\Http;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -88,11 +89,7 @@ class AuthController extends Controller
                     ? 'Este negocio aún no tiene una suscripción activa. Contacta al administrador para activar tu plan.'
                     : 'La suscripción de este negocio ha vencido. Contacta al administrador para renovarla.';
 
-                return response()->json([
-                    'success' => false,
-                    'message' => $message,
-                    'code' => 'SUBSCRIPTION_EXPIRED',
-                ], 403);
+                return Response::error($message, ['code' => 'SUBSCRIPTION_EXPIRED'], Http::Forbidden);
             }
         }
 
@@ -111,11 +108,11 @@ class AuthController extends Controller
             if ($activeSessions >= $tenant->effectiveMaxUsers()) {
                 $result['user']->tokens()->latest()->first()?->delete();
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Se alcanzó el límite de usuarios simultáneos. Intenta más tarde.',
-                    'code' => 'CONCURRENT_USERS_LIMIT',
-                ], 403);
+                return Response::error(
+                    'Se alcanzó el límite de usuarios simultáneos. Intenta más tarde.',
+                    ['code' => 'CONCURRENT_USERS_LIMIT'],
+                    Http::Forbidden,
+                );
             }
         }
 
