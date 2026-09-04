@@ -10,7 +10,7 @@ const TenantUsersPage     = lazy(() => import("@/pages/SuperAdmin/TenantUsers/Te
 const SubscriptionsPage   = lazy(() => import("@/pages/SuperAdmin/Subscriptions/SubscriptionsPage"));
 const SettingsPage        = lazy(() => import("@/pages/SuperAdmin/Settings/SettingsPage"));
 const ErrorLogsPage       = lazy(() => import("@/pages/SuperAdmin/ErrorLogs/ErrorLogsPage"));
-const DemoRequestsPage    = lazy(() => import("@/pages/SuperAdmin/DemoRequests/DemoRequestsPage"));
+const ClientLeadsPage     = lazy(() => import("@/pages/SuperAdmin/ClientLeads/ClientLeadsPage"));
 
 const SuperAdminRoute = ({ children }: { children: React.ReactNode }) =>
     superAdminAuth.isAuthenticated() ? <>{children}</> : <Navigate to={SuperAdminRoutes.Login} replace />;
@@ -49,7 +49,7 @@ export const superAdminRoutes = [
         element: <SuperAdminRoute><ErrorLogsPage /></SuperAdminRoute>,
     },
     {
-        path: SuperAdminRoutes.DemoRequests,
-        element: <SuperAdminRoute><DemoRequestsPage /></SuperAdminRoute>,
+        path: SuperAdminRoutes.ClientLeads,
+        element: <SuperAdminRoute><ClientLeadsPage /></SuperAdminRoute>,
     },
 ];

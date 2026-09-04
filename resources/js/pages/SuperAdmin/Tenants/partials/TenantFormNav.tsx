@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, Building2, CreditCard, Palette, Printer, Sparkles, Truck, UserPlus, Users } from "lucide-react";
+import { Activity, AlertTriangle, Building2, CreditCard, Palette, Printer, ShieldCheck, Sparkles, Truck, UserPlus, Users } from "lucide-react";
 
 const BASE_SECTIONS = [
     { id: "negocio", label: "Negocio", icon: <Building2 size={18} /> },
@@ -12,6 +12,7 @@ const EDIT_SECTIONS = [
     { id: "suscripcion", label: "Suscripción", icon: <CreditCard size={18} /> },
     { id: "impresora", label: "Impresora", icon: <Printer size={18} /> },
     { id: "proveedores-empleados", label: "Módulos opcionales", icon: <Truck size={18} /> },
+    { id: "roles-permisos", label: "Roles y permisos", icon: <ShieldCheck size={18} /> },
     { id: "actividad", label: "Actividad", icon: <Activity size={18} /> },
     { id: "novedades", label: "Novedades", icon: <Sparkles size={18} /> },
 ];

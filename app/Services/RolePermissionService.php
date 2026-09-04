@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\RoleEnum;
+use App\Models\BusinessConfigModel;
 use App\Models\Permission;
 use App\Models\RolePermission;
 use App\Models\RolePermissionConfig;
@@ -102,12 +103,45 @@ class RolePermissionService
         }
     }
 
-    public function sync(int $roleId, array $keys): void
+    /**
+     * Valida que un rol sea configurable para el tenant dado (usado tanto desde el panel Admin del
+     * propio tenant, donde $tenantId viene de app('tenant_id'), como desde el panel SuperAdmin,
+     * donde $tenantId es el tenant objetivo explícito). Retorna el mensaje de error o null si es
+     * válido.
+     */
+    public function validateRoleConfigurable(int $tenantId, int $roleId): ?string
     {
-        $tenantId = app('tenant_id');
+        $configurableValues = array_map(fn (RoleEnum $role) => $role->value, self::CONFIGURABLE_ROLES);
+
+        if (! in_array($roleId, $configurableValues, true)) {
+            return 'Este rol no es configurable.';
+        }
+
+        // Cocina y Caja no existen como roles asignables en negocios de venta por peso
+        // (sin kitchen_view, sin flujo de caja separado del empleado) — ver
+        // useUsersPage.ts:24 en el frontend, que ya excluye estos roles al crear usuarios.
+        $sellByWeight = BusinessConfigModel::find($tenantId)?->tipo_negocio->features()['sell_by_weight'] ?? false;
+        $rolesSinVentaPorPeso = [RoleEnum::COCINA->value, RoleEnum::CAJA->value];
+
+        if ($sellByWeight && in_array($roleId, $rolesSinVentaPorPeso, true)) {
+            return 'Este rol no está disponible para negocios de venta por peso.';
+        }
+
+        return null;
+    }
+
+    public function sync(int $roleId, array $keys, ?int $tenantId = null): void
+    {
+        $tenantId ??= app('tenant_id');
         $permissionIds = Permission::whereIn(Permission::KEY, $keys)->pluck('id');
 
-        RolePermission::where(RolePermission::ROLE_ID, $roleId)->delete();
+        // Filtro explícito por tenant_id: RolePermission::HasTenant solo aplica su scope global
+        // cuando app('tenant_id') está bindeado (rutas del tenant vía ResolveTenant). Las rutas
+        // SuperAdmin no lo bindean, así que sin este filtro explícito este delete borraría el rol
+        // en TODOS los tenants en vez de solo en el tenant objetivo.
+        RolePermission::where(RolePermission::TENANT_ID, $tenantId)
+            ->where(RolePermission::ROLE_ID, $roleId)
+            ->delete();
 
         $rows = $permissionIds->map(fn ($permissionId) => [
             RolePermission::TENANT_ID => $tenantId,

@@ -1,19 +1,21 @@
-import { PhoneCall, RefreshCw, Search } from "lucide-react";
+import { Users, RefreshCw, Search, Plus } from "lucide-react";
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
-import { DemoRequestsTable } from "@/components/SuperAdmin/DemoRequests/DemoRequestsTable";
-import { DemoRequestDetailModal } from "@/components/SuperAdmin/DemoRequests/DemoRequestDetailModal";
-import { useDemoRequestsPage } from "./useDemoRequestsPage";
-import { DemoRequestStatusEnum, DEMO_REQUEST_STATUS_LABELS } from "@/enums/DemoRequestStatusEnum";
+import { ClientLeadsTable } from "@/components/SuperAdmin/ClientLeads/ClientLeadsTable";
+import { ClientLeadDetailModal } from "@/components/SuperAdmin/ClientLeads/ClientLeadDetailModal";
+import { ClientLeadCreateModal } from "@/components/SuperAdmin/ClientLeads/ClientLeadCreateModal";
+import { useClientLeadsPage } from "./useClientLeadsPage";
+import { useClientLeadCreate } from "./useClientLeadCreate";
+import { ClientLeadStatusEnum, CLIENT_LEAD_STATUS_LABELS } from "@/enums/ClientLeadStatusEnum";
 
-const STATUS_FILTERS: { label: string; value: DemoRequestStatusEnum | "" }[] = [
+const STATUS_FILTERS: { label: string; value: ClientLeadStatusEnum | "" }[] = [
     { label: "Todos", value: "" },
-    ...Object.entries(DEMO_REQUEST_STATUS_LABELS).map(([value, label]) => ({
+    ...Object.entries(CLIENT_LEAD_STATUS_LABELS).map(([value, label]) => ({
         label,
-        value: value as DemoRequestStatusEnum,
+        value: value as ClientLeadStatusEnum,
     })),
 ];
 
-export default function DemoRequestsPage() {
+export default function ClientLeadsPage() {
     const {
         records,
         totalRecords,
@@ -33,7 +35,9 @@ export default function DemoRequestsPage() {
         openDetail,
         closeDetail,
         handleSave,
-    } = useDemoRequestsPage();
+    } = useClientLeadsPage();
+
+    const { isCreateOpen, openCreate, closeCreate, isCreating, handleCreate } = useClientLeadCreate();
 
     return (
         <SuperAdminLayout>
@@ -41,20 +45,30 @@ export default function DemoRequestsPage() {
                 <div className="mb-6 flex items-start justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                            <PhoneCall size={22} className="text-indigo-500" />
-                            Solicitudes de demo
+                            <Users size={22} className="text-indigo-500" />
+                            Seguimiento
                         </h1>
                         <p className="text-slate-500 text-sm mt-0.5">
-                            Leads registrados desde el formulario de acceso
+                            Clientes potenciales registrados desde el formulario de acceso o dados de alta
+                            manualmente
                         </p>
                     </div>
-                    <button
-                        onClick={() => refetch()}
-                        className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
-                    >
-                        <RefreshCw size={15} />
-                        Actualizar
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => refetch()}
+                            className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                            <RefreshCw size={15} />
+                            Actualizar
+                        </button>
+                        <button
+                            onClick={openCreate}
+                            className="flex items-center gap-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-lg transition-colors"
+                        >
+                            <Plus size={15} />
+                            Nuevo
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 mb-4">
@@ -87,10 +101,10 @@ export default function DemoRequestsPage() {
                 </div>
 
                 <p className="text-xs text-slate-400 mb-3">
-                    {totalRecords} solicitud{totalRecords !== 1 ? "es" : ""}
+                    {totalRecords} cliente{totalRecords !== 1 ? "s" : ""} potencial{totalRecords !== 1 ? "es" : ""}
                 </p>
 
-                <DemoRequestsTable
+                <ClientLeadsTable
                     records={records}
                     totalRecords={totalRecords}
                     page={page}
@@ -103,11 +117,18 @@ export default function DemoRequestsPage() {
                 />
             </div>
 
-            <DemoRequestDetailModal
-                demoRequest={selected}
+            <ClientLeadDetailModal
+                clientLead={selected}
                 isSaving={isSaving}
                 onSave={handleSave}
                 onClose={closeDetail}
+            />
+
+            <ClientLeadCreateModal
+                isOpen={isCreateOpen}
+                isSaving={isCreating}
+                onSave={handleCreate}
+                onClose={closeCreate}
             />
         </SuperAdminLayout>
     );

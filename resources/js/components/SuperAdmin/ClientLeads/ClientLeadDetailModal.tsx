@@ -1,9 +1,9 @@
 import { X, Building2, Mail, Phone, Tag, Loader } from "lucide-react";
 import { Textarea } from "@/components/ui/form/textarea";
-import { IDemoRequest, IUpdateDemoRequestPayload } from "@/models/IDemoRequest";
+import { IClientLead, IUpdateClientLeadPayload } from "@/models/IClientLead";
 import { BUSINESS_NICHE_LABELS } from "@/enums/BusinessNicheEnum";
-import { useDemoRequestDetailModal } from "./useDemoRequestDetailModal";
-import { SelectDemoRequestStatus } from "./SelectDemoRequestStatus";
+import { useClientLeadDetailModal } from "./useClientLeadDetailModal";
+import { SelectClientLeadStatus } from "./SelectClientLeadStatus";
 
 const Field = ({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) => (
     <div className="flex items-center gap-2.5 text-sm text-slate-700">
@@ -12,22 +12,22 @@ const Field = ({ icon, children }: { icon: React.ReactNode; children: React.Reac
     </div>
 );
 
-interface DemoRequestDetailModalProps {
-    demoRequest: IDemoRequest | null;
+interface ClientLeadDetailModalProps {
+    clientLead: IClientLead | null;
     isSaving: boolean;
-    onSave: (payload: IUpdateDemoRequestPayload) => Promise<void>;
+    onSave: (payload: IUpdateClientLeadPayload) => Promise<void>;
     onClose: () => void;
 }
 
-export const DemoRequestDetailModal = ({
-    demoRequest,
+export const ClientLeadDetailModal = ({
+    clientLead,
     isSaving,
     onSave,
     onClose,
-}: DemoRequestDetailModalProps) => {
-    const { formik } = useDemoRequestDetailModal(demoRequest, onSave);
+}: ClientLeadDetailModalProps) => {
+    const { formik } = useClientLeadDetailModal(clientLead, onSave);
 
-    if (!demoRequest) return null;
+    if (!clientLead) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -35,7 +35,7 @@ export const DemoRequestDetailModal = ({
 
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
-                    <h2 className="text-sm font-semibold text-slate-900">Solicitud de demo</h2>
+                    <h2 className="text-sm font-semibold text-slate-900">Cliente potencial</h2>
                     <button
                         onClick={onClose}
                         className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"
@@ -46,15 +46,15 @@ export const DemoRequestDetailModal = ({
 
                 <form onSubmit={formik.handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
                     <div className="space-y-2.5">
-                        <Field icon={<Building2 size={15} />}>{demoRequest.business_name}</Field>
-                        <Field icon={<Mail size={15} />}>{demoRequest.email}</Field>
-                        <Field icon={<Phone size={15} />}>{demoRequest.phone}</Field>
+                        <Field icon={<Building2 size={15} />}>{clientLead.business_name}</Field>
+                        <Field icon={<Mail size={15} />}>{clientLead.email}</Field>
+                        <Field icon={<Phone size={15} />}>{clientLead.phone}</Field>
                         <Field icon={<Tag size={15} />}>
-                            {BUSINESS_NICHE_LABELS[demoRequest.business_niche] ?? demoRequest.business_niche}
+                            {BUSINESS_NICHE_LABELS[clientLead.business_niche] ?? clientLead.business_niche}
                         </Field>
                     </div>
 
-                    <SelectDemoRequestStatus name="status" formik={formik} />
+                    <SelectClientLeadStatus name="status" formik={formik} />
 
                     <Textarea
                         name="notes"

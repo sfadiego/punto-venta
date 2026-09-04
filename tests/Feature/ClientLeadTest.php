@@ -3,14 +3,14 @@
 namespace Tests\Feature;
 
 use App\Enums\BusinessNicheEnum;
-use App\Enums\DemoRequestStatusEnum;
+use App\Enums\ClientLeadStatusEnum;
 use App\Enums\RoleEnum;
-use App\Models\DemoRequestModel;
+use App\Models\ClientLeadModel;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
-class DemoRequestTest extends TestCase
+class ClientLeadTest extends TestCase
 {
     private function superAdminHeaders(): array
     {
@@ -29,7 +29,7 @@ class DemoRequestTest extends TestCase
         ], $overrides);
     }
 
-    // ── Store (endpoint público) ──────────────────────────────
+    // ── Store (endpoint público — "solicitar demo") ───────────
 
     public function test_crea_solicitud_de_demo(): void
     {
@@ -39,14 +39,14 @@ class DemoRequestTest extends TestCase
             ->assertStatus(201)
             ->assertJsonPath('status', 'OK')
             ->assertJsonPath('data.business_name', $payload['business_name'])
-            ->assertJsonPath('data.status', DemoRequestStatusEnum::Pending->value);
+            ->assertJsonPath('data.status', ClientLeadStatusEnum::FollowUp->value);
 
-        $this->assertDatabaseHas('demo_requests', [
+        $this->assertDatabaseHas('client_leads', [
             'business_name' => $payload['business_name'],
             'email' => $payload['email'],
             'phone' => $payload['phone'],
             'business_niche' => BusinessNicheEnum::Taqueria->value,
-            'status' => DemoRequestStatusEnum::Pending->value,
+            'status' => ClientLeadStatusEnum::FollowUp->value,
         ]);
     }
 
@@ -140,89 +140,139 @@ class DemoRequestTest extends TestCase
 
     public function test_index_requiere_autenticacion_superadmin(): void
     {
-        $this->getJson('/api/super-admin/demo-requests')->assertStatus(401);
+        $this->getJson('/api/super-admin/client-leads')->assertStatus(401);
     }
 
     public function test_index_no_accesible_con_token_admin(): void
     {
-        $this->getJson('/api/super-admin/demo-requests', $this->authHeaders())
+        $this->getJson('/api/super-admin/client-leads', $this->authHeaders())
             ->assertStatus(403);
     }
 
     public function test_index_lista_solicitudes(): void
     {
-        DemoRequestModel::create($this->validPayload());
+        ClientLeadModel::create($this->validPayload());
 
-        $this->getJson('/api/super-admin/demo-requests', $this->superAdminHeaders())
+        $this->getJson('/api/super-admin/client-leads', $this->superAdminHeaders())
             ->assertStatus(206)
             ->assertJsonStructure(['current_page', 'data', 'total', 'per_page']);
     }
 
     public function test_index_filtra_por_status(): void
     {
-        DemoRequestModel::create($this->validPayload(['email' => 'pendiente@example.com']));
-        DemoRequestModel::create(array_merge(
-            $this->validPayload(['email' => 'contactado@example.com']),
-            ['status' => DemoRequestStatusEnum::Contacted->value],
+        ClientLeadModel::create($this->validPayload(['email' => 'seguimiento@example.com']));
+        ClientLeadModel::create(array_merge(
+            $this->validPayload(['email' => 'cliente@example.com']),
+            ['status' => ClientLeadStatusEnum::Customer->value],
         ));
 
         $response = $this->getJson(
-            '/api/super-admin/demo-requests?status='.DemoRequestStatusEnum::Contacted->value,
+            '/api/super-admin/client-leads?status='.ClientLeadStatusEnum::Customer->value,
             $this->superAdminHeaders(),
         );
 
         $response->assertStatus(206);
         $emails = collect($response->json('data'))->pluck('email');
-        $this->assertTrue($emails->contains('contactado@example.com'));
-        $this->assertFalse($emails->contains('pendiente@example.com'));
+        $this->assertTrue($emails->contains('cliente@example.com'));
+        $this->assertFalse($emails->contains('seguimiento@example.com'));
+    }
+
+    // ── Store manual (solo superadmin) ─────────────────────────
+
+    public function test_alta_manual_requiere_autenticacion_superadmin(): void
+    {
+        $this->postJson('/api/super-admin/client-leads', $this->validPayload())->assertStatus(401);
+    }
+
+    public function test_alta_manual_no_accesible_con_token_admin(): void
+    {
+        $this->postJson('/api/super-admin/client-leads', $this->validPayload(), $this->authHeaders())
+            ->assertStatus(403);
+    }
+
+    public function test_alta_manual_crea_cliente_potencial_con_estatus_por_defecto(): void
+    {
+        $payload = $this->validPayload();
+
+        $this->postJson('/api/super-admin/client-leads', $payload, $this->superAdminHeaders())
+            ->assertStatus(201)
+            ->assertJsonPath('data.business_name', $payload['business_name'])
+            ->assertJsonPath('data.status', ClientLeadStatusEnum::FollowUp->value);
+
+        $this->assertDatabaseHas('client_leads', [
+            'email' => $payload['email'],
+            'status' => ClientLeadStatusEnum::FollowUp->value,
+        ]);
+    }
+
+    public function test_alta_manual_permite_definir_estatus_y_notas(): void
+    {
+        $payload = $this->validPayload([
+            'status' => ClientLeadStatusEnum::Customer->value,
+            'notes' => 'Ya es cliente, referido por otro negocio',
+        ]);
+
+        $this->postJson('/api/super-admin/client-leads', $payload, $this->superAdminHeaders())
+            ->assertStatus(201)
+            ->assertJsonPath('data.status', ClientLeadStatusEnum::Customer->value)
+            ->assertJsonPath('data.notes', 'Ya es cliente, referido por otro negocio');
+    }
+
+    public function test_alta_manual_requiere_nombre_de_negocio(): void
+    {
+        $payload = $this->validPayload();
+        unset($payload['business_name']);
+
+        $this->postJson('/api/super-admin/client-leads', $payload, $this->superAdminHeaders())
+            ->assertStatus(400);
     }
 
     // ── Update (solo superadmin) ───────────────────────────────
 
     public function test_actualiza_estatus_y_notas_de_solicitud(): void
     {
-        $demoRequest = DemoRequestModel::create($this->validPayload());
+        $clientLead = ClientLeadModel::create($this->validPayload());
 
-        $this->putJson("/api/super-admin/demo-requests/{$demoRequest->id}", [
-            'status' => DemoRequestStatusEnum::Contacted->value,
+        $this->putJson("/api/super-admin/client-leads/{$clientLead->id}", [
+            'status' => ClientLeadStatusEnum::Customer->value,
             'notes' => 'Se contactó por WhatsApp',
         ], $this->superAdminHeaders())
             ->assertStatus(200)
             ->assertJsonPath('status', 'OK')
-            ->assertJsonPath('data.status', DemoRequestStatusEnum::Contacted->value)
+            ->assertJsonPath('data.status', ClientLeadStatusEnum::Customer->value)
             ->assertJsonPath('data.notes', 'Se contactó por WhatsApp');
 
-        $this->assertDatabaseHas('demo_requests', [
-            'id' => $demoRequest->id,
-            'status' => DemoRequestStatusEnum::Contacted->value,
+        $this->assertDatabaseHas('client_leads', [
+            'id' => $clientLead->id,
+            'status' => ClientLeadStatusEnum::Customer->value,
             'notes' => 'Se contactó por WhatsApp',
         ]);
     }
 
     public function test_actualiza_requiere_estatus_valido(): void
     {
-        $demoRequest = DemoRequestModel::create($this->validPayload());
+        $clientLead = ClientLeadModel::create($this->validPayload());
 
-        $this->putJson("/api/super-admin/demo-requests/{$demoRequest->id}", [
+        $this->putJson("/api/super-admin/client-leads/{$clientLead->id}", [
             'status' => 'no-existe',
         ], $this->superAdminHeaders())->assertStatus(400);
     }
 
     public function test_actualiza_sin_autenticacion(): void
     {
-        $demoRequest = DemoRequestModel::create($this->validPayload());
+        $clientLead = ClientLeadModel::create($this->validPayload());
 
-        $this->putJson("/api/super-admin/demo-requests/{$demoRequest->id}", [
-            'status' => DemoRequestStatusEnum::Discarded->value,
+        $this->putJson("/api/super-admin/client-leads/{$clientLead->id}", [
+            'status' => ClientLeadStatusEnum::Discarded->value,
         ])->assertStatus(401);
     }
 
     public function test_actualiza_no_accesible_con_token_admin(): void
     {
-        $demoRequest = DemoRequestModel::create($this->validPayload());
+        $clientLead = ClientLeadModel::create($this->validPayload());
 
-        $this->putJson("/api/super-admin/demo-requests/{$demoRequest->id}", [
-            'status' => DemoRequestStatusEnum::Discarded->value,
+        $this->putJson("/api/super-admin/client-leads/{$clientLead->id}", [
+            'status' => ClientLeadStatusEnum::Discarded->value,
         ], $this->authHeaders())->assertStatus(403);
     }
 }

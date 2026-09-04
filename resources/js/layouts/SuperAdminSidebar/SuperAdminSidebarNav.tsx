@@ -1,13 +1,13 @@
-import { LayoutDashboard, CreditCard, Settings2, AlertTriangle, PhoneCall } from "lucide-react";
+import { LayoutDashboard, CreditCard, Settings2, AlertTriangle, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 
 export const NAV_ITEMS = [
-    { to: SuperAdminRoutes.Tenants,       label: "Clientes",           icon: <LayoutDashboard size={16} /> },
-    { to: SuperAdminRoutes.DemoRequests,  label: "Solicitudes de demo", icon: <PhoneCall size={16} /> },
-    { to: SuperAdminRoutes.Subscriptions, label: "Suscripciones",      icon: <CreditCard size={16} /> },
-    { to: SuperAdminRoutes.ErrorLogs,     label: "Logs de errores",    icon: <AlertTriangle size={16} /> },
-    { to: SuperAdminRoutes.Settings,      label: "Configuración",      icon: <Settings2 size={16} /> },
+    { to: SuperAdminRoutes.Tenants, label: "Clientes", icon: <LayoutDashboard size={16} /> },
+    { to: SuperAdminRoutes.ClientLeads, label: "Seguimiento", icon: <Users size={16} /> },
+    { to: SuperAdminRoutes.Subscriptions, label: "Suscripciones", icon: <CreditCard size={16} /> },
+    { to: SuperAdminRoutes.ErrorLogs, label: "Logs de errores", icon: <AlertTriangle size={16} /> },
+    { to: SuperAdminRoutes.Settings, label: "Configuración", icon: <Settings2 size={16} /> },
 ];
 
 interface SuperAdminSidebarNavProps {
@@ -22,10 +22,9 @@ export const SuperAdminSidebarNav = ({ onItemClick }: SuperAdminSidebarNavProps)
                 to={item.to}
                 onClick={onItemClick}
                 className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                        isActive
-                            ? "bg-indigo-600 text-white"
-                            : "text-slate-400 hover:text-white hover:bg-slate-800"
+                    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
+                        ? "bg-indigo-600 text-white"
+                        : "text-slate-400 hover:text-white hover:bg-slate-800"
                     }`
                 }
             >

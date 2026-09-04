@@ -30,13 +30,15 @@ class ErrorReportingService extends DataTable
             'response_body' => '',
             'user_agent' => '',
             'url' => '',
+            'user_id' => '',
+            'tenant_slug' => '',
             'created_at' => '#',
         ];
     }
 
     public function makeQuery(): Builder
     {
-        $query = $this->model->newQuery();
+        $query = $this->model->newQuery()->with(['user:id,nombre,apellido_paterno,email']);
 
         if (! empty($this->source)) {
             $query->where('source', $this->source);
