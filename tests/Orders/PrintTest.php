@@ -3,6 +3,7 @@
 namespace Tests\Orders;
 
 use App\Enums\BusinessTypeEnum;
+use App\Enums\RoleEnum;
 use App\Enums\UnidadMedidaEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
@@ -13,7 +14,6 @@ use App\Models\Permission;
 use App\Models\ProductModel;
 use App\Models\RolePermission;
 use App\Models\User;
-use App\Enums\RoleEnum;
 use App\Printer\Formatters\VentaFormatter;
 use Tests\TestCase;
 
@@ -406,7 +406,7 @@ class PrintTest extends TestCase
     // ── Autorización: los endpoints de impresión no tenían middleware de permiso —
     // cualquier usuario autenticado del tenant podía imprimir sin tener printTicket. ──
 
-    public function test_print_requiere_permiso_printTicket(): void
+    public function test_print_requiere_permiso_print_ticket(): void
     {
         $cocina = $this->crearUsuario(RoleEnum::COCINA);
         $this->otorgarPermiso($cocina->rol_id, 'kitchenView');
@@ -417,7 +417,7 @@ class PrintTest extends TestCase
             ->assertStatus(403);
     }
 
-    public function test_print_permite_con_permiso_printTicket_otorgado(): void
+    public function test_print_permite_con_permiso_print_ticket_otorgado(): void
     {
         $cocina = $this->crearUsuario(RoleEnum::COCINA);
         $this->otorgarPermiso($cocina->rol_id, 'printTicket');
@@ -430,7 +430,7 @@ class PrintTest extends TestCase
             ->assertStatus(422);
     }
 
-    public function test_bytes_requiere_permiso_printTicket(): void
+    public function test_bytes_requiere_permiso_print_ticket(): void
     {
         $caja = $this->crearUsuario(RoleEnum::CAJA);
         $this->otorgarPermiso($caja->rol_id, 'payOrder');
@@ -441,7 +441,7 @@ class PrintTest extends TestCase
             ->assertStatus(403);
     }
 
-    public function test_bytes_permite_con_permiso_printTicket_otorgado(): void
+    public function test_bytes_permite_con_permiso_print_ticket_otorgado(): void
     {
         $caja = $this->crearUsuario(RoleEnum::CAJA);
         $this->otorgarPermiso($caja->rol_id, 'printTicket');
@@ -454,7 +454,7 @@ class PrintTest extends TestCase
         )->assertStatus(200);
     }
 
-    public function test_ticket_prueba_requiere_permiso_printTicket(): void
+    public function test_ticket_prueba_requiere_permiso_print_ticket(): void
     {
         $cocina = $this->crearUsuario(RoleEnum::COCINA);
         $this->otorgarPermiso($cocina->rol_id, 'kitchenView');
@@ -463,7 +463,7 @@ class PrintTest extends TestCase
             ->assertStatus(403);
     }
 
-    public function test_ticket_prueba_permite_con_permiso_printTicket_otorgado(): void
+    public function test_ticket_prueba_permite_con_permiso_print_ticket_otorgado(): void
     {
         $cocina = $this->crearUsuario(RoleEnum::COCINA);
         $this->otorgarPermiso($cocina->rol_id, 'printTicket');
