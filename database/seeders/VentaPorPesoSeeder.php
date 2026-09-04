@@ -12,7 +12,7 @@ class VentaPorPesoSeeder extends Seeder
 {
     public function run(): void
     {
-        $slug = $this->command->option('slug') ?? env('APP_TENANT_SLUG', 'pos-app');
+        $slug = $this->command->option('slug') ?? config('tenant.default_slug');
 
         [$tenant, $created] = $this->resolveOrCreateTenant($slug);
         $tenantId = $tenant->id;
