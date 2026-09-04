@@ -18,7 +18,8 @@ export const useIndexProducts = ({
     categoria_id,
     nombre,
     low_stock,
-}: IPaginateServiceProps & { categoria_id?: number | null; nombre?: string; low_stock?: boolean }) =>
+    enabled = true,
+}: IPaginateServiceProps & { categoria_id?: number | null; nombre?: string; low_stock?: boolean; enabled?: boolean }) =>
     useGET<IPaginate<IProduct>>({
         url,
         filters: {
@@ -30,6 +31,7 @@ export const useIndexProducts = ({
             ...(nombre ? { nombre } : {}),
             ...(low_stock ? { low_stock: 1 } : {}),
         },
+        enable: enabled,
     });
 const PRODUCT_PAGE_SIZE = 24;
 

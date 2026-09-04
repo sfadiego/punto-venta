@@ -1,4 +1,5 @@
 import { useAxios } from "@/hooks/useAxios";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useInfiniteIndexOrder, useIndexOrder } from "@/services/useOrderService";
 import { useGetActiveSale } from "@/services/useOpenSalesService";
 import { useIndexProducts } from "@/services/useProductService";
@@ -13,7 +14,9 @@ export { getStatusStyle, getStatusLabel, formatOrderTime };
 
 export const useDashboard = () => {
     const { sistemaId, features } = useAxios();
+    const { can } = usePermissions();
     const sellByWeight = features?.sell_by_weight === true;
+    const canViewProducts = can("viewProducts");
 
     // Para carnicería se pasa null para deshabilitar el polling de órdenes activas
     const { data: ordersData, isLoading: ordersLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
@@ -30,7 +33,7 @@ export const useDashboard = () => {
     });
 
     const { data: activeSale } = useGetActiveSale();
-    const { data: productsData } = useIndexProducts({ page: 1, limit: 1 });
+    const { data: productsData } = useIndexProducts({ page: 1, limit: 1, enabled: canViewProducts });
     const { data: bestSellers = [] } = useBestSeller();
 
     const orders: IOrder[] = ordersData?.pages.flatMap((page) => page.data ?? []) ?? [];
@@ -73,15 +76,17 @@ export const useDashboard = () => {
             icon: "Award",
         },
         statSegundoWidget,
-        {
-            title: "Productos",
-            value: String(totalProductos),
-            trend: totalProductos > 0 ? "registrados en sistema" : "Sin productos",
-            up: totalProductos > 0,
-            iconBg: "bg-emerald-100",
-            iconColor: "text-emerald-600",
-            icon: "Package",
-        },
+        ...(canViewProducts
+            ? [{
+                title: "Productos",
+                value: String(totalProductos),
+                trend: totalProductos > 0 ? "registrados en sistema" : "Sin productos",
+                up: totalProductos > 0,
+                iconBg: "bg-emerald-100",
+                iconColor: "text-emerald-600",
+                icon: "Package",
+            }]
+            : []),
         {
             title: "Estado de caja",
             value: cajaAbierta ? "Abierta" : "Cerrada",
