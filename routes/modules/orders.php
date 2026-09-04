@@ -18,7 +18,7 @@ Route::prefix('order')->group(function () {
 
         Route::middleware('permission:viewCloseSales')->get('/credit-customers', 'creditCustomers');
 
-        Route::get('/print/test-bytes', [PrintController::class, 'testBytes']);
+        Route::middleware('permission:printTicket')->get('/print/test-bytes', [PrintController::class, 'testBytes']);
 
         Route::prefix('{order}')->group(function () {
             Route::get('', 'show');
@@ -28,7 +28,7 @@ Route::prefix('order')->group(function () {
             // OrderCloseService, no aquí (un solo permission:xxx sería incorrecto).
             Route::put('', 'update');
             Route::middleware('permission:deleteOrder')->delete('', 'delete');
-            Route::prefix('print')->group(base_path('routes/modules/printer.php'));
+            Route::middleware('permission:printTicket')->prefix('print')->group(base_path('routes/modules/printer.php'));
 
             Route::prefix('product')->group(function () {
                 Route::controller(OrderProductController::class)->group(function () {

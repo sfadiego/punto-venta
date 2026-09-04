@@ -14,7 +14,7 @@ class RolePermissionService
     // Roles configurables por el Admin — Admin/SuperAdmin siempre tienen bypass total en frontend.
     private const CONFIGURABLE_ROLES = [RoleEnum::EMPLOYE, RoleEnum::COCINA, RoleEnum::CAJA];
 
-    // Debe reflejar los defaults de resources/js/hooks/usePermissions.ts (DEFAULT_ROLE_PERMISSIONS).
+    // Debe reflejar los defaults de resources/js/utils/permissionUtils.ts (DEFAULT_ROLE_PERMISSIONS).
     private const DEFAULTS = [
         RoleEnum::EMPLOYE->value => [
             'viewDashboard', 'viewOrders', 'viewProducts', 'takeOrder',

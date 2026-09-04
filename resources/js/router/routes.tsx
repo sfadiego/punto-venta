@@ -43,8 +43,8 @@ const FullPageLoader = () => (
 
 const privateRoutes: IRoute[] = [
     { path: "/",               element: <DashboardPage />,  private: true },
-    { path: "/quick-sale",     element: <QuickSalePage />,  private: true, permission: "viewOrders" },
-    { path: "/quick-sale/:id", element: <QuickSalePage />,  private: true, permission: "viewOrders" },
+    { path: "/quick-sale",     element: <QuickSalePage />,  private: true, permission: ["viewOrders", "viewProducts"] },
+    { path: "/quick-sale/:id", element: <QuickSalePage />,  private: true, permission: ["viewOrders", "viewProducts"] },
     { path: "/orders",         element: <OrderListPage />,  private: true },
     { path: "/products",       element: <ProductsPage />,   private: true, permission: "viewProducts" },
     { path: "/categories",     element: <CategoriesPage />, private: true, permission: "viewCategories" },
@@ -54,7 +54,7 @@ const privateRoutes: IRoute[] = [
     { path: "/providers/:id",  element: <ProviderDetailPage />, private: true, permission: "viewProviders" },
     { path: "/employees",      element: <EmployeesPage />,      private: true, permission: "viewEmployees" },
     { path: "/employees/:id",  element: <EmployeeDetailPage />, private: true, permission: "viewEmployees" },
-    { path: "/take-order/:id", element: <TakeOrderPage />,  private: true, permission: "takeOrder" },
+    { path: "/take-order/:id", element: <TakeOrderPage />,  private: true, permission: ["takeOrder", "viewProducts"] },
     { path: "/close-sales",    element: <CloseSalesPage />, private: true, permission: "viewCloseSales" },
     { path: "/sales",          element: <SalesPage />,      private: true, permission: "viewSales" },
     { path: "/statistics",     element: <StatisticsPage />, private: true, permission: "viewStatistics" },
