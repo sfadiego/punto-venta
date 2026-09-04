@@ -107,6 +107,46 @@ class ClientErrorTest extends TestCase
             ->assertJsonPath('total', 1);
     }
 
+    public function test_index_incluye_usuario_y_tenant_del_registro_para_identificar_al_cliente(): void
+    {
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        ErrorReporting::create([
+            'source' => 'backend',
+            'endpoint' => 'api/product',
+            'method' => 'GET',
+            'status_code' => 403,
+            'error_message' => 'Acceso no autorizado.',
+            'user_id' => $user->id,
+            'tenant_slug' => $user->tenant->slug,
+        ]);
+
+        $response = $this->getJson('/api/super-admin/error-logs', $this->superAdminHeaders())
+            ->assertStatus(206);
+
+        $row = $response->json('data.0');
+        $this->assertSame($user->tenant->slug, $row['tenant_slug']);
+        $this->assertSame($user->id, $row['user']['id']);
+        $this->assertSame($user->email, $row['user']['email']);
+    }
+
+    public function test_index_usuario_es_null_cuando_el_error_no_tiene_usuario_autenticado(): void
+    {
+        ErrorReporting::create([
+            'source' => 'frontend',
+            'endpoint' => '/login',
+            'method' => 'CLIENT',
+            'status_code' => 0,
+            'error_message' => 'Error sin usuario',
+        ]);
+
+        $response = $this->getJson('/api/super-admin/error-logs', $this->superAdminHeaders())
+            ->assertStatus(206);
+
+        $this->assertNull($response->json('data.0.user'));
+        $this->assertNull($response->json('data.0.tenant_slug'));
+    }
+
     public function test_index_filtra_por_source(): void
     {
         ErrorReporting::create([

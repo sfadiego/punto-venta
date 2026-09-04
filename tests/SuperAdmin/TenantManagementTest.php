@@ -302,6 +302,42 @@ class TenantManagementTest extends TestCase
             ->assertJsonPath('data.active_users_count', 2);
     }
 
+    public function test_last_activity_at_no_aparece_desactualizado_con_usuarios_activos(): void
+    {
+        // Reproduce el bug reportado: un tenant con usuarios navegando activamente ahora mismo
+        // (sesión Sanctum viva) pero sin un login/venta cerrada reciente en tenant_activity_logs
+        // no debe mostrarse como "días sin actividad" — last_activity_at debe reflejar la sesión
+        // activa, no solo los eventos de ActivityTypeEnum (LOGIN/SALE_CLOSED).
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        TenantActivityLogModel::factory()->create([
+            TenantActivityLogModel::TENANT_ID => $tenant->id,
+            TenantActivityLogModel::CREATED_AT => now()->subDays(10),
+        ]);
+
+        $activeSession = $admin->issueAccessToken();
+        $activeSession->accessToken->forceFill([PersonalAccessToken::LAST_USED_AT => now()])->save();
+
+        $show = $this->getJson("/api/super-admin/tenant/{$tenant->id}", $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.active_users_count', 1);
+
+        $this->assertSame(
+            now()->toDateTimeString(),
+            Carbon::parse($show->json('data.last_activity_at'))->toDateTimeString()
+        );
+
+        $list = $this->getJson('/api/super-admin/tenant?limit=100', $this->superAdminHeaders())
+            ->assertStatus(206);
+
+        $row = collect($list->json('data'))->firstWhere('id', $tenant->id);
+        $this->assertSame(
+            now()->toDateTimeString(),
+            Carbon::parse($row['last_activity_at'])->toDateTimeString()
+        );
+    }
+
     // ── Update ────────────────────────────────────────────────
 
     public function test_actualiza_tenant(): void

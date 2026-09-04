@@ -1,32 +1,31 @@
 import { DataTable } from "mantine-datatable";
 import type { DataTableColumn } from "mantine-datatable";
 import { PhoneCall } from "lucide-react";
-import { IDemoRequest } from "@/models/IDemoRequest";
+import { IClientLead } from "@/models/IClientLead";
 import { BUSINESS_NICHE_LABELS } from "@/enums/BusinessNicheEnum";
-import { DEMO_REQUEST_STATUS_LABELS, DemoRequestStatusEnum } from "@/enums/DemoRequestStatusEnum";
+import { CLIENT_LEAD_STATUS_LABELS, ClientLeadStatusEnum } from "@/enums/ClientLeadStatusEnum";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
-const STATUS_COLORS: Record<DemoRequestStatusEnum, string> = {
-    [DemoRequestStatusEnum.Pending]:   "bg-amber-100 text-amber-700",
-    [DemoRequestStatusEnum.Contacted]: "bg-sky-100 text-sky-700",
-    [DemoRequestStatusEnum.Converted]: "bg-emerald-100 text-emerald-700",
-    [DemoRequestStatusEnum.Discarded]: "bg-slate-100 text-slate-500",
+const STATUS_COLORS: Record<ClientLeadStatusEnum, string> = {
+    [ClientLeadStatusEnum.FollowUp]:  "bg-amber-100 text-amber-700",
+    [ClientLeadStatusEnum.Customer]:  "bg-emerald-100 text-emerald-700",
+    [ClientLeadStatusEnum.Discarded]: "bg-slate-100 text-slate-500",
 };
 
-interface DemoRequestsTableProps {
-    records: IDemoRequest[];
+interface ClientLeadsTableProps {
+    records: IClientLead[];
     totalRecords: number;
     page: number;
     perPage: number;
     limit: number;
     onPageChange: (page: number) => void;
     onLimitChange: (limit: number) => void;
-    onSelect: (demoRequest: IDemoRequest) => void;
+    onSelect: (clientLead: IClientLead) => void;
     isLoading: boolean;
 }
 
-export const DemoRequestsTable = ({
+export const ClientLeadsTable = ({
     records,
     totalRecords,
     page,
@@ -36,8 +35,8 @@ export const DemoRequestsTable = ({
     onLimitChange,
     onSelect,
     isLoading,
-}: DemoRequestsTableProps) => {
-    const columns: DataTableColumn<IDemoRequest>[] = [
+}: ClientLeadsTableProps) => {
+    const columns: DataTableColumn<IClientLead>[] = [
         {
             accessor: "id",
             title: "#",
@@ -73,7 +72,7 @@ export const DemoRequestsTable = ({
             title: "Estatus",
             render: (row) => (
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[row.status] ?? "bg-slate-100 text-slate-500"}`}>
-                    {DEMO_REQUEST_STATUS_LABELS[row.status] ?? row.status}
+                    {CLIENT_LEAD_STATUS_LABELS[row.status] ?? row.status}
                 </span>
             ),
         },
@@ -101,7 +100,7 @@ export const DemoRequestsTable = ({
                 <button
                     onClick={() => onSelect(row)}
                     className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors"
-                    title="Atender solicitud"
+                    title="Atender cliente potencial"
                 >
                     <PhoneCall size={14} />
                     Atender
@@ -111,7 +110,7 @@ export const DemoRequestsTable = ({
     ];
 
     return (
-        <DataTable<IDemoRequest>
+        <DataTable<IClientLead>
             records={records}
             columns={columns}
             fetching={isLoading}
@@ -122,7 +121,7 @@ export const DemoRequestsTable = ({
             recordsPerPageOptions={PAGE_SIZE_OPTIONS}
             onRecordsPerPageChange={onLimitChange}
             minHeight={200}
-            noRecordsText="Sin solicitudes de demo registradas"
+            noRecordsText="Sin clientes potenciales registrados"
             highlightOnHover
             withTableBorder
             withColumnBorders

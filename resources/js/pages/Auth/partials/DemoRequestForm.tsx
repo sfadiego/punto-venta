@@ -2,7 +2,7 @@ import { Loader } from "lucide-react";
 import { FormikProps } from "formik";
 import { Input } from "@/components/ui/form/Input";
 import { DemoRequestForm as DemoRequestFormValues } from "../useAuthPage";
-import { SelectBusinessNiche } from "./SelectBusinessNiche";
+import { SelectBusinessNiche } from "@/components/SelectBusinessNiche";
 
 interface DemoRequestFormProps {
     formik: FormikProps<DemoRequestFormValues>;

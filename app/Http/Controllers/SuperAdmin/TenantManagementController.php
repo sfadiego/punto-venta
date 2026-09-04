@@ -82,9 +82,17 @@ class TenantManagementController extends Controller
             'users',
             'activeSessions as active_users_count' => fn ($q) => $q->where(PersonalAccessToken::LAST_USED_AT, '>=', $activeWindow),
         ]);
-        $tenant->last_activity_at = TenantActivityLogModel::query()
+        // Combina el login/venta más reciente con el último uso real de sesión (Sanctum) — un
+        // tenant con usuarios navegando activamente sin volver a loguearse ni cerrar una venta no
+        // debe verse como "sin actividad" (ver mismo criterio en TenantService::run()).
+        $lastLoginActivity = TenantActivityLogModel::query()
             ->where(TenantActivityLogModel::TENANT_ID, $tenant->id)
             ->max(TenantActivityLogModel::CREATED_AT);
+        $lastSessionActivity = PersonalAccessToken::query()
+            ->where(PersonalAccessToken::TENANT_ID, $tenant->id)
+            ->max(PersonalAccessToken::LAST_USED_AT);
+
+        $tenant->last_activity_at = collect([$lastLoginActivity, $lastSessionActivity])->filter()->max();
         $tenant->features = $tenant->tipo_negocio->features();
         $tenant->effective_max_users = $tenant->effectiveMaxUsers();
         $tenant->plan_default_max_users = $tenant->subscription_plan

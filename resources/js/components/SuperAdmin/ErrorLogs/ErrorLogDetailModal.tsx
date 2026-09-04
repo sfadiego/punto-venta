@@ -107,6 +107,22 @@ export const ErrorLogDetailModal = ({ log, onClose }: ErrorLogDetailModalProps) 
                         </p>
                     </Field>
 
+                    {/* Cliente y usuario */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <Field label="Cliente (tenant)">
+                            <span className="text-xs font-mono text-slate-700">
+                                {log.tenant_slug ?? "No identificado (token inválido o sin autenticar)"}
+                            </span>
+                        </Field>
+                        <Field label="Usuario">
+                            <span className="text-xs text-slate-700">
+                                {log.user
+                                    ? `${log.user.nombre} ${log.user.apellido_paterno} (${log.user.email})`
+                                    : "No identificado"}
+                            </span>
+                        </Field>
+                    </div>
+
                     {/* URL completa */}
                     {log.url && (
                         <Field label="URL completa">

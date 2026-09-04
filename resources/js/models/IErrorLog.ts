@@ -1,3 +1,10 @@
+export interface IErrorLogUser {
+    id: number;
+    nombre: string;
+    apellido_paterno: string;
+    email: string;
+}
+
 export interface IErrorLog {
     id: number;
     source: "frontend" | "backend";
@@ -9,6 +16,9 @@ export interface IErrorLog {
     response_body: Record<string, unknown> | null;
     user_agent: string | null;
     url: string | null;
+    user_id: number | null;
+    tenant_slug: string | null;
+    user: IErrorLogUser | null;
     created_at: string;
     updated_at: string;
 }

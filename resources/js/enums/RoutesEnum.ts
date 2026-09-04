@@ -30,5 +30,5 @@ export enum SuperAdminRoutes {
     Subscriptions = "/admin/subscriptions",
     Settings      = "/admin/settings",
     ErrorLogs     = "/admin/error-logs",
-    DemoRequests  = "/admin/demo-requests",
+    ClientLeads   = "/admin/client-leads",
 }

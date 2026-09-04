@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Enums\BusinessNicheEnum;
-use App\Enums\DemoRequestStatusEnum;
+use App\Enums\ClientLeadStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 
-class DemoRequestModel extends Model
+class ClientLeadModel extends Model
 {
-    protected $table = 'demo_requests';
+    protected $table = 'client_leads';
 
     const BUSINESS_NAME = 'business_name';
 
@@ -33,6 +33,6 @@ class DemoRequestModel extends Model
 
     protected $casts = [
         self::BUSINESS_NICHE => BusinessNicheEnum::class,
-        self::STATUS => DemoRequestStatusEnum::class,
+        self::STATUS => ClientLeadStatusEnum::class,
     ];
 }

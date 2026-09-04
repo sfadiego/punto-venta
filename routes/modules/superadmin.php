@@ -3,12 +3,13 @@
 use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\PrinterAgentController;
 use App\Http\Controllers\SuperAdmin\AppSettingController;
-use App\Http\Controllers\SuperAdmin\DemoRequestController;
+use App\Http\Controllers\SuperAdmin\ClientLeadController;
 use App\Http\Controllers\SuperAdmin\SubscriptionController;
 use App\Http\Controllers\SuperAdmin\SuperAdminAuthController;
 use App\Http\Controllers\SuperAdmin\SuperAdminUserController;
 use App\Http\Controllers\SuperAdmin\TenantFeatureSpotlightController;
 use App\Http\Controllers\SuperAdmin\TenantManagementController;
+use App\Http\Controllers\SuperAdmin\TenantRolePermissionController;
 use App\Http\Controllers\SuperAdmin\TenantUserController;
 use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -21,9 +22,10 @@ Route::prefix('super-admin')->group(function () {
         Route::delete('error-logs/prune', [ClientErrorController::class, 'prune']);
         Route::post('printer-agent/download', [PrinterAgentController::class, 'download']);
 
-        Route::prefix('demo-requests')->controller(DemoRequestController::class)->group(function () {
+        Route::prefix('client-leads')->controller(ClientLeadController::class)->group(function () {
             Route::get('', 'index');
-            Route::put('{demoRequest}', 'update');
+            Route::post('', 'store');
+            Route::put('{clientLead}', 'update');
         });
 
         Route::prefix('settings')->controller(AppSettingController::class)->group(function () {
@@ -59,6 +61,11 @@ Route::prefix('super-admin')->group(function () {
                 Route::prefix('feature-spotlights')->controller(TenantFeatureSpotlightController::class)->group(function () {
                     Route::get('', 'index');
                     Route::put('', 'update');
+                });
+
+                Route::prefix('role-permissions')->controller(TenantRolePermissionController::class)->group(function () {
+                    Route::get('', 'index');
+                    Route::put('{role}', 'update');
                 });
             });
 

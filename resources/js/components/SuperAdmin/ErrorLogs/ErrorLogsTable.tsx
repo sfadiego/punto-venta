@@ -80,6 +80,29 @@ export const ErrorLogsTable = ({
             ),
         },
         {
+            accessor: "tenant_slug",
+            title: "Cliente",
+            width: 130,
+            render: (row) => (
+                <span className="text-xs font-mono text-slate-600 truncate block" title={row.tenant_slug ?? undefined}>
+                    {row.tenant_slug ?? "—"}
+                </span>
+            ),
+        },
+        {
+            accessor: "user",
+            title: "Usuario",
+            width: 150,
+            render: (row) => (
+                <span
+                    className="text-xs text-slate-600 truncate block"
+                    title={row.user?.email}
+                >
+                    {row.user ? `${row.user.nombre} ${row.user.apellido_paterno}` : "—"}
+                </span>
+            ),
+        },
+        {
             accessor: "endpoint",
             title: "Endpoint",
             render: (row) => (
