@@ -3,18 +3,41 @@
 namespace Tests\Orders;
 
 use App\Enums\BusinessTypeEnum;
+use App\Enums\RoleEnum;
 use App\Enums\UnidadMedidaEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
+use App\Models\Permission;
 use App\Models\ProductModel;
+use App\Models\RolePermission;
+use App\Models\User;
 use App\Printer\Formatters\VentaFormatter;
 use Tests\TestCase;
 
 class PrintTest extends TestCase
 {
+    private function crearUsuario(RoleEnum $rol): User
+    {
+        return User::factory()->create([
+            User::ROL_ID => $rol->value,
+            User::TENANT_ID => BusinessConfigModel::first()->id,
+        ]);
+    }
+
+    private function otorgarPermiso(int $roleId, string $key): void
+    {
+        $permission = Permission::where(Permission::KEY, $key)->firstOrFail();
+
+        RolePermission::create([
+            RolePermission::TENANT_ID => BusinessConfigModel::first()->id,
+            RolePermission::ROLE_ID => $roleId,
+            RolePermission::PERMISSION_ID => $permission->id,
+        ]);
+    }
+
     private function crearOrden(): OrderModel
     {
         $caja = MainOrderReportModel::factory()->create([
@@ -378,5 +401,78 @@ class PrintTest extends TestCase
         // Propina = 10% de 970 (subtotal, sin domicilio) = $97.00, no 10% de 1000.
         $this->assertStringContainsString('$97.00', $response->getContent());
         $this->assertStringNotContainsString('$100.00', $response->getContent());
+    }
+
+    // ── Autorización: los endpoints de impresión no tenían middleware de permiso —
+    // cualquier usuario autenticado del tenant podía imprimir sin tener printTicket. ──
+
+    public function test_print_requiere_permiso_print_ticket(): void
+    {
+        $cocina = $this->crearUsuario(RoleEnum::COCINA);
+        $this->otorgarPermiso($cocina->rol_id, 'kitchenView');
+
+        $orden = $this->crearOrden();
+
+        $this->postJson("/api/order/{$orden->id}/print", [], $this->authHeaders($cocina))
+            ->assertStatus(403);
+    }
+
+    public function test_print_permite_con_permiso_print_ticket_otorgado(): void
+    {
+        $cocina = $this->crearUsuario(RoleEnum::COCINA);
+        $this->otorgarPermiso($cocina->rol_id, 'printTicket');
+
+        $orden = $this->crearOrden();
+
+        // Sin impresora configurada el flujo real falla en 422 (ver test_print_retorna_error_sin_impresora_configurada) —
+        // lo relevante aquí es que YA NO es 403, es decir, el middleware de permiso lo dejó pasar.
+        $this->postJson("/api/order/{$orden->id}/print", [], $this->authHeaders($cocina))
+            ->assertStatus(422);
+    }
+
+    public function test_bytes_requiere_permiso_print_ticket(): void
+    {
+        $caja = $this->crearUsuario(RoleEnum::CAJA);
+        $this->otorgarPermiso($caja->rol_id, 'payOrder');
+
+        $orden = $this->crearOrden();
+
+        $this->getJson("/api/order/{$orden->id}/print/bytes", $this->authHeaders($caja))
+            ->assertStatus(403);
+    }
+
+    public function test_bytes_permite_con_permiso_print_ticket_otorgado(): void
+    {
+        $caja = $this->crearUsuario(RoleEnum::CAJA);
+        $this->otorgarPermiso($caja->rol_id, 'printTicket');
+
+        $orden = $this->crearOrden();
+
+        $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders($caja), ['Accept' => '*/*'])
+        )->assertStatus(200);
+    }
+
+    public function test_ticket_prueba_requiere_permiso_print_ticket(): void
+    {
+        $cocina = $this->crearUsuario(RoleEnum::COCINA);
+        $this->otorgarPermiso($cocina->rol_id, 'kitchenView');
+
+        $this->getJson('/api/order/print/test-bytes', $this->authHeaders($cocina))
+            ->assertStatus(403);
+    }
+
+    public function test_ticket_prueba_permite_con_permiso_print_ticket_otorgado(): void
+    {
+        $cocina = $this->crearUsuario(RoleEnum::COCINA);
+        $this->otorgarPermiso($cocina->rol_id, 'printTicket');
+
+        $response = $this->get(
+            '/api/order/print/test-bytes',
+            array_merge($this->authHeaders($cocina), ['Accept' => '*/*'])
+        );
+
+        $response->assertStatus(200);
     }
 }

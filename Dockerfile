@@ -32,13 +32,24 @@ RUN printf "VITE_APP_URL=%s\nVITE_APP_NAME=%s\nVITE_APP_ENV=%s\nVITE_REVERB_APP_
 
 RUN pnpm run build
 
-# Compilar el agente de impresión directamente en storage/app/printer-agent/
-RUN mkdir -p storage/app/printer-agent \
-    && cd printer-agent \
-    && npm install \
-    && npx pkg index.js --targets node18-win-x64,node18-macos-x64 --output ../storage/app/printer-agent/print-agent
+# ── Stage 2: build printer-agent binaries ─────────────────────────────────────
+# Stage aislado en su propio contexto (solo printer-agent/) para que el cross-compile
+# de los binarios (lento, cross-compilación con pkg) no se vuelva a ejecutar en cada
+# deploy solo porque cambió código de la app o del frontend — antes vivía después del
+# `COPY . .` del stage de frontend, así que CUALQUIER cambio en el repo invalidaba
+# también esta capa.
+FROM node:22-alpine AS printer-agent
 
-# ── Stage 2: PHP / Laravel ────────────────────────────────────────────────────
+WORKDIR /app/printer-agent
+
+COPY printer-agent/package.json ./
+RUN npm install
+
+COPY printer-agent/ ./
+RUN mkdir -p /app/storage/app/printer-agent \
+    && npx pkg index.js --targets node18-win-x64,node18-macos-x64 --output /app/storage/app/printer-agent/print-agent
+
+# ── Stage 3: PHP / Laravel ────────────────────────────────────────────────────
 FROM php:8.4-fpm AS php
 
 RUN apt-get update && apt-get install -y \
@@ -77,27 +88,37 @@ WORKDIR /var/www/html
 # responde 504 y Composer no reintenta solo dentro del tiempo por defecto.
 ENV COMPOSER_PROCESS_TIMEOUT=600
 
-# Copiar código fuente
-COPY --chown=www-data:www-data . .
-
-# Copiar assets compilados del stage frontend
-COPY --from=frontend --chown=www-data:www-data /app/public/build ./public/build
-
-# Copiar binarios del agente de impresión compilados en el stage frontend
-COPY --from=frontend --chown=www-data:www-data /app/storage/app/printer-agent ./storage/app/printer-agent
-
-# Instalar dependencias PHP de producción (con reintentos ante fallas de red transitorias).
-# Si los 3 intentos fallan, el último comando debe ser el que falló para que
-# el exit code del RUN refleje el error real en vez del "sleep" del retry.
+# Instalar dependencias PHP ANTES de copiar el resto del código fuente: esta capa solo
+# se invalida cuando composer.json/composer.lock cambian, no en cada commit (antes el
+# `COPY . .` completo venía primero, así que un cambio de un solo .tsx forzaba re-descargar
+# todo vendor/ en cada deploy). --no-scripts/--no-autoloader porque los scripts de Laravel
+# (package:discover) y el autoloader optimizado necesitan el código de la app, que todavía
+# no existe en este punto — se completan más abajo con `composer dump-autoload`.
+# Reintentos ante fallas de red transitorias: si los 3 intentos fallan, el último comando
+# debe ser el que falló para que el exit code del RUN refleje el error real, no el "sleep".
+COPY composer.json composer.lock ./
 RUN success=0; \
     for i in 1 2 3; do \
-        if composer install --no-dev --optimize-autoloader --no-interaction; then \
+        if composer install --no-dev --no-scripts --no-autoloader --no-interaction; then \
             success=1; break; \
         fi; \
         echo "composer install falló (intento $i/3), reintentando en 5s..."; \
         sleep 5; \
     done; \
     [ "$success" = "1" ]
+
+# Copiar código fuente
+COPY --chown=www-data:www-data . .
+
+# Copiar assets compilados del stage frontend
+COPY --from=frontend --chown=www-data:www-data /app/public/build ./public/build
+
+# Copiar binarios del agente de impresión (stage aislado — ver comentario arriba)
+COPY --from=printer-agent --chown=www-data:www-data /app/storage/app/printer-agent ./storage/app/printer-agent
+
+# Generar el autoloader optimizado y correr los scripts de Composer/Laravel (package:discover)
+# ahora que el código fuente completo está presente. Sin red, rápido.
+RUN composer dump-autoload --optimize --no-dev
 
 RUN mkdir -p /var/www/.cache storage/framework/sessions storage/framework/views \
     storage/framework/cache storage/logs bootstrap/cache \

@@ -1,4 +1,5 @@
 import { AlertCircle } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useCloseSalesPage } from "./useCloseSalesPage";
 import BestSellerWidget from "./partials/BestSellerWidget";
@@ -43,6 +44,7 @@ export default function CloseSalesPage() {
     } = useCloseSalesPage();
 
     const totalEnCaja = efectivoCierre + totalTransferenciaPagado;
+    const { can } = usePermissions();
     const categoryModal = useSalesByCategoryModal();
     const { data: config } = useGetBusinessConfig();
     const customersEnabled = sellByWeight || config?.customers_enabled === true;
@@ -98,7 +100,7 @@ export default function CloseSalesPage() {
 
             <CloseSalesTotalBanner total={totalEnCaja} />
             
-            {sellByWeight && (
+            {sellByWeight && can("viewSales") && (
                 <CloseSalesCategoryReportWidget onOpen={categoryModal.open} />
             )}
 

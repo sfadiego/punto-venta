@@ -100,7 +100,7 @@ export default function DashboardPage() {
             </div>
 
             <SubscriptionBanner />
-            {sistemaId && <PendingOrdersSection />}
+            {sistemaId && can("managePendingOrders") && <PendingOrdersSection />}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
                 {stats.map((stat) => (
                     <Widget

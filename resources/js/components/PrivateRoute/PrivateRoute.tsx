@@ -23,7 +23,11 @@ const PrivateRoute = ({
         return <Navigate to="/auth" replace />;
     }
 
-    if (route.permission !== undefined && !can(route.permission)) {
+    const requiredPermissions = route.permission === undefined
+        ? []
+        : Array.isArray(route.permission) ? route.permission : [route.permission];
+
+    if (!requiredPermissions.every((permission) => can(permission))) {
         return <Navigate to="/forbidden" replace />;
     }
 
