@@ -9,22 +9,28 @@ class BusinessConfigSeeder extends Seeder
 {
     public function run(): void
     {
-        $slug = env('APP_TENANT_SLUG', 'pos-app');
+        $slug = config('tenant.default_slug');
 
-        // Si ya existe un registro sin slug (migración previa), asignarle el slug
-        $existing = BusinessConfigModel::whereNull('slug')->first()
-            ?? BusinessConfigModel::where('slug', 'pos-app')->first();
+        // withTrashed(): este seeder corre en cada arranque del contenedor (no solo en el primer
+        // deploy — ver docker/php/laravel_setup.sh), así que su chequeo de existencia debe ver
+        // también filas con soft-delete. Sin esto, un tenant borrado (soft-delete) deja de
+        // "existir" para estas queries y el firstOrCreate de abajo intenta insertarlo de nuevo,
+        // chocando con el unique de `slug` a nivel de BD (bug real visto en producción).
+        $existing = BusinessConfigModel::withTrashed()->whereNull('slug')->first()
+            ?? BusinessConfigModel::withTrashed()->where('slug', $slug)->first();
 
         if ($existing) {
-            $existing->update(['slug' => $slug]);
+            if ($existing->slug !== $slug) {
+                $existing->update(['slug' => $slug]);
+            }
 
             return;
         }
 
-        BusinessConfigModel::firstOrCreate(
+        BusinessConfigModel::withTrashed()->firstOrCreate(
             [BusinessConfigModel::SLUG => $slug],
             [
-                BusinessConfigModel::BUSINESS_NAME => env('APP_NAME', 'POS cafeteria'),
+                BusinessConfigModel::BUSINESS_NAME => config('app.name'),
                 BusinessConfigModel::PRIMARY_COLOR => '#f59e0b',
                 BusinessConfigModel::SIDEBAR_COLOR => '#1c1917',
                 BusinessConfigModel::FONT_COLOR => '#ffffff',
