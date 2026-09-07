@@ -51,7 +51,7 @@ export const ClientLeadsTable = ({
         {
             accessor: "email",
             title: "Email",
-            render: (row) => <span className="text-xs text-slate-600">{row.email}</span>,
+            render: (row) => <span className="text-xs text-slate-600">{row.email ?? "—"}</span>,
         },
         {
             accessor: "phone",

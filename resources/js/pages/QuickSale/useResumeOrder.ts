@@ -91,6 +91,7 @@ export const useResumeOrder = ({
             descuento: 0,
             sistema_id: sistemaId,
             estatus_pedido_id: OrderStatusEnum.InProcess,
+            silent: true,
         });
         const order = (res as { data: { data: IOrder } }).data.data;
 

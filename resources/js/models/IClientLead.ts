@@ -4,7 +4,7 @@ import { ClientLeadStatusEnum } from "@/enums/ClientLeadStatusEnum";
 export interface IClientLead {
     id: number;
     business_name: string;
-    email: string;
+    email: string | null;
     phone: string;
     business_niche: BusinessNicheEnum;
     status: ClientLeadStatusEnum;
@@ -24,7 +24,7 @@ export interface ICreateDemoRequestPayload {
 // Super-admin — alta manual de un cliente potencial
 export interface IClientLeadCreatePayload {
     business_name: string;
-    email: string;
+    email: string | null;
     phone: string;
     business_niche: BusinessNicheEnum;
     status?: ClientLeadStatusEnum;

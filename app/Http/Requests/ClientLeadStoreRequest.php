@@ -19,7 +19,7 @@ class ClientLeadStoreRequest extends FormRequest
     {
         return [
             'business_name' => 'required|string|max:150',
-            'email' => 'required|email|max:150',
+            'email' => 'nullable|email|max:150',
             'phone' => ['required', 'string', 'max:13', 'regex:/^\+?[0-9]{10,12}$/', new PlausiblePhoneRule],
             'business_niche' => ['required', Rule::enum(BusinessNicheEnum::class)],
             'status' => ['nullable', Rule::enum(ClientLeadStatusEnum::class)],

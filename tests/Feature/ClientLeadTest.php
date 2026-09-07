@@ -218,6 +218,30 @@ class ClientLeadTest extends TestCase
             ->assertJsonPath('data.notes', 'Ya es cliente, referido por otro negocio');
     }
 
+    public function test_alta_manual_permite_omitir_email(): void
+    {
+        $payload = $this->validPayload();
+        unset($payload['email']);
+
+        $this->postJson('/api/super-admin/client-leads', $payload, $this->superAdminHeaders())
+            ->assertStatus(201)
+            ->assertJsonPath('data.business_name', $payload['business_name'])
+            ->assertJsonPath('data.email', null);
+
+        $this->assertDatabaseHas('client_leads', [
+            'business_name' => $payload['business_name'],
+            'email' => null,
+        ]);
+    }
+
+    public function test_alta_manual_rechaza_email_invalido_si_se_envia(): void
+    {
+        $payload = $this->validPayload(['email' => 'no-es-un-email']);
+
+        $this->postJson('/api/super-admin/client-leads', $payload, $this->superAdminHeaders())
+            ->assertStatus(400);
+    }
+
     public function test_alta_manual_requiere_nombre_de_negocio(): void
     {
         $payload = $this->validPayload();

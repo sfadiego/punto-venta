@@ -6,6 +6,7 @@ use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
 use App\Enums\RoleEnum;
 use App\Enums\UnidadMedidaEnum;
+use App\Events\OrdersUpdated;
 use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use App\Models\CustomerModel;
@@ -18,6 +19,7 @@ use App\Models\ProductVariantModel;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Broadcasting\Factory as BroadcastingFactoryContract;
+use Illuminate\Support\Facades\Event;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -230,6 +232,53 @@ class OrderTest extends TestCase
             ->assertJsonPath('data.sistema_id.0', 'La caja de esta venta ya está cerrada.');
 
         $this->assertDatabaseMissing('order', ['nombre_pedido' => 'Mesa con caja cerrada']);
+    }
+
+    public function test_crea_orden_dispara_orders_updated(): void
+    {
+        // Mesa/venta nueva genuina — otros usuarios deben ser notificados.
+        Event::fake([OrdersUpdated::class]);
+
+        $report = $this->crearReporte();
+        $status = OrderStatusModel::first();
+
+        $response = $this->postJson('/api/order', [
+            OrderModel::TOTAL => 150,
+            OrderModel::SUBTOTAL => 150,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::SISTEMA_ID => $report->id,
+            OrderModel::NOMBRE_PEDIDO => 'Mesa 5',
+            OrderModel::ESTATUS_PEDIDO_ID => $status->id,
+        ], $this->authHeaders());
+
+        $response->assertStatus(200);
+
+        Event::assertDispatched(OrdersUpdated::class, fn (OrdersUpdated $event) => $event->type === 'created');
+    }
+
+    public function test_crea_orden_silenciosa_no_dispara_orders_updated(): void
+    {
+        // Orden lazy creada por QuickSale (ej. al imprimir sin haber guardado
+        // aún) — no debe notificar "Nuevo pedido recibido" a otros usuarios.
+        Event::fake([OrdersUpdated::class]);
+
+        $report = $this->crearReporte();
+        $status = OrderStatusModel::first();
+
+        $response = $this->postJson('/api/order', [
+            OrderModel::TOTAL => 150,
+            OrderModel::SUBTOTAL => 150,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::SISTEMA_ID => $report->id,
+            OrderModel::NOMBRE_PEDIDO => 'Venta rápida',
+            OrderModel::ESTATUS_PEDIDO_ID => $status->id,
+            'silent' => true,
+        ], $this->authHeaders());
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('order', ['nombre_pedido' => 'Venta rápida']);
+
+        Event::assertNotDispatched(OrdersUpdated::class);
     }
 
     // ── Show ─────────────────────────────────────────────────

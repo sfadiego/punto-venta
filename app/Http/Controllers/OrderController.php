@@ -27,8 +27,11 @@ class OrderController extends Controller
 
     public function store(OrderStoreRequest $params): JsonResponse
     {
-        $order = OrderModel::create($params->toArray());
-        OrdersUpdated::dispatchAfterCommit('created');
+        $order = OrderModel::create($params->except('silent'));
+
+        if (! $params->boolean('silent')) {
+            OrdersUpdated::dispatchAfterCommit('created');
+        }
 
         return Response::success($order);
     }
