@@ -47,7 +47,7 @@ export const ClientLeadDetailModal = ({
                 <form onSubmit={formik.handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
                     <div className="space-y-2.5">
                         <Field icon={<Building2 size={15} />}>{clientLead.business_name}</Field>
-                        <Field icon={<Mail size={15} />}>{clientLead.email}</Field>
+                        <Field icon={<Mail size={15} />}>{clientLead.email ?? "Sin email"}</Field>
                         <Field icon={<Phone size={15} />}>{clientLead.phone}</Field>
                         <Field icon={<Tag size={15} />}>
                             {BUSINESS_NICHE_LABELS[clientLead.business_niche] ?? clientLead.business_niche}

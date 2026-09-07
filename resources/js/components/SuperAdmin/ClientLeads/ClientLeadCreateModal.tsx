@@ -18,15 +18,20 @@ export const ClientLeadCreateModal = ({ isOpen, isSaving, onSave, onClose }: Cli
 
     if (!isOpen) return null;
 
+    const handleClose = () => {
+        formik.resetForm();
+        onClose();
+    };
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
 
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
                     <h2 className="text-sm font-semibold text-slate-900">Nuevo cliente potencial</h2>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"
                     >
                         <X size={16} />
@@ -50,7 +55,7 @@ export const ClientLeadCreateModal = ({ isOpen, isSaving, onSave, onClose }: Cli
                     <div className="flex justify-end gap-2 pt-1">
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={handleClose}
                             className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
                         >
                             Cancelar

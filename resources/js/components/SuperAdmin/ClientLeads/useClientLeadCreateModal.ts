@@ -16,7 +16,7 @@ export type ClientLeadCreateForm = {
 
 const schema = Yup.object({
     business_name: Yup.string().required("El nombre del negocio es requerido"),
-    email: Yup.string().email("Email inválido").required("El email es requerido"),
+    email: Yup.string().email("Email inválido"),
     phone: Yup.string()
         .required("El teléfono es requerido")
         .max(13, "El teléfono no puede tener más de 12 dígitos")
@@ -42,7 +42,7 @@ export const useClientLeadCreateModal = (
         onSubmit: async (values, { resetForm }) => {
             await onSave({
                 business_name: values.business_name,
-                email: values.email,
+                email: values.email.trim() || null,
                 phone: values.phone,
                 business_niche: values.business_niche as BusinessNicheEnum,
                 status: values.status,
