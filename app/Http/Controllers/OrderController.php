@@ -29,7 +29,7 @@ class OrderController extends Controller
     {
         $order = OrderModel::create($params->except('silent'));
 
-        if (!$params->boolean('silent')) {
+        if (! $params->boolean('silent')) {
             OrdersUpdated::dispatchAfterCommit('created');
         }
 
