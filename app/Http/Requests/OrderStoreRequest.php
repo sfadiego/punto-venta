@@ -39,6 +39,7 @@ class OrderStoreRequest extends FormRequest
             ],
             OrderModel::NOMBRE_PEDIDO => 'required|string|max:255',
             OrderModel::ESTATUS_PEDIDO_ID => 'required|exists:order_status,id',
+            'silent' => 'sometimes|boolean',
         ];
     }
 
