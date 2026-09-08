@@ -145,7 +145,7 @@ class StockService
         if ($stockAfter > self::MAX_STOCK) {
             $label = $variantId ? "{$product->nombre} ({$stockable->nombre})" : $product->nombre;
             throw new InsufficientStockException(
-                "El stock resultante para \"{$label}\" excede el máximo permitido (".self::MAX_STOCK.")."
+                "El stock resultante para \"{$label}\" excede el máximo permitido (".self::MAX_STOCK.').'
             );
         }
 
