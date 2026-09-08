@@ -32,6 +32,7 @@ export default function OrderListPage() {
         showOrderServed,
         sellByWeight,
         kitchenView,
+        isRetail,
         handleEstatusChange,
         handleSearchChange,
         handleClearFilters,
@@ -76,7 +77,7 @@ export default function OrderListPage() {
                         <span className="hidden md:inline lg:inline">Actualizar</span>
                     </button>
 
-                    {sistemaId && can("registerExpense") && <ExpensesButton />}
+                    {sistemaId && can("registerExpense") && !isRetail && <ExpensesButton />}
                     {sistemaId && (sellByWeight ? <NewSaleButton /> : <NewOrderButton />)}
                 </div>
             </div>

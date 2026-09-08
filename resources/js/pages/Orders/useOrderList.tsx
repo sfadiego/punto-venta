@@ -65,6 +65,7 @@ export const useOrderList = () => {
     // Restaurante (servicio en mesa). No usar sellByWeight aquí: Retail comparte sellByWeight=false
     // con Restaurante, así que no distingue entre ambos.
     const kitchenView = features?.kitchen_view === true;
+    const isRetail = features?.is_retail === true;
     const defaultStatuses = sellByWeight
         ? String(OrderStatusEnum.InProcess)
         : getActiveStatuses(showOrderServed);
@@ -130,6 +131,7 @@ export const useOrderList = () => {
         showOrderServed,
         sellByWeight,
         kitchenView,
+        isRetail,
         handleEstatusChange,
         handleSearchChange,
         handleClearFilters,
