@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\DB;
 
 class OrderProductModel extends Model
@@ -57,6 +58,14 @@ class OrderProductModel extends Model
     public function variant(): HasOne
     {
         return $this->hasOne(ProductVariantModel::class, 'id', self::VARIANT_ID);
+    }
+
+    // Inverso del morphTo StockMovementModel::reference() — usado por OrderService para
+    // marcar en el listado qué órdenes tienen alguna devolución (ver Fase 10 del plan de
+    // Inventario).
+    public function stockMovements(): MorphMany
+    {
+        return $this->morphMany(StockMovementModel::class, 'reference');
     }
 
     public static function top3BestSeller(?Carbon $start = null, ?Carbon $end = null, ?int $sistemaId = null)

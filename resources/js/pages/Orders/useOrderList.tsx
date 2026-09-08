@@ -6,7 +6,7 @@ import { IOrder } from "@/models/IOrder";
 import { getStatusStyle, getActiveStatuses } from "@/utils/orderStatus";
 import { formatOrderTime } from "@/utils/dateUtils";
 import { DataTableColumn } from "mantine-datatable";
-import { Bike } from "lucide-react";
+import { Bike, Undo2 } from "lucide-react";
 import { OrderActionButtons } from "@/components/orders/OrderActions/OrderActionButtons";
 import { SaleActions } from "@/components/orders/OrderActions/SaleActions";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
@@ -21,6 +21,11 @@ const renderersMap: DataTableRenderersMap = {
             {!!o.is_delivery && (
                 <span title="Domicilio" className="shrink-0">
                     <Bike size={14} className="text-blue-500" />
+                </span>
+            )}
+            {!!o.has_return && (
+                <span title="Tiene devolución" className="shrink-0">
+                    <Undo2 size={14} className="text-amber-500" />
                 </span>
             )}
         </span>
@@ -60,6 +65,7 @@ export const useOrderList = () => {
     // Restaurante (servicio en mesa). No usar sellByWeight aquí: Retail comparte sellByWeight=false
     // con Restaurante, así que no distingue entre ambos.
     const kitchenView = features?.kitchen_view === true;
+    const isRetail = features?.is_retail === true;
     const defaultStatuses = sellByWeight
         ? String(OrderStatusEnum.InProcess)
         : getActiveStatuses(showOrderServed);
@@ -125,6 +131,7 @@ export const useOrderList = () => {
         showOrderServed,
         sellByWeight,
         kitchenView,
+        isRetail,
         handleEstatusChange,
         handleSearchChange,
         handleClearFilters,

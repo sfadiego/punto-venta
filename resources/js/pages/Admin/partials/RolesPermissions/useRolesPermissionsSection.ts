@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { RoleEnum } from "@/enums/RoleEnum";
 import { Action, DEFAULT_ROLE_PERMISSIONS, getApplicableActions } from "@/utils/permissionUtils";
+import { getExcludedRoles } from "@/utils/businessRoles";
 import { useAxios } from "@/hooks/useAxios";
 import { useIndexRolePermissions, useUpdateRolePermission } from "@/services/useRolePermissionService";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
@@ -10,10 +11,11 @@ const ALL_CONFIGURABLE_ROLES = [RoleEnum.Employe, RoleEnum.Cocina, RoleEnum.Caja
 
 export const useRolesPermissionsSection = () => {
     const { features } = useAxios();
-    // Cocina y Caja no existen como roles asignables en negocios de venta por peso —
-    // ver useUsersPage.ts, que ya excluye estos mismos roles al crear usuarios.
-    const sellByWeight = features?.sell_by_weight === true;
-    const configurableRoles = sellByWeight ? [RoleEnum.Employe] : ALL_CONFIGURABLE_ROLES;
+    // Cocina y Caja no existen como roles asignables en negocios de venta por peso ni en
+    // retail — ver useUsersPage.ts, que ya excluye estos mismos roles al crear usuarios con
+    // el mismo criterio (getExcludedRoles()).
+    const excludedRoles = getExcludedRoles(features);
+    const configurableRoles = ALL_CONFIGURABLE_ROLES.filter((role) => !excludedRoles.includes(role));
     const applicableActions = getApplicableActions(features);
 
     const [activeRole, setActiveRole] = useState<RoleEnum>(RoleEnum.Employe);
@@ -30,14 +32,14 @@ export const useRolesPermissionsSection = () => {
         });
         setDraft(initial);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rolePermissions, sellByWeight]);
+    }, [rolePermissions, features?.sell_by_weight, features?.is_retail]);
 
     useEffect(() => {
         if (!configurableRoles.includes(activeRole)) {
             setActiveRole(configurableRoles[0]);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sellByWeight]);
+    }, [features?.sell_by_weight, features?.is_retail]);
 
     const activeActions = new Set<Action>(draft[activeRole] ?? []);
 

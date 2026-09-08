@@ -220,4 +220,8 @@ export const OPENMOJI_CATALOG: IOpenmojiIcon[] = [
     { key: "1F455", label: "Playera / camisa", group: "Ropa" },
     { key: "1F9E2", label: "Gorra / cachucha", group: "Ropa" },
     { key: "1F45F", label: "Zapato", group: "Ropa" },
+    // Sin SVG vendorizado en public/images/product-icons/ (a diferencia del resto de este
+    // catálogo) — solo disponible en el picker de emoji nativo. Ver NATIVE_ONLY_KEYS en
+    // utils/iconAssets.ts, que lo excluye del picker OpenMoji para no mostrar una imagen rota.
+    { key: "1F462", label: "Bota", group: "Ropa" },
 ];

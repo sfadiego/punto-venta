@@ -16,6 +16,7 @@ export const useDashboard = () => {
     const { sistemaId, features } = useAxios();
     const { can } = usePermissions();
     const sellByWeight = features?.sell_by_weight === true;
+    const isRetail = features?.is_retail === true;
     const canViewProducts = can("viewProducts");
 
     // Para carnicería se pasa null para deshabilitar el polling de órdenes activas
@@ -106,6 +107,7 @@ export const useDashboard = () => {
         fetchNextPage,
         sistemaId,
         sellByWeight,
+        isRetail,
         stats,
     };
 };

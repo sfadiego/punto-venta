@@ -84,6 +84,16 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
             // mostrando la existencia previa y el ProductGrid no refleja el producto agotado
             // hasta que algo más invalide la query (mismo fix ya aplicado en useQuickSalePayment).
             queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
+            // useShowOrder usa `${ApiRoutes.Orders}/${orderId}` como query key completa (string,
+            // no arreglo jerárquico) — invalidar solo el prefijo [ApiRoutes.Orders] no la
+            // alcanza. Sin esto, reabrir esta misma orden (ej. buscarla para devolución) dentro
+            // del staleTime de 2 min la sigue mostrando como InProcess aunque ya se cerró (mismo
+            // fix ya aplicado en useInvalidateResumeOrderQueries, QuickSale).
+            queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${orderId}`] });
+            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
+            // Cerrar la venta también generó movimientos de stock (reason=Sale) — que el
+            // kardex del módulo de Inventario no se quede con datos obsoletos.
+            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Kardex] });
             if (sistemaId) {
                 queryClient.invalidateQueries({
                     queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`],

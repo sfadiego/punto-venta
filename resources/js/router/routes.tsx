@@ -14,6 +14,7 @@ const QuickSalePage    = lazy(() => import("@/pages/QuickSale/QuickSalePage"));
 const TakeOrderPage    = lazy(() => import("@/pages/Orders/TakeOrderPage"));
 const OrderListPage    = lazy(() => import("@/pages/Orders/OrderListPage"));
 const ProductsPage     = lazy(() => import("@/pages/Product/ProductsPage"));
+const InventoryPage    = lazy(() => import("@/pages/Inventory/InventoryPage"));
 const CategoriesPage   = lazy(() => import("@/pages/Category/CategoriesPage"));
 const CustomersPage       = lazy(() => import("@/pages/Customers/CustomersPage"));
 const CustomerDetailPage  = lazy(() => import("@/pages/Customers/CustomerDetailPage"));
@@ -47,6 +48,7 @@ const privateRoutes: IRoute[] = [
     { path: "/quick-sale/:id", element: <QuickSalePage />,  private: true, permission: ["viewOrders", "viewProducts"] },
     { path: "/orders",         element: <OrderListPage />,  private: true },
     { path: "/products",       element: <ProductsPage />,   private: true, permission: "viewProducts" },
+    { path: "/inventory",      element: <InventoryPage />,  private: true, permission: "manageStock" },
     { path: "/categories",     element: <CategoriesPage />, private: true, permission: "viewCategories" },
     { path: "/customers",      element: <CustomersPage />,      private: true, permission: "viewCustomers" },
     { path: "/customers/:id",  element: <CustomerDetailPage />, private: true, permission: "viewCustomers" },

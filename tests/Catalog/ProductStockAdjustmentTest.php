@@ -82,6 +82,41 @@ class ProductStockAdjustmentTest extends TestCase
             ->assertStatus(400);
     }
 
+    public function test_delta_que_excede_el_maximo_permitido_falla_validacion(): void
+    {
+        $product = $this->crearProductoConStock(10);
+
+        $this->postJson("/api/product/{$product->id}/stock-adjustment", [
+            'delta' => 10000000,
+        ], $this->authHeaders())
+            ->assertStatus(400);
+
+        $this->assertEquals(10.0, (float) $product->fresh()->stock);
+    }
+
+    public function test_delta_negativo_que_excede_el_maximo_permitido_falla_validacion(): void
+    {
+        $product = $this->crearProductoConStock(10);
+
+        $this->postJson("/api/product/{$product->id}/stock-adjustment", [
+            'delta' => -10000000,
+        ], $this->authHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_ajuste_que_dejaria_stock_por_encima_del_maximo_falla(): void
+    {
+        $product = $this->crearProductoConStock(999999);
+
+        $this->postJson("/api/product/{$product->id}/stock-adjustment", [
+            'delta' => 100,
+        ], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertEquals(999999.0, (float) $product->fresh()->stock);
+    }
+
     public function test_delta_requerido(): void
     {
         $product = $this->crearProductoConStock(10);

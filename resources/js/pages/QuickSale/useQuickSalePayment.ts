@@ -154,6 +154,10 @@ export const useQuickSalePayment = ({
             // la validación de "no exceder el stock disponible" quedan trabajando con datos
             // viejos hasta que algo más invalide la query o el usuario recargue la página.
             queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
+            // Listado de órdenes/ventas (ej. buscador de devolución en Inventario, Ventas,
+            // Pedidos) y kardex — la venta recién cerrada generó movimientos de stock nuevos.
+            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
+            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Kardex] });
             invalidateSalesByCategory(queryClient);
 
             toast.success(creditPayment.isCreditMode ? "Venta a crédito registrada correctamente." : "Venta registrada correctamente.");

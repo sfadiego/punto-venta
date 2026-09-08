@@ -7,9 +7,12 @@ import { isVariantLowStock } from "@/utils/stock";
 
 interface VariantStockExpansionProps {
     product: IProduct;
+    /** Debe reflejar la misma condición que la columna "Código" en ProductsPage — sin esto,
+     * las celdas de esta fila expandida quedan desalineadas con las columnas del producto. */
+    showProductCode: boolean;
 }
 
-export const VariantStockExpansion = ({ product }: VariantStockExpansionProps) => {
+export const VariantStockExpansion = ({ product, showProductCode }: VariantStockExpansionProps) => {
     const activeVariants = (product.variants ?? []).filter((v) => v.activo);
 
     return (
@@ -24,6 +27,11 @@ export const VariantStockExpansion = ({ product }: VariantStockExpansionProps) =
                     <div className="w-[280px] shrink-0 px-4 py-2 min-w-0">
                         <span className="font-medium text-stone-700 text-sm">{v.nombre}</span>
                     </div>
+                    {showProductCode && (
+                        // El código es del producto, no por variante — se deja en blanco en
+                        // cada fila de variante en vez de repetir el mismo valor.
+                        <div className="w-[130px] shrink-0 px-4 py-2" />
+                    )}
                     <div className="w-[160px] shrink-0 px-4 py-2 min-w-0">
                         <span className="text-stone-400 text-sm">{product.category?.nombre ?? "—"}</span>
                     </div>

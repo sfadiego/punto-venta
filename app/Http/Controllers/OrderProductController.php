@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
+use App\Exceptions\InvalidStockReturnException;
+use App\Http\Requests\OrderProductReturnRequest;
 use App\Http\Requests\OrderProductStoreRequest;
 use App\Http\Requests\OrderProductUpdateRequest;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Services\OrderProductService;
+use App\Services\OrderReturnService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +19,10 @@ use Illuminate\Support\Facades\Response;
 
 class OrderProductController extends Controller
 {
-    public function __construct(private readonly OrderProductService $service) {}
+    public function __construct(
+        private readonly OrderProductService $service,
+        private readonly OrderReturnService $returnService,
+    ) {}
 
     /**
      * index
@@ -181,6 +187,36 @@ class OrderProductController extends Controller
         $this->service->removeItem($order, $item);
 
         return Response::success('elemento borrado de la orden');
+    }
+
+    /**
+     * returnStock — devolución de stock de una línea de orden ya cerrada (módulo de
+     * Inventario, exclusivo de negocios retail — ver RetailStockMiddleware). Permite
+     * devoluciones parciales repetidas mientras no excedan lo vendido en esa línea.
+     * No modifica la orden ni su total — el histórico de venta queda intacto.
+     */
+    public function returnStock(int $orderId, int $item, OrderProductReturnRequest $params): JsonResponse
+    {
+        $orderProduct = OrderProductModel::where('pedido_id', $orderId)
+            ->where('id', $item)
+            ->first();
+
+        if (! $orderProduct) {
+            return Response::error('La orden no contiene este producto');
+        }
+
+        try {
+            $updated = $this->returnService->returnProduct(
+                orderProduct: $orderProduct,
+                quantity: (float) $params->quantity,
+                note: $params->note,
+                createdBy: auth()->id(),
+            );
+        } catch (InvalidStockReturnException $e) {
+            return Response::error($e->getMessage());
+        }
+
+        return Response::success($updated);
     }
 
     /**

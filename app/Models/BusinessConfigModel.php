@@ -201,6 +201,20 @@ class BusinessConfigModel extends Model
         return $this->hasOne(SubscriptionModel::class, 'tenant_id')->latestOfMany('expires_at');
     }
 
+    /**
+     * Cocina y Caja no existen como roles asignables en negocios de venta por peso ni en
+     * retail — ninguno de los dos tiene kitchen_view ni un flujo de caja separado del
+     * empleado (ver BusinessTypeEnum::features()). Única fuente de verdad para esta regla:
+     * usada en UserStoreRequest, UserUpdateRequest y RolePermissionService — antes cada uno
+     * la reimplementaba a mano solo para sell_by_weight, dejando retail sin excluir.
+     */
+    public static function excludesCocinaCajaRoles(?int $tenantId): bool
+    {
+        $features = self::find($tenantId)?->tipo_negocio->features() ?? [];
+
+        return ($features['sell_by_weight'] ?? false) || ($features['is_retail'] ?? false);
+    }
+
     /** Crea el tenant por defecto si no existe (usado en seeders). */
     public static function createDefault(string $slug = 'pos-app'): self
     {

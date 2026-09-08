@@ -31,7 +31,7 @@ export default function DashboardPage() {
     const navigate = useNavigate();
     const { can } = usePermissions();
     const {
-        orders, ordersLoading, isFetchingNextPage, hasNextPage, fetchNextPage, sistemaId, sellByWeight, stats,
+        orders, ordersLoading, isFetchingNextPage, hasNextPage, fetchNextPage, sistemaId, sellByWeight, isRetail, stats,
     } = useDashboard();
 
     const {
@@ -63,7 +63,7 @@ export default function DashboardPage() {
                         <>
                             <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
                                 {
-                                    can("registerExpense") &&
+                                    can("registerExpense") && !isRetail &&
                                     <FeatureSpotlight
                                         featureKey={FeatureSpotlightKey.ExpensesButton}
                                         title="Registrar gasto"

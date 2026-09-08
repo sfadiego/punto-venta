@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAxios } from "@/hooks/useAxios";
-import { RoleEnum } from "@/enums/RoleEnum";
+import { getExcludedRoles } from "@/utils/businessRoles";
 import { useIndexUsers } from "@/services/useUserService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { IUser } from "@/models/IUser";
@@ -23,8 +23,7 @@ export const useUsersPage = () => {
         }
     }, [data, isLoading, page]);
 
-    const sellByWeight = features?.sell_by_weight === true;
-    const excludeRoles: RoleEnum[] = sellByWeight ? [RoleEnum.Cocina, RoleEnum.Caja] : [];
+    const excludeRoles = getExcludedRoles(features);
 
     const total = data?.total ?? 0;
     const maxUsers = businessConfig?.effective_max_users ?? null;

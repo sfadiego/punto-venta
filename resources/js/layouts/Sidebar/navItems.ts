@@ -5,7 +5,7 @@ import {
     BarChart2,
     ShoppingBag,
     LucideIcon,
-    Coffee,
+    ShoppingBasket,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
@@ -32,7 +32,7 @@ export const navItems: NavItem[] = [
     { label: "Órdenes", icon: Package, path: "/orders", permission: "viewOrders" },
     {
         label: "Productos",
-        icon: Coffee,
+        icon: ShoppingBasket,
         path: "/products",
         permission: "viewProducts",
         spotlight: {

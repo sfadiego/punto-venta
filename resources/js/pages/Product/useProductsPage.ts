@@ -25,6 +25,10 @@ export const useProductsPage = () => {
 
     const invalidateProducts = () => {
         queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
+        // Crear/editar un producto puede generar un movimiento de stock (carga inicial) —
+        // invalidar también el kardex global para que no quede con datos obsoletos por el
+        // staleTime de 2 min (ver app.tsx) hasta un refresh manual.
+        queryClient.invalidateQueries({ queryKey: [ApiRoutes.Kardex] });
     };
 
     return {

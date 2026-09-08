@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { DataTableColumn } from "mantine-datatable";
-import { Eye } from "lucide-react";
+import { Eye, Undo2 } from "lucide-react";
 import { useDataTable, DataTableRenderersMap } from "@/hooks/useDatatable";
 import { useIndexOrder } from "@/services/useOrderService";
 import { useAxios } from "@/hooks/useAxios";
@@ -16,6 +16,16 @@ import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 
 const renderersMap: DataTableRenderersMap = {
+    nombre_pedido: (o: IOrder) => (
+        <span className="flex items-center gap-1.5">
+            {o.nombre_pedido}
+            {!!o.has_return && (
+                <span title="Tiene devolución" className="shrink-0">
+                    <Undo2 size={14} className="text-amber-500" />
+                </span>
+            )}
+        </span>
+    ),
     total: (o: IOrder) => formatCurrencyTrimmed(calcOrderDisplayTotal(o)),
     subtotal: (o: IOrder) => formatCurrencyTrimmed(o.subtotal),
     descuento: (o: IOrder) => (o.descuento > 0 ? `${o.descuento}%` : "—"),

@@ -8,6 +8,7 @@ import { useAdjustProductStock } from "@/services/useProductService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { IProduct } from "@/models/IProduct";
+import { MAX_STOCK_ADJUSTMENT } from "@/utils/stockLimits";
 
 export type RestockForm = {
     delta: string;
@@ -18,6 +19,7 @@ const schema = Yup.object({
     delta: Yup.number()
         .typeError("Ingresa una cantidad válida")
         .moreThan(0, "La cantidad debe ser mayor a 0")
+        .max(MAX_STOCK_ADJUSTMENT, `La cantidad no puede ser mayor a ${MAX_STOCK_ADJUSTMENT}`)
         .required("La cantidad es requerida"),
     note: Yup.string().max(255, "Máximo 255 caracteres"),
 });
@@ -53,6 +55,9 @@ export const useRestockModal = () => {
                     },
                 });
                 queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
+                // Retail no usa este modal (Fase 9), pero si el tenant llega a tener el kardex
+                // global visible, que no quede con datos obsoletos por el staleTime de 2 min.
+                queryClient.invalidateQueries({ queryKey: [ApiRoutes.Kardex] });
                 const label = selectedVariant ? `${product.nombre} (${selectedVariant.nombre})` : product.nombre;
                 toast.success(`Se agregaron ${values.delta} al stock de "${label}"`);
                 helpers.resetForm();

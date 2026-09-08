@@ -5,6 +5,7 @@ import { IProductVariant } from "@/models/IProductVariant";
 import { Input } from "@/components/ui/form/Input";
 import { Textarea } from "@/components/ui/form/textarea";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
+import { MAX_STOCK_ADJUSTMENT } from "@/utils/stockLimits";
 import { RestockForm } from "./useRestockModal";
 import { SelectRestockVariant } from "./SelectRestockVariant";
 
@@ -77,6 +78,7 @@ export const RestockModal = ({
                         label="Cantidad a agregar *"
                         inputType="number"
                         min={0}
+                        max={MAX_STOCK_ADJUSTMENT}
                         step={1}
                         placeholder="0"
                         formik={formik}

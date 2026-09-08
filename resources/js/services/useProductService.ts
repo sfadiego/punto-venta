@@ -64,8 +64,8 @@ export const useInfiniteIndexProducts = ({
     });
 };
 
-export const useShowProduct = (id: number) =>
-    useGET<IProduct>({ url: `${url}/${id}` });
+export const useShowProduct = (id: number, enabled = true) =>
+    useGET<IProduct>({ url: `${url}/${id}`, enable: !!id && enabled });
 export const useGetFile = (fileName: string) =>
     useGET({ url: `files/${fileName}` });
 
