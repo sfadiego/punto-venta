@@ -11,7 +11,7 @@ import {
     usePOST,
     usePUT,
 } from "../hooks/useApi";
-import { IOrder } from "@/models/IOrder";
+import { IOrder, IOrderSummary } from "@/models/IOrder";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
@@ -79,6 +79,16 @@ export const useStoreOrder = () => usePOST({ url });
 export const useStoreOrderSale = () => usePOST({ url: `${url}/sale` });
 export const useShowOrder = (orderId: number, enabled = true) =>
     useGET<IOrder>({ url: `${url}/${orderId}`, enable: !!orderId && enabled });
+
+// Combobox de devolución (módulo de Inventario) — a diferencia de useIndexOrder, no está
+// acotado a la sesión de caja activa: busca entre TODAS las órdenes cerradas del tenant, de
+// cualquier fecha/sesión (OrderController::listClosed).
+export const useListClosedOrders = (search: string, enabled = true) =>
+    useGET<IOrderSummary[]>({
+        url: `${url}/closed-list`,
+        filters: search ? { search } : {},
+        enable: enabled,
+    });
 
 export const useIndexOrderProducts = (orderId: number) =>
     useGET<IOrderProduct[]>({
@@ -256,6 +266,28 @@ export const useDeleteOrderItem = () => {
     return useMutation({
         mutationFn: ({ orderId, orderProductId }: { orderId: number; orderProductId: number }) =>
             axiosDELETE(axiosApi, { url: `${url}/${orderId}/extra/${orderProductId}` }),
+    });
+};
+
+// Devolución de stock (módulo de Inventario, exclusivo retail) — orderProductId es el id de
+// la línea order_product (no el id del producto de catálogo). El backend valida que la orden
+// esté cerrada y que la cantidad no exceda lo vendido menos lo ya devuelto.
+export const useReturnOrderProduct = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({
+            orderId,
+            orderProductId,
+            data,
+        }: {
+            orderId: number;
+            orderProductId: number;
+            data: { quantity: number; note?: string };
+        }) =>
+            axiosPOST(axiosApi, {
+                url: `${url}/${orderId}/product/${orderProductId}/return`,
+                data,
+            }),
     });
 };
 

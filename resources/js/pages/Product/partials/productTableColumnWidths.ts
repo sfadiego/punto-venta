@@ -5,6 +5,7 @@
 export const PRODUCT_TABLE_COLUMN_WIDTHS = {
     icon: 52,
     nombre: 280,
+    codigo: 130,
     categoria: 160,
     precio: 140,
     estado: 120,

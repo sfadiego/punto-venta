@@ -17,6 +17,9 @@ export const useSidebarNav = () => {
     const providersEnabled = can("viewProviders") && config?.purchases_enabled === true;
     const employeesEnabled = can("viewEmployees") && config?.employees_enabled === true;
     const customersEnabled = can("viewCustomers") && (sellByWeight || config?.customers_enabled === true);
+    // manageStock ya está gateado por features.is_retail en isActionApplicable (permissionUtils.ts)
+    // — acá solo falta combinar con la config del tenant (stock_enabled).
+    const inventoryEnabled = can("manageStock") && config?.stock_enabled === true;
 
     // "Pedidos" aplica a venta por peso y Retail (ambos sin kitchen_view); "Órdenes" solo a
     // Restaurante (servicio en mesa). No usar sellByWeight aquí: Retail comparte sellByWeight=false
@@ -28,7 +31,7 @@ export const useSidebarNav = () => {
         );
 
     const hasFooterSection =
-        can("viewUsers") || can("viewAdmin") || customersEnabled || providersEnabled || employeesEnabled;
+        can("viewUsers") || can("viewAdmin") || customersEnabled || providersEnabled || employeesEnabled || inventoryEnabled;
 
     return {
         can,
@@ -36,6 +39,7 @@ export const useSidebarNav = () => {
         providersEnabled,
         employeesEnabled,
         customersEnabled,
+        inventoryEnabled,
         hasFooterSection,
     };
 };

@@ -20,6 +20,10 @@ Route::prefix('order')->group(function () {
 
         Route::middleware('permission:printTicket')->get('/print/test-bytes', [PrintController::class, 'testBytes']);
 
+        // Combobox de órdenes cerradas para el modal de Devolución (Inventario) — debe ir
+        // antes del grupo {order} para que Laravel no intente resolverlo como un id de orden.
+        Route::middleware(['permission:manageStock', 'retail.stock'])->get('/closed-list', 'listClosed');
+
         Route::prefix('{order}')->group(function () {
             Route::get('', 'show');
             Route::get('total', 'total');
@@ -48,6 +52,12 @@ Route::prefix('order')->group(function () {
                     // Única vía que usa Cocina para marcar un platillo listo — no debe
                     // exigir takeOrder (Cocina no lo tiene por default).
                     Route::middleware('permission:kitchenView')->patch('{item}/ready', 'toggleReady');
+
+                    // Devolución de stock — módulo de Inventario, exclusivo de negocios
+                    // retail con stock_enabled (ver RetailStockMiddleware). Solo aplica
+                    // sobre órdenes ya cerradas (validado en OrderProductReturnRequest).
+                    Route::middleware(['permission:manageStock', 'retail.stock'])
+                        ->post('{item}/return', 'returnStock');
                 });
             });
 

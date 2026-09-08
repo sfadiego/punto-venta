@@ -5,9 +5,11 @@ namespace App\Services;
 use App\Core\Data\IndexData;
 use App\Core\Paginator\DataTable;
 use App\Enums\OrderStatusEnum;
+use App\Enums\StockMovementReasonEnum;
 use App\Models\CustomerModel;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
+use App\Models\StockMovementModel;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -35,7 +37,18 @@ class OrderService extends DataTable
 
     public function makeQuery(): Builder
     {
-        $query = $this->model->newQuery()->with(['status', 'paymentMethod:id,name', 'customer:id,name,phone']);
+        $query = $this->model->newQuery()
+            ->with(['status', 'paymentMethod:id,name', 'customer:id,name,phone'])
+            // Indicador "con devolución" para el listado (Orders/Sales) — no es una columna
+            // propia de la orden, se calcula al vuelo contra stock_movements vía la línea de
+            // producto, así nunca se desincroniza con el histórico real de devoluciones.
+            ->withExists([
+                'orderProducts as has_return' => function (Builder $q) {
+                    $q->whereHas('stockMovements', function (Builder $sq) {
+                        $sq->where(StockMovementModel::REASON, StockMovementReasonEnum::Return);
+                    });
+                },
+            ]);
         $rawEstatus = request()->query('estatus_pedido_id');
         $sistemaId = request()->query('sistema_id');
         $search = request()->query('search');

@@ -8,6 +8,7 @@ import { formatCurrency } from "@/utils/formatCurrency";
 import { PrintTicketButton } from "@/components/orders/PrintTicket/PrintTicketButton";
 import { PaymentOrCreditBadge } from "@/components/orders/PaymentOrCreditBadge";
 import { OrderProductsList } from "./OrderProductsList";
+import { OrderReturnsList } from "./OrderReturnsList";
 
 interface OrderDetailModalProps {
     isOpen: boolean;
@@ -72,6 +73,8 @@ export const OrderDetailModal = ({ isOpen, order, orderProducts, isLoadingProduc
                     )}
 
                     <OrderProductsList isLoading={isLoadingProducts} orderProducts={orderProducts} />
+
+                    {order.has_return && <OrderReturnsList orderProducts={orderProducts} />}
 
                     {/* Totals */}
                     <div className="bg-stone-50 rounded-2xl border border-stone-100 p-4 space-y-3">

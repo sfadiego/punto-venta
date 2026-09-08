@@ -12,6 +12,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockService
 {
+    // Coincide con la precisión de las columnas stock/min_stock/quantity (decimal(8,2), ver
+    // migración cap_stock_columns_precision). Referenciado también por
+    // ProductStockAdjustmentRequest::MAX_DELTA para validar el input antes de llegar aquí —
+    // este chequeo es la defensa final ante el stock acumulado (no solo el delta individual)
+    // excediendo la columna.
+    public const MAX_STOCK = 999999.99;
+
     /**
      * Descuenta stock de un producto o, si se pasa $variantId, de una de sus variantes
      * (ej. venta). Lockea la fila del producto (y la de la variante, si aplica) para
@@ -133,6 +140,13 @@ class StockService
         if ($stockAfter < 0) {
             $label = $variantId ? "{$product->nombre} ({$stockable->nombre})" : $product->nombre;
             throw new InsufficientStockException("Stock insuficiente para \"{$label}\".");
+        }
+
+        if ($stockAfter > self::MAX_STOCK) {
+            $label = $variantId ? "{$product->nombre} ({$stockable->nombre})" : $product->nombre;
+            throw new InsufficientStockException(
+                "El stock resultante para \"{$label}\" excede el máximo permitido (".self::MAX_STOCK.")."
+            );
         }
 
         $stockable->update([

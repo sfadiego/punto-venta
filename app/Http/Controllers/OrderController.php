@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Core\Data\IndexData;
+use App\Enums\OrderStatusEnum;
+use App\Enums\StockMovementReasonEnum;
 use App\Events\OrdersUpdated;
 use App\Exceptions\InsufficientStockException;
 use App\Http\Requests\OrderStoreRequest;
 use App\Http\Requests\OrderStoreSaleRequest;
 use App\Http\Requests\OrderUpdateRequest;
 use App\Models\OrderModel;
+use App\Models\StockMovementModel;
 use App\Services\OrderCloseService;
 use App\Services\OrderSaleService;
 use App\Services\OrderService;
@@ -23,6 +26,33 @@ class OrderController extends Controller
     public function index(IndexData $data, OrderService $service): JsonResponse
     {
         return $service->run($data);
+    }
+
+    /**
+     * listClosed — versión ligera sin paginar, para el combobox de devolución de stock
+     * (módulo de Inventario). A diferencia de index(), nunca ignora el filtro de estatus:
+     * solo busca entre órdenes ya cerradas, que es la única a la que se le puede devolver.
+     */
+    public function listClosed(Request $request): JsonResponse
+    {
+        $search = $request->query('search');
+
+        $query = OrderModel::where('estatus_pedido_id', OrderStatusEnum::CLOSED->value)
+            ->with('customer:id,name')
+            ->orderByDesc('created_at')
+            ->limit(20);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nombre_pedido', 'like', "%{$search}%")
+                    ->orWhere('id', 'like', "%{$search}%")
+                    ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        return Response::success(
+            $query->get(['id', 'nombre_pedido', 'total', 'created_at', 'customer_id'])
+        );
     }
 
     public function store(OrderStoreRequest $params): JsonResponse
@@ -46,7 +76,19 @@ class OrderController extends Controller
             ]);
         }
 
-        return Response::success($order->load(['orderProducts.product', 'orderProducts.variant', 'paymentMethod:id,name', 'customer:id,name,phone']));
+        return Response::success($order->load([
+            'orderProducts.product',
+            'orderProducts.variant',
+            // Devoluciones de cada línea (módulo de Inventario) — se cargan siempre, el
+            // costo es despreciable cuando no hay ninguna (constraint vacía). El frontend
+            // decide si mostrar la sección según si viene algo o no.
+            'orderProducts.stockMovements' => fn ($q) => $q
+                ->where(StockMovementModel::REASON, StockMovementReasonEnum::Return)
+                ->with('createdBy:id,nombre')
+                ->latest(),
+            'paymentMethod:id,name',
+            'customer:id,name,phone',
+        ]));
     }
 
     public function delete(OrderModel $order): JsonResponse

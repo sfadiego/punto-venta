@@ -12,9 +12,12 @@ interface ProductTableActionsProps {
     onEdit: (product: IProduct) => void;
     onRestock: (product: IProduct) => void;
     onViewMovements: (product: IProduct) => void;
+    /** false en negocios retail — ahí el manejo de stock vive en la página de Inventario,
+     * no duplicar el acceso rápido aquí (ver CLAUDE.md, Fase 9 del plan de Inventario). */
+    showStockActions: boolean;
 }
 
-export const ProductTableActions = ({ product, onEdit, onRestock, onViewMovements }: ProductTableActionsProps) => {
+export const ProductTableActions = ({ product, onEdit, onRestock, onViewMovements, showStockActions }: ProductTableActionsProps) => {
     const queryClient = useQueryClient();
     const { mutateAsync: deleteProduct, isPending: isDeleting } = useDeleteProduct(product.id);
 
@@ -38,7 +41,7 @@ export const ProductTableActions = ({ product, onEdit, onRestock, onViewMovement
 
     return (
         <div className="flex items-center justify-center gap-0.5">
-            {product.manage_stock && (
+            {showStockActions && product.manage_stock && (
                 <button
                     onClick={() => onViewMovements(product)}
                     title="Historial de stock"
@@ -47,7 +50,7 @@ export const ProductTableActions = ({ product, onEdit, onRestock, onViewMovement
                     <History size={16} />
                 </button>
             )}
-            {isProductRowLowStock(product) && (
+            {showStockActions && isProductRowLowStock(product) && (
                 <button
                     onClick={() => onRestock(product)}
                     title="Reabastecer stock"

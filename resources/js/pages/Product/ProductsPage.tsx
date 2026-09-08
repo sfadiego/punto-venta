@@ -20,6 +20,7 @@ import { useStockMovementsModal } from "./partials/StockMovementsModal/useStockM
 import { ProductTableActions } from "./partials/ProductTableActions";
 import { ProductSearch } from "./partials/ProductSearch";
 import { formatMoney } from "@/utils/formatCurrency";
+import { useAxios } from "@/hooks/useAxios";
 
 export default function ProductsPage() {
     const {
@@ -52,6 +53,11 @@ export default function ProductsPage() {
         invalidateProducts,
         handleCloseModal,
     );
+
+    // En negocios retail, el manejo de stock (reajuste + kardex) vive en la página de
+    // Inventario — el acceso rápido de Productos se oculta ahí para no duplicarlo.
+    const { features } = useAxios();
+    const showStockActions = stockEnabled && features?.is_retail !== true;
 
     const {
         isOpen: isRestockOpen,
@@ -111,6 +117,22 @@ export default function ProductsPage() {
                     <span className="font-medium text-stone-900 text-sm">{p.nombre}</span>
                 ),
             },
+            // Código de producto (SKU/código de barras) — solo tiene sentido de negocio en
+            // retail, donde el catálogo suele tener muchos artículos parecidos (ej. mismo
+            // modelo de tenis en varias tallas) y el código es lo que distingue exactamente
+            // cuál es cuál.
+            ...(features?.is_retail === true
+                ? [
+                      {
+                          accessor: "product_code" as keyof IProduct,
+                          title: "Código",
+                          width: PRODUCT_TABLE_COLUMN_WIDTHS.codigo,
+                          render: (p: IProduct) => (
+                              <span className="text-sm text-stone-500 font-mono">{p.product_code || "—"}</span>
+                          ),
+                      } as DataTableColumn<IProduct>,
+                  ]
+                : []),
             {
                 accessor: "category",
                 title: "Categoría",
@@ -183,11 +205,12 @@ export default function ProductsPage() {
                         onEdit={openEditModal}
                         onRestock={openRestockModal}
                         onViewMovements={openMovementsModal}
+                        showStockActions={showStockActions}
                     />
                 ),
             },
         ],
-        [openEditModal, openRestockModal, openMovementsModal, stockEnabled],
+        [openEditModal, openRestockModal, openMovementsModal, stockEnabled, showStockActions, features?.is_retail],
     );
 
     return (
@@ -263,7 +286,9 @@ export default function ProductsPage() {
                         rowExpansion={{
                             allowMultiple: true,
                             expandable: ({ record }) => hasActiveVariants(record),
-                            content: ({ record }) => <VariantStockExpansion product={record} />,
+                            content: ({ record }) => (
+                            <VariantStockExpansion product={record} showProductCode={features?.is_retail === true} />
+                        ),
                         }}
                         minHeight={300}
                         className="whitespace-nowrap"

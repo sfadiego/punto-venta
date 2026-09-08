@@ -26,4 +26,19 @@ export interface IOrder {
     is_credit: boolean;
     credit_applied_at: string | null;
     customer?: Pick<ICustomer, "id" | "name" | "balance" | "phone"> | null;
+    // Calculado al vuelo contra stock_movements (OrderService::makeQuery) — true si alguna
+    // línea de la orden tiene al menos una devolución registrada.
+    has_return?: boolean;
+}
+
+// Respuesta ligera de GET /order/closed-list — combobox de devolución (Inventario). No trae
+// order_products ni el resto de relaciones de IOrder; la línea a devolver se carga aparte con
+// useShowOrder una vez elegida la orden.
+export interface IOrderSummary {
+    id: number;
+    nombre_pedido: string;
+    total: number;
+    created_at: string;
+    customer_id: number | null;
+    customer?: Pick<ICustomer, "id" | "name"> | null;
 }

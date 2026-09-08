@@ -1,4 +1,4 @@
-import { Users, Settings, HandCoins, Truck, UserRound } from "lucide-react";
+import { Users, Settings, HandCoins, Truck, UserRound, Boxes } from "lucide-react";
 import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/FeatureSpotlight";
 import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
 import { useSidebarNav } from "./useSidebarNav";
@@ -9,7 +9,7 @@ interface SidebarNavProps {
 }
 
 export function SidebarNav({ onItemClick }: SidebarNavProps) {
-    const { can, items, providersEnabled, employeesEnabled, customersEnabled, hasFooterSection } = useSidebarNav();
+    const { can, items, providersEnabled, employeesEnabled, customersEnabled, inventoryEnabled, hasFooterSection } = useSidebarNav();
 
     return (
         <nav className="flex-1 px-3 py-5 overflow-y-auto flex flex-col">
@@ -77,6 +77,12 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
                                 onClick={onItemClick}
                             />
                         </FeatureSpotlight>
+                    )}
+                    {inventoryEnabled && (
+                        <SidebarNavItem
+                            item={{ label: "Inventario", icon: Boxes, path: "/inventory", permission: "manageStock" }}
+                            onClick={onItemClick}
+                        />
                     )}
                     {can("viewUsers") && (
                         <FeatureSpotlight

@@ -479,6 +479,17 @@ const toggle = async (id: number) => {
 - No usar `$request->validate([...])` inline en el controller — crear un FormRequest dedicado en
   `app/Http/Requests/` (patrón: `{Recurso}{Store|Update}Request.php`), incluso si el endpoint no mapea 1:1 a un
   modelo (ej. `OrderStoreSaleRequest` para `POST /order/sale`).
+- **Inyección de Services — respeta la convención ya establecida en esa clase, no la mezcles.** Hay dos
+  convenciones válidas y ambas conviven en el proyecto:
+  - Constructor injection de un Service "dueño" de la clase, reutilizado por todos los métodos vía
+    `$this->service` (ej. `OrderProductController` con `OrderProductService`). Si el controller ya usa este
+    patrón y necesitas un Service adicional para una acción nueva (ej. `OrderReturnService` para
+    `returnStock()`), agrégalo al constructor igual que el resto — no lo inyectes como parámetro del método
+    aunque solo lo use esa única acción.
+  - Injection por método, uno distinto por acción (ej. `ProductController`, que no tiene Service en el
+    constructor y cada método pide el suyo: `store(..., StockService $stockService)`).
+  Antes de agregar un método nuevo a un controller existente, revisa cuál de las dos usa esa clase y síguela —
+  mezclar ambas en el mismo archivo es la señal de que no se respetó la convención ya establecida.
 
 **Cuándo extraer un controller/acción a un Service** — señales de que ya debe hacerse (no esperar a
 que "se sienta grande"), tomadas de la auditoría 2026-09 (`OrderProductController.php` tenía 408

@@ -7,6 +7,7 @@ import {
     HandCoins,
     Truck,
     UserRound,
+    Boxes,
 } from "lucide-react";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { ApisEnum } from "@/configs/apisEnum";
@@ -24,7 +25,7 @@ interface SidebarMiniProps {
 
 export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogout }: SidebarMiniProps) {
     const { data: config } = useGetBusinessConfig();
-    const { can: canAction, items, providersEnabled, employeesEnabled, customersEnabled, hasFooterSection } = useSidebarNav();
+    const { can: canAction, items, providersEnabled, employeesEnabled, customersEnabled, inventoryEnabled, hasFooterSection } = useSidebarNav();
 
     const logoUrl = config?.logo_path
         ? `${ApisEnum.BaseUrl}${ApiRoutes.Files}/${config.logo_path}`
@@ -155,6 +156,27 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
                                     aria-label="Clientes"
                                 >
                                     <HandCoins size={18} />
+                                </NavLink>
+                            </MiniTooltipItem>
+                        )}
+                        {inventoryEnabled && (
+                            <MiniTooltipItem label="Inventario" side="right">
+                                <NavLink
+                                    to="/inventory"
+                                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+                                    style={({ isActive }) =>
+                                        isActive
+                                            ? {
+                                                  backgroundColor: "var(--color-primary)",
+                                                  color: "var(--color-font)",
+                                              }
+                                            : {
+                                                  color: "color-mix(in srgb, var(--color-font) 60%, transparent)",
+                                              }
+                                    }
+                                    aria-label="Inventario"
+                                >
+                                    <Boxes size={18} />
                                 </NavLink>
                             </MiniTooltipItem>
                         )}
