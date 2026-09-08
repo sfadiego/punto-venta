@@ -111,6 +111,21 @@ class RolePermissionTest extends TestCase
         $this->assertEquals([], $response->json('data'));
     }
 
+    // Complementa test_retail_index_precarga_defaults_para_rol_nunca_configurado: un rol que
+    // el Admin SÍ configuró explícitamente a cero permisos debe seguir vacío en el índice, no
+    // caer a los defaults — "nunca configurado" y "configurado a cero" no deben verse igual.
+    public function test_index_no_precarga_defaults_para_rol_configurado_explicitamente_a_cero(): void
+    {
+        $this->putJson('/api/admin/role-permissions/'.RoleEnum::EMPLOYE->value, [
+            'permissions' => [],
+        ], $this->authHeaders())->assertStatus(200);
+
+        $response = $this->getJson('/api/admin/role-permissions', $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertEquals([], $response->json('data.'.RoleEnum::EMPLOYE->value));
+    }
+
     public function test_no_permite_configurar_rol_admin(): void
     {
         $this->putJson('/api/admin/role-permissions/'.RoleEnum::ADMIN->value, [
@@ -162,6 +177,78 @@ class RolePermissionTest extends TestCase
             User::ACTIVO => true,
             User::TENANT_ID => $tenant->id,
         ]);
+    }
+
+    private function crearAdminRetail(): User
+    {
+        $tenant = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'tenant-retail-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Tienda Test',
+            BusinessConfigModel::PRIMARY_COLOR => '#F59E0B',
+            BusinessConfigModel::SIDEBAR_COLOR => '#1C1917',
+            BusinessConfigModel::FONT_COLOR => '#FFFFFF',
+            BusinessConfigModel::LABEL_COLOR => '#1C1917',
+            BusinessConfigModel::SUBSCRIPTION_PLAN => 'lifetime',
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Retail,
+        ]);
+
+        return User::create([
+            User::NOMBRE => 'Admin',
+            User::APELLIDO_PATERNO => 'Retail',
+            User::APELLIDO_MATERNO => '',
+            User::EMAIL => 'admin-retail-'.uniqid().'@test.com',
+            User::USUARIO => 'admin-retail-'.uniqid(),
+            User::PASSWORD => bcrypt('password123'),
+            User::ROL_ID => RoleEnum::ADMIN->value,
+            User::ACTIVO => true,
+            User::TENANT_ID => $tenant->id,
+        ]);
+    }
+
+    public function test_retail_no_permite_configurar_rol_cocina(): void
+    {
+        $admin = $this->crearAdminRetail();
+
+        $this->putJson('/api/admin/role-permissions/'.RoleEnum::COCINA->value, [
+            'permissions' => ['kitchenView'],
+        ], $this->authHeaders($admin))
+            ->assertStatus(422);
+    }
+
+    public function test_retail_no_permite_configurar_rol_caja(): void
+    {
+        $admin = $this->crearAdminRetail();
+
+        $this->putJson('/api/admin/role-permissions/'.RoleEnum::CAJA->value, [
+            'permissions' => ['payOrder'],
+        ], $this->authHeaders($admin))
+            ->assertStatus(422);
+    }
+
+    public function test_retail_si_permite_configurar_rol_empleado(): void
+    {
+        $admin = $this->crearAdminRetail();
+
+        $this->putJson('/api/admin/role-permissions/'.RoleEnum::EMPLOYE->value, [
+            'permissions' => ['viewOrders'],
+        ], $this->authHeaders($admin))
+            ->assertStatus(200);
+    }
+
+    // Reproduce el bug reportado: un tenant retail nuevo (sin role_permission_configs)
+    // debía mostrar los checks de Empleado ya marcados con los defaults, no todo vacío.
+    public function test_retail_index_precarga_defaults_para_rol_nunca_configurado(): void
+    {
+        $admin = $this->crearAdminRetail();
+
+        $response = $this->getJson('/api/admin/role-permissions', $this->authHeaders($admin))
+            ->assertStatus(200);
+
+        $this->assertEqualsCanonicalizing(
+            ['viewDashboard', 'viewOrders', 'viewProducts', 'takeOrder', 'editOrderName', 'printTicket', 'kitchenView', 'payOrder'],
+            $response->json('data.'.RoleEnum::EMPLOYE->value)
+        );
     }
 
     public function test_venta_por_peso_no_permite_configurar_rol_cocina(): void
@@ -238,7 +325,10 @@ class RolePermissionTest extends TestCase
             BusinessConfigModel::LABEL_COLOR => '#1C1917',
             BusinessConfigModel::SUBSCRIPTION_PLAN => 'lifetime',
         ]);
-        $permission = Permission::where(Permission::KEY, 'viewOrders')->first();
+        // 'viewProviders' no es parte de los defaults de Employe (a diferencia de
+        // 'viewOrders') — así el aislamiento se prueba de verdad: si se filtrara entre
+        // tenants, aparecería igual sin necesitar que el tenant A lo tenga por default.
+        $permission = Permission::where(Permission::KEY, 'viewProviders')->first();
 
         RolePermission::create([
             RolePermission::TENANT_ID => $tenantB->id,
@@ -249,6 +339,9 @@ class RolePermissionTest extends TestCase
         $response = $this->getJson('/api/admin/role-permissions', $this->authHeaders())
             ->assertStatus(200);
 
-        $this->assertEquals([], $response->json('data.'.RoleEnum::EMPLOYE->value));
+        // El tenant A (el del test) nunca configuró Employe — cae a los defaults, no al
+        // grant hecho en el tenant B, que no debe filtrarse.
+        $this->assertNotContains('viewProviders', $response->json('data.'.RoleEnum::EMPLOYE->value));
+        $this->assertContains('viewOrders', $response->json('data.'.RoleEnum::EMPLOYE->value));
     }
 }

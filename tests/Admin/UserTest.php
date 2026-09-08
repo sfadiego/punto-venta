@@ -134,6 +134,84 @@ class UserTest extends TestCase
             ->assertStatus(400);
     }
 
+    public function test_retail_no_crea_usuario_con_rol_cocina(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Retail]);
+
+        $this->postJson('/api/admin/users', $this->payloadNuevoUsuario([
+            'rol_id' => RoleEnum::COCINA->value,
+        ]), $this->authHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_retail_no_crea_usuario_con_rol_caja(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Retail]);
+
+        $this->postJson('/api/admin/users', $this->payloadNuevoUsuario([
+            'rol_id' => RoleEnum::CAJA->value,
+        ]), $this->authHeaders())
+            ->assertStatus(400);
+    }
+
+    // Antes UserUpdateRequest no validaba esta regla en absoluto (a diferencia del store) —
+    // se podía reasignar Cocina/Caja a un usuario existente sin importar el tipo de negocio.
+    public function test_retail_no_actualiza_usuario_a_rol_cocina(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Retail]);
+        $empleado = User::where('rol_id', RoleEnum::EMPLOYE->value)->first();
+
+        $this->putJson("/api/admin/users/{$empleado->id}", [
+            'nombre' => $empleado->nombre,
+            'apellido_paterno' => $empleado->apellido_paterno ?? 'Paterno',
+            'apellido_materno' => '',
+            'email' => $empleado->email,
+            'usuario' => $empleado->usuario,
+            'rol_id' => RoleEnum::COCINA->value,
+            'activo' => true,
+        ], $this->authHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_venta_por_peso_no_actualiza_usuario_a_rol_caja(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::VentaPorPeso]);
+        $empleado = User::where('rol_id', RoleEnum::EMPLOYE->value)->first();
+
+        $this->putJson("/api/admin/users/{$empleado->id}", [
+            'nombre' => $empleado->nombre,
+            'apellido_paterno' => $empleado->apellido_paterno ?? 'Paterno',
+            'apellido_materno' => '',
+            'email' => $empleado->email,
+            'usuario' => $empleado->usuario,
+            'rol_id' => RoleEnum::CAJA->value,
+            'activo' => true,
+        ], $this->authHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_restaurante_si_actualiza_usuario_a_rol_cocina(): void
+    {
+        // El tenant sembrado por defecto es tipo Restaurante — confirma que el rechazo de
+        // arriba es específico de venta_por_peso/retail, no una regresión general.
+        $empleado = User::where('rol_id', RoleEnum::EMPLOYE->value)->first();
+
+        $this->putJson("/api/admin/users/{$empleado->id}", [
+            'nombre' => $empleado->nombre,
+            'apellido_paterno' => $empleado->apellido_paterno ?? 'Paterno',
+            'apellido_materno' => '',
+            'email' => $empleado->email,
+            'usuario' => $empleado->usuario,
+            'rol_id' => RoleEnum::COCINA->value,
+            'activo' => true,
+        ], $this->authHeaders())
+            ->assertStatus(200);
+    }
+
     public function test_no_crea_usuario_sin_campos_requeridos(): void
     {
         $this->postJson('/api/admin/users', [], $this->authHeaders())

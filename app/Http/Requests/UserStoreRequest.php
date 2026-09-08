@@ -18,13 +18,11 @@ class UserStoreRequest extends FormRequest
     {
         $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
 
-        // Cocina y Caja no existen como roles asignables en negocios de venta por peso —
-        // ver useUsersPage.ts en el frontend, que ya excluye estos mismos roles al crear
-        // usuarios, y RolePermissionController, que aplica la misma regla a permisos.
-        $sellByWeight = BusinessConfigModel::find($tenantId)?->tipo_negocio->features()['sell_by_weight'] ?? false;
-
+        // Cocina y Caja no existen como roles asignables en negocios de venta por peso ni en
+        // retail — ver useUsersPage.ts en el frontend, que ya excluye estos mismos roles al
+        // crear usuarios, y RolePermissionController, que aplica la misma regla a permisos.
         $allowedRoles = [RoleEnum::ADMIN->value, RoleEnum::EMPLOYE->value];
-        if (! $sellByWeight) {
+        if (! BusinessConfigModel::excludesCocinaCajaRoles($tenantId)) {
             $allowedRoles[] = RoleEnum::COCINA->value;
             $allowedRoles[] = RoleEnum::CAJA->value;
         }

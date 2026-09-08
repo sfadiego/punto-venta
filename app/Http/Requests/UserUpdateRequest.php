@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\RoleEnum;
+use App\Models\BusinessConfigModel;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -21,6 +22,17 @@ class UserUpdateRequest extends FormRequest
             ? $this->route('user')->id
             : $this->route('user');
 
+        $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+
+        // Cocina y Caja no existen como roles asignables en negocios de venta por peso ni en
+        // retail — mismo criterio que UserStoreRequest (antes esta ruta de edición no lo
+        // validaba en absoluto, dejando reasignar estos roles sin importar el tipo de negocio).
+        $allowedRoles = [RoleEnum::ADMIN->value, RoleEnum::EMPLOYE->value];
+        if (! BusinessConfigModel::excludesCocinaCajaRoles($tenantId)) {
+            $allowedRoles[] = RoleEnum::COCINA->value;
+            $allowedRoles[] = RoleEnum::CAJA->value;
+        }
+
         return [
             'nombre' => 'required|string|max:100',
             'apellido_paterno' => 'required|string|max:100',
@@ -31,12 +43,7 @@ class UserUpdateRequest extends FormRequest
             // Esta ruta solo la alcanza un Admin de tenant (gate 'role.admin'). Nunca debe
             // poder asignar SUPERADMIN — ese rol se gestiona exclusivamente desde el panel
             // SuperAdmin, fuera del contexto de un tenant.
-            'rol_id' => ['required', Rule::in([
-                RoleEnum::ADMIN->value,
-                RoleEnum::EMPLOYE->value,
-                RoleEnum::COCINA->value,
-                RoleEnum::CAJA->value,
-            ])],
+            'rol_id' => ['required', Rule::in($allowedRoles)],
             'activo' => 'required|boolean',
         ];
     }

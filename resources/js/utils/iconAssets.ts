@@ -13,6 +13,12 @@ const NON_NATIVE_KEYS = new Set([
     "1F344-200D-1F7EB", "1F34B-200D-1F7E9",
 ]);
 
+// Inverso de NON_NATIVE_KEYS: claves del catálogo sin SVG vendorizado en
+// public/images/product-icons/ — solo disponibles en el picker de emoji nativo (fuente del
+// sistema, no necesita archivo). groupOpenmojiCatalog las excluye para no mostrar una imagen
+// rota en el picker OpenMoji.
+const NATIVE_ONLY_KEYS = new Set(["1F462"]);
+
 // Convierte el hexcode del catálogo (uno o más codepoints separados por "-") al carácter
 // emoji real, para renderizarlo como texto con la fuente nativa del sistema en vez de la
 // imagen OpenMoji. Devuelve null si esa clave no tiene un emoji nativo equivalente.
@@ -78,9 +84,11 @@ const groupByCategory = (icons: IOpenmojiIcon[]): [string, IOpenmojiIcon[]][] =>
 // `search` filtra por label antes de agrupar (usado por el buscador del picker).
 export const groupOpenmojiCatalog = (search = ""): [string, IOpenmojiIcon[]][] => {
     const query = normalizeForSearch(search.trim());
-    const source = query
-        ? OPENMOJI_CATALOG.filter((icon) => normalizeForSearch(icon.label).includes(query))
-        : OPENMOJI_CATALOG;
+    const source = OPENMOJI_CATALOG.filter((icon) => {
+        if (NATIVE_ONLY_KEYS.has(icon.key)) return false;
+
+        return query ? normalizeForSearch(icon.label).includes(query) : true;
+    });
 
     return groupByCategory(source);
 };

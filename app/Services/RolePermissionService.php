@@ -40,10 +40,26 @@ class RolePermissionService
             ->get()
             ->groupBy(RolePermission::ROLE_ID);
 
+        $configuredRoles = RolePermissionConfig::where(RolePermissionConfig::TENANT_ID, $tenantId)
+            ->pluck(RolePermissionConfig::ROLE_ID)
+            ->all();
+
         $map = [];
         foreach (self::CONFIGURABLE_ROLES as $role) {
             $grants = $grantsByRole->get($role->value, new Collection);
-            $map[$role->value] = $grants->pluck('permission.key')->values()->all();
+
+            if ($grants->isNotEmpty()) {
+                $map[$role->value] = $grants->pluck('permission.key')->values()->all();
+
+                continue;
+            }
+
+            // Sin grants: puede ser "nunca configurado" (mostrar los defaults, para que el
+            // panel de Roles y permisos no aparezca todo destildado en un tenant/rol nuevo) o
+            // "Admin lo dejó en cero a propósito" (mostrar vacío) — misma distinción que ya
+            // usa grantedKeys(), aplicada aquí por tenant en vez de por el tenant_id global.
+            $configured = in_array($role->value, $configuredRoles, true);
+            $map[$role->value] = $configured ? [] : (self::DEFAULTS[$role->value] ?? []);
         }
 
         return $map;
@@ -117,14 +133,13 @@ class RolePermissionService
             return 'Este rol no es configurable.';
         }
 
-        // Cocina y Caja no existen como roles asignables en negocios de venta por peso
-        // (sin kitchen_view, sin flujo de caja separado del empleado) — ver
-        // useUsersPage.ts:24 en el frontend, que ya excluye estos roles al crear usuarios.
-        $sellByWeight = BusinessConfigModel::find($tenantId)?->tipo_negocio->features()['sell_by_weight'] ?? false;
-        $rolesSinVentaPorPeso = [RoleEnum::COCINA->value, RoleEnum::CAJA->value];
+        // Cocina y Caja no existen como roles asignables en negocios de venta por peso ni en
+        // retail — ver useUsersPage.ts en el frontend, que excluye estos roles con el mismo
+        // criterio (getExcludedRoles()).
+        $rolesSinCocinaCaja = [RoleEnum::COCINA->value, RoleEnum::CAJA->value];
 
-        if ($sellByWeight && in_array($roleId, $rolesSinVentaPorPeso, true)) {
-            return 'Este rol no está disponible para negocios de venta por peso.';
+        if (BusinessConfigModel::excludesCocinaCajaRoles($tenantId) && in_array($roleId, $rolesSinCocinaCaja, true)) {
+            return 'Este rol no está disponible para este tipo de negocio.';
         }
 
         return null;
