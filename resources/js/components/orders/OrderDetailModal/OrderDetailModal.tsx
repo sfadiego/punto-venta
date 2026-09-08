@@ -4,7 +4,7 @@ import { IOrderProduct } from "@/models/IOrderProduct";
 import { Receipt, Landmark } from "lucide-react";
 import { OrderDeliveryBadge } from "@/components/orders/OrderDeliveryBadge";
 import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatCurrency, formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { PrintTicketButton } from "@/components/orders/PrintTicket/PrintTicketButton";
 import { PaymentOrCreditBadge } from "@/components/orders/PaymentOrCreditBadge";
 import { OrderProductsList } from "./OrderProductsList";
@@ -80,7 +80,7 @@ export const OrderDetailModal = ({ isOpen, order, orderProducts, isLoadingProduc
                     <div className="bg-stone-50 rounded-2xl border border-stone-100 p-4 space-y-3">
                         <div className="flex justify-between text-sm text-stone-500">
                             <span>Subtotal</span>
-                            <span>{formatCurrency(order.subtotal)}</span>
+                            <span>{formatCurrencyTrimmed(order.subtotal)}</span>
                         </div>
                         {order.descuento > 0 && (
                             <div className="flex justify-between text-sm text-emerald-600">
@@ -90,7 +90,7 @@ export const OrderDetailModal = ({ isOpen, order, orderProducts, isLoadingProduc
                         )}
                         <div className="flex justify-between font-bold text-stone-900 text-base pt-2 border-t border-stone-200">
                             <span>Total</span>
-                            <span>{formatCurrency(order.total)}</span>
+                            <span>{formatCurrencyTrimmed(order.total)}</span>
                         </div>
                         {Number(order.costo_domicilio) !== 0 && (() => {
                             const domicilio = Number(order.costo_domicilio);
