@@ -2,7 +2,6 @@ import {
     LayoutDashboard,
     Package,
     Tag,
-    BarChart2,
     ShoppingBag,
     LucideIcon,
     ShoppingBasket,
@@ -53,5 +52,4 @@ export const navItems: NavItem[] = [
         },
     },
     { label: "Ventas", icon: ShoppingBag, path: "/sales", permission: "viewSales" },
-    { label: "Estadísticas", icon: BarChart2, path: "/statistics", permission: "viewStatistics" },
 ];

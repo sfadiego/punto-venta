@@ -238,6 +238,8 @@ class RolePermissionTest extends TestCase
 
     // Reproduce el bug reportado: un tenant retail nuevo (sin role_permission_configs)
     // debía mostrar los checks de Empleado ya marcados con los defaults, no todo vacío.
+    // 'kitchenView' queda fuera del default en retail (sin BusinessTypeEnum::features()
+    // ['kitchen_view']) — ver RolePermissionService::defaultsForTenant().
     public function test_retail_index_precarga_defaults_para_rol_nunca_configurado(): void
     {
         $admin = $this->crearAdminRetail();
@@ -246,7 +248,7 @@ class RolePermissionTest extends TestCase
             ->assertStatus(200);
 
         $this->assertEqualsCanonicalizing(
-            ['viewDashboard', 'viewOrders', 'viewProducts', 'takeOrder', 'editOrderName', 'printTicket', 'kitchenView', 'payOrder'],
+            ['viewDashboard', 'viewOrders', 'viewProducts', 'takeOrder', 'editOrderName', 'printTicket', 'payOrder'],
             $response->json('data.'.RoleEnum::EMPLOYE->value)
         );
     }
@@ -343,5 +345,26 @@ class RolePermissionTest extends TestCase
         // grant hecho en el tenant B, que no debe filtrarse.
         $this->assertNotContains('viewProviders', $response->json('data.'.RoleEnum::EMPLOYE->value));
         $this->assertContains('viewOrders', $response->json('data.'.RoleEnum::EMPLOYE->value));
+    }
+
+    // ── kitchenView fuera de negocios sin cocina ───────────────
+
+    public function test_venta_por_peso_no_precarga_kitchenview_para_empleado(): void
+    {
+        $admin = $this->crearAdminVentaPorPeso();
+
+        $response = $this->getJson('/api/admin/role-permissions', $this->authHeaders($admin))
+            ->assertStatus(200);
+
+        $this->assertNotContains('kitchenView', $response->json('data.'.RoleEnum::EMPLOYE->value));
+    }
+
+    public function test_restaurante_si_precarga_kitchenview_para_empleado(): void
+    {
+        // Tenant por defecto del seeder es tipo restaurante (kitchen_view habilitado).
+        $response = $this->getJson('/api/admin/role-permissions', $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertContains('kitchenView', $response->json('data.'.RoleEnum::EMPLOYE->value));
     }
 }

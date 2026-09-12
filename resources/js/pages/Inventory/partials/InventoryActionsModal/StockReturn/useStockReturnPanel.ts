@@ -23,13 +23,14 @@ const schema = Yup.object({
     note: Yup.string().max(255, "Máximo 255 caracteres"),
 });
 
-// Devolución de stock ligada a una línea de una orden ya cerrada. El usuario busca la orden
-// por nombre/cliente en un combobox (sin límite de sesión/fecha, ver useListClosedOrders),
-// elige la línea (order_product) a devolver e indica cuántas unidades — el backend valida que
-// no exceda lo vendido menos lo ya devuelto (permite devoluciones parciales repetidas).
-export const useStockReturnModal = () => {
+// Pestaña "Devolución" del modal de acciones de Inventario (InventoryActionsModal). Devolución
+// de stock ligada a una línea de una orden ya cerrada. El usuario busca la orden por
+// nombre/cliente en un combobox (sin límite de sesión/fecha, ver useListClosedOrders), elige
+// la línea a devolver e indica cuántas unidades — el backend valida que no exceda lo vendido
+// menos lo ya devuelto (permite devoluciones parciales repetidas). Sin isOpen/openModal/
+// closeModal propios — el modal que lo contiene decide qué pestaña se muestra.
+export const useStockReturnPanel = () => {
     const queryClient = useQueryClient();
-    const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState("");
     const [debouncedQuery, setDebouncedQuery] = useState("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -41,16 +42,25 @@ export const useStockReturnModal = () => {
         return () => clearTimeout(timer);
     }, [query]);
 
-    const { data: suggestionsData } = useListClosedOrders(debouncedQuery, isOpen);
+    const { data: suggestionsData } = useListClosedOrders(debouncedQuery, isDropdownOpen);
     const suggestions = suggestionsData ?? [];
 
-    const { data: order, isLoading: isLoadingOrder } = useShowOrder(orderId ?? 0, isOpen && !!orderId);
+    const { data: order, isLoading: isLoadingOrder } = useShowOrder(orderId ?? 0);
     const { mutateAsync: returnStock } = useReturnOrderProduct();
 
     const lines = (order?.order_products ?? []).filter((op) => !!op.producto_id);
     const isOrderClosed = order?.estatus_pedido_id === OrderStatusEnum.Closed;
     const selectedLine = lines.find((op) => op.id === orderProductId) ?? null;
     const canSubmit = !!order && isOrderClosed && !!selectedLine;
+
+    const reset = () => {
+        formik.resetForm();
+        setQuery("");
+        setDebouncedQuery("");
+        setIsDropdownOpen(false);
+        setOrderId(null);
+        setOrderProductId(null);
+    };
 
     const formik = useFormik<StockReturnForm>({
         enableReinitialize: true,
@@ -70,11 +80,18 @@ export const useStockReturnModal = () => {
                 });
                 queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
                 queryClient.invalidateQueries({ queryKey: [ApiRoutes.Kardex] });
+                queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
+                // useShowOrder cachea con la key exacta "order/{id}" — sin esto, una segunda
+                // devolución parcial sobre la misma orden (dentro del staleTime de 2 min) ve
+                // las líneas con la cantidad ya devuelta desactualizada.
+                queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${order.id}`] });
                 toast.success(`Devolución registrada para "${selectedLine.product?.nombre}"`);
                 helpers.resetForm();
-                closeModal();
+                setQuery("");
+                setOrderId(null);
+                setOrderProductId(null);
             } catch (error) {
-                logUnexpectedError(error, "useStockReturnModal.onSubmit");
+                logUnexpectedError(error, "useStockReturnPanel.onSubmit");
                 toast.error(getUserFacingErrorMessage(error, "Error al registrar la devolución"));
             }
         },
@@ -95,20 +112,7 @@ export const useStockReturnModal = () => {
         setIsDropdownOpen(false);
     };
 
-    const openModal = () => setIsOpen(true);
-
-    const closeModal = () => {
-        formik.resetForm();
-        setIsOpen(false);
-        setQuery("");
-        setDebouncedQuery("");
-        setIsDropdownOpen(false);
-        setOrderId(null);
-        setOrderProductId(null);
-    };
-
     return {
-        isOpen,
         query,
         handleQueryChange,
         suggestions,
@@ -124,7 +128,6 @@ export const useStockReturnModal = () => {
         selectedLine,
         canSubmit,
         formik,
-        openModal,
-        closeModal,
+        reset,
     };
 };

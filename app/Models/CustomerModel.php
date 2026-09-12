@@ -58,4 +58,10 @@ class CustomerModel extends Model
         return $this->hasMany(CustomerPaymentModel::class, 'customer_id')
             ->orderByDesc('created_at');
     }
+
+    public function charges(): HasMany
+    {
+        return $this->hasMany(CustomerChargeModel::class, 'customer_id')
+            ->orderByDesc('created_at');
+    }
 }
