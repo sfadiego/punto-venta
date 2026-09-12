@@ -18,6 +18,7 @@ Route::prefix('customer')->group(function () {
                 Route::delete('', 'delete');
                 Route::patch('toggle-credit', 'toggleCredit');
                 Route::post('payment', 'registerPayment');
+                Route::post('charge', 'registerCharge');
             });
         });
     });

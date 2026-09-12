@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductImageController;
+use App\Http\Controllers\ProductImportController;
 use App\Http\Controllers\ProductVariantController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,4 +43,15 @@ Route::prefix('product')->group(function () {
     // "permission:xxx,yyy": dos flujos de UI legítimos que llegan al mismo endpoint.
     Route::middleware('permission:viewProducts,manageStock')
         ->post('{product}/stock-adjustment', [ProductController::class, 'stockAdjustment']);
+
+    // Importación masiva de productos (CSV) — módulo de Inventario, exclusivo de negocios
+    // retail (ver RetailStockMiddleware). Prefijo /import antes del grupo {product} para no
+    // colisionar con el route-model-binding de show/update/delete.
+    Route::middleware(['permission:manageStock', 'retail.stock'])->prefix('import')->group(function () {
+        Route::controller(ProductImportController::class)->group(function () {
+            Route::post('preview', 'preview');
+            Route::post('commit', 'commit');
+            Route::get('template', 'template');
+        });
+    });
 });

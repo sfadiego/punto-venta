@@ -2,6 +2,7 @@
 
 namespace Tests\Security;
 
+use App\Enums\BusinessTypeEnum;
 use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
 use App\Enums\RoleEnum;
@@ -172,6 +173,23 @@ class OrderProductAuthorizationTest extends TestCase
         $item = $this->crearItemDeOrden($orden);
 
         $this->patchJson("/api/order/{$orden->id}/product/{$item->id}/ready", [], $this->authHeaders($caja))
+            ->assertStatus(403);
+    }
+
+    // Un tenant retail no tiene cocina (BusinessTypeEnum::Retail->features()['kitchen_view']
+    // === false) — 'kitchenView' no debe colarse en el default de Employe solo porque el rol
+    // nunca fue configurado explícitamente (ver RolePermissionService::defaultsForTenant()).
+    public function test_empleado_retail_sin_configurar_no_puede_marcar_producto_listo(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Retail->value,
+            BusinessConfigModel::STOCK_ENABLED => true,
+        ]);
+        $empleado = $this->crearUsuario(RoleEnum::EMPLOYE);
+        $orden = $this->crearOrden();
+        $item = $this->crearItemDeOrden($orden);
+
+        $this->patchJson("/api/order/{$orden->id}/product/{$item->id}/ready", [], $this->authHeaders($empleado))
             ->assertStatus(403);
     }
 

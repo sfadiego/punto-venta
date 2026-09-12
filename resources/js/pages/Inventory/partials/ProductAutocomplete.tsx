@@ -13,7 +13,7 @@ interface ProductAutocompleteProps {
     placeholder?: string;
     className?: string;
     /** true = el desplegable empuja el contenido en vez de flotar encima (usarlo dentro de un
-     * modal con overflow-hidden, ej. StockAdjustmentModal, para que las opciones no se
+     * modal con overflow-hidden, ej. StockAdjustmentPanel, para que las opciones no se
      * recorten ni se salgan de la tarjeta). Default false = flota sobre el contenido (uso en
      * la barra de filtros del Kardex, donde no hay overflow-hidden estorbando). */
     inline?: boolean;
@@ -22,8 +22,8 @@ interface ProductAutocompleteProps {
 // Combobox de un solo input: escribir filtra productos, las coincidencias aparecen
 // desplegadas debajo y se seleccionan ahí mismo — evita tener un input de búsqueda y un
 // <select> separados para lo mismo. Mismo patrón que AddressAutocomplete. Se usa tanto para
-// elegir el producto a reajustar (StockAdjustmentModal) como para filtrar el kardex por
-// producto (InventoryPage).
+// elegir el producto a reajustar (InventoryActionsModal/StockAdjustment) como para filtrar
+// el kardex por producto (InventoryPage).
 export const ProductAutocomplete = ({
     value,
     onChange,

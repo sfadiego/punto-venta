@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,9 +11,17 @@ import {
     useShowCustomer,
     useToggleCustomerCredit,
     useRegisterCustomerPayment,
+    useRegisterCustomerCharge,
 } from "@/services/useCustomerService";
 
 export type PaymentForm = {
+    amount: string;
+    note: string;
+};
+
+// Mismo shape que PaymentForm — el cargo es el movimiento inverso al pago (suma al balance
+// en vez de restar), sin cota superior (un cargo no está limitado por el balance actual).
+export type ChargeForm = {
     amount: string;
     note: string;
 };
@@ -25,11 +34,20 @@ const paymentSchema = Yup.object({
     note: Yup.string().max(500, "Máximo 500 caracteres"),
 });
 
+const chargeSchema = Yup.object({
+    amount: Yup.number()
+        .typeError("Ingresa un monto válido")
+        .required("Ingresa un monto")
+        .min(0.01, "Debe ser mayor a 0"),
+    note: Yup.string().max(500, "Máximo 500 caracteres"),
+});
+
 export const useCustomerDetailPage = (customerId: number) => {
     const queryClient = useQueryClient();
     const { data: customer, isLoading } = useShowCustomer(customerId);
     const toggleCreditMutation = useToggleCustomerCredit(customerId);
     const paymentMutation = useRegisterCustomerPayment(customerId);
+    const chargeMutation = useRegisterCustomerCharge(customerId);
 
     const invalidate = () => {
         queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/${customerId}`] });
@@ -95,12 +113,51 @@ export const useCustomerDetailPage = (customerId: number) => {
         paymentFormik.setFieldValue("amount", String(customer.balance));
     };
 
+    const [isChargeModalOpen, setIsChargeModalOpen] = useState(false);
+
+    const chargeFormik = useFormik<ChargeForm>({
+        initialValues: { amount: "", note: "" },
+        validationSchema: chargeSchema,
+        onSubmit: async (values, helpers) => {
+            try {
+                await chargeMutation.mutateAsync({
+                    amount: Number(values.amount),
+                    note: values.note.trim() || undefined,
+                });
+                invalidate();
+                toast.success("Cargo agregado correctamente");
+                helpers.resetForm();
+                setIsChargeModalOpen(false);
+            } catch (error) {
+                const fieldErrors = getFieldErrors(error);
+
+                if (fieldErrors) {
+                    helpers.setErrors(fieldErrors);
+                } else {
+                    logUnexpectedError(error, "useCustomerDetailPage.handleRegisterCharge");
+                    toast.error(getUserFacingErrorMessage(error, "No se pudo agregar el cargo"));
+                }
+            }
+        },
+    });
+
+    const openChargeModal = () => setIsChargeModalOpen(true);
+    const closeChargeModal = () => {
+        setIsChargeModalOpen(false);
+        chargeFormik.resetForm();
+    };
+
     return {
         customer,
         isLoading,
         paymentFormik,
         handleLiquidarTodo,
         isPaying: paymentMutation.isPending,
+        chargeFormik,
+        isCharging: chargeMutation.isPending,
+        isChargeModalOpen,
+        openChargeModal,
+        closeChargeModal,
         handleToggleCredit,
         isTogglingCredit: toggleCreditMutation.isPending,
     };
