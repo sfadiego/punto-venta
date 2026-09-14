@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
+use App\Models\CustomerModel;
 use App\Models\ErrorReporting;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -114,6 +115,42 @@ class BackendErrorMiddlewareTest extends TestCase
 
         $after = ErrorReporting::where('status_code', 400)->count();
         $this->assertEquals($before, $after, 'Los errores 400 no deben guardarse');
+    }
+
+    public function test_middleware_no_guarda_errores_404(): void
+    {
+        // 404 es ruido esperado (ID inválido, recurso ya borrado) — no debe llenar el panel
+        // de logs de errores reales que un admin necesita revisar.
+        $before = ErrorReporting::where('status_code', 404)->count();
+
+        $this->getJson('/api/customer/999999999', $this->authHeaders())
+            ->assertStatus(404);
+
+        $after = ErrorReporting::where('status_code', 404)->count();
+        $this->assertEquals($before, $after, 'Los errores 404 no deben guardarse');
+    }
+
+    public function test_middleware_sigue_guardando_errores_403(): void
+    {
+        // Guardia de no-regresión: la exclusión es específica de 404 — otros status >400
+        // (403, 422, 500) deben seguir persistiéndose igual que antes.
+        $tenant = BusinessConfigModel::first();
+        $employe = User::factory()->create([
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
+            User::TENANT_ID => $tenant->id,
+        ]);
+        $customer = CustomerModel::create([
+            CustomerModel::NAME => 'Cliente prueba middleware',
+            CustomerModel::TENANT_ID => $tenant->id,
+        ]);
+
+        $before = ErrorReporting::where('status_code', 403)->count();
+
+        $this->postJson("/api/customer/{$customer->id}/charge", ['amount' => 10], $this->authHeaders($employe))
+            ->assertStatus(403);
+
+        $after = ErrorReporting::where('status_code', 403)->count();
+        $this->assertEquals($before + 1, $after, 'Los errores 403 deben seguir guardándose');
     }
 
     public function test_middleware_no_captura_401_porque_auth_tiene_prioridad(): void
