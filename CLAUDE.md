@@ -418,6 +418,20 @@ const toggle = async (id: number) => {
 
 `useRef` actúa como guard síncrono (sin esperar re-render); `useState` actualiza la UI. Implementado en `useOrderPreviewModal` y `useTakeOrder`.
 
+### Layouts responsivos con componentes con estado
+
+**Nunca dupliques el JSX de un componente con estado/fetching propio en dos contenedores `hidden lg:.../lg:hidden` (o `md:`/`sm:` equivalentes) para simular "layout mobile vs desktop".** Las clases `hidden`/`lg:hidden` de Tailwind solo aplican `display:none` — no desmontan el componente. Si el mismo `<Componente />` aparece en dos posiciones del árbol (aunque sea la misma variable JSX reutilizada), React monta **dos instancias reales**, cada una con su propio estado de hooks (`useState`, queries, debounce, paginación) — completamente desincronizadas entre sí. Bug real que causó esto: `TakeOrderPage.tsx` renderizaba `<ProductGrid />` una vez para el layout desktop (`hidden lg:flex`) y otra para el layout mobile (`lg:hidden`); cada instancia tenía su propia búsqueda/categoría activa (estado interno de `useProductGrid`), así que cambiar el ancho de la ventana mostraba una categoría de producto distinta a la que el usuario había elegido, además de duplicar peticiones de productos cuando ambos estados divergían.
+
+- Si el componente **no tiene estado propio ni hace fetching** (un header, una barra de tabs, un texto que se oculta en mobile), renderizarlo dos veces con `hidden`/`lg:hidden` es seguro — es solo CSS, sin costo de estado duplicado (ver `QuickSaleHeader.tsx`).
+- Si el componente **sí tiene estado propio o hace fetching** (listas con filtros, grids con paginación/búsqueda, carritos), móntalo **una sola vez** y reposiciónalo con CSS en el contenedor que lo envuelve — patrón ya aplicado en `QuickSaleContent.tsx` y `TakeOrderPage.tsx`:
+  ```tsx
+  const productGrid = <ProductGrid ... />;   // una sola instancia
+
+  <div className={`... ${showProducts ? "" : "hidden lg:block"}`}>{productGrid}</div>
+  <div className={`... ${showProducts ? "hidden lg:flex" : ""}`}>{cartPanel}</div>
+  ```
+  Para el wrapper de pantalla completa en mobile, usar `fixed inset-0 z-10 ... lg:static lg:z-auto` en vez de dos `<div>` raíz separados (uno `hidden lg:flex`, otro `lg:hidden fixed inset-0`) — mismo componente, misma instancia, solo cambia su posicionamiento en el viewport.
+
 ### Estilos
 - Tailwind CSS + CSS variables del proyecto (`resources/css/`). No inventar colores fuera del design system.
 - No usar `style={{}}` inline; usar clases Tailwind.

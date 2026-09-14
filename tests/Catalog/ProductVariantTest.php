@@ -192,8 +192,11 @@ class ProductVariantTest extends TestCase
         // el producto base no lleva su propio stock cuando la existencia vive en variantes.
         $this->assertEquals(0, (float) $product->fresh()->stock);
 
+        // Variante nueva → tipo Entrada (StockService::restore()), no Ajuste: es la
+        // recepción real de stock de una variante que recién se crea, no una corrección.
         $this->assertDatabaseHas('stock_movements', [
             'product_id' => $product->id,
+            'type' => 'entry',
             'reason' => 'initial_stock',
             'quantity' => 5,
         ]);

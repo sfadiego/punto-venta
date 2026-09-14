@@ -72,9 +72,11 @@ class ProductStockTest extends TestCase
 
         $productId = $response->json('data.id');
 
+        // Producto nuevo → tipo Entrada (StockService::restore()), no Ajuste: es la
+        // recepción real de stock de un producto que recién se crea, no una corrección.
         $this->assertDatabaseHas('stock_movements', [
             'product_id' => $productId,
-            'type' => StockMovementTypeEnum::Adjustment->value,
+            'type' => StockMovementTypeEnum::Entry->value,
             'reason' => StockMovementReasonEnum::InitialStock->value,
             'quantity' => 100,
             'stock_before' => 0,

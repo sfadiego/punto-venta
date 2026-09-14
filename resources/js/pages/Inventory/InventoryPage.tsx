@@ -159,9 +159,11 @@ export default function InventoryPage() {
                     <div className="w-full sm:w-48">
                         <SelectStockMovementType value={type} onChange={setType} />
                     </div>
-                    <div className="w-full sm:w-48">
-                        <SelectStockMovementReason value={reason} onChange={setReason} />
-                    </div>
+                    {type && (
+                        <div className="w-full sm:w-48">
+                            <SelectStockMovementReason value={reason} onChange={setReason} type={type} />
+                        </div>
+                    )}
                     <div className="w-full sm:w-40">
                         <Input
                             name="fecha_desde"

@@ -56,14 +56,16 @@ class ProductController extends Controller
         ]);
 
         // la existencia inicial se registra como movimiento (no como valor directo
-        // del INSERT) para que quede auditada en el kardex desde el día uno.
+        // del INSERT) para que quede auditada en el kardex desde el día uno. Vía
+        // restore() (tipo Entrada) y no adjust() (tipo Ajuste): es la recepción real de
+        // stock de un producto nuevo, no una corrección administrativa.
         $initialStock = (float) ($param->stock ?? 0);
         if ($manageStock && $initialStock > 0) {
-            $stockService->adjust(
+            $stockService->restore(
                 productId: $product->id,
-                delta: $initialStock,
-                note: 'Carga inicial de stock',
+                quantity: $initialStock,
                 reason: StockMovementReasonEnum::InitialStock,
+                note: 'Carga inicial de stock',
             );
         }
 
