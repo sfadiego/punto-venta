@@ -28,7 +28,10 @@ class ErrorReporting
             ]);
         }
 
-        if ($status > 400) {
+        // 404 se excluye a propósito: no-encontrado es ruido esperado (IDs inválidos,
+        // recursos ya borrados, escaneo de rutas), no una falla real que un admin deba
+        // revisar en el panel de logs — a diferencia de 401/403/422/500, que sí son señal.
+        if ($status > 400 && $status !== 404) {
             try {
                 $errorMessage = $exception?->getMessage();
                 if ($errorMessage === null && method_exists($response, 'getContent')) {

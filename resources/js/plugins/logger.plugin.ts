@@ -65,7 +65,9 @@ const sendToApi = (payload: ApiLogPayload): void => {
     });
 };
 
-const SKIPPED_STATUSES = new Set([401, 403]);
+// 404 se excluye igual que en el middleware backend (ErrorReporting.php): es ruido esperado
+// (recurso ya borrado, ID inválido), no una falla real que deba llenar el panel de logs.
+const SKIPPED_STATUSES = new Set([401, 403, 404]);
 
 const isHandledError = (error: unknown): boolean => {
     if (!axios.isAxiosError(error)) return false;
