@@ -94,7 +94,16 @@ class OrderController extends Controller
     public function delete(OrderModel $order): JsonResponse
     {
         // El stock solo se descuenta al cerrar la orden (ver update()) — una orden InProcess/
-        // Served nunca lo tocó, así que cancelarla aquí no necesita restaurar nada.
+        // Served nunca lo tocó, así que cancelarla aquí no necesita restaurar nada. Una orden
+        // Closed sí lo tocó — borrarla aquí dejaría el stock descontado sin ningún movimiento de
+        // reversión (corrompe el Kardex en silencio). El frontend ya oculta el botón para
+        // Closed/Served (OrderActionGroup.tsx), pero eso no protege una request directa a la
+        // API — el guard real tiene que vivir aquí. Para cancelar una venta ya cerrada existe
+        // Devolución (OrderProductController::returnStock), que sí restaura stock con auditoría.
+        if ($order->estatus_pedido_id === OrderStatusEnum::CLOSED->value) {
+            return Response::error('No se puede eliminar una orden ya cerrada. Usa Devolución para revertir productos vendidos.');
+        }
+
         $order->orderProducts()->delete();
 
         return Response::success($order->delete());

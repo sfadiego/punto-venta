@@ -300,6 +300,39 @@ class OrderProductAuthorizationTest extends TestCase
             ->assertStatus(200);
     }
 
+    // Una orden Closed ya descontó stock al cerrarse — borrarla dejaría ese descuento sin
+    // ningún movimiento de reversión (Kardex corrupto). El botón ya está oculto en el
+    // frontend para Closed/Served, pero el guard real debe vivir en el backend.
+    public function test_admin_no_puede_borrar_una_orden_ya_cerrada(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
+
+        $this->deleteJson("/api/order/{$orden->id}", [], $this->authHeaders())
+            ->assertStatus(422);
+
+        $this->assertDatabaseHas('order', ['id' => $orden->id, 'estatus_pedido_id' => OrderStatusEnum::CLOSED->value]);
+    }
+
+    public function test_admin_si_puede_borrar_una_orden_en_proceso(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::IN_PROCESS->value);
+
+        $this->deleteJson("/api/order/{$orden->id}", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertSoftDeleted('order', ['id' => $orden->id]);
+    }
+
+    public function test_admin_si_puede_borrar_una_orden_servida(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::SERVED->value);
+
+        $this->deleteJson("/api/order/{$orden->id}", [], $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertSoftDeleted('order', ['id' => $orden->id]);
+    }
+
     // ── Reportes — permission:viewSales / viewCloseSales ────────
 
     public function test_empleado_no_ve_reporte_de_ventas_por_categoria(): void
