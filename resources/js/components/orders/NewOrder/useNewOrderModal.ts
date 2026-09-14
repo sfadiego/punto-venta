@@ -20,16 +20,14 @@ export const useNewOrderModal = () => {
     // kitchen_view distingue servicio en mesa (Restaurante) de venta de mostrador (Retail) —
     // ambos comparten sell_by_weight=false, así que no sirve para esta distinción.
     const kitchenView = features?.kitchen_view === true;
-    // Retail no necesita nombrar la venta — se autogenera un folio (mismo criterio que ya usa
-    // QuickSale para venta por peso, ver resolveSaleName) en vez de pedirlo en el modal.
+    // Retail no muestra el campo — siempre se autogenera un folio (ver NewOrderModal.tsx).
     const isRetail = features?.is_retail === true;
 
+    // El nombre es opcional para cualquier tipo de negocio: si se deja vacío se autogenera un
+    // folio (mismo criterio que ya usaba retail y que QuickSale usa para venta por peso, ver
+    // resolveSaleName) en vez de bloquear la creación de la orden pidiéndolo obligatorio.
     const schema = Yup.object({
-        nombre_pedido: isRetail
-            ? Yup.string().trim().max(255, "Máximo 255 caracteres")
-            : Yup.string().trim()
-                  .required(kitchenView ? "El nombre de la mesa es requerido" : "El nombre de la venta es requerido")
-                  .max(255, "Máximo 255 caracteres"),
+        nombre_pedido: Yup.string().trim().max(255, "Máximo 255 caracteres"),
     });
 
     const formik = useFormik<NewOrderForm>({
@@ -37,7 +35,7 @@ export const useNewOrderModal = () => {
         validationSchema: schema,
         onSubmit: async (values, helpers) => {
             const response = await storeOrder({
-                nombre_pedido: isRetail ? resolveSaleName(values.nombre_pedido) : values.nombre_pedido.trim(),
+                nombre_pedido: resolveSaleName(values.nombre_pedido),
                 total: 0,
                 subtotal: 0,
                 descuento: 0,

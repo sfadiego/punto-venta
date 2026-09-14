@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { StockMovementTypeEnum } from "@/enums/StockMovementTypeEnum";
 import { StockMovementReasonEnum } from "@/enums/StockMovementReasonEnum";
+import { REASONS_BY_TYPE } from "@/utils/stockMovementFilters";
 import { useIndexKardex } from "@/services/useKardexService";
 import { useKardexProductFilter } from "./useKardexProductFilter";
 
@@ -30,8 +31,18 @@ export const useInventoryPage = () => {
         fechaHasta: fechaHasta || undefined,
     });
 
+    // Tipo y razón no son independientes (ver utils/stockMovementFilters.ts) — cada setter
+    // sincroniza al otro filtro para que nunca queden en una combinación imposible (ej.
+    // Tipo=Entrada + Razón=Venta, que solo devolvería una tabla vacía sin explicar por qué).
     const setType = (value: string) => {
-        setTypeState(value as StockMovementTypeEnum | "");
+        const nextType = value as StockMovementTypeEnum | "";
+        setTypeState(nextType);
+        // El selector de razón se oculta sin un tipo elegido (ver InventoryPage.tsx) — al
+        // limpiar el tipo, o al cambiarlo a uno que ya no admite la razón actual, la razón
+        // también se limpia para no dejar un filtro invisible pero todavía aplicado.
+        if (!nextType || (reason && !REASONS_BY_TYPE[nextType].includes(reason))) {
+            setReasonState("");
+        }
         setPage(1);
     };
 

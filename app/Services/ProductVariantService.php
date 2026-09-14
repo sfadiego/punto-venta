@@ -28,16 +28,18 @@ class ProductVariantService
         ]);
 
         // la existencia inicial se registra como movimiento (no como valor directo del
-        // INSERT) para que quede auditada en el kardex desde el día uno.
+        // INSERT) para que quede auditada en el kardex desde el día uno. Vía restore()
+        // (tipo Entrada) — misma razón que ProductController::store(): es una variante
+        // nueva, no una corrección sobre una ya existente.
         $initialStock = (float) ($params->stock ?? 0);
         if ($manageStock && $initialStock > 0) {
-            $stockService->adjust(
+            $stockService->restore(
                 productId: $product->id,
                 variantId: $variant->id,
-                delta: $initialStock,
-                note: 'Carga inicial de stock',
-                createdBy: auth()->id(),
+                quantity: $initialStock,
                 reason: StockMovementReasonEnum::InitialStock,
+                createdBy: auth()->id(),
+                note: 'Carga inicial de stock',
             );
             $variant->refresh();
         }

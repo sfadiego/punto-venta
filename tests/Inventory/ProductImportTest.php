@@ -246,6 +246,9 @@ class ProductImportTest extends TestCase
 
         $movement = StockMovementModel::where(StockMovementModel::PRODUCT_ID, $product->id)->firstOrFail();
         $this->assertSame(StockMovementReasonEnum::InitialStock, $movement->reason);
+        // Producto nuevo creado por import → tipo Entrada (StockService::restore()), no
+        // Ajuste: es la recepción real de stock, no una corrección administrativa.
+        $this->assertSame(StockMovementTypeEnum::Entry, $movement->type);
         $this->assertEquals(10, $movement->quantity);
     }
 

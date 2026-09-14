@@ -352,15 +352,16 @@ class ProductImportService
                 ]);
 
                 // igual que ProductController::store(): la existencia inicial se registra
-                // como movimiento auditado, nunca como valor directo del INSERT.
+                // como movimiento auditado, nunca como valor directo del INSERT. Vía
+                // restore() (tipo Entrada): es un producto nuevo, no una corrección.
                 $initialStock = (float) ($data['stock'] ?? 0);
                 if ($data['manage_stock'] && $initialStock > 0) {
-                    $this->stockService->adjust(
+                    $this->stockService->restore(
                         productId: $product->id,
-                        delta: $initialStock,
-                        note: 'Importación masiva',
-                        createdBy: $createdBy,
+                        quantity: $initialStock,
                         reason: StockMovementReasonEnum::InitialStock,
+                        createdBy: $createdBy,
+                        note: 'Importación masiva',
                     );
                 }
 

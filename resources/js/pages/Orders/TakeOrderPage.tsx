@@ -62,8 +62,13 @@ export default function TakeOrderPage() {
         return <TakeOrderSkeleton />;
     }
 
-    // Mismas props para ambas instancias de ProductGrid/CartPanel (desktop y mobile renderizan
-    // el mismo contenido, solo cambia el layout que las envuelve) — evita mantener 2 copias.
+    // ProductGrid/CartPanel se montan UNA sola vez cada uno y se comparten entre el layout
+    // desktop y mobile reposicionándolos con CSS (ver bloque de abajo) — nunca dupliques este
+    // JSX en dos contenedores "hidden lg:.../lg:hidden": ambos quedan montados a la vez (hidden
+    // solo hace display:none, no desmonta), así que cada uno termina con su propio estado de
+    // hooks (búsqueda, categoría activa, paginación) desincronizado del otro. Ver regla en
+    // CLAUDE.md "Layouts responsivos con estado" y el bug real que esto causaba: cambiar de
+    // ancho de ventana mostraba una categoría de producto distinta a la que se había elegido.
     const productGrid = (
         <ProductGrid
             cart={cart}
@@ -102,46 +107,50 @@ export default function TakeOrderPage() {
         />
     );
 
+    const showProducts = mobileTab === TakeOrderMobileTabEnum.Products;
+
     return (
         <div className="flex flex-col h-full">
-            {/* Desktop */}
-            <div className="hidden lg:flex flex-col h-full overflow-hidden">
-                <TakeOrderHeader
-                    title={order?.nombre_pedido ?? "Tomar pedido"}
-                    isReadOnly={isReadOnly}
-                    onBack={handleBack}
-                    onAddExtra={openExtra}
-                    onMenuClick={toggleSidebar}
-                    showAddExtra={showAddExtra}
-                />
+            {/* Layout único y responsivo: overlay de pantalla completa en mobile, en flujo
+                normal desde lg — mismo patrón que QuickSaleContent.tsx. */}
+            <div className="fixed inset-0 z-10 flex flex-col h-full overflow-hidden bg-stone-50 lg:static lg:z-auto">
+                <div className="hidden lg:block">
+                    <TakeOrderHeader
+                        title={order?.nombre_pedido ?? "Tomar pedido"}
+                        isReadOnly={isReadOnly}
+                        onBack={handleBack}
+                        onAddExtra={openExtra}
+                        onMenuClick={toggleSidebar}
+                        showAddExtra={showAddExtra}
+                    />
+                </div>
+                <div className="lg:hidden">
+                    <TakeOrderHeader
+                        title={order?.nombre_pedido ?? "Tomar pedido"}
+                        isReadOnly={isReadOnly}
+                        onBack={handleBack}
+                        onAddExtra={openExtra}
+                        showAddExtra={showAddExtra}
+                        compact
+                    />
+                </div>
+
                 <div className="flex flex-1 overflow-hidden">
-                    <div className="flex-1 overflow-hidden bg-stone-50 border-r border-stone-200">
+                    <div className={`flex-1 overflow-hidden bg-stone-50 lg:border-r lg:border-stone-200 ${showProducts ? "" : "hidden lg:block"}`}>
                         {productGrid}
                     </div>
-                    <div className="w-80 xl:w-96 flex-shrink-0 overflow-hidden flex flex-col">
+                    <div className={`w-full lg:w-80 xl:w-96 flex-shrink-0 overflow-hidden flex flex-col ${showProducts ? "hidden lg:flex" : ""}`}>
                         {cartPanel}
                     </div>
                 </div>
-            </div>
 
-            {/* Mobile — overlay de pantalla completa independiente del layout padre */}
-            <div className="lg:hidden fixed inset-0 z-10 flex flex-col bg-stone-50">
-                <TakeOrderHeader
-                    title={order?.nombre_pedido ?? "Tomar pedido"}
-                    isReadOnly={isReadOnly}
-                    onBack={handleBack}
-                    onAddExtra={openExtra}
-                    showAddExtra={showAddExtra}
-                    compact
-                />
-                <div className="flex-1 overflow-y-auto">
-                    {mobileTab === TakeOrderMobileTabEnum.Products ? productGrid : cartPanel}
+                <div className="lg:hidden">
+                    <TakeOrderMobileTabBar
+                        activeTab={mobileTab}
+                        cartCount={cartCount}
+                        onTabChange={setMobileTab}
+                    />
                 </div>
-                <TakeOrderMobileTabBar
-                    activeTab={mobileTab}
-                    cartCount={cartCount}
-                    onTabChange={setMobileTab}
-                />
             </div>
 
             <AddExtraModal isOpen={extraOpen} formik={extraFormik} onClose={closeExtra} />

@@ -41,7 +41,8 @@ export const NewOrderModal = ({ isOpen, isPending, formik, kitchenView, isRetail
                 <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
                     {/* Retail no necesita nombrar la venta — se autogenera un folio al crear la
                         orden (ver useNewOrderModal/resolveSaleName), así que el campo ni se
-                        muestra en vez de pedirlo como opcional. */}
+                        muestra. Para el resto de negocios el campo es opcional: si se deja
+                        vacío también se autogenera un folio (mismo resolveSaleName). */}
                     {isRetail ? (
                         <p className="text-xs text-stone-400">
                             Se generará un folio automático para esta venta.
