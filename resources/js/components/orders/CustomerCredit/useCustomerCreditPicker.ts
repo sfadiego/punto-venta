@@ -39,6 +39,16 @@ export const useCustomerCreditPicker = ({ customers, onSelect }: UseCustomerCred
         ? customers.find((c) => c.phone && normalizePhone(c.phone) === normalizePhone(phoneRaw)) ?? null
         : null;
 
+    const nameRaw = newName.trim();
+    const existingByName = nameRaw
+        ? customers.find((c) => c.name.trim().toLowerCase() === nameRaw.toLowerCase()) ?? null
+        : null;
+    // Si el teléfono ya coincidió con un cliente, el nombre coincidiendo con ese MISMO
+    // cliente no es un conflicto — es el flujo esperado (el useEffect de abajo autocompleta
+    // el nombre). Solo es un duplicado real si el nombre coincide con OTRO cliente distinto.
+    const nameConflict = existingByName && existingByName.id !== existingByPhone?.id ? existingByName : null;
+    const nameError = nameConflict ? `Ya existe un cliente con el nombre "${nameConflict.name}".` : null;
+
     useEffect(() => {
         if (existingByPhone) setNewName(existingByPhone.name);
     }, [existingByPhone]);
@@ -49,11 +59,7 @@ export const useCustomerCreditPicker = ({ customers, onSelect }: UseCustomerCred
             return;
         }
 
-        if (!newPhone.trim()) {
-            toast.error("Ingresa el teléfono del nuevo cliente");
-            return;
-        }
-        if (phoneError) return;
+        if (phoneError || nameConflict) return;
         if (existingByPhone) {
             onSelect(existingByPhone.id);
             setShowNewForm(false);
@@ -96,6 +102,7 @@ export const useCustomerCreditPicker = ({ customers, onSelect }: UseCustomerCred
         isCreating,
         existingByPhone,
         phoneError,
+        nameError,
         handleCreate,
     };
 };

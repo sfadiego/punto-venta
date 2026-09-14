@@ -20,6 +20,15 @@ export const useSidebarNav = () => {
     // manageStock ya está gateado por features.is_retail en isActionApplicable (permissionUtils.ts)
     // — acá solo falta combinar con la config del tenant (stock_enabled).
     const inventoryEnabled = can("manageStock") && config?.stock_enabled === true;
+    const statisticsEnabled = can("viewStatistics");
+    const usersEnabled = can("viewUsers");
+    const adminEnabled = can("viewAdmin");
+    // Estadísticas/Usuarios/Configuración viven agrupadas bajo el dropdown "General" del
+    // sidebar — se muestra si al menos una aplica para este rol/tenant. Inventario NO entra
+    // aquí: es una pantalla operativa de uso diario en retail (Kardex, reajustes,
+    // devoluciones), no una opción administrativa de consulta esporádica — vive junto a
+    // Clientes en la lista principal (ver SidebarNav.tsx).
+    const hasConfigSection = statisticsEnabled || usersEnabled || adminEnabled;
 
     // "Pedidos" aplica a venta por peso y Retail (ambos sin kitchen_view); "Órdenes" solo a
     // Restaurante (servicio en mesa). No usar sellByWeight aquí: Retail comparte sellByWeight=false
@@ -30,8 +39,7 @@ export const useSidebarNav = () => {
             item.path === "/orders" && !kitchenView ? { ...item, label: "Pedidos" } : item,
         );
 
-    const hasFooterSection =
-        can("viewUsers") || can("viewAdmin") || customersEnabled || providersEnabled || employeesEnabled || inventoryEnabled;
+    const hasFooterSection = providersEnabled || employeesEnabled || hasConfigSection;
 
     return {
         can,
@@ -40,6 +48,10 @@ export const useSidebarNav = () => {
         employeesEnabled,
         customersEnabled,
         inventoryEnabled,
+        statisticsEnabled,
+        usersEnabled,
+        adminEnabled,
+        hasConfigSection,
         hasFooterSection,
     };
 };

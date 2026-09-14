@@ -1,5 +1,5 @@
 import { axiosGET, useDELETE, useGET, usePATCH, usePOST, usePUT } from "@/hooks/useApi";
-import { ICustomer, ICustomerDetail, ICustomerPayment } from "@/models/ICustomer";
+import { ICustomer, ICustomerCharge, ICustomerDetail, ICustomerPayment } from "@/models/ICustomer";
 import { IPaginate } from "@/intefaces/IPaginate";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { QueryClient, useQuery } from "@tanstack/react-query";
@@ -65,3 +65,5 @@ export const useToggleCustomerCredit = (id: number) =>
     usePATCH<ICustomer>({ url: `${url}/${id}/toggle-credit` });
 export const useRegisterCustomerPayment = (id: number) =>
     usePOST<ICustomerPayment>({ url: `${url}/${id}/payment` });
+export const useRegisterCustomerCharge = (id: number) =>
+    usePOST<ICustomerCharge>({ url: `${url}/${id}/charge` });

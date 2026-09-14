@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { DataTable, DataTableColumn } from "mantine-datatable";
-import { RefreshCw, PackagePlus, Undo2, X } from "lucide-react";
+import { RefreshCw, Settings2, X } from "lucide-react";
 import { IStockMovement } from "@/models/IStockMovement";
 import { Input } from "@/components/ui/form/Input";
 import { STOCK_MOVEMENT_TYPE_LABELS } from "@/enums/StockMovementTypeEnum";
@@ -11,10 +11,8 @@ import { useInventoryPage } from "./useInventoryPage";
 import { ProductAutocomplete } from "./partials/ProductAutocomplete";
 import { SelectStockMovementType } from "./partials/SelectStockMovementType";
 import { SelectStockMovementReason } from "./partials/SelectStockMovementReason";
-import { StockAdjustmentModal } from "./partials/StockAdjustmentModal/StockAdjustmentModal";
-import { useStockAdjustmentModal } from "./partials/StockAdjustmentModal/useStockAdjustmentModal";
-import { StockReturnModal } from "./partials/StockReturnModal/StockReturnModal";
-import { useStockReturnModal } from "./partials/StockReturnModal/useStockReturnModal";
+import { InventoryActionsModal } from "./partials/InventoryActionsModal/InventoryActionsModal";
+import { useInventoryActionsModal } from "./partials/InventoryActionsModal/useInventoryActionsModal";
 
 export default function InventoryPage() {
     const {
@@ -38,8 +36,7 @@ export default function InventoryPage() {
         productFilter,
     } = useInventoryPage();
 
-    const adjustmentModal = useStockAdjustmentModal();
-    const returnModal = useStockReturnModal();
+    const actionsModal = useInventoryActionsModal();
 
     const columns = useMemo<DataTableColumn<IStockMovement>[]>(
         () => [
@@ -126,18 +123,11 @@ export default function InventoryPage() {
                         <span className="hidden sm:inline">Actualizar</span>
                     </button>
                     <button
-                        onClick={returnModal.openModal}
-                        className="flex items-center gap-2 text-sm font-semibold text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 px-4 py-2 rounded-xl transition-colors"
-                    >
-                        <Undo2 size={16} />
-                        Devolución
-                    </button>
-                    <button
-                        onClick={adjustmentModal.openModal}
+                        onClick={() => actionsModal.openModal()}
                         className="flex items-center gap-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-xl transition-colors shadow-sm shadow-amber-200"
                     >
-                        <PackagePlus size={16} />
-                        Reajustar stock
+                        <Settings2 size={16} />
+                        Gestionar inventario
                     </button>
                 </div>
             </div>
@@ -220,42 +210,12 @@ export default function InventoryPage() {
                 </div>
             </div>
 
-            <StockAdjustmentModal
-                isOpen={adjustmentModal.isOpen}
-                query={adjustmentModal.query}
-                handleQueryChange={adjustmentModal.handleQueryChange}
-                suggestions={adjustmentModal.suggestions}
-                isDropdownOpen={adjustmentModal.isDropdownOpen}
-                setIsDropdownOpen={adjustmentModal.setIsDropdownOpen}
-                product={adjustmentModal.product}
-                selectProduct={adjustmentModal.selectProduct}
-                hasVariants={adjustmentModal.hasVariants}
-                activeVariants={adjustmentModal.activeVariants}
-                variantId={adjustmentModal.variantId}
-                setVariantId={adjustmentModal.setVariantId}
-                selectedVariant={adjustmentModal.selectedVariant}
-                canSubmit={adjustmentModal.canSubmit}
-                formik={adjustmentModal.formik}
-                onClose={adjustmentModal.closeModal}
-            />
-
-            <StockReturnModal
-                isOpen={returnModal.isOpen}
-                query={returnModal.query}
-                handleQueryChange={returnModal.handleQueryChange}
-                suggestions={returnModal.suggestions}
-                isDropdownOpen={returnModal.isDropdownOpen}
-                setIsDropdownOpen={returnModal.setIsDropdownOpen}
-                selectOrder={returnModal.selectOrder}
-                order={returnModal.order}
-                isLoadingOrder={returnModal.isLoadingOrder}
-                isOrderClosed={!!returnModal.isOrderClosed}
-                lines={returnModal.lines}
-                orderProductId={returnModal.orderProductId}
-                setOrderProductId={returnModal.setOrderProductId}
-                canSubmit={returnModal.canSubmit}
-                formik={returnModal.formik}
-                onClose={returnModal.closeModal}
+            <InventoryActionsModal
+                isOpen={actionsModal.isOpen}
+                activeTab={actionsModal.activeTab}
+                setActiveTab={actionsModal.setActiveTab}
+                title={actionsModal.title}
+                onClose={actionsModal.closeModal}
             />
         </div>
     );

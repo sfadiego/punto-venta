@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Core\Data\IndexData;
+use App\Http\Requests\CustomerChargeStoreRequest;
 use App\Http\Requests\CustomerPaymentStoreRequest;
 use App\Http\Requests\CustomerStoreRequest;
 use App\Http\Requests\CustomerUpdateRequest;
+use App\Models\CustomerChargeModel;
 use App\Models\CustomerModel;
 use App\Models\CustomerPaymentModel;
 use App\Services\CustomerService;
@@ -44,7 +46,7 @@ class CustomersController extends Controller
 
     public function show(CustomerModel $customer): JsonResponse
     {
-        return Response::success($customer->load(['creditOrders', 'payments']));
+        return Response::success($customer->load(['creditOrders', 'payments', 'charges']));
     }
 
     public function update(CustomerModel $customer, CustomerUpdateRequest $params): JsonResponse
@@ -88,5 +90,27 @@ class CustomersController extends Controller
         $locked->decrement('balance', $params->amount);
 
         return Response::success($payment->load('customer'));
+    }
+
+    /**
+     * Cargo manual — para dar de alta el adeudo que un cliente ya traía antes de empezar a
+     * usar el sistema. No hay una orden real detrás, es un ajuste administrativo puro; a
+     * diferencia de registerPayment() no tiene tope superior (un cargo no está limitado por
+     * el balance actual).
+     */
+    public function registerCharge(CustomerModel $customer, CustomerChargeStoreRequest $params): JsonResponse
+    {
+        $locked = CustomerModel::where('id', $customer->id)->lockForUpdate()->first();
+
+        $charge = CustomerChargeModel::create([
+            CustomerChargeModel::CUSTOMER_ID => $locked->id,
+            CustomerChargeModel::AMOUNT => $params->amount,
+            CustomerChargeModel::CREATED_BY => auth()->id(),
+            CustomerChargeModel::NOTE => $params->note,
+        ]);
+
+        $locked->increment('balance', $params->amount);
+
+        return Response::success($charge->load('customer'));
     }
 }

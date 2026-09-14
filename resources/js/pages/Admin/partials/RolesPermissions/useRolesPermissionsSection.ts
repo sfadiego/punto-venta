@@ -17,6 +17,13 @@ export const useRolesPermissionsSection = () => {
     const excludedRoles = getExcludedRoles(features);
     const configurableRoles = ALL_CONFIGURABLE_ROLES.filter((role) => !excludedRoles.includes(role));
     const applicableActions = getApplicableActions(features);
+    const applicableActionsSet = new Set(applicableActions);
+    // DEFAULT_ROLE_PERMISSIONS es una tabla estática (no sabe de features del tenant) — filtrar
+    // por applicableActions antes de usarla como draft/reset evita que una clave como
+    // "kitchenView" quede marcada (y se guarde al hacer submit) en un tenant sin cocina, aunque
+    // su checkbox ni siquiera se renderice.
+    const defaultPermissionsFor = (role: RoleEnum): Action[] =>
+        Array.from(DEFAULT_ROLE_PERMISSIONS[role]).filter((action) => applicableActionsSet.has(action));
 
     const [activeRole, setActiveRole] = useState<RoleEnum>(RoleEnum.Employe);
     const [draft, setDraft] = useState<Record<number, Action[]>>({});
@@ -28,7 +35,7 @@ export const useRolesPermissionsSection = () => {
         const initial: Record<number, Action[]> = {};
         configurableRoles.forEach((role) => {
             initial[role] = (rolePermissions[role] as Action[] | undefined)
-                ?? Array.from(DEFAULT_ROLE_PERMISSIONS[role]);
+                ?? defaultPermissionsFor(role);
         });
         setDraft(initial);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -68,7 +75,7 @@ export const useRolesPermissionsSection = () => {
     const resetToDefault = () => {
         setDraft((prev) => ({
             ...prev,
-            [activeRole]: Array.from(DEFAULT_ROLE_PERMISSIONS[activeRole]),
+            [activeRole]: defaultPermissionsFor(activeRole),
         }));
     };
 

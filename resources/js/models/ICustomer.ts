@@ -22,9 +22,19 @@ export interface ICustomerPayment {
     created_at: string;
 }
 
+export interface ICustomerCharge {
+    id: number;
+    customer_id: number;
+    amount: number;
+    created_by: number | null;
+    note: string | null;
+    created_at: string;
+}
+
 export interface ICustomerDetail extends ICustomer {
     credit_orders?: IOrder[];
     payments?: ICustomerPayment[];
+    charges?: ICustomerCharge[];
 }
 
 export interface ICustomerFormPayload {

@@ -6,8 +6,10 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useCustomerDetailPage } from "./useCustomerDetailPage";
 import { CustomerBalanceCard } from "./partials/CustomerBalanceCard";
 import { CustomerPaymentForm } from "./partials/Payment/CustomerPaymentForm";
+import { CustomerChargeModal } from "./partials/Charge/CustomerChargeModal";
 import { CustomerCreditOrdersList } from "./partials/CustomerCreditOrdersList";
 import { CustomerPaymentHistoryList } from "./partials/Payment/CustomerPaymentHistoryList";
+import { CustomerChargeHistoryList } from "./partials/Charge/CustomerChargeHistoryList";
 import { OrderDetailModal } from "@/components/orders/OrderDetailModal/OrderDetailModal";
 import { useOrderDetailModal } from "@/components/orders/OrderDetailModal/useOrderDetailModal";
 
@@ -24,6 +26,11 @@ export default function CustomerDetailPage() {
         paymentFormik,
         handleLiquidarTodo,
         isPaying,
+        chargeFormik,
+        isCharging,
+        isChargeModalOpen,
+        openChargeModal,
+        closeChargeModal,
         handleToggleCredit,
         isTogglingCredit,
     } = useCustomerDetailPage(customerId);
@@ -57,6 +64,7 @@ export default function CustomerDetailPage() {
                     customer={customer}
                     onToggleCredit={handleToggleCredit}
                     isTogglingCredit={isTogglingCredit}
+                    onOpenChargeModal={openChargeModal}
                 />
 
                 <CustomerPaymentForm
@@ -70,6 +78,7 @@ export default function CustomerDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <CustomerCreditOrdersList orders={customer.credit_orders} onViewOrder={orderDetailModal.open} />
                 <CustomerPaymentHistoryList payments={customer.payments} />
+                <CustomerChargeHistoryList charges={customer.charges} />
             </div>
 
             <OrderDetailModal
@@ -78,6 +87,14 @@ export default function CustomerDetailPage() {
                 orderProducts={orderDetailModal.orderProducts}
                 isLoadingProducts={orderDetailModal.isLoadingProducts}
                 onClose={orderDetailModal.close}
+            />
+
+            <CustomerChargeModal
+                isOpen={isChargeModalOpen}
+                onClose={closeChargeModal}
+                formik={chargeFormik}
+                isCharging={isCharging}
+                charges={customer.charges}
             />
         </div>
     );

@@ -46,7 +46,8 @@ export const ClearDemoDataButton = ({ tenantId, tenantName }: ClearDemoDataButto
             <div className="flex items-center gap-2">
                 <ToggleSwitch checked={deepClean} onChange={setDeepClean} activeColor="bg-red-500" />
                 <span className="text-sm text-stone-600">
-                    Incluir catálogo (categorías, productos, clientes y proveedores)
+                    Incluir catálogos (categorías, productos, variantes e historial de
+                    inventario, clientes y proveedores)
                 </span>
             </div>
 

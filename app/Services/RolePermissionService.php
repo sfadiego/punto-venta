@@ -29,6 +29,27 @@ class RolePermissionService
     ];
 
     /**
+     * DEFAULTS filtrado por lo que el tipo de negocio del tenant realmente soporta — un tenant
+     * sin cocina (venta_por_peso, retail) nunca debe recibir 'kitchenView' como default para
+     * Employe/Cocina, aunque el rol Cocina en sí ya esté excluido para esos tipos
+     * (validateRoleConfigurable/excludesCocinaCajaRoles no cubre esto: ahí solo se bloquea que
+     * el rol se ASIGNE, esto evita que la clave de permiso exista de origen).
+     */
+    private function defaultsForTenant(int $tenantId): array
+    {
+        $hasKitchen = BusinessConfigModel::find($tenantId)?->tipo_negocio?->features()['kitchen_view'] ?? true;
+
+        if ($hasKitchen) {
+            return self::DEFAULTS;
+        }
+
+        return array_map(
+            fn (array $keys) => array_values(array_diff($keys, ['kitchenView'])),
+            self::DEFAULTS,
+        );
+    }
+
+    /**
      * Usado en login: corre antes de que ResolveTenant bindee tenant_id, así que recibe el tenant
      * explícito. Siempre incluye los 3 roles configurables (con array vacío si no tienen grants)
      * para que el frontend distinga "sin permisos" de "rol no configurado".
@@ -43,6 +64,8 @@ class RolePermissionService
         $configuredRoles = RolePermissionConfig::where(RolePermissionConfig::TENANT_ID, $tenantId)
             ->pluck(RolePermissionConfig::ROLE_ID)
             ->all();
+
+        $defaults = $this->defaultsForTenant($tenantId);
 
         $map = [];
         foreach (self::CONFIGURABLE_ROLES as $role) {
@@ -59,7 +82,7 @@ class RolePermissionService
             // "Admin lo dejó en cero a propósito" (mostrar vacío) — misma distinción que ya
             // usa grantedKeys(), aplicada aquí por tenant en vez de por el tenant_id global.
             $configured = in_array($role->value, $configuredRoles, true);
-            $map[$role->value] = $configured ? [] : (self::DEFAULTS[$role->value] ?? []);
+            $map[$role->value] = $configured ? [] : ($defaults[$role->value] ?? []);
         }
 
         return $map;
@@ -86,13 +109,13 @@ class RolePermissionService
 
         $configured = RolePermissionConfig::where(RolePermissionConfig::ROLE_ID, $roleId)->exists();
 
-        return $configured ? [] : (self::DEFAULTS[$roleId] ?? []);
+        return $configured ? [] : ($this->defaultsForTenant(app('tenant_id'))[$roleId] ?? []);
     }
 
     /** Siembra los permisos default para un tenant nuevo — idempotente por rol (no pisa configuraciones existentes). */
     public function seedDefaultsForTenant(int $tenantId): void
     {
-        foreach (self::DEFAULTS as $roleId => $keys) {
+        foreach ($this->defaultsForTenant($tenantId) as $roleId => $keys) {
             $alreadyConfigured = RolePermissionConfig::where(RolePermissionConfig::TENANT_ID, $tenantId)
                 ->where(RolePermissionConfig::ROLE_ID, $roleId)
                 ->exists();
