@@ -14,6 +14,7 @@ export enum AdminRoutes {
     EmployeeDetail = "/employees/:id",
     Statistics   = "/statistics",
     SaleList     = "/sales",
+    BranchList   = "/branches",
     Users        = "/users",
     Admin        = "/admin",
     Subscription = "/subscription",

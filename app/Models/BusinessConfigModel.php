@@ -70,6 +70,8 @@ class BusinessConfigModel extends Model
 
     const CUSTOMERS_ENABLED = 'customers_enabled';
 
+    const MULTI_BRANCH_ENABLED = 'multi_branch_enabled';
+
     const LOGO_ICON = 'logo_icon';
 
     const LOGO_ICON_SOURCE = 'logo_icon_source';
@@ -98,6 +100,7 @@ class BusinessConfigModel extends Model
         self::EMPLOYEES_ENABLED => 'boolean',
         self::STOCK_ENABLED => 'boolean',
         self::CUSTOMERS_ENABLED => 'boolean',
+        self::MULTI_BRANCH_ENABLED => 'boolean',
         self::TIPO_NEGOCIO => BusinessTypeEnum::class,
         self::LOGO_ICON_SOURCE => IconSourceEnum::class,
         self::SUBSCRIPTION_EXPIRES_AT => 'date',
@@ -131,6 +134,7 @@ class BusinessConfigModel extends Model
         self::EMPLOYEES_ENABLED,
         self::STOCK_ENABLED,
         self::CUSTOMERS_ENABLED,
+        self::MULTI_BRANCH_ENABLED,
         self::LOGO_ICON,
         self::LOGO_ICON_SOURCE,
         self::TIPO_NEGOCIO,
@@ -184,6 +188,11 @@ class BusinessConfigModel extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class, 'tenant_id');
+    }
+
+    public function branches(): HasMany
+    {
+        return $this->hasMany(BranchModel::class, BranchModel::TENANT_ID);
     }
 
     public function activeSessions(): HasMany

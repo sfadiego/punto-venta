@@ -12,21 +12,39 @@ use Illuminate\Support\Facades\Response;
 
 class MainOrderReportController extends Controller
 {
+    /** 403 si la caja pertenece a una sucursal a la que el usuario no tiene acceso otorgado. */
+    private function assertCanAccessSystem(MainOrderReportModel $system): ?JsonResponse
+    {
+        if ($system->branch_id !== null && ! auth()->user()->canAccessBranch($system->branch_id)) {
+            return Response::unauthorized();
+        }
+
+        return null;
+    }
+
     public function show(MainOrderReportModel $system): JsonResponse
     {
-        return Response::success($system->load('user'));
+        return $this->assertCanAccessSystem($system) ?? Response::success($system->load('user'));
     }
 
     public function getActiveSale(): JsonResponse
     {
+        $branchId = request()->query('branch_id');
+
+        if ($branchId !== null && ! auth()->user()->canAccessBranch((int) $branchId)) {
+            return Response::unauthorized();
+        }
+
         return Response::success(
-            (new MainOrderReportModel)->getActiveSale()
+            (new MainOrderReportModel)->getActiveSale($branchId !== null ? (int) $branchId : null)
         );
     }
 
     public function openSales(OpenSalesRequest $params): JsonResponse
     {
-        if (MainOrderReportModel::validateIfOpenSaleActive()) {
+        $branchId = $params->branch_id ?? null;
+
+        if (MainOrderReportModel::validateIfOpenSaleActive($branchId)) {
             return Response::error('Existe una session de ventas activa');
         }
 
@@ -35,12 +53,17 @@ class MainOrderReportController extends Controller
                 $params->efectivo_caja_inicio,
                 $params->user_id,
                 $params->observaciones ?: '',
+                $branchId,
             )
         );
     }
 
     public function totalCurrentSales(MainOrderReportModel $system): JsonResponse
     {
+        if ($response = $this->assertCanAccessSystem($system)) {
+            return $response;
+        }
+
         $bruto = $system->totalSalesByDay();
         $domicilios = $system->totalDomiciliosByDay();
         $propinas = $system->totalPropinasByDay();
@@ -58,6 +81,10 @@ class MainOrderReportController extends Controller
 
     public function closeSales(MainOrderReportModel $system): JsonResponse
     {
+        if ($response = $this->assertCanAccessSystem($system)) {
+            return $response;
+        }
+
         if ($system->estatus_caja == MainOrderStatusEnum::CLOSED->value) {
             return Response::error('sistema cerrado previamente.');
         }

@@ -100,6 +100,18 @@ class OrderModel extends Model
         return $this->belongsTo(MainOrderReportModel::class, self::SISTEMA_ID);
     }
 
+    /**
+     * Una orden no tiene branch_id propio — pertenece a la sucursal de la caja (sistema)
+     * en la que se creó. Sin sucursal (tenant sin la feature, o caja sin branch_id), no
+     * hay nada que restringir. Admin siempre pasa vía User::canAccessBranch().
+     */
+    public function isAccessibleByUser(User $user): bool
+    {
+        $branchId = $this->sistema?->branch_id;
+
+        return $branchId === null || $user->canAccessBranch($branchId);
+    }
+
     public function orderProducts(): HasMany
     {
         return $this->hasMany(OrderProductModel::class, 'pedido_id')
@@ -160,7 +172,7 @@ class OrderModel extends Model
      * dado. A diferencia de sumar cantidades (kg + piezas no son comparables), el monto en
      * pesos sí es una métrica coherente sin importar la mezcla de unidades del catálogo.
      */
-    public static function averageTicket(?Carbon $start = null, ?Carbon $end = null, ?int $sistemaId = null): array
+    public static function averageTicket(?Carbon $start = null, ?Carbon $end = null, ?int $sistemaId = null, ?int $branchId = null): array
     {
         $query = static::where(self::ESTATUS_PEDIDO_ID, OrderStatusEnum::CLOSED->value);
 
@@ -170,6 +182,10 @@ class OrderModel extends Model
 
         if ($sistemaId) {
             $query->where(self::SISTEMA_ID, $sistemaId);
+        }
+
+        if ($branchId) {
+            $query->whereHas('sistema', fn ($q) => $q->where(MainOrderReportModel::BRANCH_ID, $branchId));
         }
 
         $totalRevenue = (float) round($query->sum(self::TOTAL), 2);

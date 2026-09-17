@@ -22,12 +22,18 @@ class ProductController extends Controller
 {
     public function index(IndexData $data, ProductsService $service): JsonResponse
     {
+        $branchId = request()->query('branch_id') ? (int) request()->query('branch_id') : null;
+
+        if ($branchId && ! auth()->user()->canAccessBranch($branchId)) {
+            return Response::unauthorized();
+        }
+
         return $service->run($data);
     }
 
     public function show(ProductModel $product): JsonResponse
     {
-        return Response::success($product->load('variants'));
+        return Response::success($product->load(['variants', 'branches']));
     }
 
     public function store(ProductStoreRequest $param, StockService $stockService): JsonResponse
@@ -55,6 +61,10 @@ class ProductController extends Controller
             ProductModel::ICON_SOURCE => $param->icon_source ?? null,
         ]);
 
+        if ($param->has('branch_ids')) {
+            $this->syncBranches($product, $param->branch_ids ?? []);
+        }
+
         // la existencia inicial se registra como movimiento (no como valor directo
         // del INSERT) para que quede auditada en el kardex desde el día uno. Vía
         // restore() (tipo Entrada) y no adjust() (tipo Ajuste): es la recepción real de
@@ -69,7 +79,7 @@ class ProductController extends Controller
             );
         }
 
-        return Response::success($product->refresh());
+        return Response::success($product->refresh()->load('branches'));
     }
 
     public function update(
@@ -94,6 +104,10 @@ class ProductController extends Controller
             iconName: $param->has('icon_name') ? ($param->icon_name ?? '') : null,
             iconSource: $param->has('icon_source') ? $param->icon_source : null,
         );
+
+        if ($param->has('branch_ids')) {
+            $this->syncBranches($updated, $param->branch_ids ?? []);
+        }
 
         // Activación en caliente de manage_stock (antes false, ahora true):
         if (! $wasManagingStock && $updated->manage_stock) {
@@ -121,7 +135,7 @@ class ProductController extends Controller
             }
         }
 
-        return Response::success($updated);
+        return Response::success($updated->load('branches'));
     }
 
     /**
@@ -170,5 +184,18 @@ class ProductController extends Controller
         }
 
         return Response::success(true);
+    }
+
+    /**
+     * product_branch no usa HasTenant (es tabla pivote) — tenant_id debe ir explícito en
+     * cada fila o la inserción falla contra la restricción NOT NULL (mismo patrón ya
+     * usado para user_branch en BranchesController::syncUsers()).
+     */
+    private function syncBranches(ProductModel $product, array $branchIds): void
+    {
+        $pivotData = collect($branchIds)
+            ->mapWithKeys(fn ($branchId) => [(int) $branchId => [ProductModel::TENANT_ID => $product->tenant_id]]);
+
+        $product->branches()->sync($pivotData);
     }
 }

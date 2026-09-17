@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ActivityTypeEnum;
 use App\Enums\OrderStatusEnum;
 use App\Enums\StockMovementReasonEnum;
+use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
@@ -120,7 +121,7 @@ class OrderSaleService
      * - Con $week (lunes, formato YYYY-MM-DD): agrega todas las sesiones cerradas de esa semana.
      * - Con $month (formato YYYY-MM): agrega todas las sesiones cerradas de ese mes.
      */
-    public function salesByCategory(?int $sistemaId, ?string $date, ?string $month = null, ?string $week = null): array
+    public function salesByCategory(?int $sistemaId, ?string $date, ?string $month = null, ?string $week = null, ?int $branchId = null): array
     {
         $query = OrderProductModel::query()
             ->join('order as o', 'o.id', '=', 'order_product.pedido_id')
@@ -131,6 +132,11 @@ class OrderSaleService
 
         if ($sistemaId) {
             $query->where('o.sistema_id', $sistemaId);
+        }
+
+        if ($branchId) {
+            $query->join('main_order_report as m', 'm.id', '=', 'o.sistema_id')
+                ->where('m.branch_id', $branchId);
         }
 
         $this->applyPeriod($query, 'o.created_at', $date, $month, $week);
@@ -167,6 +173,10 @@ class OrderSaleService
 
         if ($sistemaId) {
             $domiciliosQuery->where(OrderModel::SISTEMA_ID, $sistemaId);
+        }
+
+        if ($branchId) {
+            $domiciliosQuery->whereHas('sistema', fn ($q) => $q->where(MainOrderReportModel::BRANCH_ID, $branchId));
         }
 
         $this->applyPeriod($domiciliosQuery, 'created_at', $date, $month, $week);

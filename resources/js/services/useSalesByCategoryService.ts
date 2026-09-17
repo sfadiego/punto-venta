@@ -8,6 +8,7 @@ export const useSalesByCategory = (
     fecha?: string | null,
     mes?: string | null,
     semana?: string | null,
+    branchId?: number | null,
 ) =>
     useGET<ISalesByCategoryResponse>({
         url: ApiRoutes.OrderSalesByCategory,
@@ -16,9 +17,10 @@ export const useSalesByCategory = (
             ...(fecha ? { fecha } : {}),
             ...(semana ? { semana } : {}),
             ...(mes ? { mes } : {}),
+            ...(branchId ? { branch_id: branchId } : {}),
         },
         enable: !!sistemaId || !!fecha || !!semana || !!mes,
-        nameQuery: `${ApiRoutes.OrderSalesByCategory}-${sistemaId ?? "any"}-${fecha ?? "all"}-${semana ?? "all"}-${mes ?? "all"}`,
+        nameQuery: `${ApiRoutes.OrderSalesByCategory}-${sistemaId ?? "any"}-${fecha ?? "all"}-${semana ?? "all"}-${mes ?? "all"}-${branchId ?? "all"}`,
     });
 
 // El nameQuery de useSalesByCategory es un string compuesto (ruta + filtros), no la ruta pelada

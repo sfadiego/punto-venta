@@ -12,10 +12,11 @@ import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 interface RecentSalesProps {
     onSelect?: (order: IOrder) => void;
     onViewAll?: () => void;
+    sistemaId?: number | null;
 }
 
-export const RecentSales = ({ onSelect, onViewAll }: RecentSalesProps) => {
-    const { sales, total, isLoading, isRefetching, sistemaId, sellByWeight } = useRecentSales();
+export const RecentSales = ({ onSelect, onViewAll, sistemaId: sistemaIdOverride }: RecentSalesProps) => {
+    const { sales, total, isLoading, isRefetching, sistemaId, sellByWeight } = useRecentSales(sistemaIdOverride);
 
     return (
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">

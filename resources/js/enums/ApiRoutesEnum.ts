@@ -6,6 +6,7 @@ export enum ApiRoutes {
     OrderSalesReportExport = "/api/order/sales-report/export",
     OrderCreditCustomers = "/api/order/credit-customers",
     Category = "/api/category",
+    Branch = "/api/branch",
     Customer = "/api/customer",
     Provider = "/api/provider",
     Employee = "/api/employee",

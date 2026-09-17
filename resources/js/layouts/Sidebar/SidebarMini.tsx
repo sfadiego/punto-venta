@@ -9,6 +9,7 @@ import {
     UserRound,
     Boxes,
     BarChart2,
+    Store,
 } from "lucide-react";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { ApisEnum } from "@/configs/apisEnum";
@@ -18,13 +19,14 @@ import { useSidebarNav } from "./useSidebarNav";
 
 interface SidebarMiniProps {
     userName: string;
+    branchName?: string | null;
     /** On desktop: true when full sidebar is collapsed (mini replaces it). False when full sidebar is expanded (mini is mobile-only). */
     desktopVisible?: boolean;
     onExpand: () => void;
     onLogout: () => void;
 }
 
-export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogout }: SidebarMiniProps) {
+export function SidebarMini({ userName, branchName, desktopVisible = false, onExpand, onLogout }: SidebarMiniProps) {
     const { data: config } = useGetBusinessConfig();
     const {
         can: canAction,
@@ -211,6 +213,27 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
                                 </NavLink>
                             </MiniTooltipItem>
                         )}
+                        {canAction("manageBranches") && config?.multi_branch_enabled === true && (
+                            <MiniTooltipItem label="Sucursales" side="right">
+                                <NavLink
+                                    to="/branches"
+                                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+                                    style={({ isActive }) =>
+                                        isActive
+                                            ? {
+                                                  backgroundColor: "var(--color-primary)",
+                                                  color: "var(--color-font)",
+                                              }
+                                            : {
+                                                  color: "color-mix(in srgb, var(--color-font) 60%, transparent)",
+                                              }
+                                    }
+                                    aria-label="Sucursales"
+                                >
+                                    <Store size={18} />
+                                </NavLink>
+                            </MiniTooltipItem>
+                        )}
                         {canAction("viewUsers") && (
                             <MiniTooltipItem label="Usuarios" side="right">
                                 <NavLink
@@ -259,7 +282,7 @@ export function SidebarMini({ userName, desktopVisible = false, onExpand, onLogo
 
             {/* User */}
             <div className="flex flex-col items-center gap-2 px-2 py-4 border-t border-white/10">
-                <MiniTooltipItem label={userName} side="right">
+                <MiniTooltipItem label={branchName ? `${userName} · ${branchName}` : userName} side="right">
                     <div
                         className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold cursor-default flex-shrink-0"
                         style={{ backgroundColor: "var(--color-primary)" }}

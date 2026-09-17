@@ -29,11 +29,23 @@ class ProductsService extends DataTable
 
     public function makeQuery(): Builder
     {
-        $query = $this->model->newQuery()->with(['category', 'variants']);
+        $query = $this->model->newQuery()->with(['category', 'variants', 'branches']);
 
         $nombre = request()->query('nombre');
         $categoriaId = request()->query('categoria_id');
         $lowStock = request()->query('low_stock');
+        $branchId = request()->query('branch_id');
+
+        // Un producto sin sucursales asignadas en el pivote está disponible en todas — el
+        // filtro solo excluye productos que SÍ tienen sucursales asignadas y esta no está
+        // entre ellas. Usado por el catálogo de venta (TakeOrder/QuickSale); la página de
+        // administración de productos no manda branch_id y sigue viendo el catálogo completo.
+        if ($branchId) {
+            $query->where(function (Builder $query) use ($branchId) {
+                $query->doesntHave('branches')
+                    ->orWhereHas('branches', fn (Builder $q) => $q->where('branches.id', (int) $branchId));
+            });
+        }
 
         if ($nombre) {
             $query->where(function (Builder $query) use ($nombre) {

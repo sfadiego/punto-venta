@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\MainOrderStatusEnum;
+use App\Enums\RoleEnum;
 use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Auth;
@@ -62,11 +65,66 @@ class User extends Authenticatable
         return $this->belongsTo(BusinessConfigModel::class, self::TENANT_ID);
     }
 
+    public function branches(): BelongsToMany
+    {
+        return $this->belongsToMany(BranchModel::class, 'user_branch', 'user_id', 'branch_id');
+    }
+
+    /**
+     * Admin siempre tiene acceso a todas las sucursales del tenant sin necesidad de fila
+     * en user_branch — mismo criterio de bypass ya usado por RolePermissionService.
+     */
+    public function authorizedBranchIds(): array
+    {
+        if ($this->rol_id === RoleEnum::ADMIN->value) {
+            return BranchModel::where(BranchModel::TENANT_ID, $this->tenant_id)->pluck('id')->all();
+        }
+
+        return $this->branches()->pluck('branches.id')->all();
+    }
+
+    public function canAccessBranch(int $branchId): bool
+    {
+        if ($this->rol_id === RoleEnum::ADMIN->value) {
+            return BranchModel::where('id', $branchId)->where(BranchModel::TENANT_ID, $this->tenant_id)->exists();
+        }
+
+        return $this->branches()->where('branches.id', $branchId)->exists();
+    }
+
     public static function authUser($token): ?User
     {
         $accessToken = PersonalAccessToken::findToken($token);
 
         return $accessToken?->tokenable;
+    }
+
+    /**
+     * Mensaje de error si este usuario tiene una caja propia abierta en alguna de las
+     * sucursales que se le están por quitar (reasignación de sucursales), o null si es
+     * seguro. Sin esto, reasignar a un usuario a media jornada lo deja sin poder cerrar
+     * (ni siquiera ver) la caja que él mismo abrió — canAccessBranch() ya no lo cubre en
+     * cuanto pierde la sucursal.
+     */
+    public function blockRemovingBranchesReason(array $branchIdsBeingRemoved): ?string
+    {
+        if ($branchIdsBeingRemoved === []) {
+            return null;
+        }
+
+        $branch = MainOrderReportModel::withoutGlobalScopes()
+            ->where(MainOrderReportModel::USER_ID, $this->id)
+            ->where(MainOrderReportModel::ESTATUS_CAJA, MainOrderStatusEnum::OPEN)
+            ->whereIn(MainOrderReportModel::BRANCH_ID, $branchIdsBeingRemoved)
+            ->with('branch')
+            ->first()
+            ?->branch;
+
+        if (! $branch) {
+            return null;
+        }
+
+        return "Este usuario tiene una caja abierta en \"{$branch->name}\" — ciérrala antes de quitarle esa sucursal.";
     }
 
     public static function register(

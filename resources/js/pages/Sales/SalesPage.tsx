@@ -17,6 +17,7 @@ export default function SalesPage() {
         fecha,
         semana,
         mes,
+        branchId,
         sellByWeight,
         handleReportModeChange,
         handleFechaChange,
@@ -30,6 +31,7 @@ export default function SalesPage() {
         reportMode === SalesReportModeEnum.Day ? fecha : null,
         reportMode === SalesReportModeEnum.Month ? mes : null,
         reportMode === SalesReportModeEnum.Week ? semana : null,
+        branchId,
     );
 
     return (

@@ -25,6 +25,12 @@ class OrderController extends Controller
 {
     public function index(IndexData $data, OrderService $service): JsonResponse
     {
+        $branchId = request()->query('branch_id') ? (int) request()->query('branch_id') : null;
+
+        if ($branchId && ! auth()->user()->canAccessBranch($branchId)) {
+            return Response::unauthorized();
+        }
+
         return $service->run($data);
     }
 
@@ -104,6 +110,10 @@ class OrderController extends Controller
             return Response::error('No se puede eliminar una orden ya cerrada. Usa Devolución para revertir productos vendidos.');
         }
 
+        if (! $order->loadMissing('sistema')->isAccessibleByUser(auth()->user())) {
+            return Response::unauthorized();
+        }
+
         $order->orderProducts()->delete();
 
         return Response::success($order->delete());
@@ -111,6 +121,10 @@ class OrderController extends Controller
 
     public function update(OrderModel $order, OrderUpdateRequest $params, OrderCloseService $closeService): JsonResponse
     {
+        if (! $order->loadMissing('sistema')->isAccessibleByUser(auth()->user())) {
+            return Response::unauthorized();
+        }
+
         try {
             $updated = $closeService->update($order, $params->toArray());
         } catch (InsufficientStockException $e) {
@@ -142,12 +156,17 @@ class OrderController extends Controller
         $date = $request->query('fecha');
         $week = $request->query('semana');
         $month = $request->query('mes');
+        $branchId = $request->query('branch_id') ? (int) $request->query('branch_id') : null;
 
         if (! $sistemaId && ! $date && ! $week && ! $month) {
             return Response::error('Se requiere sistema_id, fecha, semana o mes.');
         }
 
-        return Response::success($saleService->salesByCategory($sistemaId, $date, $month, $week));
+        if ($branchId && ! auth()->user()->canAccessBranch($branchId)) {
+            return Response::unauthorized();
+        }
+
+        return Response::success($saleService->salesByCategory($sistemaId, $date, $month, $week, $branchId));
     }
 
     public function creditCustomers(Request $request, OrderSaleService $saleService): JsonResponse

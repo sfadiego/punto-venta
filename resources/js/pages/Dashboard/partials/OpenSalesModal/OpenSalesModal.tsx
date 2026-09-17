@@ -1,11 +1,7 @@
 import { X, Landmark, Loader } from "lucide-react";
 import { FormikProps } from "formik";
 import { Input } from "@/components/ui/form/Input";
-
-type OpenSalesForm = {
-    efectivo_caja_inicio: string;
-    observaciones: string;
-};
+import { OpenSalesForm } from "./useOpenSalesModal";
 
 interface OpenSalesModalProps {
     isOpen: boolean;

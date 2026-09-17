@@ -14,6 +14,7 @@ import { TenantProvidersEmployeesSection } from "@/components/SuperAdmin/Tenants
 import { TenantDangerZone } from "@/components/SuperAdmin/Tenants/Sections/TenantDangerZone";
 import { TenantFeatureSpotlightsSection } from "@/components/SuperAdmin/Tenants/TenantFeatureSpotlightsSection/TenantFeatureSpotlightsSection";
 import { TenantRolePermissionsSection } from "@/components/SuperAdmin/Tenants/TenantRolePermissionsSection/TenantRolePermissionsSection";
+import { TenantBranchesSection } from "@/components/SuperAdmin/Tenants/TenantBranchesSection/TenantBranchesSection";
 import { TenantActivitySection } from "@/components/SuperAdmin/Tenants/Activity/TenantActivitySection";
 import { TenantFormNav } from "./partials/TenantFormNav";
 import { useGetTenant } from "@/services/useSuperAdminService";
@@ -147,6 +148,15 @@ export default function TenantFormPage() {
                                     }
                                     onSave={formik.submitForm}
                                     isSaving={formik.isSubmitting}
+                                />
+                            </div>
+                        )}
+
+                        {isEdit && tenantId && (
+                            <div id="sucursales">
+                                <TenantBranchesSection
+                                    tenantId={tenantId}
+                                    multiBranchEnabled={tenantDetail?.multi_branch_enabled ?? false}
                                 />
                             </div>
                         )}

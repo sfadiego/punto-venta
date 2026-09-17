@@ -62,6 +62,24 @@ class AuthService
             }
         }
 
+        // Un usuario no-Admin sin ninguna sucursal asignada no puede operar nada en un
+        // tenant con la feature activa (no podría abrir caja ni ver nada branch-scoped) —
+        // se bloquea el login en vez de dejarlo entrar a un Dashboard inutilizable.
+        // Admin nunca cae aquí (bypass ya resuelto en User::authorizedBranchIds()).
+        if ($tenant?->multi_branch_enabled && $result['user']->rol_id !== RoleEnum::ADMIN->value) {
+            $hasAnyBranch = $result['user']->branches()->exists();
+
+            if (! $hasAnyBranch) {
+                $result['user']->tokens()->latest()->first()?->delete();
+
+                return AuthAttemptResult::fail(
+                    'Tu usuario no tiene ninguna sucursal asignada todavía. Contacta al administrador del negocio.',
+                    'NO_BRANCH_ASSIGNED',
+                    Http::Forbidden,
+                );
+            }
+        }
+
         // A partir de aquí el login es válido salvo por el cupo del plan. Se cierra
         // cualquier otra sesión de la MISMA cuenta antes de evaluar el cupo, para que
         // reloguear desde un dispositivo nuevo reemplace la sesión anterior en vez de

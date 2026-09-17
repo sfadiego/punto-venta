@@ -28,11 +28,13 @@ Route::prefix('admin')->group(function () {
         Route::middleware('permission:viewUsers')->group(function () {
             Route::get('/', 'index');
             Route::get('{user}', 'show');
+            Route::get('{user}/branches', 'branches');
         });
 
         Route::middleware('role.admin')->group(function () {
             Route::post('/', 'store');
             Route::put('{user}', 'update');
+            Route::put('{user}/branches', 'syncBranches');
         });
     });
 

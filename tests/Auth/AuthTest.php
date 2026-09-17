@@ -4,6 +4,7 @@ namespace Tests\Auth;
 
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionPlanEnum;
+use App\Models\BranchModel;
 use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
 use App\Models\User;
@@ -470,6 +471,95 @@ class AuthTest extends TestCase
             User::TENANT_ID => $tenant->id,
             User::ROL_ID => RoleEnum::EMPLOYE->value,
             User::ACTIVO => true,
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'chantico',
+        ])->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+    }
+
+    // ── Login bloquea usuario sin sucursal asignada (tenant con multi_branch_enabled) ──
+
+    public function test_login_bloquea_empleado_sin_sucursal_asignada(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::MULTI_BRANCH_ENABLED => true]);
+        $user = User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'chantico',
+        ])->assertStatus(403)
+            ->assertJsonPath('status', 'error')
+            ->assertJsonPath('data.code', 'NO_BRANCH_ASSIGNED');
+    }
+
+    public function test_login_sin_sucursal_asignada_no_crea_token(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::MULTI_BRANCH_ENABLED => true]);
+        $user = User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'chantico',
+        ]);
+
+        $this->assertEquals(0, $user->fresh()->tokens()->count());
+    }
+
+    public function test_login_permite_empleado_con_sucursal_asignada(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::MULTI_BRANCH_ENABLED => true]);
+        $sucursal = BranchModel::create([
+            BranchModel::NAME => 'Sucursal Test',
+            BranchModel::TENANT_ID => $tenant->id,
+            BranchModel::ACTIVE => true,
+        ]);
+        $user = User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
+        ]);
+        $sucursal->users()->attach($user->id, [BranchModel::TENANT_ID => $tenant->id]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'chantico',
+        ])->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+    }
+
+    public function test_login_permite_admin_sin_sucursal_asignada(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::MULTI_BRANCH_ENABLED => true]);
+        $user = User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::ROL_ID => RoleEnum::ADMIN->value,
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $user->email,
+            'password' => 'chantico',
+        ])->assertStatus(200)
+            ->assertJsonPath('status', 'OK');
+    }
+
+    public function test_login_no_bloquea_sin_multi_branch_enabled(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $user = User::factory()->create([
+            User::TENANT_ID => $tenant->id,
+            User::ROL_ID => RoleEnum::EMPLOYE->value,
         ]);
 
         $this->postJson('/api/auth/login', [

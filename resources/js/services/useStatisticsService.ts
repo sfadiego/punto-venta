@@ -16,7 +16,7 @@ export interface IAverageTicket {
 }
 
 const url = ApiRoutes.Statistics;
-export const useBestSeller = (date?: string, period?: "day" | "month", sistemaId?: number | null) =>
+export const useBestSeller = (date?: string, period?: "day" | "month", sistemaId?: number | null, branchId?: number | null) =>
     useGET<IBestSellerItem[]>({
         url: `${url}/best-seller`,
         nameQuery: `${url}/best-seller`,
@@ -24,15 +24,17 @@ export const useBestSeller = (date?: string, period?: "day" | "month", sistemaId
             ...(date ? { date } : {}),
             ...(date && period ? { period } : {}),
             ...(sistemaId ? { sistema_id: sistemaId } : {}),
+            ...(branchId ? { branch_id: branchId } : {}),
         },
     });
 
-export const useAverageTicket = (date?: string, sistemaId?: number | null) =>
+export const useAverageTicket = (date?: string, sistemaId?: number | null, branchId?: number | null) =>
     useGET<IAverageTicket>({
         url: `${url}/average-ticket`,
         nameQuery: `${url}/average-ticket`,
         filters: {
             ...(date ? { date } : {}),
             ...(sistemaId ? { sistema_id: sistemaId } : {}),
+            ...(branchId ? { branch_id: branchId } : {}),
         },
     });

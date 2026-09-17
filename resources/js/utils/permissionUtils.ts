@@ -22,7 +22,8 @@ export type Action =
     | "viewProviders"
     | "viewEmployees"
     | "registerExpense"
-    | "manageStock";
+    | "manageStock"
+    | "manageBranches";
 
 export const ALL_ACTIONS: Action[] = [
     "viewDashboard",
@@ -46,6 +47,7 @@ export const ALL_ACTIONS: Action[] = [
     "viewEmployees",
     "registerExpense",
     "manageStock",
+    "manageBranches",
 ];
 
 export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
@@ -71,6 +73,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "viewEmployees",
         "registerExpense",
         "manageStock",
+        "manageBranches",
     ]),
     [RoleEnum.Employe]: new Set<Action>([
         "viewDashboard",
@@ -125,6 +128,7 @@ export const PERMISSION_LABELS: Record<Action, string> = {
     viewEmployees: "Ver empleados",
     registerExpense: "Registrar gastos",
     manageStock: "Administrar inventario",
+    manageBranches: "Administrar sucursales",
 };
 
 // Acciones cuya aplicabilidad depende del tipo de negocio (features), no del rol.

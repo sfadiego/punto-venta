@@ -38,13 +38,15 @@ const PRODUCT_PAGE_SIZE = 24;
 export const useInfiniteIndexProducts = ({
     nombre = "",
     categoria_id = null,
+    branch_id = null,
 }: {
     nombre?: string;
     categoria_id?: number | null;
+    branch_id?: number | null;
 } = {}) => {
     const { axiosApi } = useAxios();
     return useInfiniteQuery<IPaginate<IProduct>>({
-        queryKey: [url, "infinite", { nombre, categoria_id }],
+        queryKey: [url, "infinite", { nombre, categoria_id, branch_id }],
         queryFn: ({ pageParam }) =>
             axiosGET(axiosApi, {
                 url,
@@ -54,6 +56,7 @@ export const useInfiniteIndexProducts = ({
                     order: "asc",
                     ...(nombre ? { nombre } : {}),
                     ...(categoria_id ? { categoria_id } : {}),
+                    ...(branch_id ? { branch_id } : {}),
                 },
             }),
         getNextPageParam: (lastPage) =>

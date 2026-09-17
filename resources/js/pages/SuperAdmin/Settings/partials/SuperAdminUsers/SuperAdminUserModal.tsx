@@ -36,13 +36,20 @@ export const SuperAdminUserModal = ({ user, onClose }: SuperAdminUserModalProps)
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
-                        <Input
-                            formik={formik}
-                            name="password"
-                            label={isEdit ? "Contraseña (dejar vacío para no cambiar)" : "Contraseña"}
-                            inputType="password"
-                            autoComplete="new-password"
-                        />
+                        <div>
+                            <Input
+                                formik={formik}
+                                name="password"
+                                label={"Contraseña"}
+                                inputType="password"
+                                autoComplete="new-password"
+                            />
+                            <p className="text-sm text-slate-500">
+                                {isEdit
+                                    ? "Vacío no cambia la contraseña"
+                                    : ""}
+                            </p>
+                        </div>
                         <Input
                             formik={formik}
                             name="password_confirmation"

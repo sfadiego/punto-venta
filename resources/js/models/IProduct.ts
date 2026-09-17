@@ -3,6 +3,7 @@ import { IFileProps } from "@/intefaces/IFileProps";
 import { IProductVariant } from "@/models/IProductVariant";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { IconSourceEnum } from "@/enums/IconSourceEnum";
+import { IBranchListItem } from "@/models/IBranch";
 
 export interface IProduct {
     id: number;
@@ -23,4 +24,6 @@ export interface IProduct {
     stock: string | null;
     min_stock: string | null;
     product_code: string | null;
+    /** Sucursales donde el producto está disponible — vacío/ausente = todas las sucursales. */
+    branches?: IBranchListItem[];
 }

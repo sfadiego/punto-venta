@@ -11,7 +11,10 @@ const ALL_CONFIGURABLE_ROLES = [RoleEnum.Employe, RoleEnum.Cocina, RoleEnum.Caja
 export const useTenantRolePermissionsSection = (tenantId: number, features?: IBusinessFeatures) => {
     const sellByWeight = features?.sell_by_weight === true;
     const configurableRoles = sellByWeight ? [RoleEnum.Employe] : ALL_CONFIGURABLE_ROLES;
-    const applicableActions = getApplicableActions(features);
+    // manageBranches nunca es delegable: el backend la protege con el middleware role.admin
+    // (no permission:xxx), así que otorgarla desde aquí a un rol configurable no tendría
+    // ningún efecto real en la API.
+    const applicableActions: Action[] = getApplicableActions(features).filter((action) => action !== "manageBranches");
 
     const [activeRole, setActiveRole] = useState<RoleEnum>(RoleEnum.Employe);
     const [draft, setDraft] = useState<Record<number, Action[]>>({});

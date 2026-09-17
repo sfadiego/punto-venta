@@ -16,16 +16,26 @@ class StatisticsController extends Controller
     {
         [$start, $end] = $this->monthRange($request);
         $sistemaId = $request->integer('sistema_id') ?: null;
+        $branchId = $request->integer('branch_id') ?: null;
 
-        return Response::success(OrderProductModel::top3BestSeller($start, $end, $sistemaId));
+        if ($branchId && ! auth()->user()->canAccessBranch($branchId)) {
+            return Response::unauthorized();
+        }
+
+        return Response::success(OrderProductModel::top3BestSeller($start, $end, $sistemaId, $branchId));
     }
 
     public function averageTicket(Request $request): JsonResponse
     {
         [$start, $end] = $this->monthRange($request);
         $sistemaId = $request->integer('sistema_id') ?: null;
+        $branchId = $request->integer('branch_id') ?: null;
 
-        return Response::success(OrderModel::averageTicket($start, $end, $sistemaId));
+        if ($branchId && ! auth()->user()->canAccessBranch($branchId)) {
+            return Response::unauthorized();
+        }
+
+        return Response::success(OrderModel::averageTicket($start, $end, $sistemaId, $branchId));
     }
 
     /**

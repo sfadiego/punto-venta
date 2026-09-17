@@ -15,7 +15,7 @@ import { IOrder, IOrderSummary } from "@/models/IOrder";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAxios } from "@/hooks/useAxios";
 
 const url = ApiRoutes.Orders;
@@ -31,6 +31,7 @@ export const useIndexOrder = ({
     mes,
     categoria_id,
     search,
+    branch_id,
 }: IPaginateServiceProps) =>
     useGET<IPaginate<IOrder>>({
         url,
@@ -46,14 +47,15 @@ export const useIndexOrder = ({
             ...(mes ? { mes } : {}),
             ...(categoria_id ? { categoria_id } : {}),
             ...(search ? { search } : {}),
+            ...(branch_id ? { branch_id } : {}),
         },
         enable: sistema_id !== null,
     });
 
-export const useInfiniteIndexOrder = (sistemaId: number | null) => {
+export const useInfiniteIndexOrder = (sistemaId: number | null, branchId?: number | null) => {
     const { axiosApi } = useAxios();
     return useInfiniteQuery<IPaginate<IOrder>>({
-        queryKey: ["orders-infinite", { sistemaId }],
+        queryKey: ["orders-infinite", { sistemaId, branchId }],
         queryFn: async ({ pageParam }) =>
             axiosGET(axiosApi, {
                 url,
@@ -62,6 +64,7 @@ export const useInfiniteIndexOrder = (sistemaId: number | null) => {
                     limit: 5,
                     order: "desc",
                     sistema_id: sistemaId,
+                    ...(branchId ? { branch_id: branchId } : {}),
                 },
             }),
         initialPageParam: 1,
@@ -74,7 +77,19 @@ export const useInfiniteIndexOrder = (sistemaId: number | null) => {
     });
 };
 
-export const useStoreOrder = () => usePOST({ url });
+// Invalida las listas de órdenes directamente en vez de depender solo del WebSocket
+// (useOrdersSocket) — si Reverb no está corriendo o el evento se pierde, el usuario que
+// creó la orden debe ver su propia lista actualizada de todos modos.
+export const useStoreOrder = () => {
+    const queryClient = useQueryClient();
+    return usePOST({
+        url,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [url] });
+            queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
+        },
+    });
+};
 // Venta directa — crea la orden + productos + la cierra en un solo paso (OrderSaleService::createDirectSale).
 export const useStoreOrderSale = () => usePOST({ url: `${url}/sale` });
 export const useShowOrder = (orderId: number, enabled = true) =>

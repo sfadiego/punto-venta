@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
@@ -63,6 +64,19 @@ class OrderProductStoreRequest extends FormRequest
 
                 if (! $belongsToProduct) {
                     $validator->errors()->add('variant_id', 'La variante no pertenece al producto seleccionado.');
+                }
+            }
+
+            // Un producto asignado a sucursales específicas (product_branch) no debe poder
+            // agregarse a una orden de una sucursal que no esté entre esas — el catálogo del
+            // frontend ya lo filtra, pero eso no protege una request directa a la API.
+            if ($this->producto_id) {
+                $product = ProductModel::find($this->producto_id);
+                $order = OrderModel::find($this->route('order'));
+                $branchId = $order?->sistema?->branch_id;
+
+                if ($product && ! $product->isAvailableInBranch($branchId)) {
+                    $validator->errors()->add('producto_id', 'Este producto no está disponible en la sucursal de esta venta.');
                 }
             }
 

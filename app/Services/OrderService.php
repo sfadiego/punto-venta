@@ -52,6 +52,7 @@ class OrderService extends DataTable
         $rawEstatus = request()->query('estatus_pedido_id');
         $sistemaId = request()->query('sistema_id');
         $search = request()->query('search');
+        $branchId = request()->query('branch_id');
 
         if ($search) {
             // El buscador de la sesión actual ignora el filtro de estatus activo y busca
@@ -79,13 +80,24 @@ class OrderService extends DataTable
             ]);
 
             if (! $sistemaId) {
-                $activeSale = (new MainOrderReportModel)->getActiveSale();
+                // branch_id opcional: sin él, resuelve la caja activa global del tenant
+                // (comportamiento sin cambios para tenants sin sucursales). Con él, resuelve
+                // la caja activa de esa sucursal específica.
+                $activeSale = (new MainOrderReportModel)->getActiveSale($branchId ? (int) $branchId : null);
                 $sistemaId = $activeSale ? $activeSale->id : 0;
             }
         }
 
         if ($sistemaId) {
             $query->where('sistema_id', (int) $sistemaId);
+        }
+
+        // branch_id también aplica fuera del flujo de caja activa (búsqueda, historial de
+        // Ventas con estatus explícito) — una orden no tiene branch_id propio, se resuelve
+        // vía la caja (sistema) a la que pertenece. Redundante pero inofensivo cuando ya se
+        // resolvió sistemaId arriba con el mismo branchId.
+        if ($branchId) {
+            $query->whereHas('sistema', fn (Builder $q) => $q->where(MainOrderReportModel::BRANCH_ID, (int) $branchId));
         }
 
         $fecha = request()->query('fecha');

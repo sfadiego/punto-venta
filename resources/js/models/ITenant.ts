@@ -21,6 +21,9 @@ export interface ITenant {
     employees_enabled: boolean;
     stock_enabled: boolean;
     customers_enabled: boolean;
+    // Solo lectura: activado exclusivamente desde TenantBranchController::enable,
+    // nunca parte del payload de creación/edición del tenant.
+    multi_branch_enabled?: boolean;
     features?: IBusinessFeatures;
     users_count?: number;
     active_users_count?: number;

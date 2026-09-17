@@ -1,9 +1,11 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { useUpdateUser } from "@/services/useUserService";
+import { useSyncUserBranches, useUpdateUser } from "@/services/useUserService";
+import { useUserBranches } from "@/services/useBranchService";
 import { useAxios } from "@/hooks/useAxios";
 import { IUser } from "@/models/IUser";
+import { RoleEnum } from "@/enums/RoleEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getFieldErrors, getUserFacingErrorMessage } from "@/utils/axiosError";
 
@@ -18,7 +20,7 @@ const schema = Yup.object({
     password:         Yup.string().min(8, "Mínimo 8 caracteres").nullable(),
 });
 
-const buildInitialValues = (user: IUser | null) => ({
+const buildInitialValues = (user: IUser | null, branchIds: number[]) => ({
     nombre:           user?.nombre           ?? "",
     apellido_paterno: user?.apellido_paterno ?? "",
     apellido_materno: user?.apellido_materno ?? "",
@@ -27,14 +29,18 @@ const buildInitialValues = (user: IUser | null) => ({
     rol_id:           user?.rol_id           ?? 2,
     activo:           user ? Boolean(user.activo) : true,
     password:         "",
+    branch_ids:       branchIds,
 });
 
 export const useEditUserModal = (user: IUser | null, onClose: () => void) => {
     const { mutateAsync, isPending } = useUpdateUser();
+    const syncBranchesMutation = useSyncUserBranches();
     const { user: authUser, setCurrentUser } = useAxios();
+    // Solo se consulta con un usuario real seleccionado (modal cerrado = user null).
+    const { data: userBranches, isLoading: isLoadingBranches } = useUserBranches(user?.id ?? 0);
 
     const formik = useFormik({
-        initialValues: buildInitialValues(user),
+        initialValues: buildInitialValues(user, userBranches?.branch_ids ?? []),
         validationSchema: schema,
         enableReinitialize: true,
         onSubmit: async (values, { setSubmitting, setErrors, setTouched }) => {
@@ -53,6 +59,12 @@ export const useEditUserModal = (user: IUser | null, onClose: () => void) => {
                         password:         values.password || undefined,
                     },
                 });
+
+                // Un Admin ya tiene acceso a todas las sucursales — sincronizar
+                // user_branch para uno sería un no-op rechazado por el backend.
+                if (Number(values.rol_id) !== RoleEnum.Admin) {
+                    await syncBranchesMutation.mutateAsync({ id: user.id, branchIds: values.branch_ids });
+                }
 
                 // The edited user may be the one currently logged in — refresh the
                 // cached auth user so the sidebar reflects the change immediately,
@@ -82,5 +94,5 @@ export const useEditUserModal = (user: IUser | null, onClose: () => void) => {
         },
     });
 
-    return { formik, isPending };
+    return { formik, isPending, isLoadingBranches };
 };

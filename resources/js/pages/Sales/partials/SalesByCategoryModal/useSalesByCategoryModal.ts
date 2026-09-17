@@ -4,7 +4,12 @@ import { useSalesByCategory } from "@/services/useSalesByCategoryService";
 import { useExportSalesReport } from "@/services/useOrderService";
 import { downloadBlob } from "@/utils/downloadFile";
 
-export const useSalesByCategoryModal = (fecha?: string | null, mes?: string | null, semana?: string | null) => {
+export const useSalesByCategoryModal = (
+    fecha?: string | null,
+    mes?: string | null,
+    semana?: string | null,
+    branchId?: number | null,
+) => {
     const { sistemaId } = useAxios();
     const [isOpen, setIsOpen] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -20,6 +25,7 @@ export const useSalesByCategoryModal = (fecha?: string | null, mes?: string | nu
         isOpen ? fecha : null,
         isOpen ? mes : null,
         isOpen ? semana : null,
+        isOpen ? branchId : null,
     );
 
     const categories = data?.categories ?? [];

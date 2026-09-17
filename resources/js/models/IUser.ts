@@ -23,6 +23,9 @@ export interface ICreateUserPayload {
     password: string;
     rol_id: number;
     activo: boolean;
+    // Solo aplica a roles distintos de Admin — Admin siempre tiene acceso a todas las
+    // sucursales sin necesidad de asignación explícita.
+    branch_ids?: number[];
 }
 
 export interface IUpdateUserPayload {

@@ -25,6 +25,7 @@ const EmployeeDetailPage  = lazy(() => import("@/pages/Employees/EmployeeDetailP
 const CloseSalesPage   = lazy(() => import("@/pages/CloseSales/CloseSalesPage"));
 const SalesPage        = lazy(() => import("@/pages/Sales/SalesPage"));
 const StatisticsPage   = lazy(() => import("@/pages/Statistics/StatisticsPage"));
+const BranchesPage     = lazy(() => import("@/pages/Branches/BranchesPage"));
 const AdminPage        = lazy(() => import("@/pages/Admin/AdminPage"));
 const UsersPage        = lazy(() => import("@/pages/Users/UsersPage"));
 const SubscriptionPage = lazy(() => import("@/pages/Subscription/SubscriptionPage"));
@@ -60,6 +61,7 @@ const privateRoutes: IRoute[] = [
     { path: "/close-sales",    element: <CloseSalesPage />, private: true, permission: "viewCloseSales" },
     { path: "/sales",          element: <SalesPage />,      private: true, permission: "viewSales" },
     { path: "/statistics",     element: <StatisticsPage />, private: true, permission: "viewStatistics" },
+    { path: "/branches",       element: <BranchesPage />,   private: true, permission: "manageBranches" },
     { path: "/users",          element: <UsersPage />,        private: true, permission: "viewUsers" },
     { path: "/admin",          element: <AdminPage />,        private: true, permission: "viewAdmin" },
     { path: "/subscription",   element: <SubscriptionPage />, private: true },
