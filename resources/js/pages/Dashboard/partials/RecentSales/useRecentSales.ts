@@ -6,9 +6,12 @@ import { localDateString } from "@/utils/dateUtils";
 
 const today = () => localDateString();
 
-export const useRecentSales = () => {
-    const { sistemaId, features } = useAxios();
+export const useRecentSales = (sistemaIdOverride?: number | null) => {
+    const { sistemaId: ownSistemaId, features } = useAxios();
     const sellByWeight = features?.sell_by_weight === true;
+    // Cuando el Dashboard está viendo otra sucursal (ver useDashboard.ts), se recibe la
+    // caja resuelta de esa sucursal en vez de la propia sesión del usuario.
+    const sistemaId = sistemaIdOverride !== undefined ? sistemaIdOverride : ownSistemaId;
 
     const { data, isLoading, isFetching } = useIndexOrder({
         sistema_id: sistemaId,

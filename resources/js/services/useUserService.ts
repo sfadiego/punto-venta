@@ -37,3 +37,14 @@ export const useUpdateUser = () => {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
     });
 };
+
+export const useSyncUserBranches = () => {
+    const { axiosApi } = useAxios();
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, branchIds }: { id: number; branchIds: number[] }) =>
+            axiosPUT(axiosApi, { url: `${url}/${id}/branches`, data: { branch_ids: branchIds } }),
+        onSuccess: (_data, { id }) =>
+            queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.AdminUsers}/${id}/branches`] }),
+    });
+};

@@ -1,12 +1,17 @@
-import { LogOut } from "lucide-react";
+import { useState } from "react";
+import { LogOut, Repeat } from "lucide-react";
+import { SwitchBranchModal } from "@/components/BranchSelectionGate/SwitchBranchModal";
 
 interface SidebarUserProps {
     name: string;
     role: string;
+    branchName?: string | null;
+    canSwitchBranch?: boolean;
     onLogout: () => void;
 }
 
-export function SidebarUser({ name, role, onLogout }: SidebarUserProps) {
+export function SidebarUser({ name, role, branchName, canSwitchBranch, onLogout }: SidebarUserProps) {
+    const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
     const initials = name
         .split(" ")
         .map((w) => w[0])
@@ -31,10 +36,24 @@ export function SidebarUser({ name, role, onLogout }: SidebarUserProps) {
                         {name}
                     </p>
                     <p
-                        className="text-xs truncate"
+                        className="text-xs truncate flex items-center gap-1"
                         style={{ color: "color-mix(in srgb, var(--color-font) 55%, transparent)" }}
                     >
-                        {role}
+                        <span className="truncate">
+                            {role}
+                            {branchName && ` · ${branchName}`}
+                        </span>
+                        {canSwitchBranch && (
+                            <button
+                                type="button"
+                                onClick={() => setIsSwitchModalOpen(true)}
+                                className="shrink-0 hover:text-white transition-colors"
+                                aria-label="Cambiar sucursal"
+                                title="Cambiar sucursal"
+                            >
+                                <Repeat size={11} />
+                            </button>
+                        )}
                     </p>
                 </div>
             </div>
@@ -46,6 +65,8 @@ export function SidebarUser({ name, role, onLogout }: SidebarUserProps) {
                 <LogOut size={16} />
                 Cerrar sesión
             </button>
+
+            <SwitchBranchModal isOpen={isSwitchModalOpen} onClose={() => setIsSwitchModalOpen(false)} />
         </div>
     );
 }

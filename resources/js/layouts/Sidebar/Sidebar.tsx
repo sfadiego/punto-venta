@@ -9,10 +9,12 @@ interface SidebarProps {
     onLogout: () => void;
     userName: string;
     userRole: string;
+    branchName?: string | null;
+    canSwitchBranch?: boolean;
     onDesktopToggle?: () => void;
 }
 
-export function Sidebar({ open, desktopHidden = false, onClose, onLogout, userName, userRole, onDesktopToggle }: SidebarProps) {
+export function Sidebar({ open, desktopHidden = false, onClose, onLogout, userName, userRole, branchName, canSwitchBranch, onDesktopToggle }: SidebarProps) {
     return (
         <aside
             style={{ backgroundColor: "var(--color-sidebar)" }}
@@ -23,7 +25,7 @@ export function Sidebar({ open, desktopHidden = false, onClose, onLogout, userNa
         >
             <SidebarBrand onClose={onClose} onDesktopToggle={onDesktopToggle} alwaysShowClose={desktopHidden} />
             <SidebarNav onItemClick={onClose} />
-            <SidebarUser name={userName} role={userRole} onLogout={onLogout} />
+            <SidebarUser name={userName} role={userRole} branchName={branchName} canSwitchBranch={canSwitchBranch} onLogout={onLogout} />
         </aside>
     );
 }

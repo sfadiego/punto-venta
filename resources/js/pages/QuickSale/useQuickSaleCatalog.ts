@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useCategoryList } from "@/services/useCategoriesService";
 import { useInfiniteIndexProducts } from "@/services/useProductService";
+import { useAxios } from "@/hooks/useAxios";
 import { IProduct } from "@/models/IProduct";
 
 const SEARCH_DEBOUNCE_MS = 350;
@@ -19,6 +20,8 @@ export const useQuickSaleCatalog = () => {
     // (ej. escanear un código de barras) encuentra el producto sin importar su categoría.
     const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
 
+    const { branchId } = useAxios();
+
     // Paginado con scroll infinito (24 por página) — con catálogos grandes, cargar todo de
     // golpe no escala. Mismo hook/patrón que Orders/partials/ProductSelector.
     const {
@@ -30,6 +33,7 @@ export const useQuickSaleCatalog = () => {
     } = useInfiniteIndexProducts({
         nombre: debouncedSearch,
         categoria_id: activeCategoryId,
+        branch_id: branchId,
     });
     const products: IProduct[] = useMemo(() => data?.pages.flatMap((p) => p.data) ?? [], [data]);
 

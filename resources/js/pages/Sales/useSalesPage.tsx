@@ -41,7 +41,10 @@ const renderersMap: DataTableRenderersMap = {
 };
 
 export const useSalesPage = () => {
-    const { features } = useAxios();
+    // El reporte por categoría se filtra por la sucursal activa de la sesión (cambiable
+    // desde el switcher del sidebar), no por un selector propio de esta página — mismo
+    // criterio ya aplicado en Dashboard/Orders.
+    const { features, branchId } = useAxios();
     const sellByWeight = features?.sell_by_weight === true;
 
     const [reportMode, setReportMode] = useState<SalesReportModeEnum>(SalesReportModeEnum.Day);
@@ -85,6 +88,7 @@ export const useSalesPage = () => {
                 : reportMode === SalesReportModeEnum.Week
                     ? (semana ? { semana } : {})
                     : (mes ? { mes } : {})),
+            branch_id: branchId ?? undefined,
         },
         renderersMap,
     });
@@ -152,6 +156,7 @@ export const useSalesPage = () => {
         fecha,
         semana,
         mes,
+        branchId,
         sellByWeight,
         handleReportModeChange,
         handleFechaChange,

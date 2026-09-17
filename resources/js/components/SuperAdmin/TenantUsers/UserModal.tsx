@@ -5,6 +5,7 @@ import RoleSelect from "@/components/Role/RoleSelect";
 import { Input } from "@/components/ui/form/Input";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 import { RoleEnum } from "@/enums/RoleEnum";
+import { useListTenantBranches } from "@/services/useTenantBranchService";
 
 interface UserModalProps {
     tenantId: number;
@@ -18,7 +19,25 @@ const ROLES_SIN_COCINA = [RoleEnum.Cocina];
 
 export const UserModal = ({ tenantId, tenantSlug, tipoNegocio, user, onClose }: UserModalProps) => {
     const excludeRoles = tipoNegocio !== BusinessTypeEnum.Restaurante ? ROLES_SIN_COCINA : [];
-    const { formik, isEdit } = useUserModal({ tenantId, tenantSlug, user, onClose });
+    const { formik, isEdit, isLoadingBranches } = useUserModal({ tenantId, tenantSlug, user, onClose });
+    const { data: branches } = useListTenantBranches(tenantId);
+
+    // Admin siempre tiene acceso a todas las sucursales (sin fila en user_branch), y solo
+    // aplica si el tenant ya tiene sucursales dadas de alta. Al editar, se espera a que
+    // cargue la asignación actual del usuario antes de mostrar el checklist, para no
+    // pintar "sin sucursales" por un instante cuando en realidad sí tiene.
+    const showBranchPicker =
+        Number(formik.values.rol_id) !== RoleEnum.Admin
+        && (branches?.length ?? 0) > 0
+        && !(isEdit && isLoadingBranches);
+
+    const toggleBranch = (branchId: number) => {
+        const current: number[] = formik.values.branch_ids;
+        const next = current.includes(branchId)
+            ? current.filter((id) => id !== branchId)
+            : [...current, branchId];
+        formik.setFieldValue("branch_ids", next);
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
@@ -53,13 +72,21 @@ export const UserModal = ({ tenantId, tenantSlug, tipoNegocio, user, onClose }: 
                             }}
                         />
                         <Input formik={formik} name="usuario" label="Usuario" maxLength={80} autoComplete="off" />
-                        <Input
-                            formik={formik}
-                            name="password"
-                            label={isEdit ? "Contraseña (dejar vacío para no cambiar)" : "Contraseña"}
-                            inputType="password"
-                            autoComplete="new-password"
-                        />
+                        <div>
+
+                            <Input
+                                formik={formik}
+                                name="password"
+                                label={"Contraseña"}
+                                inputType="password"
+                                autoComplete="new-password"
+                            />
+                            <p className="text-sm text-slate-500">
+                                {isEdit
+                                    ? "Vacío no cambia la contraseña"
+                                    : ""}
+                            </p>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -76,14 +103,12 @@ export const UserModal = ({ tenantId, tenantSlug, tipoNegocio, user, onClose }: 
                             <button
                                 type="button"
                                 onClick={() => formik.setFieldValue("activo", !formik.values.activo)}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                                    formik.values.activo ? "bg-indigo-600" : "bg-slate-200"
-                                }`}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formik.values.activo ? "bg-indigo-600" : "bg-slate-200"
+                                    }`}
                             >
                                 <span
-                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                                        formik.values.activo ? "translate-x-6" : "translate-x-1"
-                                    }`}
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formik.values.activo ? "translate-x-6" : "translate-x-1"
+                                        }`}
                                 />
                             </button>
                             <span className="text-sm text-slate-600">
@@ -91,6 +116,35 @@ export const UserModal = ({ tenantId, tenantSlug, tipoNegocio, user, onClose }: 
                             </span>
                         </div>
                     </div>
+
+                    {showBranchPicker && (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                                Sucursales asignadas
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 border border-slate-200 rounded-xl p-3">
+                                {branches?.map((branch) => (
+                                    <label
+                                        key={branch.id}
+                                        className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={formik.values.branch_ids.includes(branch.id)}
+                                            onChange={() => toggleBranch(branch.id)}
+                                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                        {branch.name}
+                                    </label>
+                                ))}
+                            </div>
+                            {formik.values.branch_ids.length === 0 && (
+                                <p className="text-xs text-slate-400 mt-1">
+                                    Sin sucursales seleccionadas: este usuario no podrá abrir caja hasta que se le asigne una.
+                                </p>
+                            )}
+                        </div>
+                    )}
 
                     <div className="flex justify-end gap-3 pt-2">
                         <button

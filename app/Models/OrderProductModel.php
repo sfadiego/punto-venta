@@ -68,7 +68,7 @@ class OrderProductModel extends Model
         return $this->morphMany(StockMovementModel::class, 'reference');
     }
 
-    public static function top3BestSeller(?Carbon $start = null, ?Carbon $end = null, ?int $sistemaId = null)
+    public static function top3BestSeller(?Carbon $start = null, ?Carbon $end = null, ?int $sistemaId = null, ?int $branchId = null)
     {
         $query = OrderProductModel::whereHas('product')
             ->with(['product'])
@@ -77,6 +77,8 @@ class OrderProductModel extends Model
             ->select(DB::raw('SUM(order_product.cantidad) as sumatoria'), 'order_product.producto_id')
             ->when($start && $end, fn ($q) => $q->whereBetween('order_product.created_at', [$start, $end]))
             ->when($sistemaId, fn ($q) => $q->where('order.sistema_id', $sistemaId))
+            ->when($branchId, fn ($q) => $q->join('main_order_report', 'main_order_report.id', '=', 'order.sistema_id')
+                ->where('main_order_report.branch_id', $branchId))
             ->groupBy('order_product.producto_id')
             ->orderByDesc('sumatoria')
             ->limit(3)

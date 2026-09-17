@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useInfiniteIndexProducts } from "@/services/useProductService";
 import { useCategoryList } from "@/services/useCategoriesService";
+import { useAxios } from "@/hooks/useAxios";
 import { IProduct } from "@/models/IProduct";
 import { IconSourceEnum } from "@/enums/IconSourceEnum";
 
@@ -43,6 +44,8 @@ export const useProductGrid = () => {
         setActiveCategoryId(found?.id ?? null);
     }, [categoriesData]);
 
+    const { branchId } = useAxios();
+
     const {
         data,
         isLoading,
@@ -52,6 +55,7 @@ export const useProductGrid = () => {
     } = useInfiniteIndexProducts({
         nombre: debouncedSearch,
         categoria_id: activeCategoryId,
+        branch_id: branchId,
     });
 
     const products: IProduct[] = useMemo(

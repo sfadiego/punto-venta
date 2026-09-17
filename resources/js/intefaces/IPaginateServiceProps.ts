@@ -17,4 +17,5 @@ export interface IPaginateServiceProps {
     mes?: string | null;
     categoria_id?: number | null;
     search?: string | null;
+    branch_id?: number | null;
 }

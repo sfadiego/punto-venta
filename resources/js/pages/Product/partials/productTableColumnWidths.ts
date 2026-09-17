@@ -7,6 +7,7 @@ export const PRODUCT_TABLE_COLUMN_WIDTHS = {
     nombre: 280,
     codigo: 130,
     categoria: 160,
+    sucursales: 160,
     precio: 140,
     estado: 120,
     stock: 100,

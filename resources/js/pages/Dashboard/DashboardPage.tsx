@@ -31,7 +31,8 @@ export default function DashboardPage() {
     const navigate = useNavigate();
     const { can } = usePermissions();
     const {
-        orders, ordersLoading, isFetchingNextPage, hasNextPage, fetchNextPage, sistemaId, sellByWeight, isRetail, stats,
+        orders, ordersLoading, isFetchingNextPage, hasNextPage, fetchNextPage, sistemaId,
+        sellByWeight, isRetail, stats,
     } = useDashboard();
 
     const {
@@ -123,7 +124,11 @@ export default function DashboardPage() {
                 placement="top-start"
             >
                 {sellByWeight ? (
-                    <RecentSales onSelect={handleResumeSale} onViewAll={() => navigate(AdminRoutes.OrderList)} />
+                    <RecentSales
+                        onSelect={handleResumeSale}
+                        onViewAll={() => navigate(AdminRoutes.OrderList)}
+                        sistemaId={sistemaId}
+                    />
                 ) : (
                     <RecentOrders
                         orders={orders}

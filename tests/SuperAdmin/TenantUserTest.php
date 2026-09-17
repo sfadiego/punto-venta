@@ -2,8 +2,11 @@
 
 namespace Tests\SuperAdmin;
 
+use App\Enums\MainOrderStatusEnum;
 use App\Enums\RoleEnum;
+use App\Models\BranchModel;
 use App\Models\BusinessConfigModel;
+use App\Models\MainOrderReportModel;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -96,6 +99,57 @@ class TenantUserTest extends TestCase
             'email' => $payload['email'],
             'tenant_id' => $tenant->id,
         ]);
+    }
+
+    public function test_crea_usuario_con_sucursales_asignadas(): void
+    {
+        $tenant = $this->crearTenant();
+        $sucursalA = BranchModel::create([
+            BranchModel::NAME => 'Sucursal A', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true,
+        ]);
+        $sucursalB = BranchModel::create([
+            BranchModel::NAME => 'Sucursal B', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true,
+        ]);
+        $payload = $this->userPayload(['branch_ids' => [$sucursalA->id, $sucursalB->id]]);
+
+        $response = $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $payload, $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $userId = $response->json('data.id');
+
+        $this->assertDatabaseHas('user_branch', [
+            'user_id' => $userId, 'branch_id' => $sucursalA->id, 'tenant_id' => $tenant->id,
+        ]);
+        $this->assertDatabaseHas('user_branch', [
+            'user_id' => $userId, 'branch_id' => $sucursalB->id, 'tenant_id' => $tenant->id,
+        ]);
+    }
+
+    public function test_ignora_branch_ids_al_crear_un_admin(): void
+    {
+        $tenant = $this->crearTenant();
+        $sucursal = BranchModel::create([
+            BranchModel::NAME => 'Sucursal A', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true,
+        ]);
+        $payload = $this->userPayload(['rol_id' => RoleEnum::ADMIN->value, 'branch_ids' => [$sucursal->id]]);
+
+        $response = $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $payload, $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertDatabaseMissing('user_branch', ['user_id' => $response->json('data.id')]);
+    }
+
+    public function test_no_permite_branch_ids_de_otro_tenant(): void
+    {
+        $tenant = $this->crearTenant();
+        $otroTenant = $this->crearTenant();
+        $sucursalOtroTenant = BranchModel::create([
+            BranchModel::NAME => 'Sucursal Ajena', BranchModel::TENANT_ID => $otroTenant->id, BranchModel::ACTIVE => true,
+        ]);
+        $payload = $this->userPayload(['branch_ids' => [$sucursalOtroTenant->id]]);
+
+        $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $payload, $this->superAdminHeaders())
+            ->assertStatus(400);
     }
 
     public function test_no_crea_usuario_sin_nombre(): void
@@ -255,6 +309,56 @@ class TenantUserTest extends TestCase
         $this->postJson("/api/super-admin/tenant/{$tenant->id}/users/seed")->assertStatus(401);
     }
 
+    public function test_seed_autoasigna_unica_sucursal_a_roles_no_admin(): void
+    {
+        $tenant = $this->crearTenant();
+        $sucursal = BranchModel::create([
+            BranchModel::NAME => 'Única', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true,
+        ]);
+
+        $this->postJson("/api/super-admin/tenant/{$tenant->id}/users/seed", [], $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $admin = User::withoutGlobalScopes()->where(User::TENANT_ID, $tenant->id)->where(User::ROL_ID, RoleEnum::ADMIN->value)->first();
+        $empleado = User::withoutGlobalScopes()->where(User::TENANT_ID, $tenant->id)->where(User::ROL_ID, RoleEnum::EMPLOYE->value)->first();
+
+        $this->assertDatabaseMissing('user_branch', ['user_id' => $admin->id]);
+        $this->assertDatabaseHas('user_branch', [
+            'user_id' => $empleado->id, 'branch_id' => $sucursal->id, 'tenant_id' => $tenant->id,
+        ]);
+    }
+
+    public function test_seed_exige_branch_id_si_hay_varias_sucursales(): void
+    {
+        $tenant = $this->crearTenant();
+        BranchModel::create([BranchModel::NAME => 'A', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true]);
+        BranchModel::create([BranchModel::NAME => 'B', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true]);
+
+        $this->postJson("/api/super-admin/tenant/{$tenant->id}/users/seed", [], $this->superAdminHeaders())
+            ->assertStatus(400);
+
+        $this->assertDatabaseMissing('users', ['tenant_id' => $tenant->id, 'rol_id' => RoleEnum::EMPLOYE->value]);
+    }
+
+    public function test_seed_asigna_la_sucursal_elegida_con_varias_disponibles(): void
+    {
+        $tenant = $this->crearTenant();
+        BranchModel::create([BranchModel::NAME => 'A', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true]);
+        $sucursalB = BranchModel::create([BranchModel::NAME => 'B', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true]);
+
+        $this->postJson("/api/super-admin/tenant/{$tenant->id}/users/seed", [
+            'branch_id' => $sucursalB->id,
+        ], $this->superAdminHeaders())->assertStatus(200);
+
+        $empleado = User::withoutGlobalScopes()->where(User::TENANT_ID, $tenant->id)->where(User::ROL_ID, RoleEnum::EMPLOYE->value)->first();
+        $admin = User::withoutGlobalScopes()->where(User::TENANT_ID, $tenant->id)->where(User::ROL_ID, RoleEnum::ADMIN->value)->first();
+
+        $this->assertDatabaseHas('user_branch', [
+            'user_id' => $empleado->id, 'branch_id' => $sucursalB->id, 'tenant_id' => $tenant->id,
+        ]);
+        $this->assertDatabaseMissing('user_branch', ['user_id' => $admin->id]);
+    }
+
     // ── Delete ────────────────────────────────────────────────
 
     public function test_elimina_usuario_del_tenant(): void
@@ -360,5 +464,91 @@ class TenantUserTest extends TestCase
             ->assertStatus(401);
         $this->deleteJson("/api/super-admin/tenant/{$tenant->id}/users/{$user->id}/login-lock")
             ->assertStatus(401);
+    }
+
+    // ── branches / syncBranches ──────────────────────────────────
+
+    public function test_consulta_sucursales_de_un_usuario(): void
+    {
+        $tenant = $this->crearTenant();
+        $sucursal = BranchModel::create([BranchModel::NAME => 'A', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true]);
+        $created = $this->postJson(
+            "/api/super-admin/tenant/{$tenant->id}/users",
+            $this->userPayload(['branch_ids' => [$sucursal->id]]),
+            $this->superAdminHeaders()
+        )->json('data');
+
+        $this->getJson("/api/super-admin/tenant/{$tenant->id}/users/{$created['id']}/branches", $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.is_admin', false)
+            ->assertJsonPath('data.branch_ids', [$sucursal->id]);
+    }
+
+    public function test_actualiza_sucursales_de_un_usuario(): void
+    {
+        $tenant = $this->crearTenant();
+        $sucursalA = BranchModel::create([BranchModel::NAME => 'A', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true]);
+        $sucursalB = BranchModel::create([BranchModel::NAME => 'B', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true]);
+        $created = $this->postJson(
+            "/api/super-admin/tenant/{$tenant->id}/users",
+            $this->userPayload(['branch_ids' => [$sucursalA->id]]),
+            $this->superAdminHeaders()
+        )->json('data');
+
+        $this->putJson(
+            "/api/super-admin/tenant/{$tenant->id}/users/{$created['id']}/branches",
+            ['branch_ids' => [$sucursalB->id]],
+            $this->superAdminHeaders()
+        )->assertStatus(200)->assertJsonPath('data.branch_ids', [$sucursalB->id]);
+
+        $this->assertDatabaseMissing('user_branch', ['user_id' => $created['id'], 'branch_id' => $sucursalA->id]);
+        $this->assertDatabaseHas('user_branch', ['user_id' => $created['id'], 'branch_id' => $sucursalB->id]);
+    }
+
+    public function test_no_permite_asignar_sucursales_a_un_admin(): void
+    {
+        $tenant = $this->crearTenant();
+        $sucursal = BranchModel::create([BranchModel::NAME => 'A', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true]);
+        $admin = $this->postJson(
+            "/api/super-admin/tenant/{$tenant->id}/users",
+            $this->userPayload(['rol_id' => RoleEnum::ADMIN->value]),
+            $this->superAdminHeaders()
+        )->json('data');
+
+        $this->putJson(
+            "/api/super-admin/tenant/{$tenant->id}/users/{$admin['id']}/branches",
+            ['branch_ids' => [$sucursal->id]],
+            $this->superAdminHeaders()
+        )->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseMissing('user_branch', ['user_id' => $admin['id']]);
+    }
+
+    public function test_no_permite_quitar_sucursal_con_caja_abierta_del_usuario(): void
+    {
+        $tenant = $this->crearTenant();
+        $sucursalA = BranchModel::create([BranchModel::NAME => 'A', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true]);
+        $sucursalB = BranchModel::create([BranchModel::NAME => 'B', BranchModel::TENANT_ID => $tenant->id, BranchModel::ACTIVE => true]);
+        $created = $this->postJson(
+            "/api/super-admin/tenant/{$tenant->id}/users",
+            $this->userPayload(['branch_ids' => [$sucursalA->id, $sucursalB->id]]),
+            $this->superAdminHeaders()
+        )->json('data');
+
+        MainOrderReportModel::create([
+            MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN->value,
+            MainOrderReportModel::EFECTIVO_CAJA_INICIO => 0,
+            MainOrderReportModel::USER_ID => $created['id'],
+            MainOrderReportModel::TENANT_ID => $tenant->id,
+            MainOrderReportModel::BRANCH_ID => $sucursalA->id,
+        ]);
+
+        $this->putJson(
+            "/api/super-admin/tenant/{$tenant->id}/users/{$created['id']}/branches",
+            ['branch_ids' => [$sucursalB->id]],
+            $this->superAdminHeaders()
+        )->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseHas('user_branch', ['user_id' => $created['id'], 'branch_id' => $sucursalA->id]);
     }
 }

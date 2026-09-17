@@ -1,11 +1,18 @@
+import { AlertTriangle } from "lucide-react";
 import { useAuth } from "./useAuth";
 import { Input } from "../ui/form/Input";
 
 export const AuthForm = () => {
-    const { formik, loginMutation } = useAuth();
+    const { formik, loginMutation, banner } = useAuth();
 
     return (
         <form onSubmit={formik.handleSubmit} noValidate className="space-y-5">
+            {banner && (
+                <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                    <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-sm text-amber-800">{banner}</p>
+                </div>
+            )}
             <Input
                 label="Correo electronico"
                 inputType="email"

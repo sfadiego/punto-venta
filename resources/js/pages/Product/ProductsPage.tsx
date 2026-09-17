@@ -48,7 +48,9 @@ export default function ProductsPage() {
         handleCloseModal,
     } = useProductsPage();
 
-    const { isEdit, formik, categories: modalCategories, sellByWeight, stockEnabled, currentStock } = useProductModal(
+    const {
+        isEdit, formik, categories: modalCategories, sellByWeight, stockEnabled, currentStock, showBranchSelector,
+    } = useProductModal(
         editingProduct,
         invalidateProducts,
         handleCloseModal,
@@ -141,6 +143,24 @@ export default function ProductsPage() {
                     <span className="text-stone-600 text-sm">{p.category?.nombre ?? "—"}</span>
                 ),
             },
+            // Solo se muestra con 2+ sucursales autorizadas (mismo criterio que el checklist
+            // del formulario) — con 0-1, "todas" y "esa sucursal" son indistinguibles.
+            ...(showBranchSelector
+                ? [
+                      {
+                          accessor: "branches" as keyof IProduct,
+                          title: "Sucursales",
+                          width: PRODUCT_TABLE_COLUMN_WIDTHS.sucursales,
+                          render: (p: IProduct) => (
+                              <span className="text-stone-600 text-sm truncate block">
+                                  {p.branches && p.branches.length > 0
+                                      ? p.branches.map((b) => b.name).join(", ")
+                                      : "Todas"}
+                              </span>
+                          ),
+                      } as DataTableColumn<IProduct>,
+                  ]
+                : []),
             {
                 accessor: "precio",
                 title: "Precio",
@@ -210,7 +230,7 @@ export default function ProductsPage() {
                 ),
             },
         ],
-        [openEditModal, openRestockModal, openMovementsModal, stockEnabled, showStockActions, features?.is_retail],
+        [openEditModal, openRestockModal, openMovementsModal, stockEnabled, showStockActions, features?.is_retail, showBranchSelector],
     );
 
     return (
@@ -309,6 +329,7 @@ export default function ProductsPage() {
                 stockEnabled={stockEnabled}
                 currentStock={currentStock}
                 productVariants={editingProduct?.variants ?? []}
+                showBranchSelector={showBranchSelector}
                 onClose={handleModalClose}
             />
 

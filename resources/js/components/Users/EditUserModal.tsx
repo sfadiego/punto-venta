@@ -4,6 +4,7 @@ import { RoleEnum } from "@/enums/RoleEnum";
 import { Input } from "@/components/ui/form/Input";
 import RoleSelect from "@/components/Role/RoleSelect";
 import { useEditUserModal } from "./useEditUserModal";
+import { useBranchList } from "@/services/useBranchService";
 
 interface EditUserModalProps {
     user: IUser | null;
@@ -12,7 +13,24 @@ interface EditUserModalProps {
 }
 
 export const EditUserModal = ({ user, excludeRoles = [], onClose }: EditUserModalProps) => {
-    const { formik, isPending } = useEditUserModal(user, onClose);
+    const { formik, isPending, isLoadingBranches } = useEditUserModal(user, onClose);
+    const { data: branches } = useBranchList();
+
+    // Admin siempre tiene acceso a todas las sucursales (sin fila en user_branch), y solo
+    // aplica si el tenant ya tiene sucursales dadas de alta. Espera a que cargue la
+    // asignación actual del usuario para no pintar "sin sucursales" por un instante.
+    const showBranchPicker =
+        Number(formik.values.rol_id) !== RoleEnum.Admin
+        && (branches?.length ?? 0) > 0
+        && !isLoadingBranches;
+
+    const toggleBranch = (branchId: number) => {
+        const current: number[] = formik.values.branch_ids;
+        const next = current.includes(branchId)
+            ? current.filter((id) => id !== branchId)
+            : [...current, branchId];
+        formik.setFieldValue("branch_ids", next);
+    };
 
     if (!user) return null;
 
@@ -116,6 +134,35 @@ export const EditUserModal = ({ user, excludeRoles = [], onClose }: EditUserModa
                             inputType="password"
                             autoComplete="new-password"
                         />
+
+                        {showBranchPicker && (
+                            <div>
+                                <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                                    Sucursales asignadas
+                                </label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 border border-stone-200 rounded-xl p-3">
+                                    {branches?.map((branch) => (
+                                        <label
+                                            key={branch.id}
+                                            className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={formik.values.branch_ids.includes(branch.id)}
+                                                onChange={() => toggleBranch(branch.id)}
+                                                className="w-4 h-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400"
+                                            />
+                                            {branch.name}
+                                        </label>
+                                    ))}
+                                </div>
+                                {formik.values.branch_ids.length === 0 && (
+                                    <p className="text-xs text-stone-400 mt-1">
+                                        Sin sucursales seleccionadas: este usuario no podrá abrir caja hasta que se le asigne una.
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
                         <div className="pt-2 flex gap-3 justify-end shrink-0">
                             <button

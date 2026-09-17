@@ -3,10 +3,14 @@ import { calcEfectivoCierre } from "@/utils/deliveryCalc";
 import { useAxios } from "@/hooks/useAxios";
 
 export const useCloseSalesSummary = () => {
-    const { features } = useAxios();
+    const { features, branchId } = useAxios();
     const sellByWeight = features?.sell_by_weight === true;
 
-    const { data: activeSale, isLoading: loadingSale } = useGetActiveSale();
+    // Sin branchId, getActiveSale() resuelve la PRIMERA caja abierta del tenant sin
+    // importar sucursal — con 2+ sucursales activas, el usuario podría terminar cerrando
+    // la caja de una sucursal ajena a la que tiene seleccionada. Ver mismo fix en
+    // useAppLayout.ts.
+    const { data: activeSale, isLoading: loadingSale } = useGetActiveSale(branchId);
     const sistemaId = activeSale?.id ?? null;
 
     const { data: totales, isLoading: loadingTotal } = useCurrentTotalSale(sistemaId ?? 0);

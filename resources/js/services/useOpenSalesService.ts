@@ -3,9 +3,11 @@ import { useGET, usePOST } from "../hooks/useApi";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 
 const url = ApiRoutes.System;
-export const useGetActiveSale = () =>
+export const useGetActiveSale = (branchId?: number | null) =>
     useGET<IMainOrderReport>({
         url: `${url}/active-sale`,
+        filters: branchId ? { branch_id: branchId } : {},
+        nameQuery: `${url}/active-sale`,
     });
 export const useStoreOpenSales = () => usePOST({ url: `${url}/open` });
 export const useCloseSales = (systemId: number) =>

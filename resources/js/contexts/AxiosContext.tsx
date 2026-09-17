@@ -34,6 +34,10 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         const stored = Number(localStorage.getItem("sistemaId"));
         return stored > 0 ? stored : null;
     });
+    const [branchId, setBranchId] = useState<number | null>(() => {
+        const stored = Number(localStorage.getItem("branchId"));
+        return stored > 0 ? stored : null;
+    });
 
     const configureAxiosHeaders = (token: string | null) => {
         if (token) {
@@ -79,6 +83,12 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         setSistemaId(value);
     };
 
+    const setBranch = (branch: number | null) => {
+        const value = branch && branch > 0 ? branch : null;
+        localStorage.setItem("branchId", value?.toString() ?? "");
+        setBranchId(value);
+    };
+
     const logout = useCallback(() => {
         // Limpia localStorage directamente (sin pasar por los setState de configUser/
         // configFeatures/etc.) para no disparar un re-render de PrivateRoute mientras
@@ -92,6 +102,7 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         localStorage.removeItem("features");
         localStorage.removeItem("rolePermissions");
         localStorage.removeItem("sistemaId");
+        localStorage.removeItem("branchId");
         localStorage.removeItem("tenantSlug");
         clearCachedBusinessConfig();
         window.location.replace(slug ? `/${slug}/auth` : "/auth");
@@ -152,6 +163,12 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         }
     }, [sistemaId]);
 
+    useEffect(() => {
+        if (branchId) {
+            setBranch(branchId);
+        }
+    }, [branchId]);
+
     const isAuth = !!authToken;
 
     const value = {
@@ -163,8 +180,10 @@ export const AxiosProvider = ({ children }: IAuthProviderProps) => {
         axiosApi,
         saveAuth,
         sistemaId,
+        branchId,
         logout,
         setSistema,
+        setBranch,
         setCurrentUser: configUser,
         setRolePermissions: configRolePermissions,
     };

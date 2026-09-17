@@ -7,6 +7,7 @@ use App\Enums\OrderStatusEnum;
 use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MainOrderReportModel extends Model
@@ -29,6 +30,8 @@ class MainOrderReportModel extends Model
 
     const TENANT_ID = 'tenant_id';
 
+    const BRANCH_ID = 'branch_id';
+
     protected $fillable = [
         self::ESTATUS_CAJA,
         self::EFECTIVO_CAJA_INICIO,
@@ -37,11 +40,17 @@ class MainOrderReportModel extends Model
         self::OBSERVACION,
         self::USER_ID,
         self::TENANT_ID,
+        self::BRANCH_ID,
     ];
 
     public function orders()
     {
         return $this->hasMany(OrderModel::class, 'sistema_id');
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(BranchModel::class, self::BRANCH_ID);
     }
 
     public function expenses(): HasMany
@@ -146,23 +155,32 @@ class MainOrderReportModel extends Model
         return $this->refresh();
     }
 
-    public static function validateIfOpenSaleActive(): bool
+    /**
+     * Sin $branchId (tenants sin sucursales, o llamadores que no la conocen) se comporta
+     * igual que antes: una sola caja abierta por tenant. Con $branchId, la validación se
+     * acota a esa sucursal — permite que dos sucursales del mismo tenant tengan cada una
+     * su propia caja abierta simultáneamente.
+     */
+    public static function validateIfOpenSaleActive(?int $branchId = null): bool
     {
         return MainOrderReportModel::where(self::ESTATUS_CAJA, MainOrderStatusEnum::OPEN)
+            ->when($branchId, fn ($q) => $q->where(self::BRANCH_ID, $branchId))
             ->exists();
     }
 
-    public function getActiveSale(): ?MainOrderReportModel
+    public function getActiveSale(?int $branchId = null): ?MainOrderReportModel
     {
         return MainOrderReportModel::with('user')
             ->where(self::ESTATUS_CAJA, MainOrderStatusEnum::OPEN)
+            ->when($branchId, fn ($q) => $q->where(self::BRANCH_ID, $branchId))
             ->first();
     }
 
     public static function openSales(
         float $initialCash,
         int $userId,
-        string $observaciones = ''
+        string $observaciones = '',
+        ?int $branchId = null,
     ): MainOrderReportModel {
 
         return MainOrderReportModel::create([
@@ -171,6 +189,7 @@ class MainOrderReportModel extends Model
             self::OBSERVACION => $observaciones,
             self::CREATED_AT => now(),
             self::USER_ID => $userId,
+            self::BRANCH_ID => $branchId,
         ]);
     }
 }

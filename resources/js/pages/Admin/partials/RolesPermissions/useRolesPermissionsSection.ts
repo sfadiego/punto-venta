@@ -16,7 +16,10 @@ export const useRolesPermissionsSection = () => {
     // el mismo criterio (getExcludedRoles()).
     const excludedRoles = getExcludedRoles(features);
     const configurableRoles = ALL_CONFIGURABLE_ROLES.filter((role) => !excludedRoles.includes(role));
-    const applicableActions = getApplicableActions(features);
+    // manageBranches nunca es delegable: el backend la protege con el middleware role.admin
+    // (no permission:xxx), así que otorgarla desde aquí a un rol configurable no tendría
+    // ningún efecto real en la API — solo confundiría con un checkbox que no hace nada.
+    const applicableActions: Action[] = getApplicableActions(features).filter((action) => action !== "manageBranches");
     const applicableActionsSet = new Set(applicableActions);
     // DEFAULT_ROLE_PERMISSIONS es una tabla estática (no sabe de features del tenant) — filtrar
     // por applicableActions antes de usarla como draft/reset evita que una clave como

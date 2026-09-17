@@ -5,7 +5,8 @@ import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
 import { ICreateTenantPayload, ITenant, IUpdateTenantPayload } from "@/models/ITenant";
 
 const url = ApiRoutes.SuperAdminTenant;
-const QUERY_KEY = "super-admin-tenants";
+export const TENANT_QUERY_KEY = "super-admin-tenants";
+const QUERY_KEY = TENANT_QUERY_KEY;
 
 export const useListTenants = (
     status: TenantStatusEnum = TenantStatusEnum.All,

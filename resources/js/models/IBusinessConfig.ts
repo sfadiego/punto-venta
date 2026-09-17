@@ -26,6 +26,9 @@ export interface IBusinessConfig {
     employees_enabled: boolean;
     stock_enabled: boolean;
     customers_enabled: boolean;
+    // Solo lectura: activado exclusivamente desde el panel de SuperAdmin
+    // (ver TenantBranchController::enable), nunca editable desde este formulario.
+    multi_branch_enabled?: boolean;
     costo_domicilio_default: number;
     logo_icon: string | null;
     logo_icon_source: IconSourceEnum | null;

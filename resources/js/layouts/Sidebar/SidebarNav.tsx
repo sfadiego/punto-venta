@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { Users, Settings, HandCoins, Truck, UserRound, Boxes, BarChart2, SlidersHorizontal } from "lucide-react";
+import { Users, Settings, HandCoins, Truck, UserRound, Boxes, BarChart2, SlidersHorizontal, Store } from "lucide-react";
 import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/FeatureSpotlight";
 import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
 import { useSidebarNav } from "./useSidebarNav";
@@ -20,6 +20,7 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
         statisticsEnabled,
         usersEnabled,
         adminEnabled,
+        branchesEnabled,
         hasConfigSection,
         hasFooterSection,
     } = useSidebarNav();
@@ -112,6 +113,7 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
                                 onItemClick={onItemClick}
                                 items={[
                                     ...(statisticsEnabled ? [{ label: "Estadísticas", icon: BarChart2, path: "/statistics" }] : []),
+                                    ...(branchesEnabled ? [{ label: "Sucursales", icon: Store, path: "/branches" }] : []),
                                     ...(usersEnabled ? [{ label: "Usuarios", icon: Users, path: "/users" }] : []),
                                     ...(adminEnabled ? [{ label: "Configuración", icon: Settings, path: "/admin" }] : []),
                                 ]}

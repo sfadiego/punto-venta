@@ -17,8 +17,10 @@ export interface IAuthContextType {
         tenantSlug?: string | null,
     ) => void;
     sistemaId: number | null;
+    branchId: number | null;
     logout: () => void;
     setSistema: (sistema: number | null) => void;
+    setBranch: (branch: number | null) => void;
     // Refreshes the cached logged-in user (localStorage + context state) without
     // a full re-login — used when an admin edits their own profile from the
     // users list, so the sidebar reflects the change immediately.

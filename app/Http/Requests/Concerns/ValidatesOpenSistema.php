@@ -9,10 +9,11 @@ use Illuminate\Validation\Validator;
 trait ValidatesOpenSistema
 {
     /**
-     * Agrega un error a `sistema_id` si la caja referenciada ya está cerrada. Se ejecuta
-     * como after-hook (no como regla de `rules()`) porque solo debe correr una vez que
-     * `exists` ya confirmó que el registro existe para este tenant — evita pisar ese
-     * mensaje con uno distinto cuando el sistema_id ni siquiera es válido.
+     * Agrega un error a `sistema_id` si la caja referenciada ya está cerrada, o si el
+     * usuario no tiene acceso a la sucursal de esa caja. Se ejecuta como after-hook (no
+     * como regla de `rules()`) porque solo debe correr una vez que `exists` ya confirmó
+     * que el registro existe para este tenant — evita pisar ese mensaje con uno distinto
+     * cuando el sistema_id ni siquiera es válido.
      */
     protected function assertSistemaAbierto(Validator $validator, ?int $tenantId): void
     {
@@ -25,8 +26,18 @@ trait ValidatesOpenSistema
             ->where('tenant_id', $tenantId)
             ->first();
 
-        if ($sistema && $sistema->estatus_caja !== MainOrderStatusEnum::OPEN->value) {
+        if (! $sistema) {
+            return;
+        }
+
+        if ($sistema->estatus_caja !== MainOrderStatusEnum::OPEN->value) {
             $validator->errors()->add('sistema_id', 'La caja de esta venta ya está cerrada.');
+
+            return;
+        }
+
+        if ($sistema->branch_id !== null && ! $this->user()?->canAccessBranch($sistema->branch_id)) {
+            $validator->errors()->add('sistema_id', 'No tienes acceso a la sucursal de esta caja.');
         }
     }
 }

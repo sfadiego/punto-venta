@@ -53,7 +53,7 @@ class OrderProductController extends Controller
      */
     public function store(string $orderId, OrderProductStoreRequest $params): JsonResponse
     {
-        $order = OrderModel::find($orderId);
+        $order = OrderModel::with('sistema')->find($orderId);
         if ($error = $this->assertOrderEditable($order)) {
             return $error;
         }
@@ -74,7 +74,7 @@ class OrderProductController extends Controller
             return Response::error('La orden no contiene este producto');
         }
 
-        $order = OrderModel::find($orderId);
+        $order = OrderModel::with('sistema')->find($orderId);
         if ($error = $this->assertOrderEditable($order)) {
             return $error;
         }
@@ -95,9 +95,13 @@ class OrderProductController extends Controller
             return Response::error('elemento no encontrado');
         }
 
-        $order = OrderModel::lockForUpdate()->find($orderId);
+        $order = OrderModel::with('sistema')->lockForUpdate()->find($orderId);
         if (! $order) {
             return Response::error('no existe la orden');
+        }
+
+        if (! $order->isAccessibleByUser(auth()->user())) {
+            return Response::unauthorized();
         }
 
         return Response::success($this->service->toggleReady($order, $orderProduct));
@@ -116,11 +120,15 @@ class OrderProductController extends Controller
             return Response::error('elemento no encontrado');
         }
 
+        $order = OrderModel::with('sistema')->find($orderId);
+        if ($order && ! $order->isAccessibleByUser(auth()->user())) {
+            return Response::unauthorized();
+        }
+
         $orderProduct->update([
             OrderProductModel::OBSERVACION => $request->input('observacion') ?: null,
         ]);
 
-        $order = OrderModel::find($orderId);
         $this->service->resetStatusIfReady($order);
 
         return Response::success($orderProduct->refresh());
@@ -131,7 +139,7 @@ class OrderProductController extends Controller
      */
     public function deleteExtra(int $orderId, int $extra): JsonResponse
     {
-        $order = OrderModel::lockForUpdate()->find($orderId);
+        $order = OrderModel::with('sistema')->lockForUpdate()->find($orderId);
         if ($error = $this->assertOrderEditable($order)) {
             return $error;
         }
@@ -154,7 +162,7 @@ class OrderProductController extends Controller
      */
     public function clearCart(int $orderId): JsonResponse
     {
-        $order = OrderModel::lockForUpdate()->find($orderId);
+        $order = OrderModel::with('sistema')->lockForUpdate()->find($orderId);
         if ($error = $this->assertOrderEditable($order)) {
             return $error;
         }
@@ -169,7 +177,7 @@ class OrderProductController extends Controller
      */
     public function delete(int $orderId, int $product): JsonResponse
     {
-        $order = OrderModel::lockForUpdate()->find($orderId);
+        $order = OrderModel::with('sistema')->lockForUpdate()->find($orderId);
         if ($error = $this->assertOrderEditable($order)) {
             return $error;
         }
@@ -205,6 +213,11 @@ class OrderProductController extends Controller
             return Response::error('La orden no contiene este producto');
         }
 
+        $order = OrderModel::with('sistema')->find($orderId);
+        if ($order && ! $order->isAccessibleByUser(auth()->user())) {
+            return Response::unauthorized();
+        }
+
         try {
             $updated = $this->returnService->returnProduct(
                 orderProduct: $orderProduct,
@@ -228,6 +241,10 @@ class OrderProductController extends Controller
     {
         if (! $order) {
             return Response::error('no existe la orden');
+        }
+
+        if (! $order->isAccessibleByUser(auth()->user())) {
+            return Response::unauthorized();
         }
 
         $editableStatuses = [OrderStatusEnum::IN_PROCESS->value, OrderStatusEnum::SERVED->value];

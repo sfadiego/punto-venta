@@ -23,12 +23,16 @@ export const useSidebarNav = () => {
     const statisticsEnabled = can("viewStatistics");
     const usersEnabled = can("viewUsers");
     const adminEnabled = can("viewAdmin");
-    // Estadísticas/Usuarios/Configuración viven agrupadas bajo el dropdown "General" del
-    // sidebar — se muestra si al menos una aplica para este rol/tenant. Inventario NO entra
-    // aquí: es una pantalla operativa de uso diario en retail (Kardex, reajustes,
-    // devoluciones), no una opción administrativa de consulta esporádica — vive junto a
-    // Clientes en la lista principal (ver SidebarNav.tsx).
-    const hasConfigSection = statisticsEnabled || usersEnabled || adminEnabled;
+    // manageBranches es Admin-exclusivo (ver permissionUtils.ts) y solo aplica si el
+    // tenant tiene la feature de sucursales activa (SuperAdmin) — sin eso, la página no
+    // tendría nada que administrar.
+    const branchesEnabled = can("manageBranches") && config?.multi_branch_enabled === true;
+    // Estadísticas/Usuarios/Configuración/Sucursales viven agrupadas bajo el dropdown
+    // "General" del sidebar — se muestra si al menos una aplica para este rol/tenant.
+    // Inventario NO entra aquí: es una pantalla operativa de uso diario en retail
+    // (Kardex, reajustes, devoluciones), no una opción administrativa de consulta
+    // esporádica — vive junto a Clientes en la lista principal (ver SidebarNav.tsx).
+    const hasConfigSection = statisticsEnabled || usersEnabled || adminEnabled || branchesEnabled;
 
     // "Pedidos" aplica a venta por peso y Retail (ambos sin kitchen_view); "Órdenes" solo a
     // Restaurante (servicio en mesa). No usar sellByWeight aquí: Retail comparte sellByWeight=false
@@ -51,6 +55,7 @@ export const useSidebarNav = () => {
         statisticsEnabled,
         usersEnabled,
         adminEnabled,
+        branchesEnabled,
         hasConfigSection,
         hasFooterSection,
     };

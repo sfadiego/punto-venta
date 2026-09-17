@@ -7,6 +7,7 @@ use App\Enums\UnidadMedidaEnum;
 use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -210,6 +211,32 @@ class ProductModel extends Model
     public function category(): HasOne
     {
         return $this->hasOne(CategoryModel::class, 'id', 'categoria_id');
+    }
+
+    /**
+     * Sucursales donde este producto está disponible. Reemplaza el branch() single-value
+     * de arriba (columna vieja, aún sin dropear) — ver product_branch en CLAUDE.md.
+     */
+    public function branches(): BelongsToMany
+    {
+        return $this->belongsToMany(BranchModel::class, 'product_branch', 'product_id', 'branch_id');
+    }
+
+    /**
+     * Sin sucursales asignadas en el pivote = disponible en todas (stock compartido, el
+     * pivote es solo una restricción de visibilidad opcional).
+     */
+    public function isAvailableInBranch(?int $branchId): bool
+    {
+        if ($branchId === null) {
+            return true;
+        }
+
+        if ($this->relationLoaded('branches')) {
+            return $this->branches->isEmpty() || $this->branches->contains('id', $branchId);
+        }
+
+        return $this->branches()->doesntExist() || $this->branches()->where('branches.id', $branchId)->exists();
     }
 
     public function variants(): HasMany

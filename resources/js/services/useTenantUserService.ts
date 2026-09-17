@@ -3,6 +3,7 @@ import { superAdminAxios } from "@/contexts/SuperAdminContext";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { ICreateUserPayload, IUpdateUserPayload, IUser } from "@/models/IUser";
 import { ILoginLockStatus } from "@/models/ILoginLock";
+import { IUserBranches } from "@/models/IBranch";
 
 const baseUrl = (tenantId: number) => `${ApiRoutes.SuperAdminTenant}/${tenantId}/users`;
 const QUERY_KEY = "tenant-users";
@@ -48,8 +49,31 @@ export const useDeleteTenantUser = (tenantId: number) => {
 export const useSeedTenantUsers = (tenantId: number) => {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: () => superAdminAxios.post(`${baseUrl(tenantId)}/seed`),
+        mutationFn: (payload?: { branch_id?: number }) =>
+            superAdminAxios.post(`${baseUrl(tenantId)}/seed`, payload),
         onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEY, tenantId] }),
+    });
+};
+
+const BRANCHES_QUERY_KEY = "tenant-user-branches";
+
+export const useTenantUserBranches = (tenantId: number, userId: number) =>
+    useQuery<IUserBranches>({
+        queryKey: [BRANCHES_QUERY_KEY, tenantId, userId],
+        queryFn: async () => {
+            const res = await superAdminAxios.get(`${baseUrl(tenantId)}/${userId}/branches`);
+            return res.data.data as IUserBranches;
+        },
+        enabled: !!tenantId && !!userId,
+    });
+
+export const useSyncTenantUserBranches = (tenantId: number) => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ userId, branchIds }: { userId: number; branchIds: number[] }) =>
+            superAdminAxios.put(`${baseUrl(tenantId)}/${userId}/branches`, { branch_ids: branchIds }),
+        onSuccess: (_data, { userId }) =>
+            qc.invalidateQueries({ queryKey: [BRANCHES_QUERY_KEY, tenantId, userId] }),
     });
 };
 

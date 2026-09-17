@@ -58,7 +58,13 @@ export const useOrdersSocket = ({ showToast = false, suppressCreated = false }: 
         const channel = getEcho().channel("orders");
 
         const handler = (data: { type?: string }) => {
-            queryClient.refetchQueries({ predicate: (q) => isOrderQuery(q.queryKey) });
+            // type: "all" — refetchQueries por defecto solo toca queries ACTIVAS (con un
+            // componente montado observándolas). Si la orden se crea/actualiza mientras la
+            // vista de Órdenes no está montada (ej. recién se navegó a TakeOrder), su query
+            // queda cacheada con datos viejos y nunca se refresca hasta que algo más la
+            // invalide — de ahí que solo se vieran las órdenes activas después de recargar
+            // la página a mano.
+            queryClient.refetchQueries({ predicate: (q) => isOrderQuery(q.queryKey), type: "all" });
 
             if (showToast && data.type) {
                 toastHandlers[data.type]?.();

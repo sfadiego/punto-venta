@@ -12,8 +12,13 @@ export const useAppLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [desktopCollapsed, setDesktopCollapsed] = useState(false);
 
-    const { user, logout, setSistema, axiosApi } = useAxios();
-    const { data: activeSale } = useGetActiveSale();
+    const { user, logout, setSistema, axiosApi, branchId } = useAxios();
+    // Sin branchId, getActiveSale() resuelve la PRIMERA caja abierta del tenant sin
+    // importar sucursal — con 2+ sucursales activas cada una con su propia caja abierta,
+    // sistemaId podía terminar apuntando a la caja de otra sucursal distinta a la que el
+    // usuario tiene seleccionada, y todo lo que depende de sistemaId (Orders, Dashboard)
+    // mostraba datos de esa sucursal ajena. Filtrar por la sucursal activa de la sesión.
+    const { data: activeSale } = useGetActiveSale(branchId);
     const { data: config } = useGetBusinessConfig();
 
     // Rutas de pantalla completa — ocultan el sidebar para maximizar el área táctil.

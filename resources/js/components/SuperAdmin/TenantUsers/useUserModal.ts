@@ -2,7 +2,12 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { IUser, ICreateUserPayload, IUpdateUserPayload } from "@/models/IUser";
-import { useCreateTenantUser, useUpdateTenantUser } from "@/services/useTenantUserService";
+import {
+    useCreateTenantUser,
+    useSyncTenantUserBranches,
+    useTenantUserBranches,
+    useUpdateTenantUser,
+} from "@/services/useTenantUserService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { RoleEnum } from "@/enums/RoleEnum";
@@ -32,6 +37,10 @@ export const useUserModal = ({ tenantId, tenantSlug, user, onClose }: UseUserMod
     const isEdit = !!user;
     const createMutation = useCreateTenantUser(tenantId);
     const updateMutation = useUpdateTenantUser(tenantId);
+    const syncBranchesMutation = useSyncTenantUserBranches(tenantId);
+    // Solo se consulta en edición — en alta no hay usuario todavía, branch_ids arranca []
+    // y se envía junto con el POST de creación (ver TenantUserController::store).
+    const { data: userBranches, isLoading: isLoadingBranches } = useTenantUserBranches(tenantId, user?.id ?? 0);
 
     const formik = useFormik({
         enableReinitialize: true,
@@ -44,16 +53,28 @@ export const useUserModal = ({ tenantId, tenantSlug, user, onClose }: UseUserMod
             password:         "",
             rol_id:           user?.rol_id ?? RoleEnum.Employe,
             activo:           user ? Boolean(user.activo) : true,
+            branch_ids:       isEdit ? (userBranches?.branch_ids ?? []) : ([] as number[]),
         },
         validationSchema: schema(isEdit),
         onSubmit: async (values, { setSubmitting }) => {
             try {
                 if (isEdit) {
-                    const payload: IUpdateUserPayload = { ...values };
+                    const { branch_ids, ...rest } = values;
+                    const payload: IUpdateUserPayload = { ...rest };
                     if (!payload.password) delete payload.password;
                     await updateMutation.mutateAsync({ id: user!.id, data: payload });
+
+                    // Un Admin ya tiene acceso a todas las sucursales — sincronizar
+                    // user_branch para uno sería un no-op rechazado por el backend.
+                    if (Number(values.rol_id) !== RoleEnum.Admin) {
+                        await syncBranchesMutation.mutateAsync({ userId: user!.id, branchIds: branch_ids });
+                    }
+
                     toast.success("Usuario actualizado correctamente.");
                 } else {
+                    // branch_ids solo tiene efecto en el backend para roles distintos de
+                    // Admin (ver TenantUserController::store) — se envía siempre, sin
+                    // filtrar aquí, para no duplicar esa regla en dos lugares.
                     await createMutation.mutateAsync(values as ICreateUserPayload);
                     toast.success("Usuario creado correctamente.");
                 }
@@ -68,5 +89,5 @@ export const useUserModal = ({ tenantId, tenantSlug, user, onClose }: UseUserMod
         },
     });
 
-    return { formik, isEdit };
+    return { formik, isEdit, isLoadingBranches };
 };

@@ -1,8 +1,10 @@
+import { useMemo } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useIndexCategories } from "@/services/useCategoriesService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
+import { useBranchList } from "@/services/useBranchService";
 import {
     useStoreProduct,
     useUpdateProduct,
@@ -41,9 +43,11 @@ export type ProductForm = {
     product_code: string;
     icon_name: string;
     icon_source: IconSourceEnum;
+    /** Vacío = disponible en todas las sucursales (ver ProductBranchesField). */
+    branch_ids: string[];
 };
 
-const schema = Yup.object({
+const baseSchema = {
     nombre: Yup.string().trim().required("El nombre es requerido").max(70, "Máximo 70 caracteres"),
     descripcion: Yup.string(),
     precio: Yup.number()
@@ -70,7 +74,7 @@ const schema = Yup.object({
     product_code: Yup.string().max(64, "Máximo 64 caracteres"),
     icon_name: Yup.string().max(100, "Máximo 100 caracteres"),
     icon_source: Yup.mixed<IconSourceEnum>().oneOf(Object.values(IconSourceEnum)),
-});
+};
 
 export const useProductModal = (product: IProduct | null, onSuccess: () => void, onClose: () => void) => {
     const isEdit = !!product;
@@ -82,6 +86,17 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
     const { data: categories } = useIndexCategories();
     const { features } = useAxios();
     const { data: businessConfig } = useGetBusinessConfig();
+    // Tenant sin la feature de sucursales: siempre devuelve []. Con la feature activa,
+    // trae solo las sucursales autorizadas para este usuario (ver useBranchService.ts).
+    const { data: branches } = useBranchList();
+    // El checklist solo se muestra cuando el usuario tiene más de una sucursal autorizada
+    // — con una sola (o cero, tenant sin la feature), "todas" y "esa sucursal" son
+    // equivalentes en la práctica, así que el campo ni se muestra ni se envía.
+    const showBranchSelector = (branches?.length ?? 0) > 1;
+    const schema = useMemo(() => Yup.object({
+        ...baseSchema,
+        branch_ids: Yup.array().of(Yup.string()),
+    }), []);
     const sellByWeight = features?.sell_by_weight === true;
     // Bandera por tenant (business_config.stock_enabled, gestionada desde SuperAdmin) — no
     // depende del tipo de negocio: reemplaza el bloqueo anterior que deshabilitaba "Maneja
@@ -115,6 +130,7 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
             product_code: product?.product_code ?? "",
             icon_name: product?.icon_name ?? "",
             icon_source: product?.icon_source ?? IconSourceEnum.Openmoji,
+            branch_ids: product?.branches?.map((b) => String(b.id)) ?? [],
         },
         validationSchema: schema,
         onSubmit: async (values, helpers) => {
@@ -129,6 +145,9 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
                 product_code: values.product_code.trim() || undefined,
                 icon_name: values.icon_name.trim(),
                 icon_source: values.icon_source,
+                // Solo se envía si el checklist está visible (2+ sucursales autorizadas) —
+                // con 0-1 no hay nada que restringir y el backend no espera el campo.
+                ...(showBranchSelector ? { branch_ids: values.branch_ids.map(Number) } : {}),
             };
 
             // El stock inicial se puede capturar al crear, o al activar "Maneja stock" por
@@ -175,6 +194,13 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
 
                 if (fieldErrors) {
                     helpers.setErrors(fieldErrors);
+                    // branch_ids no siempre está visible (checklist oculto con 0-1 sucursales
+                    // autorizadas) — si el backend lo rechaza igual, setErrors no pinta nada en
+                    // pantalla y el usuario ve un fallo silencioso. Forzar un toast para ese caso.
+                    const branchError = Object.entries(fieldErrors).find(([key]) => key.startsWith("branch_ids"));
+                    if (branchError && !showBranchSelector) {
+                        toast.error(branchError[1]);
+                    }
                 } else {
                     logUnexpectedError(error, "useProductModal.onSubmit");
                     toast.error(getUserFacingErrorMessage(error, `Error al ${isEdit ? "actualizar" : "crear"} el producto`));
@@ -190,6 +216,7 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
         sellByWeight,
         stockEnabled,
         currentStock: product?.stock ?? null,
+        showBranchSelector,
     };
 };
 

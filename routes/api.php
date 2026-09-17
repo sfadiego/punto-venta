@@ -30,6 +30,7 @@ require base_path('routes/modules/menu.php');
 require base_path('routes/modules/superadmin.php');
 
 Route::middleware(['auth:sanctum', ResolveTenant::class, 'check.subscription'])->group(function () {
+    require base_path('routes/modules/branches.php');
     require base_path('routes/modules/categories.php');
     require base_path('routes/modules/customers.php');
     require base_path('routes/modules/providers.php');

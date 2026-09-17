@@ -7,6 +7,7 @@ use App\Http\Controllers\SuperAdmin\ClientLeadController;
 use App\Http\Controllers\SuperAdmin\SubscriptionController;
 use App\Http\Controllers\SuperAdmin\SuperAdminAuthController;
 use App\Http\Controllers\SuperAdmin\SuperAdminUserController;
+use App\Http\Controllers\SuperAdmin\TenantBranchController;
 use App\Http\Controllers\SuperAdmin\TenantFeatureSpotlightController;
 use App\Http\Controllers\SuperAdmin\TenantManagementController;
 use App\Http\Controllers\SuperAdmin\TenantRolePermissionController;
@@ -67,6 +68,14 @@ Route::prefix('super-admin')->group(function () {
                     Route::get('', 'index');
                     Route::put('{role}', 'update');
                 });
+
+                Route::prefix('branches')->controller(TenantBranchController::class)->group(function () {
+                    Route::get('', 'index');
+                    Route::post('', 'store');
+                    Route::post('enable', 'enable');
+                    Route::put('{branch}', 'update');
+                    Route::patch('{branch}/toggle', 'toggleActive');
+                });
             });
 
             Route::prefix('{tenant}/users')->controller(TenantUserController::class)->group(function () {
@@ -75,6 +84,8 @@ Route::prefix('super-admin')->group(function () {
                 Route::post('seed', 'seedUsers');
                 Route::put('{user}', 'update');
                 Route::delete('{user}', 'delete');
+                Route::get('{user}/branches', 'branches');
+                Route::put('{user}/branches', 'syncBranches');
                 Route::get('{user}/login-lock', 'loginLockStatus');
                 Route::delete('{user}/login-lock', 'unblockLogin');
             });

@@ -14,9 +14,26 @@ class ProductStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * Autorización por campo: si se envían branch_ids, el usuario debe tener acceso
+     * otorgado a cada una de esas sucursales (Admin siempre pasa vía User::canAccessBranch()).
      */
     public function authorize(): bool
     {
+        $branchIds = $this->input('branch_ids', []);
+
+        if (! is_array($branchIds) || $branchIds === []) {
+            return true;
+        }
+
+        $user = $this->user();
+
+        foreach ($branchIds as $branchId) {
+            if (! $user?->canAccessBranch((int) $branchId)) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -55,6 +72,13 @@ class ProductStoreRequest extends FormRequest
             ],
             ProductModel::ICON_NAME => 'nullable|string|max:100',
             ProductModel::ICON_SOURCE => ['nullable', Rule::enum(IconSourceEnum::class)],
+            // Sin branch_ids (o vacío) = disponible en todas las sucursales (stock
+            // compartido, ver CLAUDE.md) — nunca se fuerza a elegir una específica.
+            'branch_ids' => ['nullable', 'array'],
+            'branch_ids.*' => [
+                'integer',
+                Rule::exists('branches', 'id')->where('tenant_id', $tenantId)->where('active', true),
+            ],
         ];
     }
 
