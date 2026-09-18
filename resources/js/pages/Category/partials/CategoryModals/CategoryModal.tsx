@@ -43,7 +43,7 @@ export const CategoryModal = ({ isOpen, isEdit, formik, onClose }: CategoryModal
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-5 space-y-4">
                     <Input<CategoryForm>
                         name="nombre"
                         label="Nombre *"

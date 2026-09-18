@@ -38,7 +38,7 @@ export const ClientLeadCreateModal = ({ isOpen, isSaving, onSave, onClose }: Cli
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+                <form onSubmit={formik.handleSubmit} noValidate className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
                     <Input name="business_name" label="Negocio" placeholder="Nombre del negocio" formik={formik} />
                     <Input name="email" inputType="email" label="Email" placeholder="Correo electrónico" formik={formik} />
                     <Input name="phone" inputType="tel" label="Teléfono" placeholder="Teléfono" formik={formik} maxLength={12} />

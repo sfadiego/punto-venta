@@ -1,6 +1,7 @@
 import { FormikProps } from "formik";
 import { Input } from "@/components/ui/form/Input";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
+import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { ProductForm } from "./useProductModal";
 
 interface ProductStockFieldsProps {
@@ -19,6 +20,10 @@ export const ProductStockFields = ({ formik, isEdit, wasManagingStock, currentSt
     // igual que al crear — sí se puede capturar el stock inicial aquí, porque no hay historial
     // que proteger todavía.
     const canCaptureInitialStock = !isEdit || !wasManagingStock;
+    // Solo "unidad" se cuenta en piezas (ver validación en useProductModal.ts) — kg/gr/litro
+    // admiten decimales, así que el spinner debe permitir pasos finos en vez de solo enteros.
+    const isUnitCounted = formik.values.unidad_medida === UnidadMedidaEnum.Unidad;
+    const stockStep = isUnitCounted ? 1 : 0.01;
 
     return (
         <div className="grid grid-cols-2 gap-3">
@@ -29,7 +34,7 @@ export const ProductStockFields = ({ formik, isEdit, wasManagingStock, currentSt
                         label="Stock inicial"
                         inputType="number"
                         min={0}
-                        step={1}
+                        step={stockStep}
                         placeholder="0"
                         formik={formik}
                     />
@@ -51,7 +56,7 @@ export const ProductStockFields = ({ formik, isEdit, wasManagingStock, currentSt
                     label="Stock mínimo"
                     inputType="number"
                     min={0}
-                    step={1}
+                    step={stockStep}
                     placeholder="2"
                     formik={formik}
                 />

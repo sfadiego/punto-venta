@@ -37,7 +37,7 @@ export const AddExtraModal = ({ isOpen, formik, onClose }: AddExtraModalProps) =
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-5 space-y-4">
                     {/* Nombre */}
                     <Input<ExtraForm>
                         label="Descripción del extra"

@@ -33,7 +33,7 @@ export const OpenSalesModal = ({ isOpen, isPending, formik, onClose }: OpenSales
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-5 space-y-4">
                     <Input<OpenSalesForm>
                         name="efectivo_caja_inicio"
                         label="Efectivo inicial en caja"

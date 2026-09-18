@@ -17,7 +17,7 @@ export default function SuperAdminLoginPage() {
                     <p className="text-slate-400 text-sm mt-1">{import.meta.env.VITE_APP_NAME} — Panel de control</p>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="bg-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <form onSubmit={formik.handleSubmit} noValidate className="bg-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-300 mb-1.5">
                             Correo electrónico

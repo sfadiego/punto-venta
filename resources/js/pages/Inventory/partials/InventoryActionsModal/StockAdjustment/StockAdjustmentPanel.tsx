@@ -59,7 +59,7 @@ export const StockAdjustmentPanel = ({
         hasDeltaValue && delta !== 0 && delta >= -MAX_STOCK_ADJUSTMENT && delta <= MAX_STOCK_ADJUSTMENT;
 
     return (
-        <form onSubmit={formik.handleSubmit} className="space-y-4">
+        <form onSubmit={formik.handleSubmit} noValidate className="space-y-4">
             <ProductAutocomplete
                 value={query}
                 onChange={handleQueryChange}

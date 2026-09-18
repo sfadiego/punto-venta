@@ -44,7 +44,7 @@ export const EditCustomerModal = ({
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5 overflow-y-auto">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-5 overflow-y-auto">
                     <CustomerFormFields formik={formik} />
 
                     <div className="flex gap-2 pt-5">

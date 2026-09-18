@@ -56,7 +56,7 @@ export const StockReturnPanel = ({
         )}
 
         {order && isOrderClosed && (
-            <form onSubmit={formik.handleSubmit} className="space-y-4">
+            <form onSubmit={formik.handleSubmit} noValidate className="space-y-4">
                 <SelectReturnLine
                     lines={lines}
                     value={orderProductId ? String(orderProductId) : ""}

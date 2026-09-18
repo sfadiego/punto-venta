@@ -49,7 +49,7 @@ export const CheckoutModal = ({ open, slug, items, deliveryCost, primaryColor, o
                         </button>
                     </div>
 
-                    <form onSubmit={formik.handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+                    <form onSubmit={formik.handleSubmit} noValidate className="flex flex-col flex-1 overflow-hidden">
                         <div className="px-5 py-5 flex flex-col gap-4 flex-1 overflow-y-auto">
                             <Input
                                 formik={formik}
