@@ -21,7 +21,7 @@ export const StatisticsSummaryCards = ({
                     <DollarSign size={20} className="text-green-600" />
                 </div>
                 <div className="min-w-0">
-                    <p className="text-xs text-stone-500 font-medium">Ventas del día</p>
+                    <p className="text-xs text-stone-500 font-medium">Ventas de esta sesión</p>
                     <p className="text-base font-bold text-stone-900 mt-0.5 truncate">{totalVentas}</p>
                     <p className="text-xs text-stone-400 mt-0.5">sesión actual</p>
                 </div>

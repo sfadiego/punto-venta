@@ -14,6 +14,7 @@ import { canPayOrder, resolveDefaultPaymentMethodId } from "@/utils/paymentMetho
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
+import { invalidateStatistics } from "@/services/useStatisticsService";
 import { usePaymentSelection } from "./usePaymentSelection";
 import { useCreditSelection } from "./useCreditSelection";
 
@@ -100,6 +101,7 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
                 });
             }
             invalidateSalesByCategory(queryClient);
+            invalidateStatistics(queryClient);
             toast.success(creditSelection.isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closeModal();
 

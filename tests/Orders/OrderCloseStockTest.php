@@ -118,6 +118,9 @@ class OrderCloseStockTest extends TestCase
             ->assertJsonPath('data.estatus_pedido_id', OrderStatusEnum::CLOSED->value);
 
         $this->assertEquals(6.0, (float) $product->fresh()->stock);
+        // Bug real: el movimiento de Salida/Venta se registraba con created_by null (el
+        // kardex mostraba "—" en Usuario) porque deductStockForOrder() no pasaba createdBy
+        // a StockService::deduct(), a diferencia de la importación y el ajuste manual.
         $this->assertDatabaseHas('stock_movements', [
             'product_id' => $product->id,
             'type' => StockMovementTypeEnum::Exit->value,
@@ -125,6 +128,7 @@ class OrderCloseStockTest extends TestCase
             'quantity' => 4,
             'stock_before' => 10,
             'stock_after' => 6,
+            'created_by' => User::where('rol_id', RoleEnum::ADMIN->value)->first()->id,
         ]);
         $this->assertEquals($item->id, StockMovementModel::where('product_id', $product->id)->first()->reference_id);
     }

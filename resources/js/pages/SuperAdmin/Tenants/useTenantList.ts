@@ -17,7 +17,7 @@ const toIsDemo = (filter: TenantDemoFilterEnum): boolean | undefined =>
     filter === TenantDemoFilterEnum.Demo ? true : undefined;
 
 export const useTenantList = () => {
-    const [status, setStatus] = useState<TenantStatusEnum>(TenantStatusEnum.Active);
+    const [status, setStatus] = useState<TenantStatusEnum>(TenantStatusEnum.All);
     const [demoFilter, setDemoFilter] = useState<TenantDemoFilterEnum>(TenantDemoFilterEnum.All);
     const [search, setSearch] = useState("");
 

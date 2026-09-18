@@ -76,6 +76,7 @@ class OrderSaleService
                     reason: StockMovementReasonEnum::Sale,
                     variantId: $item['variant_id'] ?? null,
                     reference: $orderProduct,
+                    createdBy: auth()->id(),
                 );
             }
         }

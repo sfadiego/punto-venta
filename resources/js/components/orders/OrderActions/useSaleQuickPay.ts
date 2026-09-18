@@ -15,6 +15,7 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IOrder } from "@/models/IOrder";
 import { resolveDefaultPaymentMethodId, canPayOrder } from "@/utils/paymentMethods";
 import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
+import { invalidateStatistics } from "@/services/useStatisticsService";
 
 export const useSaleQuickPay = (order: IOrder) => {
     const queryClient = useQueryClient();
@@ -68,6 +69,7 @@ export const useSaleQuickPay = (order: IOrder) => {
                 });
             }
             invalidateSalesByCategory(queryClient);
+            invalidateStatistics(queryClient);
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closePayModal();
 
