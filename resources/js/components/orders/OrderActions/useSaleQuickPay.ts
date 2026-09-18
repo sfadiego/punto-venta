@@ -70,6 +70,13 @@ export const useSaleQuickPay = (order: IOrder) => {
             }
             invalidateSalesByCategory(queryClient);
             invalidateStatistics(queryClient);
+            // Venta a crédito: el backend ya incrementó el balance del cliente, pero su
+            // página de detalle (useShowCustomer) no tiene staleTime propio — hereda el
+            // default global de 2 min y se queda con el balance viejo si no se invalida.
+            if (isCreditMode && selectedCustomerId) {
+                queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/${selectedCustomerId}`] });
+                queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
+            }
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closePayModal();
 

@@ -102,6 +102,13 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
             }
             invalidateSalesByCategory(queryClient);
             invalidateStatistics(queryClient);
+            // Venta a crédito: el backend ya incrementó el balance del cliente, pero su
+            // página de detalle (useShowCustomer) no tiene staleTime propio — hereda el
+            // default global de 2 min y se queda con el balance viejo si no se invalida.
+            if (creditSelection.isCreditMode && creditSelection.selectedCustomerId) {
+                queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/${creditSelection.selectedCustomerId}`] });
+                queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
+            }
             toast.success(creditSelection.isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closeModal();
 
