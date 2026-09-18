@@ -13,7 +13,7 @@ interface ProductGridProps {
     quantityOf: (productId: number, variantId?: number | null) => number;
     readonly?: boolean;
     onAdd: (product: IMenuProduct, variant?: IProductVariant) => void;
-    onRemove: (productId: number) => void;
+    onRemove: (productId: number, variantId?: number | null) => void;
     onAddWithWeight: (product: IMenuProduct, weight: number) => void;
 }
 

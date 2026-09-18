@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Loader, PackagePlus, History } from "lucide-react";
+import { Pencil, Trash2, Loader, PackagePlus, History, ArrowUpDown } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
@@ -11,13 +11,14 @@ interface ProductTableActionsProps {
     product: IProduct;
     onEdit: (product: IProduct) => void;
     onRestock: (product: IProduct) => void;
+    onAdjust: (product: IProduct) => void;
     onViewMovements: (product: IProduct) => void;
     /** false en negocios retail — ahí el manejo de stock vive en la página de Inventario,
      * no duplicar el acceso rápido aquí (ver CLAUDE.md, Fase 9 del plan de Inventario). */
     showStockActions: boolean;
 }
 
-export const ProductTableActions = ({ product, onEdit, onRestock, onViewMovements, showStockActions }: ProductTableActionsProps) => {
+export const ProductTableActions = ({ product, onEdit, onRestock, onAdjust, onViewMovements, showStockActions }: ProductTableActionsProps) => {
     const queryClient = useQueryClient();
     const { mutateAsync: deleteProduct, isPending: isDeleting } = useDeleteProduct(product.id);
 
@@ -57,6 +58,15 @@ export const ProductTableActions = ({ product, onEdit, onRestock, onViewMovement
                     className="flex items-center justify-center w-6 h-6 rounded-lg text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 transition-all"
                 >
                     <PackagePlus size={16} />
+                </button>
+            )}
+            {showStockActions && product.manage_stock && (
+                <button
+                    onClick={() => onAdjust(product)}
+                    title="Ajustar stock"
+                    className="flex items-center justify-center w-6 h-6 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-all"
+                >
+                    <ArrowUpDown size={16} />
                 </button>
             )}
             <button

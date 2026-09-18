@@ -1,5 +1,5 @@
 import { RefObject } from "react";
-import { Upload, Download, FileText, RotateCcw } from "lucide-react";
+import { Upload, Download, FileText, RotateCcw, AlertTriangle } from "lucide-react";
 import { IProductImportReport } from "@/services/useProductImportService";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
 
@@ -9,6 +9,7 @@ interface ImportProductsPanelProps {
     handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     openFilePicker: () => void;
     report: IProductImportReport | null;
+    hasErrors: boolean;
     isPreviewing: boolean;
     isCommitting: boolean;
     runPreview: () => void;
@@ -23,6 +24,7 @@ export const ImportProductsPanel = ({
     handleFileChange,
     openFilePicker,
     report,
+    hasErrors,
     isPreviewing,
     isCommitting,
     runPreview,
@@ -102,6 +104,16 @@ export const ImportProductsPanel = ({
             </div>
         )}
 
+        {hasErrors && (
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700">
+                <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                <span>
+                    No se puede confirmar la importación: hay filas con error. Corrígelas en tu CSV y vuelve a
+                    subirlo (usa "Reiniciar" para elegir otro archivo).
+                </span>
+            </div>
+        )}
+
         <div className="pt-1">
             {!report ? (
                 <button
@@ -127,7 +139,7 @@ export const ImportProductsPanel = ({
                     <button
                         type="button"
                         onClick={confirmImport}
-                        disabled={isCommitting}
+                        disabled={isCommitting || hasErrors}
                         className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isCommitting ? "Importando..." : "Confirmar importación"}

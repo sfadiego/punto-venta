@@ -28,6 +28,11 @@ export const useImportProductsPanel = (onImported?: () => void) => {
     const { mutateAsync: commitMutate, isPending: isCommitting } = useImportProductsCommit();
     const downloadTemplate = useDownloadImportTemplate();
 
+    // El backend importa las filas válidas y omite en silencio las que tengan error (no
+    // rechaza el lote completo) — sin este check, confirmar con filas en error las descarta
+    // sin que el usuario lo note, ya que el commit igual responde éxito para el resto.
+    const hasErrors = (report?.summary.errors ?? 0) > 0;
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFile(e.target.files?.[0] ?? null);
         setReport(null);
@@ -100,6 +105,7 @@ export const useImportProductsPanel = (onImported?: () => void) => {
         handleFileChange,
         openFilePicker,
         report,
+        hasErrors,
         isPreviewing,
         isCommitting,
         runPreview,

@@ -436,6 +436,62 @@ class ProductImportTest extends TestCase
         $this->assertSame(1, ProductModel::count());
     }
 
+    public function test_stock_decimal_en_producto_por_unidad_es_error(): void
+    {
+        $this->marcarComoRetailConStock();
+        $this->crearCategoria('Ropa');
+
+        $file = $this->csvFile([$this->fila([
+            'unidad_medida' => 'unidad',
+            'maneja_stock' => 'si',
+            'stock' => '10.5',
+        ])]);
+        $this->postJson('/api/product/import/commit', ['file' => $file], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.errors', 1)
+            ->assertJsonPath('data.summary.to_create', 0);
+
+        $this->assertSame(0, ProductModel::count());
+    }
+
+    public function test_stock_minimo_decimal_en_producto_por_unidad_es_error(): void
+    {
+        $this->marcarComoRetailConStock();
+        $this->crearCategoria('Ropa');
+
+        $file = $this->csvFile([$this->fila([
+            'unidad_medida' => 'unidad',
+            'maneja_stock' => 'si',
+            'stock' => '10',
+            'stock_minimo' => '2.5',
+        ])]);
+        $this->postJson('/api/product/import/commit', ['file' => $file], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.errors', 1);
+
+        $this->assertSame(0, ProductModel::count());
+    }
+
+    public function test_stock_decimal_en_producto_por_peso_es_valido(): void
+    {
+        $this->marcarComoRetailConStock();
+        $this->crearCategoria('Ropa');
+
+        $file = $this->csvFile([$this->fila([
+            'unidad_medida' => 'kg',
+            'maneja_stock' => 'si',
+            'stock' => '10.5',
+            'stock_minimo' => '1.5',
+        ])]);
+        $response = $this->postJson('/api/product/import/commit', ['file' => $file], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.errors', 0)
+            ->assertJsonPath('data.summary.to_create', 1);
+
+        $productId = $response->json('data.rows.0.data.product_id');
+        $this->assertEquals(10.5, ProductModel::find($productId)->stock);
+    }
+
     // ── Warnings con default seguro (no bloquean la fila) ─────
 
     public function test_precio_invalido_usa_cero_con_warning(): void

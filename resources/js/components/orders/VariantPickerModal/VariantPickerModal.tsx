@@ -1,28 +1,33 @@
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { IProductVariant } from "@/models/IProductVariant";
 import { formatMoney } from "@/utils/formatCurrency";
+import { UnitControls } from "@/components/ui/UnitControls";
 
 export interface VariantOption {
     variant: IProductVariant;
     remaining: number; // Infinity si el producto no maneja stock
     exhausted: boolean;
+    quantity: number; // cantidad de esta variante ya en el carrito
 }
 
 interface VariantPickerModalProps {
     isOpen: boolean;
     title: string;
     options: VariantOption[];
-    onSelect: (variant: IProductVariant) => void;
+    onAdd: (variant: IProductVariant) => void;
+    onRemove: (variant: IProductVariant) => void;
     onClose: () => void;
 }
 
 // Compartido entre Orders (TakeOrder), QuickSale y el Menú público — cada página calcula
-// `remaining`/`exhausted` con su propia fuente de carrito (ver useProductCard/useVariantPicker
-// de cada una) y este componente solo pinta la lista, sin conocer IProduct/IMenuProduct.
+// `remaining`/`exhausted`/`quantity` con su propia fuente de carrito (ver useProductCard/
+// useVariantPicker de cada una) y este componente solo pinta la lista, sin conocer
+// IProduct/IMenuProduct. El modal se queda abierto tras agregar/quitar — permite cargar más de
+// una variante (o más de una unidad de la misma) antes de cerrarlo con la X o el fondo.
 // Portal + hoja inferior en mobile para que el modal nunca quede recortado por un ancestro con
 // overflow, sin importar en qué parte del árbol se monte.
-export const VariantPickerModal = ({ isOpen, title, options, onSelect, onClose }: VariantPickerModalProps) => {
+export const VariantPickerModal = ({ isOpen, title, options, onAdd, onRemove, onClose }: VariantPickerModalProps) => {
     if (!isOpen) return null;
 
     return createPortal(
@@ -41,17 +46,8 @@ export const VariantPickerModal = ({ isOpen, title, options, onSelect, onClose }
                 </div>
 
                 <div className="px-2 pt-1 pb-5 divide-y divide-stone-100 max-h-80 overflow-y-auto">
-                    {options.map(({ variant, remaining, exhausted }) => (
-                        <button
-                            key={variant.id}
-                            type="button"
-                            disabled={exhausted}
-                            onClick={() => onSelect(variant)}
-                            className={`w-full flex items-center gap-3 px-3 py-3 text-left transition-colors ${
-                                exhausted ? "opacity-50 cursor-not-allowed" : "hover:bg-amber-50"
-                            }`}
-                        >
-                            <span className={`w-[18px] h-[18px] rounded-full border-2 shrink-0 ${exhausted ? "border-stone-200" : "border-stone-300"}`} />
+                    {options.map(({ variant, remaining, exhausted, quantity }) => (
+                        <div key={variant.id} className="w-full flex items-center gap-3 px-3 py-3">
                             <span className="flex-1 min-w-0">
                                 <span className="block text-sm font-medium text-stone-800 truncate">{variant.nombre}</span>
                                 {remaining !== Infinity && (
@@ -67,7 +63,27 @@ export const VariantPickerModal = ({ isOpen, title, options, onSelect, onClose }
                             <span className="text-sm font-bold tabular-nums shrink-0" style={{ color: "var(--color-primary)" }}>
                                 ${formatMoney(variant.precio)}
                             </span>
-                        </button>
+                            {quantity === 0 ? (
+                                <button
+                                    type="button"
+                                    disabled={exhausted}
+                                    onClick={() => onAdd(variant)}
+                                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 shrink-0 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:active:opacity-100"
+                                    style={exhausted ? undefined : { backgroundColor: "var(--color-primary)" }}
+                                    aria-label={`Agregar ${variant.nombre}`}
+                                >
+                                    <Plus size={14} />
+                                </button>
+                            ) : (
+                                <UnitControls
+                                    quantity={quantity}
+                                    primaryColor="var(--color-primary)"
+                                    onAdd={() => onAdd(variant)}
+                                    onRemove={() => onRemove(variant)}
+                                    disableAdd={exhausted}
+                                />
+                            )}
+                        </div>
                     ))}
                 </div>
             </div>

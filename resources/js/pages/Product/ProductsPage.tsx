@@ -13,8 +13,8 @@ import { VariantStockExpansion } from "./partials/VariantStockExpansion";
 import { PRODUCT_TABLE_COLUMN_WIDTHS } from "./partials/productTableColumnWidths";
 import { ProductModal } from "./partials/ProductModals/ProductModal";
 import { useProductModal } from "./partials/ProductModals/useProductModal";
-import { RestockModal } from "./partials/RestockModal/RestockModal";
-import { useRestockModal } from "./partials/RestockModal/useRestockModal";
+import { StockAdjustModal } from "./partials/StockAdjustModal/StockAdjustModal";
+import { useStockAdjustModal } from "./partials/StockAdjustModal/useStockAdjustModal";
 import { StockMovementsModal } from "./partials/StockMovementsModal/StockMovementsModal";
 import { useStockMovementsModal } from "./partials/StockMovementsModal/useStockMovementsModal";
 import { ProductTableActions } from "./partials/ProductTableActions";
@@ -69,10 +69,27 @@ export default function ProductsPage() {
         variantId: restockVariantId,
         setVariantId: setRestockVariantId,
         selectedVariant: restockSelectedVariant,
+        currentStock: restockCurrentStock,
+        currentMinStock: restockCurrentMinStock,
         formik: restockFormik,
-        openRestockModal,
-        closeRestockModal,
-    } = useRestockModal();
+        openModal: openRestockModal,
+        closeModal: closeRestockModal,
+    } = useStockAdjustModal("restock");
+
+    const {
+        isOpen: isAdjustOpen,
+        product: adjustProduct,
+        hasVariants: adjustHasVariants,
+        activeVariants: adjustActiveVariants,
+        variantId: adjustVariantId,
+        setVariantId: setAdjustVariantId,
+        selectedVariant: adjustSelectedVariant,
+        currentStock: adjustCurrentStock,
+        currentMinStock: adjustCurrentMinStock,
+        formik: adjustFormik,
+        openModal: openAdjustModal,
+        closeModal: closeAdjustModal,
+    } = useStockAdjustModal("adjustment");
 
     const {
         isOpen: isMovementsOpen,
@@ -224,13 +241,14 @@ export default function ProductsPage() {
                         product={p}
                         onEdit={openEditModal}
                         onRestock={openRestockModal}
+                        onAdjust={openAdjustModal}
                         onViewMovements={openMovementsModal}
                         showStockActions={showStockActions}
                     />
                 ),
             },
         ],
-        [openEditModal, openRestockModal, openMovementsModal, stockEnabled, showStockActions, features?.is_retail, showBranchSelector],
+        [openEditModal, openRestockModal, openAdjustModal, openMovementsModal, stockEnabled, showStockActions, features?.is_retail, showBranchSelector],
     );
 
     return (
@@ -333,7 +351,8 @@ export default function ProductsPage() {
                 onClose={handleModalClose}
             />
 
-            <RestockModal
+            <StockAdjustModal
+                mode="restock"
                 isOpen={isRestockOpen}
                 product={restockProduct}
                 hasVariants={restockHasVariants}
@@ -341,8 +360,25 @@ export default function ProductsPage() {
                 variantId={restockVariantId}
                 setVariantId={setRestockVariantId}
                 selectedVariant={restockSelectedVariant}
+                currentStock={restockCurrentStock}
+                currentMinStock={restockCurrentMinStock}
                 formik={restockFormik}
                 onClose={closeRestockModal}
+            />
+
+            <StockAdjustModal
+                mode="adjustment"
+                isOpen={isAdjustOpen}
+                product={adjustProduct}
+                hasVariants={adjustHasVariants}
+                activeVariants={adjustActiveVariants}
+                variantId={adjustVariantId}
+                setVariantId={setAdjustVariantId}
+                selectedVariant={adjustSelectedVariant}
+                currentStock={adjustCurrentStock}
+                currentMinStock={adjustCurrentMinStock}
+                formik={adjustFormik}
+                onClose={closeAdjustModal}
             />
 
             <StockMovementsModal

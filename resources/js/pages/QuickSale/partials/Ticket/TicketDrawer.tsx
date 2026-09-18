@@ -10,7 +10,7 @@ export const TicketDrawer = () => {
     const {
         cart,
         removeFromCart,
-        setLineWeight,
+        setLineQuantity,
         clearCart,
         domicilioActivo,
         domicilioNum,
@@ -38,26 +38,38 @@ export const TicketDrawer = () => {
                 {cart.length === 0 ? (
                     <p className="py-6 text-center text-sm text-stone-400">Aún no hay productos en el ticket</p>
                 ) : (
-                    cart.map((item) => (
-                        <TicketRow
-                            key={item.orderProductId}
-                            name={item.variantName ? `${item.product.nombre} (${item.variantName})` : item.product.nombre}
-                            quantityLabel={formatCartQuantity(item.product.unidad_medida, item.cantidad)}
-                            priceLabel={formatCartUnitPrice(item.product.unidad_medida, item.precioEfectivo)}
-                            lineTotal={item.precioEfectivo * item.cantidad}
-                            onRemove={() => removeFromCart(item.orderProductId)}
-                            highlighted={item.orderProductId === lastAddedOrderProductId}
-                            editableWeight={
-                                isWeightUnit(item.product.unidad_medida)
-                                    ? {
-                                          cantidad: item.cantidad,
-                                          unit: item.product.unidad_medida,
-                                          onCommit: (weightKg) => setLineWeight(item.orderProductId, weightKg),
-                                      }
-                                    : undefined
-                            }
-                        />
-                    ))
+                    cart.map((item) => {
+                        const weightUnit = isWeightUnit(item.product.unidad_medida) ? item.product.unidad_medida : null;
+
+                        return (
+                            <TicketRow
+                                key={item.orderProductId}
+                                name={item.variantName ? `${item.product.nombre} (${item.variantName})` : item.product.nombre}
+                                quantityLabel={formatCartQuantity(item.product.unidad_medida, item.cantidad)}
+                                priceLabel={formatCartUnitPrice(item.product.unidad_medida, item.precioEfectivo)}
+                                lineTotal={item.precioEfectivo * item.cantidad}
+                                onRemove={() => removeFromCart(item.orderProductId)}
+                                highlighted={item.orderProductId === lastAddedOrderProductId}
+                                editableWeight={
+                                    weightUnit
+                                        ? {
+                                              cantidad: item.cantidad,
+                                              unit: weightUnit,
+                                              onCommit: (weightKg) => setLineQuantity(item.orderProductId, weightKg),
+                                          }
+                                        : undefined
+                                }
+                                editableQuantity={
+                                    weightUnit
+                                        ? undefined
+                                        : {
+                                              cantidad: item.cantidad,
+                                              onCommit: (cantidad) => setLineQuantity(item.orderProductId, cantidad),
+                                          }
+                                }
+                            />
+                        );
+                    })
                 )}
 
                 {domicilioActivo && domicilioNum > 0 && (

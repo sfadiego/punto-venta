@@ -76,6 +76,7 @@ export default function TakeOrderPage() {
             isRetail={isRetail}
             pendingProductIds={pendingProductIds}
             onAdd={addToCart}
+            onUpdateQuantity={updateQuantity}
         />
     );
     const cartPanel = (

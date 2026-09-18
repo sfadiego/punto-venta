@@ -17,7 +17,7 @@ interface ProductCardProps {
     primaryColor: string;
     readonly?: boolean;
     onAdd: (product: IMenuProduct, variant?: IProductVariant) => void;
-    onRemove: (productId: number) => void;
+    onRemove: (productId: number, variantId?: number | null) => void;
     onAddWithWeight: (product: IMenuProduct, weight: number) => void;
 }
 
@@ -39,12 +39,13 @@ export const ProductCard = ({
         isPickerOpen,
         closePicker,
         handleAddClick,
-        handleSelectVariant,
+        handleAddVariant,
+        handleRemoveVariant,
         isManagedStock,
         availableStock,
         stockExhausted,
         variantOptions,
-    } = useProductCard(product, quantity, quantityOf, onAdd);
+    } = useProductCard(product, quantity, quantityOf, onAdd, onRemove);
 
     return (
         <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden flex flex-col active:scale-[0.98] transition-transform">
@@ -87,54 +88,63 @@ export const ProductCard = ({
                 </div>
 
                 <div className={`flex gap-2 mt-auto ${byWeight ? "flex-col items-stretch" : "items-center justify-between"}`}>
-                    {!byWeight && (
+                    {!byWeight && !hasVariants && (
                         <span className="text-sm font-bold text-stone-800 tabular-nums">
                             {`$${formatMoney(product.precio)}`}
                         </span>
                     )}
 
-                    {readonly ? null : byWeight ? (<WeightControls
-                        cantidad={quantity}
-                        unit={unit}
-                        precio={product.precio}
-                        primaryColor={primaryColor}
-                        maxWeight={isManagedStock ? availableStock : undefined}
-                        onChangeWeight={(w) => onAddWithWeight(product, w)}
-                    />) : hasVariants ? (
-                        <button
-                            onClick={handleAddClick}
-                            disabled={stockExhausted}
-                            className="relative w-10 h-10 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 shrink-0 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:active:opacity-100"
-                            style={stockExhausted ? undefined : { backgroundColor: primaryColor }}
-                            aria-label={`Elegir variante de ${product.nombre}`}
-                        >
-                            <Plus size={18} />
-                            {quantity > 0 && (
-                                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-white text-stone-800 rounded-full text-[10px] flex items-center justify-center font-bold leading-none shadow">
-                                    {quantity}
-                                </span>
+                    {readonly ? null : (
+                        <>
+                            {/* Peso y variantes no son mutuamente excluyentes: un producto por
+                            kg también puede vender una presentación fija (ej. "pieza") como
+                            variante — ambos controles conviven en la misma card. */}
+                            {byWeight && (
+                                <WeightControls
+                                    cantidad={quantity}
+                                    unit={unit}
+                                    precio={product.precio}
+                                    primaryColor={primaryColor}
+                                    maxWeight={isManagedStock ? availableStock : undefined}
+                                    onChangeWeight={(w) => onAddWithWeight(product, w)}
+                                />
                             )}
-                        </button>
-                    ) : (
-                        quantity === 0 ? (
-                            <button
-                                onClick={handleAddClick}
-                                disabled={stockExhausted}
-                                className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 shrink-0 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:active:opacity-100"
-                                style={stockExhausted ? undefined : { backgroundColor: primaryColor }}
-                                aria-label={`Agregar ${product.nombre}`}
-                            >
-                                <Plus size={18} />
-                            </button>
-                        ) : (
-                            <UnitControls
-                                quantity={quantity}
-                                primaryColor={primaryColor}
-                                onAdd={handleAddClick}
-                                onRemove={() => onRemove(product.id)}
-                                disableAdd={stockExhausted}
-                            />
-                        )
+
+                            {hasVariants ? (
+                                <button
+                                    onClick={handleAddClick}
+                                    disabled={stockExhausted}
+                                    className="relative w-10 h-10 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 shrink-0 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:active:opacity-100"
+                                    style={stockExhausted ? undefined : { backgroundColor: primaryColor }}
+                                    aria-label={`Elegir variante de ${product.nombre}`}
+                                >
+                                    <Plus size={18} />
+                                    {quantity > 0 && (
+                                        <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-white text-stone-800 rounded-full text-[10px] flex items-center justify-center font-bold leading-none shadow">
+                                            {quantity}
+                                        </span>
+                                    )}
+                                </button>
+                            ) : byWeight ? null : quantity === 0 ? (
+                                <button
+                                    onClick={handleAddClick}
+                                    disabled={stockExhausted}
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 shrink-0 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:active:opacity-100"
+                                    style={stockExhausted ? undefined : { backgroundColor: primaryColor }}
+                                    aria-label={`Agregar ${product.nombre}`}
+                                >
+                                    <Plus size={18} />
+                                </button>
+                            ) : (
+                                <UnitControls
+                                    quantity={quantity}
+                                    primaryColor={primaryColor}
+                                    onAdd={handleAddClick}
+                                    onRemove={() => onRemove(product.id)}
+                                    disableAdd={stockExhausted}
+                                />
+                            )}
+                        </>
                     )}
                 </div>
             </div>
@@ -143,7 +153,8 @@ export const ProductCard = ({
                 isOpen={isPickerOpen}
                 title={product.nombre}
                 options={variantOptions}
-                onSelect={handleSelectVariant}
+                onAdd={handleAddVariant}
+                onRemove={handleRemoveVariant}
                 onClose={closePicker}
             />
         </div>
