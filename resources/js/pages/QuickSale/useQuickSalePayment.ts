@@ -20,6 +20,7 @@ import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueri
 import { usePaymentMethod } from "./usePaymentMethod";
 import { useCreditPayment } from "./useCreditPayment";
 import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
+import { invalidateStatistics } from "@/services/useStatisticsService";
 
 interface UseQuickSalePaymentParams {
     resumeOrderId: number | null;
@@ -159,6 +160,13 @@ export const useQuickSalePayment = ({
             queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
             queryClient.invalidateQueries({ queryKey: [ApiRoutes.Kardex] });
             invalidateSalesByCategory(queryClient);
+            invalidateStatistics(queryClient);
+            // A diferencia de los otros 3 flujos de cobro (useSaleQuickPay/usePayOrder/
+            // usePayModal), este no invalidaba el total de la caja abierta — se quedaba
+            // mostrando el corte con el total previo a esta venta.
+            if (sistemaId) {
+                queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`] });
+            }
 
             toast.success(creditPayment.isCreditMode ? "Venta a crédito registrada correctamente." : "Venta registrada correctamente.");
             setShowPayModal(false);

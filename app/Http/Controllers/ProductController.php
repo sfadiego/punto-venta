@@ -75,6 +75,7 @@ class ProductController extends Controller
                 productId: $product->id,
                 quantity: $initialStock,
                 reason: StockMovementReasonEnum::InitialStock,
+                createdBy: auth()->id(),
                 note: 'Carga inicial de stock',
             );
         }

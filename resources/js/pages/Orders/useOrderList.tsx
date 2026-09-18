@@ -3,7 +3,7 @@ import { useAxios } from "@/hooks/useAxios";
 import { useDataTable, DataTableRenderersMap } from "@/hooks/useDatatable";
 import { useIndexOrder } from "@/services/useOrderService";
 import { IOrder } from "@/models/IOrder";
-import { getStatusStyle, getActiveStatuses } from "@/utils/orderStatus";
+import { getStatusStyle, getStatusLabel, getActiveStatuses } from "@/utils/orderStatus";
 import { formatOrderTime } from "@/utils/dateUtils";
 import { DataTableColumn } from "mantine-datatable";
 import { Bike, Undo2 } from "lucide-react";
@@ -37,7 +37,7 @@ const renderersMap: DataTableRenderersMap = {
     created_at: (o: IOrder) => formatOrderTime(o.created_at),
     estatus_pedido_id: (o: IOrder) => (
         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(o.estatus_pedido_id)}`}>
-            {o.status?.nombre ?? o.estatus_pedido_id}
+            {getStatusLabel(o.estatus_pedido_id)}
         </span>
     ),
 };

@@ -85,6 +85,7 @@ class OrderCloseService
                     reason: StockMovementReasonEnum::Sale,
                     variantId: $item->variant_id,
                     reference: $item,
+                    createdBy: auth()->id(),
                 );
             }
         });

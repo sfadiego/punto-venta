@@ -2,6 +2,7 @@
 
 namespace Tests\Catalog;
 
+use App\Enums\RoleEnum;
 use App\Enums\StockMovementReasonEnum;
 use App\Enums\StockMovementTypeEnum;
 use App\Models\BusinessConfigModel;
@@ -9,6 +10,7 @@ use App\Models\CategoryModel;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
 use App\Models\StockMovementModel;
+use App\Models\User;
 use Tests\TestCase;
 
 class ProductStockTest extends TestCase
@@ -74,6 +76,8 @@ class ProductStockTest extends TestCase
 
         // Producto nuevo → tipo Entrada (StockService::restore()), no Ajuste: es la
         // recepción real de stock de un producto que recién se crea, no una corrección.
+        // Bug real: el store() de producto no pasaba createdBy a StockService::restore(),
+        // así que este movimiento quedaba con "—" en Usuario en el kardex.
         $this->assertDatabaseHas('stock_movements', [
             'product_id' => $productId,
             'type' => StockMovementTypeEnum::Entry->value,
@@ -81,6 +85,7 @@ class ProductStockTest extends TestCase
             'quantity' => 100,
             'stock_before' => 0,
             'stock_after' => 100,
+            'created_by' => User::where('rol_id', RoleEnum::ADMIN->value)->first()->id,
         ]);
     }
 

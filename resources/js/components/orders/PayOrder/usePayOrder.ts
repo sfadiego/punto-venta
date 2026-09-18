@@ -16,6 +16,7 @@ import { IOrder } from "@/models/IOrder";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { resolveDefaultPaymentMethodId, canPayOrder } from "@/utils/paymentMethods";
 import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
+import { invalidateStatistics } from "@/services/useStatisticsService";
 
 export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
     const queryClient = useQueryClient();
@@ -79,6 +80,7 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
             }
             queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/list`] });
             invalidateSalesByCategory(queryClient);
+            invalidateStatistics(queryClient);
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closeModal();
             onSuccess?.();

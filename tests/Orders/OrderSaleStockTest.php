@@ -57,11 +57,14 @@ class OrderSaleStockTest extends TestCase
         ], $this->authHeaders())->assertStatus(200);
 
         $this->assertEquals(6.0, (float) $product->fresh()->stock);
+        // Bug real: createDirectSale() no pasaba createdBy a StockService::deduct(), así que
+        // el kardex mostraba "—" en Usuario para toda venta directa (QuickSale).
         $this->assertDatabaseHas('stock_movements', [
             'product_id' => $product->id,
             'type' => StockMovementTypeEnum::Exit->value,
             'reason' => StockMovementReasonEnum::Sale->value,
             'quantity' => 4,
+            'created_by' => User::where('rol_id', RoleEnum::ADMIN->value)->first()->id,
         ]);
     }
 
