@@ -443,6 +443,10 @@ const toggle = async (id: number) => {
 
 ### Formularios
 - Formik + Yup para validación. No construir formularios controlados manualmente.
+- Toda validación de campos (rangos, formato, enteros vs. decimales, requeridos, etc.) vive en el schema de Yup — nunca depender de la validación nativa del navegador (atributos HTML `min`/`max`/`step`/`required`/`pattern` en el `<input>`). El navegador dispara su propio popup ("Please select a valid value...") al hacer submit si el `<form>` no tiene `noValidate`, lo cual bypassa el mensaje de error de Yup/Formik y muestra un tooltip nativo en inglés fuera del design system. Todo `<form onSubmit={formik.handleSubmit}>` debe llevar `noValidate`. Los atributos `min`/`max`/`step` en `Input` (`components/ui/form/input`) son solo un hint visual para las flechitas del spinner — no reemplazan la regla de Yup.
+
+### Iconos
+- Exclusivamente `lucide-react`. No usar bootstrap-icons en código nuevo.
 
 ### Iconos
 - Exclusivamente `lucide-react`. No usar bootstrap-icons en código nuevo.

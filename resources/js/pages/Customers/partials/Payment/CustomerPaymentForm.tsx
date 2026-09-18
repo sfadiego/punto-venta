@@ -16,7 +16,7 @@ export const CustomerPaymentForm = ({ balance, formik, onLiquidarTodo, isPaying 
         {balance === 0 ? (
             <p className="text-sm text-stone-400">Este cliente no tiene adeudo pendiente.</p>
         ) : (
-            <form onSubmit={formik.handleSubmit} className="space-y-3">
+            <form onSubmit={formik.handleSubmit} noValidate className="space-y-3">
                 <div className="flex items-end gap-3 flex-wrap">
                     <div className="flex-1 min-w-[160px]">
                         <Input

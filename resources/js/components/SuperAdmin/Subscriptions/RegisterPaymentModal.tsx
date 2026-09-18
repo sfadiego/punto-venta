@@ -29,7 +29,7 @@ export const RegisterPaymentModal = ({ tenant, onClose }: RegisterPaymentModalPr
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="px-6 py-5 space-y-4">
+                <form onSubmit={formik.handleSubmit} noValidate className="px-6 py-5 space-y-4">
                     <SelectSubscriptionPlan name="plan" label="Plan" formik={formik} />
 
                     <div>

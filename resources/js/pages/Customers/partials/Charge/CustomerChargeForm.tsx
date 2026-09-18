@@ -13,7 +13,7 @@ interface CustomerChargeFormProps {
 // no tiene botón "Liquidar todo" ni se oculta con balance en 0 (siempre se puede agregar). Sin
 // tarjeta/título propios — vive dentro de CustomerChargeModal, que ya trae ambos.
 export const CustomerChargeForm = ({ formik, isCharging }: CustomerChargeFormProps) => (
-    <form onSubmit={formik.handleSubmit} className="space-y-3">
+    <form onSubmit={formik.handleSubmit} noValidate className="space-y-3">
         <Input
             name="amount"
             label="Monto del cargo"

@@ -43,7 +43,7 @@ export default function EmployeeDetailPage() {
                     <h2 className="font-semibold text-stone-900 text-sm">Información del empleado</h2>
                 </div>
 
-                <form onSubmit={formik.handleSubmit}>
+                <form onSubmit={formik.handleSubmit} noValidate>
                     <EmployeeFormFields formik={formik} />
 
                     <div className="pt-5">

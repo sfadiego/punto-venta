@@ -64,13 +64,39 @@ const baseSchema = {
                 .typeError("Ingresa un precio válido")
                 .min(0, "El precio no puede ser negativo")
                 .required("El precio es requerido"),
-            stock: Yup.number().typeError("Ingresa un stock inicial válido").min(0, "El stock inicial no puede ser negativo").nullable(),
-            min_stock: Yup.number().typeError("Ingresa un stock mínimo válido").min(0, "El stock mínimo no puede ser negativo").nullable(),
+            // Las variantes solo existen para unidad_medida "unidad" (ver syncVariants) — su
+            // stock siempre se cuenta en piezas, nunca decimal.
+            stock: Yup.number()
+                .typeError("Ingresa un stock inicial válido")
+                .min(0, "El stock inicial no puede ser negativo")
+                .integer("El stock inicial no acepta decimales")
+                .nullable(),
+            min_stock: Yup.number()
+                .typeError("Ingresa un stock mínimo válido")
+                .min(0, "El stock mínimo no puede ser negativo")
+                .integer("El stock mínimo no acepta decimales")
+                .nullable(),
         }),
     ),
     manage_stock: Yup.boolean(),
-    stock: Yup.number().typeError("Ingresa un stock inicial válido").min(0, "El stock inicial no puede ser negativo").nullable(),
-    min_stock: Yup.number().typeError("Ingresa un stock mínimo válido").min(0, "El stock mínimo no puede ser negativo").nullable(),
+    // Decimal solo tiene sentido de negocio cuando el producto se vende por peso/volumen
+    // (kg/gr/litro) — un producto por "unidad" se cuenta en piezas.
+    stock: Yup.number()
+        .typeError("Ingresa un stock inicial válido")
+        .min(0, "El stock inicial no puede ser negativo")
+        .test("integer-if-unit", "El stock inicial no acepta decimales", function (value) {
+            const { unidad_medida } = this.parent as { unidad_medida?: UnidadMedidaEnum };
+            return value === undefined || value === null || unidad_medida !== UnidadMedidaEnum.Unidad || Number.isInteger(value);
+        })
+        .nullable(),
+    min_stock: Yup.number()
+        .typeError("Ingresa un stock mínimo válido")
+        .min(0, "El stock mínimo no puede ser negativo")
+        .test("integer-if-unit", "El stock mínimo no acepta decimales", function (value) {
+            const { unidad_medida } = this.parent as { unidad_medida?: UnidadMedidaEnum };
+            return value === undefined || value === null || unidad_medida !== UnidadMedidaEnum.Unidad || Number.isInteger(value);
+        })
+        .nullable(),
     product_code: Yup.string().max(64, "Máximo 64 caracteres"),
     icon_name: Yup.string().max(100, "Máximo 100 caracteres"),
     icon_source: Yup.mixed<IconSourceEnum>().oneOf(Object.values(IconSourceEnum)),

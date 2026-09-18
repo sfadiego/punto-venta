@@ -10,7 +10,7 @@ interface ExpenseFormViewProps {
 }
 
 export const ExpenseFormView = ({ formik, onCancel }: ExpenseFormViewProps) => (
-    <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
+    <form onSubmit={formik.handleSubmit} noValidate className="p-5 space-y-4">
         <Input<RegisterExpenseForm>
             label="Concepto"
             name="concepto"

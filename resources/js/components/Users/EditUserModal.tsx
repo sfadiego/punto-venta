@@ -49,7 +49,7 @@ export const EditUserModal = ({ user, excludeRoles = [], onClose }: EditUserModa
                         </button>
                     </div>
 
-                    <form onSubmit={formik.handleSubmit} className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-4">
+                    <form onSubmit={formik.handleSubmit} noValidate className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-4">
                         <div className="grid grid-cols-2 gap-3">
                             <Input
                                 formik={formik}

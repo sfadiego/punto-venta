@@ -44,7 +44,7 @@ export const ProviderModal = ({ isOpen, isEditing, provider, formik, onClose }: 
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-5">
                     <ProviderFormFields formik={formik} />
 
                     <div className="flex gap-2 pt-5">

@@ -38,7 +38,7 @@ export const NewOrderModal = ({ isOpen, isPending, formik, kitchenView, isRetail
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-5 space-y-4">
                     {/* Retail no necesita nombrar la venta — se autogenera un folio al crear la
                         orden (ver useNewOrderModal/resolveSaleName), así que el campo ni se
                         muestra. Para el resto de negocios el campo es opcional: si se deja

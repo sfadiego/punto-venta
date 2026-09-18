@@ -14,7 +14,7 @@ export const DemoRequestForm = ({ formik, isSubmitting }: DemoRequestFormProps) 
         <h3 className="text-sm font-semibold text-stone-700 mb-1">Solicitar demo gratuita</h3>
         <p className="text-stone-400 text-xs mb-4">Te contactamos en menos de 24 horas</p>
 
-        <form onSubmit={formik.handleSubmit} className="space-y-3">
+        <form onSubmit={formik.handleSubmit} noValidate className="space-y-3">
             <Input
                 name="business_name"
                 placeholder="Nombre del negocio"

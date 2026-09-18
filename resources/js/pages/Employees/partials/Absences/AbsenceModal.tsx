@@ -32,7 +32,7 @@ export const AbsenceModal = ({ isOpen, formik, onClose }: AbsenceModalProps) => 
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-5 space-y-4">
                     <Input name="date" label="Fecha" inputType="date" formik={formik} />
 
                     <div>

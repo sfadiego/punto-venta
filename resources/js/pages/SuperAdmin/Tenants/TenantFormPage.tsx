@@ -72,7 +72,7 @@ export default function TenantFormPage() {
                 <div className="flex gap-8 items-start">
                     <TenantFormNav isEdit={isEdit} showDangerZone={!!tenantDetail?.is_demo} />
 
-                    <form onSubmit={formik.handleSubmit} className="flex-1 min-w-0 space-y-6">
+                    <form onSubmit={formik.handleSubmit} noValidate className="flex-1 min-w-0 space-y-6">
                         <div id="negocio">
                             <TenantBusinessSection formik={formik} />
                         </div>

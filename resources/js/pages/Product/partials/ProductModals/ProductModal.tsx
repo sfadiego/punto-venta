@@ -60,7 +60,7 @@ export const ProductModal = ({
             <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
                 <ProductModalHeader isEdit={isEdit} nombre={formik.values.nombre} onClose={onClose} />
 
-                <form onSubmit={formik.handleSubmit} className="p-5 space-y-4 overflow-y-auto">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-5 space-y-4 overflow-y-auto">
                     <div className="grid grid-cols-12 gap-3">
                         <div className="col-span-8">
                             <Input<ProductForm>

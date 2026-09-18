@@ -33,7 +33,7 @@ export const ProviderPurchaseModal = ({ isOpen, formik, isSubmitting, onClose }:
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-5">
                     <div className="space-y-4">
                         <Input
                             name="amount"

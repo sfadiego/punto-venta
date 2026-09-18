@@ -8,7 +8,7 @@ interface PaymentInfoFormProps {
 }
 
 export const PaymentInfoForm = ({ formik }: PaymentInfoFormProps) => (
-    <form onSubmit={formik.handleSubmit}>
+    <form onSubmit={formik.handleSubmit} noValidate>
         <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
             <div className="flex items-center gap-2.5">
                 <CreditCard size={16} className="text-indigo-500" />

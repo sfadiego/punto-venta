@@ -10,7 +10,7 @@ export const BusinessInfoSection = ({ config }: BusinessInfoSectionProps) => {
     const { formik } = useBusinessInfoSection(config);
 
     return (
-        <form onSubmit={formik.handleSubmit} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-5">
+        <form onSubmit={formik.handleSubmit} noValidate className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-5">
             <div>
                 <h2 className="text-sm font-semibold text-stone-700 mb-0.5">Información del negocio</h2>
                 <p className="text-xs text-stone-400">Aparece en el pie del ticket impreso</p>

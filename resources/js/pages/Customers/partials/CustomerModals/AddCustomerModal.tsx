@@ -32,7 +32,7 @@ export const AddCustomerModal = ({ isOpen, formik, onClose }: AddCustomerModalPr
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5 overflow-y-auto">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-5 overflow-y-auto">
                     <CustomerFormFields formik={formik} />
 
                     <label className="flex items-center gap-2.5 mt-5 px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-100 cursor-pointer">
