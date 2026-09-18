@@ -133,7 +133,14 @@ export default function ProductsPage() {
                 title: "Nombre",
                 width: PRODUCT_TABLE_COLUMN_WIDTHS.nombre,
                 render: (p: IProduct) => (
-                    <span className="font-medium text-stone-900 text-sm">{p.nombre}</span>
+                    // La tabla fuerza whitespace-nowrap globalmente (ver className del
+                    // DataTable) para que el resto de columnas no se estiren de más — un
+                    // nombre largo necesita su propia excepción (whitespace-normal) o el
+                    // texto se sale de su columna y se monta sobre "Código"/"Categoría" en
+                    // vez de partirse en varias líneas dentro de su propio ancho.
+                    <span className="font-medium text-stone-900 text-sm whitespace-normal break-words line-clamp-2">
+                        {p.nombre}
+                    </span>
                 ),
             },
             // Código de producto (SKU/código de barras) — solo tiene sentido de negocio en

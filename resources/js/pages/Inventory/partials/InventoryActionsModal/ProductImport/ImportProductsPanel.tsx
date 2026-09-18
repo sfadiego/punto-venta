@@ -1,8 +1,8 @@
 import { RefObject } from "react";
-import { Upload, Download, FileText, RotateCcw, AlertTriangle } from "lucide-react";
+import { Upload, Download, FileText, RotateCcw, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { IProductImportReport } from "@/services/useProductImportService";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
-import { ImportCommitProgress } from "./useImportProductsPanel";
+import { ImportCommitProgress, ImportCompletedSummary } from "./useImportProductsPanel";
 
 interface ImportProductsPanelProps {
     inputRef: RefObject<HTMLInputElement | null>;
@@ -14,6 +14,7 @@ interface ImportProductsPanelProps {
     isPreviewing: boolean;
     isCommitting: boolean;
     commitProgress: ImportCommitProgress | null;
+    completedSummary: ImportCompletedSummary | null;
     runPreview: () => void;
     confirmImport: () => void;
     handleDownloadTemplate: () => void;
@@ -30,6 +31,7 @@ export const ImportProductsPanel = ({
     isPreviewing,
     isCommitting,
     commitProgress,
+    completedSummary,
     runPreview,
     confirmImport,
     handleDownloadTemplate,
@@ -66,6 +68,20 @@ export const ImportProductsPanel = ({
             <Download size={13} />
             Descargar plantilla
         </button>
+
+        {completedSummary && (
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
+                <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
+                <span>
+                    Importación completada — <strong>{completedSummary.to_create}</strong> creados,{" "}
+                    <strong>{completedSummary.to_update}</strong> actualizados
+                    {completedSummary.warnings > 0 && (
+                        <> ({completedSummary.warnings} con advertencias, revisa el catálogo)</>
+                    )}
+                    . Puedes cargar otro archivo.
+                </span>
+            </div>
+        )}
 
         {report && (
             <div className="space-y-2.5">

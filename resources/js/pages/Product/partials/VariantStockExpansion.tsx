@@ -25,7 +25,7 @@ export const VariantStockExpansion = ({ product, showProductCode }: VariantStock
                         </div>
                     </div>
                     <div className="w-[280px] shrink-0 px-4 py-2 min-w-0">
-                        <span className="font-medium text-stone-700 text-sm">{v.nombre}</span>
+                        <span className="font-medium text-stone-700 text-sm whitespace-normal break-words line-clamp-2">{v.nombre}</span>
                     </div>
                     {showProductCode && (
                         // El código es del producto, no por variante — se deja en blanco en
