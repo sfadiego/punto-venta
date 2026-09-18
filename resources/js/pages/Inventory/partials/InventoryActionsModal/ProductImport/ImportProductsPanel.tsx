@@ -2,6 +2,7 @@ import { RefObject } from "react";
 import { Upload, Download, FileText, RotateCcw, AlertTriangle } from "lucide-react";
 import { IProductImportReport } from "@/services/useProductImportService";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
+import { ImportCommitProgress } from "./useImportProductsPanel";
 
 interface ImportProductsPanelProps {
     inputRef: RefObject<HTMLInputElement | null>;
@@ -12,6 +13,7 @@ interface ImportProductsPanelProps {
     hasErrors: boolean;
     isPreviewing: boolean;
     isCommitting: boolean;
+    commitProgress: ImportCommitProgress | null;
     runPreview: () => void;
     confirmImport: () => void;
     handleDownloadTemplate: () => void;
@@ -27,6 +29,7 @@ export const ImportProductsPanel = ({
     hasErrors,
     isPreviewing,
     isCommitting,
+    commitProgress,
     runPreview,
     confirmImport,
     handleDownloadTemplate,
@@ -104,6 +107,20 @@ export const ImportProductsPanel = ({
             </div>
         )}
 
+        {commitProgress && (
+            <div className="space-y-1.5">
+                <div className="h-2 rounded-full bg-stone-100 overflow-hidden">
+                    <div
+                        className="h-full bg-amber-500 transition-all"
+                        style={{ width: `${Math.round((commitProgress.processed / commitProgress.total) * 100)}%` }}
+                    />
+                </div>
+                <p className="text-xs text-stone-500 text-center">
+                    Importando {commitProgress.processed} de {commitProgress.total} productos...
+                </p>
+            </div>
+        )}
+
         {hasErrors && (
             <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700">
                 <AlertTriangle size={14} className="shrink-0 mt-0.5" />
@@ -142,7 +159,9 @@ export const ImportProductsPanel = ({
                         disabled={isCommitting || hasErrors}
                         className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {isCommitting ? "Importando..." : "Confirmar importación"}
+                        {isCommitting
+                            ? `Importando (${commitProgress?.processed ?? 0}/${commitProgress?.total ?? 0})...`
+                            : "Confirmar importación"}
                     </button>
                 </div>
             )}

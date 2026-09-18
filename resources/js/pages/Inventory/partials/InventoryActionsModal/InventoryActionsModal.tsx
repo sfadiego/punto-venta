@@ -29,6 +29,12 @@ export const InventoryActionsModal = ({ isOpen, activeTab, setActiveTab, title, 
     if (!isOpen) return null;
 
     const handleClose = () => {
+        // La importación corre en varios chunks secuenciales (ver useImportProductsPanel) —
+        // cerrar a la mitad no la cancela (el loop sigue en segundo plano y cada chunk ya
+        // aplicado queda guardado), pero desmontar el panel a medias es una experiencia
+        // confusa: mejor bloquear el cierre hasta que termine.
+        if (importPanel.isCommitting) return;
+
         adjustmentPanel.reset();
         returnPanel.reset();
         importPanel.reset();

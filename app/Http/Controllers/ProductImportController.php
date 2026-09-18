@@ -21,10 +21,21 @@ class ProductImportController extends Controller
         return Response::success($this->service->preview($request->file('file')));
     }
 
-    /** commit — aplica la importación. El frontend solo debe llamarlo tras una preview() exitosa. */
+    /**
+     * commit — aplica la importación. El frontend solo debe llamarlo tras una preview()
+     * exitosa. Para archivos grandes, llama esto varias veces con offset/limit crecientes
+     * (chunks) en vez de una sola vez con todo el archivo — ver doc en
+     * ProductImportService::commit().
+     */
     public function commit(ProductImportRequest $request): JsonResponse
     {
-        return Response::success($this->service->commit($request->file('file'), auth()->id()));
+        return Response::success($this->service->commit(
+            $request->file('file'),
+            auth()->id(),
+            // offset=0 es un chunk válido (el primero) — nunca tratarlo como "ausente".
+            $request->has('offset') ? $request->integer('offset') : null,
+            $request->has('limit') ? $request->integer('limit') : null,
+        ));
     }
 
     /** template — CSV de ejemplo con las columnas esperadas, para que el usuario arranque de ahí. */

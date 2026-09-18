@@ -72,21 +72,41 @@ class ProductImportService
      * fila y el resto sigue — nunca se deja escapar la excepción hacia arriba, porque
      * TransactionMiddleware envuelve toda la request en una sola transacción y eso
      * revertiría también las filas ya guardadas exitosamente.
+     *
+     * `$offset`/`$limit` — el frontend parte archivos grandes (miles de filas) en chunks de
+     * ~200 y llama commit() una vez por chunk, reenviando el mismo archivo completo cada vez.
+     * Cada request solo aplica (crea/actualiza producto + ajusta stock auditado) las filas de
+     * su rango — sin esto, 3000 filas en una sola request/transacción excedían el timeout del
+     * load balancer en producción. Es seguro reprocesar el archivo completo en cada llamada:
+     * preloadCategories()/preloadProductsByCode()/preloadProductNames() leen de BD en cada
+     * commit(), así que lo que un chunk anterior ya creó se ve como "existente" en los
+     * siguientes — no hay riesgo de duplicados entre chunks.
      */
-    public function commit(UploadedFile $file, ?int $createdBy): array
+    public function commit(UploadedFile $file, ?int $createdBy, ?int $offset = null, ?int $limit = null): array
     {
-        return $this->run($file, dryRun: false, createdBy: $createdBy);
+        return $this->run($file, dryRun: false, createdBy: $createdBy, offset: $offset, limit: $limit);
     }
 
-    private function run(UploadedFile $file, bool $dryRun, ?int $createdBy = null): array
+    private function run(UploadedFile $file, bool $dryRun, ?int $createdBy = null, ?int $offset = null, ?int $limit = null): array
     {
         $rows = $this->parseCsv($file);
+        $totalRows = count($rows);
+
+        // preview() nunca manda offset/limit — corre siempre sobre el archivo completo (sin
+        // escrituras ni locks, rápido incluso con miles de filas) para que el usuario vea el
+        // reporte completo antes de confirmar. preserve_keys es necesario porque el número de
+        // línea reportado (más abajo, $index + 2) depende del índice ORIGINAL dentro del
+        // archivo completo, no de la posición dentro del chunk.
+        $rowsToProcess = ($offset !== null || $limit !== null)
+            ? array_slice($rows, $offset ?? 0, $limit, preserve_keys: true)
+            : $rows;
+
         $this->preloadCategories();
-        $existingProductsByCode = $this->preloadProductsByCode($rows);
+        $existingProductsByCode = $this->preloadProductsByCode($rowsToProcess);
         $existingProductNames = $this->preloadProductNames();
 
         $report = [];
-        foreach ($rows as $index => $row) {
+        foreach ($rowsToProcess as $index => $row) {
             $resolved = $this->resolveRow($row, $index + 2, $existingProductsByCode, $existingProductNames);
 
             if (! $dryRun && $resolved['action'] !== 'error') {
@@ -99,6 +119,7 @@ class ProductImportService
         return [
             'summary' => $this->buildSummary($report),
             'rows' => $report,
+            'total_rows' => $totalRows,
         ];
     }
 

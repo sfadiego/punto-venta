@@ -622,6 +622,97 @@ class ProductImportTest extends TestCase
         );
     }
 
+    // ── Chunking (offset/limit) ────────────────────────────────
+    // El frontend parte archivos grandes en chunks de ~200 filas y reenvía el mismo archivo
+    // completo en cada llamada a commit() — evita el timeout del load balancer al crear/
+    // actualizar miles de productos en una sola request/transacción.
+
+    public function test_commit_con_offset_y_limit_solo_procesa_ese_rango(): void
+    {
+        $this->marcarComoRetailConStock();
+        $this->crearCategoria('Ropa');
+
+        $file = $this->csvFile([
+            $this->fila(['nombre' => 'Producto A']),
+            $this->fila(['nombre' => 'Producto B']),
+            $this->fila(['nombre' => 'Producto C']),
+        ]);
+
+        $this->postJson('/api/product/import/commit', [
+            'file' => $file,
+            'offset' => 1,
+            'limit' => 1,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_create', 1)
+            ->assertJsonPath('data.rows.0.data.nombre', 'Producto B')
+            ->assertJsonPath('data.total_rows', 3);
+
+        $this->assertSame(1, ProductModel::count());
+        $this->assertDatabaseHas('product', ['nombre' => 'Producto B']);
+        $this->assertDatabaseMissing('product', ['nombre' => 'Producto A']);
+        $this->assertDatabaseMissing('product', ['nombre' => 'Producto C']);
+    }
+
+    public function test_commit_en_dos_chunks_secuenciales_crea_todos_sin_duplicar(): void
+    {
+        $this->marcarComoRetailConStock();
+        $this->crearCategoria('Ropa');
+
+        $file = $this->csvFile([
+            $this->fila(['nombre' => 'Producto A', 'categoria' => 'Nueva Categoria']),
+            $this->fila(['nombre' => 'Producto B', 'categoria' => 'Nueva Categoria']),
+        ]);
+
+        // Chunk 1
+        $this->postJson('/api/product/import/commit', [
+            'file' => $file,
+            'offset' => 0,
+            'limit' => 1,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_create', 1);
+
+        // Chunk 2 — reenvía el MISMO archivo completo, solo cambia el rango.
+        $file2 = $this->csvFile([
+            $this->fila(['nombre' => 'Producto A', 'categoria' => 'Nueva Categoria']),
+            $this->fila(['nombre' => 'Producto B', 'categoria' => 'Nueva Categoria']),
+        ]);
+        $this->postJson('/api/product/import/commit', [
+            'file' => $file2,
+            'offset' => 1,
+            'limit' => 1,
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_create', 1);
+
+        $this->assertSame(2, ProductModel::count());
+        // La categoría nueva, referenciada por ambas filas en chunks distintos, se crea una
+        // sola vez — el chunk 2 la ve como "existente" al precargar desde BD.
+        $this->assertSame(
+            1,
+            CategoryModel::where(CategoryModel::NOMBRE, 'Nueva Categoria')->count(),
+        );
+    }
+
+    public function test_commit_sin_offset_ni_limit_procesa_el_archivo_completo(): void
+    {
+        $this->marcarComoRetailConStock();
+        $this->crearCategoria('Ropa');
+
+        $file = $this->csvFile([
+            $this->fila(['nombre' => 'Producto A']),
+            $this->fila(['nombre' => 'Producto B']),
+        ]);
+
+        $this->postJson('/api/product/import/commit', ['file' => $file], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_create', 2)
+            ->assertJsonPath('data.total_rows', 2);
+
+        $this->assertSame(2, ProductModel::count());
+    }
+
     // ── Plantilla descargable ──────────────────────────────────
 
     public function test_template_descarga_csv_sin_columna_activo(): void

@@ -39,6 +39,9 @@ export interface IProductImportReport {
         warnings: number;
     };
     rows: IProductImportRow[];
+    /** Solo en la respuesta de commit() — filas totales del archivo, para que el frontend
+     * confirme cuántos chunks le faltan sin depender solo de lo que ya tenía en memoria. */
+    total_rows?: number;
 }
 
 // Importación masiva de productos (CSV) — módulo de Inventario, exclusivo retail. preview()
