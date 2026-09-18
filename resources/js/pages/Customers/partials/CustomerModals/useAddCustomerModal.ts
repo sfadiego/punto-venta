@@ -5,6 +5,7 @@ import { useModal } from "@/hooks/useModal";
 import { useStoreCustomer } from "@/services/useCustomerService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { isValidPhone, phoneValidationMessage } from "@/utils/phoneUtils";
 
 export type CustomerForm = {
     name: string;
@@ -17,7 +18,9 @@ export type CustomerForm = {
 
 const schema = Yup.object({
     name: Yup.string().trim().required("El nombre es requerido").max(255, "Máximo 255 caracteres"),
-    phone: Yup.string().max(20, "Máximo 20 caracteres"),
+    phone: Yup.string()
+        .max(20, "Máximo 20 caracteres")
+        .test("valid-phone", phoneValidationMessage, (value) => !value || isValidPhone(value)),
     notes: Yup.string().max(1000, "Máximo 1000 caracteres"),
     address: Yup.string().max(500, "Máximo 500 caracteres"),
     delivery_reference: Yup.string().max(500, "Máximo 500 caracteres"),
