@@ -24,18 +24,26 @@ export interface ImportCommitProgress {
     total: number;
 }
 
+export interface ImportCompletedSummary {
+    to_create: number;
+    to_update: number;
+    warnings: number;
+}
+
 // Pestaña "Importar" del modal de acciones de Inventario — flujo de dos pasos: el usuario
 // elige un CSV, corre la vista previa (no escribe nada) y revisa el reporte fila por fila
 // antes de confirmar. Sin isOpen/openModal/closeModal propios — el modal que lo contiene
-// decide qué pestaña se muestra. `onImported` cierra el modal contenedor una vez que el
-// commit termina (éxito o error de negocio, ej. filas con error) — el usuario ya vio el
-// reporte en pantalla antes de confirmar, no necesita revisarlo de nuevo tras aplicarlo.
-export const useImportProductsPanel = (onImported?: () => void) => {
+// decide qué pestaña se muestra. Al terminar un commit exitoso, el panel se limpia solo
+// (misma lógica que "Reiniciar") y queda listo para cargar otro CSV sin cerrar el modal —
+// importar 3000 productos en un negocio con catálogo grande normalmente implica varios
+// archivos seguidos, no solo uno.
+export const useImportProductsPanel = () => {
     const queryClient = useQueryClient();
     const inputRef = useRef<HTMLInputElement>(null);
     const [file, setFile] = useState<File | null>(null);
     const [report, setReport] = useState<IProductImportReport | null>(null);
     const [commitProgress, setCommitProgress] = useState<ImportCommitProgress | null>(null);
+    const [completedSummary, setCompletedSummary] = useState<ImportCompletedSummary | null>(null);
 
     const { mutateAsync: previewMutate, isPending: isPreviewing } = useImportProductsPreview();
     const { mutateAsync: commitMutate } = useImportProductsCommit();
@@ -52,6 +60,9 @@ export const useImportProductsPanel = (onImported?: () => void) => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFile(e.target.files?.[0] ?? null);
         setReport(null);
+        // Elegir un archivo nuevo = arrancar otra importación — el mensaje de la anterior ya
+        // no aplica.
+        setCompletedSummary(null);
     };
 
     const openFilePicker = () => inputRef.current?.click();
@@ -90,6 +101,9 @@ export const useImportProductsPanel = (onImported?: () => void) => {
 
         const total = report.summary.total;
         setCommitProgress({ processed: 0, total });
+        // Cada chunk solo reporta el resumen de SU rango — se acumulan para mostrar el total
+        // real de la importación completa en el mensaje final, no solo el del último chunk.
+        const totals: ImportCompletedSummary = { to_create: 0, to_update: 0, warnings: 0 };
 
         try {
             for (let offset = 0; offset < total; offset += IMPORT_CHUNK_SIZE) {
@@ -98,14 +112,21 @@ export const useImportProductsPanel = (onImported?: () => void) => {
                 formData.append("offset", String(offset));
                 formData.append("limit", String(IMPORT_CHUNK_SIZE));
 
-                await commitMutate(formData);
+                const res = await commitMutate(formData);
+                const chunkReport = (res as { data: { data: IProductImportReport } }).data.data;
+                totals.to_create += chunkReport.summary.to_create;
+                totals.to_update += chunkReport.summary.to_update;
+                totals.warnings += chunkReport.summary.warnings;
+
                 setCommitProgress({ processed: Math.min(offset + IMPORT_CHUNK_SIZE, total), total });
             }
 
             invalidateAfterImport();
             toast.success("Importación de productos completada correctamente");
+            // Limpia el formulario (mismo efecto que "Reiniciar") y deja el mensaje de éxito
+            // visible — el modal se queda abierto, listo para cargar el siguiente archivo.
             resetState();
-            onImported?.();
+            setCompletedSummary(totals);
         } catch (error) {
             // Los chunks ya aplicados antes del error quedaron guardados — no hay rollback
             // entre chunks (cada uno es su propia transacción). Refrescar igual para que la
@@ -136,6 +157,7 @@ export const useImportProductsPanel = (onImported?: () => void) => {
     const resetState = () => {
         setFile(null);
         setReport(null);
+        setCompletedSummary(null);
         if (inputRef.current) inputRef.current.value = "";
     };
 
@@ -149,6 +171,7 @@ export const useImportProductsPanel = (onImported?: () => void) => {
         isPreviewing,
         isCommitting,
         commitProgress,
+        completedSummary,
         runPreview,
         confirmImport,
         handleDownloadTemplate,

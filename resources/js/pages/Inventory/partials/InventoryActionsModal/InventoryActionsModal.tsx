@@ -24,7 +24,7 @@ const TABS: { key: InventoryActionsTab; label: string; icon: LucideIcon }[] = [
 export const InventoryActionsModal = ({ isOpen, activeTab, setActiveTab, title, onClose }: InventoryActionsModalProps) => {
     const adjustmentPanel = useStockAdjustmentPanel();
     const returnPanel = useStockReturnPanel();
-    const importPanel = useImportProductsPanel(onClose);
+    const importPanel = useImportProductsPanel();
 
     if (!isOpen) return null;
 
