@@ -16,8 +16,8 @@ export const AddCustomerModal = ({ isOpen, formik, onClose }: AddCustomerModalPr
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-                <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-stone-100">
+            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-stone-100 shrink-0">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
                             <UserPlus size={16} className="text-amber-600" />
@@ -32,10 +32,10 @@ export const AddCustomerModal = ({ isOpen, formik, onClose }: AddCustomerModalPr
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5">
+                <form onSubmit={formik.handleSubmit} className="p-5 overflow-y-auto">
                     <CustomerFormFields formik={formik} />
 
-                    <label className="flex items-center gap-2.5 mt-4 cursor-pointer">
+                    <label className="flex items-center gap-2.5 mt-5 px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-100 cursor-pointer">
                         <input
                             type="checkbox"
                             checked={formik.values.allow_credit}

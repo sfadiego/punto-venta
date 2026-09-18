@@ -167,6 +167,13 @@ export const useQuickSalePayment = ({
             if (sistemaId) {
                 queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`] });
             }
+            // Venta a crédito: el backend ya incrementó el balance del cliente, pero su
+            // página de detalle (useShowCustomer) no tiene staleTime propio — hereda el
+            // default global de 2 min y se queda con el balance viejo si no se invalida.
+            if (creditPayment.isCreditMode && creditPayment.selectedCustomerId) {
+                queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/${creditPayment.selectedCustomerId}`] });
+                queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
+            }
 
             toast.success(creditPayment.isCreditMode ? "Venta a crédito registrada correctamente." : "Venta registrada correctamente.");
             setShowPayModal(false);
