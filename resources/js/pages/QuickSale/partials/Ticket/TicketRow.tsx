@@ -14,6 +14,9 @@ interface TicketRowProps {
     highlighted?: boolean;
     /** Solo para líneas por peso/volumen — habilita el lápiz de edición inline. */
     editableWeight?: { cantidad: number; unit: WeightUnit; onCommit: (weightKg: number) => void };
+    /** Solo para líneas por unidad (producto simple o variante) — mismo patrón de edición
+     * inline que editableWeight, pero valida enteros positivos (sin decimales ni negativos). */
+    editableQuantity?: { cantidad: number; onCommit: (cantidad: number) => void };
 }
 
 export const TicketRow = ({
@@ -24,22 +27,34 @@ export const TicketRow = ({
     onRemove,
     highlighted = false,
     editableWeight,
+    editableQuantity,
 }: TicketRowProps) => {
     const [isEditing, setIsEditing] = useState(false);
     const [draft, setDraft] = useState("");
 
     const startEdit = () => {
-        if (!editableWeight) return;
-        setDraft(String(editableWeight.cantidad));
-        setIsEditing(true);
+        if (editableWeight) {
+            setDraft(String(editableWeight.cantidad));
+            setIsEditing(true);
+        } else if (editableQuantity) {
+            setDraft(String(editableQuantity.cantidad));
+            setIsEditing(true);
+        }
     };
 
     const cancelEdit = () => setIsEditing(false);
 
     const commitEdit = () => {
-        if (!editableWeight) return;
-        const value = parseFloat(draft);
-        if (!isNaN(value) && value > 0) editableWeight.onCommit(value);
+        if (editableWeight) {
+            const value = parseFloat(draft);
+            if (!isNaN(value) && value > 0) editableWeight.onCommit(value);
+        } else if (editableQuantity) {
+            // Solo enteros positivos — un "1.5" o "-2" no debe llegar a onCommit.
+            if (/^\d+$/.test(draft.trim())) {
+                const value = parseInt(draft, 10);
+                if (value > 0) editableQuantity.onCommit(value);
+            }
+        }
         setIsEditing(false);
     };
 
@@ -101,16 +116,57 @@ export const TicketRow = ({
                                 <X size={14} />
                             </button>
                         </div>
+                    ) : isEditing && editableQuantity ? (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                            <Input
+                                name="cantidad"
+                                inputType="number"
+                                autoFocus
+                                inputMode="numeric"
+                                min={1}
+                                step={1}
+                                value={draft}
+                                onChange={(e) => setDraft(e.target.value.replace(/[^\d]/g, ""))}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") commitEdit();
+                                    if (e.key === "Escape") cancelEdit();
+                                    // Bloquea signo, notación científica y punto decimal — solo
+                                    // debe poder teclearse un entero positivo. El onChange de
+                                    // abajo cubre además pegar texto con esos caracteres.
+                                    if (["-", "+", "e", "E", "."].includes(e.key)) e.preventDefault();
+                                }}
+                                inputStyle="none"
+                                containerClassName="w-16 shrink-0"
+                                className="!w-16 !min-w-0 !px-1.5 !py-0.5 !text-xs font-semibold tabular-nums !border !border-amber-300 !rounded-lg focus:!ring-2 focus:!ring-amber-400"
+                            />
+                            <span className="text-xs text-stone-500 shrink-0">und</span>
+                            <button
+                                type="button"
+                                onClick={commitEdit}
+                                aria-label="Confirmar cantidad"
+                                className="shrink-0 p-1 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors"
+                            >
+                                <Check size={14} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={cancelEdit}
+                                aria-label="Cancelar edición"
+                                className="shrink-0 p-1 rounded-lg text-stone-400 hover:bg-stone-100 transition-colors"
+                            >
+                                <X size={14} />
+                            </button>
+                        </div>
                     ) : (
                         <p className="text-xs text-stone-500 tabular-nums flex items-center gap-1">
                             <span className="truncate">
                                 {quantityLabel} · {priceLabel}
                             </span>
-                            {editableWeight && (
+                            {(editableWeight || editableQuantity) && (
                                 <button
                                     type="button"
                                     onClick={startEdit}
-                                    aria-label={`Editar peso de ${name}`}
+                                    aria-label={`Editar ${editableWeight ? "peso" : "cantidad"} de ${name}`}
                                     className="shrink-0 p-0.5 rounded text-stone-300 hover:text-amber-600 transition-colors"
                                 >
                                     <Pencil size={12} />

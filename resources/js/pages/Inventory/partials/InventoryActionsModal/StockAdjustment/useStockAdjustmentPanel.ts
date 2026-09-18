@@ -9,21 +9,27 @@ import { useIndexProducts, useShowProduct, useAdjustProductStock } from "@/servi
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { MAX_STOCK_ADJUSTMENT } from "@/utils/stockLimits";
+import { isWeightUnit } from "@/utils/weightUnits";
+import { integerForUnitTest } from "@/utils/stockAdjustmentValidation";
 
 export type StockAdjustmentForm = {
     delta: string;
     note: string;
 };
 
-const schema = Yup.object({
-    delta: Yup.number()
-        .typeError("Ingresa una cantidad válida")
-        .notOneOf([0], "La cantidad no puede ser cero")
-        .min(-MAX_STOCK_ADJUSTMENT, `La cantidad no puede ser menor a -${MAX_STOCK_ADJUSTMENT}`)
-        .max(MAX_STOCK_ADJUSTMENT, `La cantidad no puede ser mayor a ${MAX_STOCK_ADJUSTMENT}`)
-        .required("La cantidad es requerida"),
-    note: Yup.string().max(255, "Máximo 255 caracteres"),
-});
+// `isWeightProduct` gatea integerForUnitTest — ver su doc en utils/stockAdjustmentValidation.ts
+// (misma regla que useStockAdjustModal.ts, del listado de Productos).
+const schemaFor = (isWeightProduct: boolean) =>
+    Yup.object({
+        delta: Yup.number()
+            .typeError("Ingresa una cantidad válida")
+            .notOneOf([0], "La cantidad no puede ser cero")
+            .min(-MAX_STOCK_ADJUSTMENT, `La cantidad no puede ser menor a -${MAX_STOCK_ADJUSTMENT}`)
+            .max(MAX_STOCK_ADJUSTMENT, `La cantidad no puede ser mayor a ${MAX_STOCK_ADJUSTMENT}`)
+            .required("La cantidad es requerida")
+            .test(integerForUnitTest(isWeightProduct)),
+        note: Yup.string().max(255, "Máximo 255 caracteres"),
+    });
 
 // Pestaña "Reajuste" del modal de acciones de Inventario (InventoryActionsModal). El producto
 // se busca y selecciona en un único combobox (ProductAutocomplete), y el delta admite valores
@@ -56,6 +62,9 @@ export const useStockAdjustmentPanel = () => {
     const hasVariants = activeVariants.length > 0;
     const selectedVariant = activeVariants.find((v) => String(v.id) === variantId) ?? null;
     const canSubmit = !!product && (!hasVariants || !!selectedVariant);
+    // La unidad de medida vive en el producto, no en la variante — todas sus variantes
+    // comparten la misma.
+    const isWeightProduct = product ? isWeightUnit(product.unidad_medida) : false;
 
     const reset = () => {
         formik.resetForm();
@@ -69,7 +78,7 @@ export const useStockAdjustmentPanel = () => {
     const formik = useFormik<StockAdjustmentForm>({
         enableReinitialize: true,
         initialValues: { delta: "", note: "" },
-        validationSchema: schema,
+        validationSchema: schemaFor(isWeightProduct),
         onSubmit: async (values, helpers) => {
             if (!canSubmit || !product) return;
 

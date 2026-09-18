@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/form/Input";
 import { Textarea } from "@/components/ui/form/textarea";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
 import { MAX_STOCK_ADJUSTMENT } from "@/utils/stockLimits";
-import { RestockForm } from "./useRestockModal";
-import { SelectRestockVariant } from "./SelectRestockVariant";
+import { SelectProductVariant } from "@/components/SelectProductVariant";
+import { StockAdjustForm, StockAdjustMode } from "./useStockAdjustModal";
 
-interface RestockModalProps {
+interface StockAdjustModalProps {
+    mode: StockAdjustMode;
     isOpen: boolean;
     product: IProduct | null;
     hasVariants: boolean;
@@ -17,11 +18,14 @@ interface RestockModalProps {
     variantId: string;
     setVariantId: (value: string) => void;
     selectedVariant: IProductVariant | null;
-    formik: FormikProps<RestockForm>;
+    currentStock: number | null;
+    currentMinStock: number | null;
+    formik: FormikProps<StockAdjustForm>;
     onClose: () => void;
 }
 
-export const RestockModal = ({
+export const StockAdjustModal = ({
+    mode,
     isOpen,
     product,
     hasVariants,
@@ -29,16 +33,22 @@ export const RestockModal = ({
     variantId,
     setVariantId,
     selectedVariant,
+    currentStock,
+    currentMinStock,
     formik,
     onClose,
-}: RestockModalProps) => {
+}: StockAdjustModalProps) => {
     if (!isOpen || !product) return null;
 
-    // Con variantes, el stock vive en cada una — no hay ajuste "agregado" del producto, hay
-    // que elegir cuál variante se está reabasteciendo antes de mostrar su stock/mínimo.
-    const currentStock = hasVariants ? selectedVariant?.stock : product.stock;
-    const currentMinStock = hasVariants ? selectedVariant?.min_stock : product.min_stock;
     const canSubmit = !hasVariants || !!selectedVariant;
+    const isRestock = mode === "restock";
+
+    // Reajuste (no reabastecer, que ya solo acepta delta > 0): si el delta tecleado dejaría el
+    // stock en negativo, deshabilita "Ajustar" en vivo en vez de esperar a que el usuario
+    // mande el formulario y reciba el 422 del backend.
+    const deltaValue = Number(formik.values.delta);
+    const wouldResultNegative =
+        !isRestock && currentStock !== null && !Number.isNaN(deltaValue) && currentStock + deltaValue < 0;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -47,7 +57,9 @@ export const RestockModal = ({
             <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
                     <div>
-                        <h2 className="text-base font-semibold text-stone-900">Reabastecer stock</h2>
+                        <h2 className="text-base font-semibold text-stone-900">
+                            {isRestock ? "Reabastecer stock" : "Reajuste de stock"}
+                        </h2>
                         <p className="text-xs text-stone-400">{product.nombre}</p>
                     </div>
                     <button
@@ -60,9 +72,9 @@ export const RestockModal = ({
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-5 space-y-4">
                     {hasVariants && (
-                        <SelectRestockVariant variants={activeVariants} value={variantId} onChange={setVariantId} />
+                        <SelectProductVariant variants={activeVariants} value={variantId} onChange={setVariantId} />
                     )}
 
                     {(!hasVariants || selectedVariant) && (
@@ -73,11 +85,11 @@ export const RestockModal = ({
                         </div>
                     )}
 
-                    <Input<RestockForm>
+                    <Input<StockAdjustForm>
                         name="delta"
-                        label="Cantidad a agregar *"
+                        label={isRestock ? "Cantidad a agregar *" : "Cantidad (+ entrada, - reajuste) *"}
                         inputType="number"
-                        min={0}
+                        min={isRestock ? 0 : -MAX_STOCK_ADJUSTMENT}
                         max={MAX_STOCK_ADJUSTMENT}
                         step={1}
                         placeholder="0"
@@ -85,10 +97,10 @@ export const RestockModal = ({
                         disabled={!canSubmit}
                     />
 
-                    <Textarea<RestockForm>
+                    <Textarea<StockAdjustForm>
                         name="note"
                         label="Nota (opcional)"
-                        placeholder="Ej: compra a proveedor"
+                        placeholder={isRestock ? "Ej: compra a proveedor" : "Ej: conteo físico, merma"}
                         formik={formik}
                         rows={2}
                     />
@@ -103,10 +115,11 @@ export const RestockModal = ({
                         </button>
                         <button
                             type="submit"
-                            disabled={formik.isSubmitting || !canSubmit}
+                            disabled={formik.isSubmitting || !canSubmit || wouldResultNegative}
+                            title={wouldResultNegative ? "El stock disponible no alcanza para este reajuste" : undefined}
                             className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {formik.isSubmitting ? "Guardando..." : "Reabastecer"}
+                            {formik.isSubmitting ? "Guardando..." : isRestock ? "Reabastecer" : "Ajustar"}
                         </button>
                     </div>
                 </form>

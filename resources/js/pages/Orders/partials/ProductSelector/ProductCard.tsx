@@ -24,6 +24,7 @@ interface ProductCardProps {
         variantId?: number | null,
         variantName?: string | null,
     ) => void | Promise<void>;
+    onUpdateQuantity: (orderProductId: number, delta: number) => void;
 }
 
 export const ProductCard = ({
@@ -34,12 +35,17 @@ export const ProductCard = ({
     isPending = false,
     isRetail = false,
     onAdd,
+    onUpdateQuantity,
 }: ProductCardProps) => {
-    const { isPickerOpen, closePicker, handleClick, handleSelectVariant, stockExhausted, variantOptions } = useProductCard(
-        product,
-        cart,
-        onAdd,
-    );
+    const {
+        isPickerOpen,
+        closePicker,
+        handleClick,
+        handleAddVariant,
+        handleRemoveVariant,
+        stockExhausted,
+        variantOptions,
+    } = useProductCard(product, cart, onAdd, onUpdateQuantity);
     const disabled = isReadOnly || isPending || stockExhausted;
     const inCart = quantityInCart > 0;
     const hasVariants = (product.variants?.length ?? 0) > 0;
@@ -115,7 +121,8 @@ export const ProductCard = ({
                 isOpen={isPickerOpen}
                 title={product.nombre}
                 options={variantOptions}
-                onSelect={handleSelectVariant}
+                onAdd={handleAddVariant}
+                onRemove={handleRemoveVariant}
                 onClose={closePicker}
             />
         </>

@@ -254,6 +254,20 @@ class ProductImportService
             $warnings[] = $minStockWarning;
         }
 
+        // Un producto "por unidad" (no peso/volumen) se cuenta en piezas enteras — un stock o
+        // mínimo fraccionario (ej. "10.5") no tiene sentido de negocio. Se marca como error en
+        // vez de redondear en silencio (como sí hacen los demás campos numéricos inválidos):
+        // truncar una cantidad mal tecleada podría dejar al usuario con una existencia distinta
+        // a la que escribió sin que se dé cuenta.
+        if (! $unidad->esPeso()) {
+            if ($stock !== null && ! $this->isWholeNumber($stock)) {
+                $errors[] = "Stock \"{$row['stock']}\" no es válido para un producto por unidad — debe ser un número entero.";
+            }
+            if ($minStock !== null && ! $this->isWholeNumber($minStock)) {
+                $errors[] = "Stock mínimo \"{$row['min_stock']}\" no es válido para un producto por unidad — debe ser un número entero.";
+            }
+        }
+
         [$activo, $activoWarning] = $this->resolveBool($row['activo'] ?? '', label: 'Activo', default: true);
         if ($activoWarning !== null) {
             $warnings[] = $activoWarning;
@@ -455,6 +469,15 @@ class ProductImportService
             UnidadMedidaEnum::Unidad,
             "Unidad de medida \"{$trimmed}\" no reconocida (valores válidos: {$valid}), se usará \"unidad\".",
         ];
+    }
+
+    // Margen de tolerancia por precisión de coma flotante (ej. 0.1 + 0.2) — no una regla de
+    // negocio, solo evita falsos positivos al comparar contra el entero más cercano.
+    private const WHOLE_NUMBER_EPSILON = 0.0001;
+
+    private function isWholeNumber(float $value): bool
+    {
+        return abs($value - round($value)) < self::WHOLE_NUMBER_EPSILON;
     }
 
     /**

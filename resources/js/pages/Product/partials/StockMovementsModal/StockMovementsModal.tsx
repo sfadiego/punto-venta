@@ -4,7 +4,7 @@ import { IProduct } from "@/models/IProduct";
 import { IProductVariant } from "@/models/IProductVariant";
 import { IStockMovement } from "@/models/IStockMovement";
 import { StockMovementRow } from "./StockMovementRow";
-import { SelectRestockVariant } from "../RestockModal/SelectRestockVariant";
+import { SelectProductVariant } from "@/components/SelectProductVariant";
 
 interface StockMovementsModalProps {
     isOpen: boolean;
@@ -79,7 +79,7 @@ export const StockMovementsModal = ({
                 <div className="px-5 py-2 overflow-y-auto">
                     {hasVariants && (
                         <div className="pb-3">
-                            <SelectRestockVariant variants={activeVariants} value={variantId} onChange={setVariantId} />
+                            <SelectProductVariant variants={activeVariants} value={variantId} onChange={setVariantId} />
                         </div>
                     )}
 

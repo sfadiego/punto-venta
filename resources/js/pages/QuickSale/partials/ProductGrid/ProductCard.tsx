@@ -53,14 +53,15 @@ export const ProductCard = ({
         isVariantPickerOpen,
         setIsVariantPickerOpen,
         activeVariants,
-        handleSelectVariant,
+        handleAddVariant,
+        handleRemoveVariant,
         variantOptions,
-    } = useProductCard(product, quantity, quantityOf, onAdd);
+    } = useProductCard(product, quantity, quantityOf, onAdd, onDecrement);
     const isWeightMode = mode === WeightInputModeEnum.Weight;
     const weightUnit = isWeightUnit(product.unidad_medida)
         ? product.unidad_medida
         : null;
-    const hasVariants = !weightUnit && activeVariants.length > 0;
+    const hasVariants = activeVariants.length > 0;
     const isManagedStock = getAvailableStockFor(product, null) !== Infinity;
     // Sin stock disponible: ya sea porque el producto no tiene existencia, o porque el
     // carrito ya se llevó todo lo que había. maxAddable ya incluye ambos casos. Solo aplica a
@@ -171,7 +172,12 @@ export const ProductCard = ({
                         )}
                     </div>
 
-                    {!hasVariants ? (
+                    {hasVariants && !weightUnit ? (
+                        // Espacio invisible del alto del precio — así "Ver variantes" (que va
+                        // más abajo, en el lugar del botón) queda alineado con el "+ Agregar"
+                        // de las demás cards en vez de subirse a ocupar el hueco del precio.
+                        <div className="h-7" aria-hidden="true" />
+                    ) : (
                         <p
                             className="text-xl font-extrabold tabular-nums"
                             style={{ color: "var(--color-primary)" }}
@@ -184,16 +190,13 @@ export const ProductCard = ({
                                 </span>
                             )}
                         </p>
-                    ) : (
-                        // Espacio invisible del alto del precio — así "Ver variantes" (que va
-                        // más abajo, en el lugar del botón) queda alineado con el "+ Agregar"
-                        // de las demás cards en vez de subirse a ocupar el hueco del precio.
-                        <div className="h-7" aria-hidden="true" />
                     )}
 
                     {/* Aviso de stock en la card, no como toast — un toast tapaba los botones de
-                    abajo (Cobrar, imprimir, etc.) sobre todo al tocar "+" repetido. */}
-                    {stockExhausted && !hasVariants && (
+                    abajo (Cobrar, imprimir, etc.) sobre todo al tocar "+" repetido. Aplica a la
+                    línea "Paquete"/peso base — una variante lleva su propio stock, avisado dentro
+                    del modal. */}
+                    {stockExhausted && (weightUnit || !hasVariants) && (
                         <p className="text-[11px] font-bold text-red-600 uppercase tracking-wide -mt-1.5">
                             {quantity > 0
                                 ? "Ya agregaste todo el stock disponible"
@@ -201,8 +204,11 @@ export const ProductCard = ({
                         </p>
                     )}
 
-                    {weightUnit ? (
-                        isWeightMode ? (
+                    {/* Peso y variantes no son mutuamente excluyentes: un producto como
+                    "chorizo corona" se vende tanto por kg (chips) como en pieza fija
+                    (variante) — ambos controles conviven en la misma card. */}
+                    {weightUnit &&
+                        (isWeightMode ? (
                             <ProductCardChips
                                 options={weightChipOptions(weightUnit)}
                                 onAdd={addWeight}
@@ -231,8 +237,9 @@ export const ProductCard = ({
                                     disabled={stockExhausted}
                                 />
                             </div>
-                        )
-                    ) : hasVariants ? (
+                        ))}
+
+                    {hasVariants ? (
                         <button
                             type="button"
                             onClick={(e) => {
@@ -244,7 +251,7 @@ export const ProductCard = ({
                             Ver variantes
                             <ChevronRight size={14} />
                         </button>
-                    ) : quantity === 0 ? (
+                    ) : weightUnit ? null : quantity === 0 ? (
                         <button
                             type="button"
                             disabled={stockExhausted}
@@ -287,7 +294,8 @@ export const ProductCard = ({
                     isOpen={isVariantPickerOpen}
                     title={product.nombre}
                     options={variantOptions}
-                    onSelect={handleSelectVariant}
+                    onAdd={handleAddVariant}
+                    onRemove={handleRemoveVariant}
                     onClose={() => setIsVariantPickerOpen(false)}
                 />
             )}

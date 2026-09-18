@@ -18,9 +18,10 @@ interface ProductGridProps {
         variantId?: number | null,
         variantName?: string | null,
     ) => void;
+    onUpdateQuantity: (orderProductId: number, delta: number) => void;
 }
 
-export const ProductGrid = ({ cart, isReadOnly = false, isRetail = false, pendingProductIds, onAdd }: ProductGridProps) => {
+export const ProductGrid = ({ cart, isReadOnly = false, isRetail = false, pendingProductIds, onAdd, onUpdateQuantity }: ProductGridProps) => {
     const {
         search,
         setSearch,
@@ -115,6 +116,7 @@ export const ProductGrid = ({ cart, isReadOnly = false, isRetail = false, pendin
                                     isRetail={isRetail}
                                     isPending={pendingProductIds?.has(product.id)}
                                     onAdd={onAdd}
+                                    onUpdateQuantity={onUpdateQuantity}
                                 />
                             ))}
                         </div>

@@ -3,11 +3,11 @@ import { IProduct } from "@/models/IProduct";
 import { IProductVariant } from "@/models/IProductVariant";
 import { Input } from "@/components/ui/form/Input";
 import { Textarea } from "@/components/ui/form/textarea";
+import { SelectProductVariant } from "@/components/SelectProductVariant";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
 import { MAX_STOCK_ADJUSTMENT } from "@/utils/stockLimits";
 import { StockAdjustmentForm } from "./useStockAdjustmentPanel";
 import { ProductAutocomplete } from "../../ProductAutocomplete";
-import { SelectAdjustmentVariant } from "./SelectAdjustmentVariant";
 
 interface StockAdjustmentPanelProps {
     query: string;
@@ -71,7 +71,7 @@ export const StockAdjustmentPanel = ({
             />
 
             {hasVariants && (
-                <SelectAdjustmentVariant variants={activeVariants} value={variantId} onChange={setVariantId} />
+                <SelectProductVariant variants={activeVariants} value={variantId} onChange={setVariantId} />
             )}
 
             {product && (!hasVariants || selectedVariant) && (

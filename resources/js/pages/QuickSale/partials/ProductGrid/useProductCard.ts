@@ -15,10 +15,11 @@ export const useProductCard = (
     quantity: number,
     quantityOf: (product: IProduct, variant?: IProductVariant | null) => number,
     onAdd: (product: IProduct, cantidad: number, variant?: IProductVariant | null) => void,
+    onDecrement: (product: IProduct, variant?: IProductVariant | null) => void,
 ) => {
     const [mode, setMode] = useState<WeightInputModeEnum>(WeightInputModeEnum.Weight);
     const [moneyValue, setMoneyValue] = useState("");
-    const variantPicker = useVariantPicker(product, quantityOf, onAdd);
+    const variantPicker = useVariantPicker(product, quantityOf, onAdd, onDecrement);
 
     // Cuánto más se puede agregar de este producto (línea "Paquete", sin variante): el menor
     // entre MAX_CANTIDAD_KG y lo que queda de stock (existencia menos lo ya reservado). Sin

@@ -558,6 +558,54 @@ class OrderProductTest extends TestCase
             ->assertStatus(422);
     }
 
+    public function test_toggle_ready_en_orden_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
+        $product = $this->crearProducto();
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => false,
+        ]);
+
+        $this->patchJson("/api/order/{$orden->id}/product/{$item->id}/ready", [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseHas('order_product', [
+            'id' => $item->id,
+            OrderProductModel::IS_READY => false,
+        ]);
+    }
+
+    public function test_toggle_ready_con_caja_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(estatusCaja: MainOrderStatusEnum::CLOSED);
+        $product = $this->crearProducto();
+
+        $item = OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $orden->id,
+            OrderProductModel::PRODUCTO_ID => $product->id,
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 45,
+            OrderProductModel::DESCUENTO => 0,
+            OrderProductModel::IS_READY => false,
+        ]);
+
+        $this->patchJson("/api/order/{$orden->id}/product/{$item->id}/ready", [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseHas('order_product', [
+            'id' => $item->id,
+            OrderProductModel::IS_READY => false,
+        ]);
+    }
+
     public function test_toggle_ready_marca_servida_cuando_completa_todos_listos(): void
     {
         $orden = $this->crearOrden(OrderStatusEnum::IN_PROCESS->value);

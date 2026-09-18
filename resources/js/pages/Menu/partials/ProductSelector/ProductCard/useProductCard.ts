@@ -9,6 +9,7 @@ export const useProductCard = (
     quantity: number,
     quantityOf: (productId: number, variantId?: number | null) => number,
     onAdd: (product: IMenuProduct, variant?: IProductVariant) => void,
+    onRemove: (productId: number, variantId?: number | null) => void,
 ) => {
     const { isOpen, openModal, closeModal } = useModal();
     const activeVariants = (product.variants ?? []).filter((v) => v.activo);
@@ -38,16 +39,14 @@ export const useProductCard = (
         onAdd(product);
     };
 
-    const handleSelectVariant = (variant: IProductVariant) => {
-        closeModal();
-        onAdd(product, variant);
-    };
+    const handleAddVariant = (variant: IProductVariant) => onAdd(product, variant);
+    const handleRemoveVariant = (variant: IProductVariant) => onRemove(product.id, variant.id);
 
     const variantOptions: VariantOption[] = activeVariants.map((variant) => {
         const available = getAvailableStockFor(product, variant.id);
         const inCart = quantityOf(product.id, variant.id);
         const remaining = available === Infinity ? Infinity : available - inCart;
-        return { variant, remaining, exhausted: remaining <= 0 };
+        return { variant, remaining, exhausted: remaining <= 0, quantity: inCart };
     });
 
     return {
@@ -55,7 +54,8 @@ export const useProductCard = (
         isPickerOpen: isOpen,
         closePicker: closeModal,
         handleAddClick,
-        handleSelectVariant,
+        handleAddVariant,
+        handleRemoveVariant,
         isManagedStock,
         availableStock,
         maxAddable,

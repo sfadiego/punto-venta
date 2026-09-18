@@ -95,13 +95,12 @@ class OrderProductController extends Controller
             return Response::error('elemento no encontrado');
         }
 
+        // lockForUpdate() aquí, no en assertOrderEditable(): OrderProductService::toggleReady()
+        // decide bajo este lock si el cambio completa/rompe "todos listos" y promueve/revierte
+        // el estatus de la orden — necesita la fila bloqueada durante ese cálculo.
         $order = OrderModel::with('sistema')->lockForUpdate()->find($orderId);
-        if (! $order) {
-            return Response::error('no existe la orden');
-        }
-
-        if (! $order->isAccessibleByUser(auth()->user())) {
-            return Response::unauthorized();
+        if ($error = $this->assertOrderEditable($order)) {
+            return $error;
         }
 
         return Response::success($this->service->toggleReady($order, $orderProduct));

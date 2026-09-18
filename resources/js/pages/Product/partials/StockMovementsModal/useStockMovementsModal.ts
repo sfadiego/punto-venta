@@ -3,7 +3,7 @@ import { useInfiniteStockMovements } from "@/services/useProductService";
 import { IProduct } from "@/models/IProduct";
 
 // El producto a consultar se selecciona desde la fila de la tabla (ProductTableActions),
-// igual patrón que useRestockModal — el modal vive a nivel de página. Con variantes, el
+// igual patrón que useStockAdjustModal — el modal vive a nivel de página. Con variantes, el
 // kardex es por variante — se elige cuál ver desde un selector dentro del modal.
 export const useStockMovementsModal = () => {
     const [product, setProduct] = useState<IProduct | null>(null);

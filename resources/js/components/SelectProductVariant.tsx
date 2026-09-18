@@ -1,13 +1,16 @@
 import { Select } from "@/components/ui/form/Select";
 import { IProductVariant } from "@/models/IProductVariant";
 
-interface SelectAdjustmentVariantProps {
+interface SelectProductVariantProps {
     variants: IProductVariant[];
     value: string;
     onChange: (value: string) => void;
 }
 
-export const SelectAdjustmentVariant = ({ variants, value, onChange }: SelectAdjustmentVariantProps) => {
+// Selector controlado (no Formik) de la variante activa de un producto — compartido por los
+// flujos de stock que necesitan elegir sobre cuál variante operar: reabastecer/reajustar
+// (Productos e Inventario) y el historial de movimientos (StockMovementsModal).
+export const SelectProductVariant = ({ variants, value, onChange }: SelectProductVariantProps) => {
     const options = variants.map((v) => ({ value: String(v.id), label: v.nombre }));
 
     return (

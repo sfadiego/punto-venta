@@ -10,6 +10,7 @@ import { IOrderProduct } from "@/models/IOrderProduct";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { IModalCartItem } from "@/models/IModalCartItem";
 import { getAvailableStockFor } from "@/utils/stock";
+import { isWeightUnit } from "@/utils/weightUnits";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
 import { useTicketDrawer } from "./useTicketDrawer";
 import { useLastAddedFlash } from "./useLastAddedFlash";
@@ -192,15 +193,28 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
     };
 
     // Reemplaza (no suma) la cantidad de una línea ya en el carrito — usado por la edición
-    // inline de peso en TicketRow para corregir un peso mal leído/agregado sin borrar y
-    // volver a agregar el producto desde cero.
-    const setLineWeight = async (orderProductId: number, weightKg: number) => {
-        if (weightKg <= 0) return;
+    // inline en TicketRow (peso o cantidad por unidad, según el producto) para corregir un
+    // valor mal leído/agregado sin borrar y volver a agregar el producto desde cero. Las
+    // líneas por unidad solo aceptan enteros — la UI ya valida esto, pero se repite aquí como
+    // última barrera antes de mutar el carrito/pegarle al backend.
+    const setLineQuantity = async (orderProductId: number, cantidad: number) => {
         const existing = cart.find((item) => item.orderProductId === orderProductId);
         if (!existing) return;
+        if (cantidad <= 0) return;
+        if (!isWeightUnit(existing.product.unidad_medida) && !Number.isInteger(cantidad)) return;
 
+        const unitLabel = isWeightUnit(existing.product.unidad_medida)
+            ? UNIDAD_LABELS[existing.product.unidad_medida]
+            : "und";
         const availableStock = getAvailableStockFor(existing.product, existing.variantId);
-        if (weightKg > availableStock || weightKg > MAX_CANTIDAD_KG) return;
+        if (cantidad > availableStock) {
+            toast.error(`Solo hay ${availableStock} ${unitLabel} disponibles de ${existing.product.nombre}.`);
+            return;
+        }
+        if (cantidad > MAX_CANTIDAD_KG) {
+            toast.error(`No puedes agregar más de ${MAX_CANTIDAD_KG} ${unitLabel} de ${existing.product.nombre}.`);
+            return;
+        }
 
         if (resumeOrderId) {
             if (isRemoving(orderProductId) || isAdding(existing.productId)) return;
@@ -209,22 +223,22 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
                     await updateOrderProduct({
                         orderId: resumeOrderId,
                         orderProductId,
-                        data: { cantidad: weightKg, precio: existing.precioEfectivo },
+                        data: { cantidad, precio: existing.precioEfectivo },
                     });
                     setCart((prev) =>
-                        prev.map((item) => (item.orderProductId === orderProductId ? { ...item, cantidad: weightKg } : item)),
+                        prev.map((item) => (item.orderProductId === orderProductId ? { ...item, cantidad } : item)),
                     );
                 });
                 invalidateResumeOrderQueries();
             } catch (error) {
-                logUnexpectedError(error, "useQuickSaleCart.setLineWeight");
-                toast.error(getUserFacingErrorMessage(error, "Error al actualizar el peso."));
+                logUnexpectedError(error, "useQuickSaleCart.setLineQuantity");
+                toast.error(getUserFacingErrorMessage(error, "Error al actualizar la cantidad."));
             }
             return;
         }
 
         setCart((prev) =>
-            prev.map((item) => (item.orderProductId === orderProductId ? { ...item, cantidad: weightKg } : item)),
+            prev.map((item) => (item.orderProductId === orderProductId ? { ...item, cantidad } : item)),
         );
     };
 
@@ -274,7 +288,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
         setCart,
         addToCart,
         decrementFromCart,
-        setLineWeight,
+        setLineQuantity,
         quantityOf,
         removeFromCart,
         clearCart,
