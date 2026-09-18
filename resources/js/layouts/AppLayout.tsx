@@ -23,8 +23,12 @@ const FullPageLoader = () => (
 );
 
 export default function AppLayout({ children }: AppLayoutProps) {
-    const { isAuth, features, branchId, setBranch } = useAxios();
-    useOrdersSocket({ showToast: true, suppressCreated: features?.sell_by_weight === true });
+    const { isAuth, user, features, branchId, setBranch } = useAxios();
+    useOrdersSocket({
+        tenantId: user?.tenant_id,
+        showToast: true,
+        suppressCreated: features?.sell_by_weight === true,
+    });
     // enabled=isAuth: no dispararla mientras no hay sesión (este layout también se monta
     // sin autenticar, ver el `if (!isAuth)` de abajo).
     const { data: branches, isLoading: isLoadingBranches } = useBranchList(isAuth);

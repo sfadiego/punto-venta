@@ -256,6 +256,32 @@ class OrderTest extends TestCase
         Event::assertDispatched(OrdersUpdated::class, fn (OrdersUpdated $event) => $event->type === 'created');
     }
 
+    public function test_crea_orden_dispara_orders_updated_con_tenant_del_usuario_autenticado(): void
+    {
+        // El canal privado (orders.{tenantId}) depende de que el evento lleve el tenant
+        // correcto — sin esto, el aviso "Nuevo pedido recibido" no llegaría a nadie (canal
+        // equivocado) o, peor, se repetiría el hueco de filtración entre tenants que este
+        // cambio corrige.
+        Event::fake([OrdersUpdated::class]);
+
+        $report = $this->crearReporte();
+        $status = OrderStatusModel::first();
+
+        $this->postJson('/api/order', [
+            OrderModel::TOTAL => 150,
+            OrderModel::SUBTOTAL => 150,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::SISTEMA_ID => $report->id,
+            OrderModel::NOMBRE_PEDIDO => 'Mesa 5',
+            OrderModel::ESTATUS_PEDIDO_ID => $status->id,
+        ], $this->authHeaders())->assertStatus(200);
+
+        Event::assertDispatched(
+            OrdersUpdated::class,
+            fn (OrdersUpdated $event) => $event->tenantId === BusinessConfigModel::first()->id,
+        );
+    }
+
     public function test_crea_orden_silenciosa_no_dispara_orders_updated(): void
     {
         // Orden lazy creada por QuickSale (ej. al imprimir sin haber guardado

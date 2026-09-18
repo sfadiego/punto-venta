@@ -4,6 +4,7 @@ use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\DemoRequestController;
 use App\Http\Controllers\PublicAppSettingController;
 use App\Http\Middleware\ResolveTenant;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(base_path('routes/modules/auth.php'));
@@ -28,6 +29,12 @@ require base_path('routes/modules/menu.php');
 
 // Panel super-admin
 require base_path('routes/modules/superadmin.php');
+
+// Autorización de canales privados de broadcasting (Echo/Reverb) — sin esto, `Echo.private()`
+// no tiene a dónde pegarle para autenticar la suscripción. Bearer token vía Sanctum, no cookie
+// de sesión (esta app no usa auth por cookie) — de ahí el middleware explícito en vez del
+// 'web' que usa `Broadcast::routes()` por default.
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 Route::middleware(['auth:sanctum', ResolveTenant::class, 'check.subscription'])->group(function () {
     require base_path('routes/modules/branches.php');
