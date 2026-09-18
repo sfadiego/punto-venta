@@ -7,6 +7,7 @@ import { buildCartItems, calcCartTotals } from "@/utils/cartCalc";
 import { ICartItem } from "@/models/ICartItem";
 import { useShowOrder } from "@/services/useOrderService";
 import { getEcho } from "@/hooks/useOrdersSocket";
+import { useAxios } from "@/hooks/useAxios";
 
 const EDITABLE_STATUSES = [OrderStatusEnum.InProcess, OrderStatusEnum.Served];
 const SYNC_EVENT_TYPES = ["product_updated", "served", "restored_served", "updated"];
@@ -15,6 +16,8 @@ export const useTakeOrderData = () => {
     const { id } = useParams<{ id: string }>();
     const orderId = Number(id);
     const queryClient = useQueryClient();
+    const { user } = useAxios();
+    const tenantId = user?.tenant_id;
     // El backend ya filtra por tenant_id vía TenantScope + route model binding
     // (ResolveTenant corre antes de SubstituteBindings), así que un id de otro
     // tenant o inexistente resulta en 404 (isError). Aquí solo detectamos ids
@@ -31,9 +34,9 @@ export const useTakeOrderData = () => {
     // listener propio, si otro usuario agrega/quita productos de esta misma orden
     // mientras la tenemos abierta aquí, nunca nos enteramos hasta recargar.
     useEffect(() => {
-        if (isInvalidId) return;
+        if (isInvalidId || !tenantId) return;
 
-        const channel = getEcho().channel("orders");
+        const channel = getEcho().private(`orders.${tenantId}`);
 
         const handler = (data: { type?: string; order_id?: number }) => {
             if (data.order_id !== orderId) return;
@@ -49,7 +52,7 @@ export const useTakeOrderData = () => {
         return () => {
             channel.stopListening(".orders.updated", handler);
         };
-    }, [isInvalidId, orderId, queryClient]);
+    }, [isInvalidId, orderId, queryClient, tenantId]);
 
     const isReadOnly =
         !order || !EDITABLE_STATUSES.includes(order.estatus_pedido_id);

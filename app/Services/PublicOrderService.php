@@ -88,7 +88,11 @@ class PublicOrderService
         ]);
 
         try {
-            broadcast(new OrdersUpdated('new_public_order'));
+            // Sin usuario autenticado en este flujo (menú público) — app('tenant_id') nunca
+            // se bindea aquí (ResolveTenant solo lo hace para requests con $request->user()),
+            // así que el tenant debe pasarse explícito para que el canal privado del negocio
+            // correcto reciba el aviso.
+            broadcast(new OrdersUpdated('new_public_order', tenantId: $tenant->id));
         } catch (\Throwable) {
             // Reverb unavailable — order must not fail
         }

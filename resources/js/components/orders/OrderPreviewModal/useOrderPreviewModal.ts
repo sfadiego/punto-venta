@@ -11,6 +11,7 @@ import {
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { getEcho } from "@/hooks/useOrdersSocket";
+import { useAxios } from "@/hooks/useAxios";
 import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
 import { groupOrderProducts } from "@/utils/groupOrderProducts";
 
@@ -20,6 +21,8 @@ export const useOrderPreviewModal = (orderId: number) => {
         new Set(),
     );
     const queryClient = useQueryClient();
+    const { user } = useAxios();
+    const tenantId = user?.tenant_id;
     const { pendingIds: pendingProductIds, isPending, withPending } =
         useOptimisticPendingSet<number>();
 
@@ -45,9 +48,9 @@ export const useOrderPreviewModal = (orderId: number) => {
     };
 
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen || !tenantId) return;
 
-        const channel = getEcho().channel("orders");
+        const channel = getEcho().private(`orders.${tenantId}`);
 
         const handler = (data: { type?: string; order_id?: number }) => {
             if (data.order_id !== orderId) return;
@@ -68,7 +71,7 @@ export const useOrderPreviewModal = (orderId: number) => {
         return () => {
             channel.stopListening(".orders.updated", handler);
         };
-    }, [isOpen, orderId, queryClient]);
+    }, [isOpen, orderId, queryClient, tenantId]);
 
     const markServed = () => {
         updateOrder(
