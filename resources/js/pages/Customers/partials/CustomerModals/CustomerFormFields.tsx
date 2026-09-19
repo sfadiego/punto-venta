@@ -14,8 +14,8 @@ export const CustomerFormFields = ({ formik }: CustomerFormFieldsProps) => {
     const { isAddressOpen, toggleAddress } = useCustomerFormFields(formik);
 
     return (
-        <div className="space-y-6">
-            <div className="space-y-4">
+        <div className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input name="name" label="Nombre" placeholder="Ej: Loncheria Doña Mary" maxLength={255} formik={formik} />
                 <Input name="phone" label="Teléfono" placeholder="Ej: 5512345678" maxLength={20} formik={formik} />
             </div>

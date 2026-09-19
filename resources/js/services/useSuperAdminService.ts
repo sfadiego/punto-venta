@@ -16,8 +16,7 @@ export const useListTenants = (
     useQuery<ITenant[]>({
         queryKey: [QUERY_KEY, status, isDemo],
         queryFn: async () => {
-            const params: Record<string, string | boolean> = {};
-            if (status !== TenantStatusEnum.All) params.status = status;
+            const params: Record<string, string | boolean> = { status };
             if (isDemo !== undefined) params.is_demo = isDemo;
             const res = await superAdminAxios.get(url, { params });
             return res.data.data as ITenant[];

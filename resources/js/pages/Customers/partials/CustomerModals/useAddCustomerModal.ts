@@ -14,6 +14,12 @@ export type CustomerForm = {
     address: string;
     delivery_reference: string;
     allow_credit: boolean;
+    // Opcionales: solo aplican al crear un cliente nuevo (CustomerInitialChargeFields) —
+    // EditCustomerModal reutiliza este mismo tipo pero no los incluye, ya que editar un
+    // adeudo existente se hace desde CustomerChargeModal, no desde este formulario.
+    has_initial_charge?: boolean;
+    initial_charge_amount?: string;
+    initial_charge_note?: string;
 };
 
 const schema = Yup.object({
@@ -25,6 +31,15 @@ const schema = Yup.object({
     address: Yup.string().max(500, "Máximo 500 caracteres"),
     delivery_reference: Yup.string().max(500, "Máximo 500 caracteres"),
     allow_credit: Yup.boolean(),
+    has_initial_charge: Yup.boolean(),
+    // Adeudo inicial opcional — para dar de alta clientes que ya traían deuda antes de
+    // integrar el sistema. El monto solo es obligatorio si se activó el toggle.
+    initial_charge_amount: Yup.string().when("has_initial_charge", {
+        is: true,
+        then: (s) =>
+            s.test("valid-amount", "Debe ser mayor a 0", (value) => Number(value) >= 0.01),
+    }),
+    initial_charge_note: Yup.string().max(500, "Máximo 500 caracteres"),
 });
 
 export const useAddCustomerModal = (onSuccess: () => void) => {
@@ -32,7 +47,17 @@ export const useAddCustomerModal = (onSuccess: () => void) => {
     const { mutateAsync: storeCustomer } = useStoreCustomer();
 
     const formik = useFormik<CustomerForm>({
-        initialValues: { name: "", phone: "", notes: "", address: "", delivery_reference: "", allow_credit: true },
+        initialValues: {
+            name: "",
+            phone: "",
+            notes: "",
+            address: "",
+            delivery_reference: "",
+            allow_credit: true,
+            has_initial_charge: false,
+            initial_charge_amount: "",
+            initial_charge_note: "",
+        },
         validationSchema: schema,
         onSubmit: async (values, helpers) => {
             try {
@@ -43,6 +68,12 @@ export const useAddCustomerModal = (onSuccess: () => void) => {
                     ...(values.address.trim() ? { address: values.address.trim() } : {}),
                     ...(values.delivery_reference.trim() ? { delivery_reference: values.delivery_reference.trim() } : {}),
                     allow_credit: values.allow_credit,
+                    ...(values.has_initial_charge && values.initial_charge_amount
+                        ? {
+                              initial_charge_amount: Number(values.initial_charge_amount),
+                              ...(values.initial_charge_note?.trim() ? { initial_charge_note: values.initial_charge_note.trim() } : {}),
+                          }
+                        : {}),
                 });
                 toast.success("Cliente creado exitosamente");
                 helpers.resetForm();

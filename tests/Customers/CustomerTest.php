@@ -74,6 +74,48 @@ class CustomerTest extends TestCase
         ]);
     }
 
+    public function test_crea_cliente_con_adeudo_inicial(): void
+    {
+        $response = $this->postJson('/api/customer', [
+            'name' => 'Loncheria Doña Mary',
+            'initial_charge_amount' => 150.50,
+            'initial_charge_note' => 'Adeudo previo al sistema',
+        ], $this->authHeaders());
+
+        $response->assertStatus(200)
+            ->assertJsonPath('status', 'OK')
+            ->assertJsonPath('data.balance', '150.50');
+
+        $customer = CustomerModel::where('name', 'Loncheria Doña Mary')->first();
+
+        $this->assertDatabaseHas('customer_charges', [
+            'customer_id' => $customer->id,
+            'amount' => 150.50,
+            'note' => 'Adeudo previo al sistema',
+        ]);
+    }
+
+    public function test_crea_cliente_sin_adeudo_inicial_no_crea_cargo(): void
+    {
+        $response = $this->postJson('/api/customer', [
+            'name' => 'Loncheria Doña Mary',
+        ], $this->authHeaders());
+
+        $customer = CustomerModel::where('id', $response->json('data.id'))->first();
+
+        $this->assertDatabaseHas('customers', ['id' => $customer->id, 'balance' => 0]);
+        $this->assertDatabaseMissing('customer_charges', ['customer_id' => $customer->id]);
+    }
+
+    public function test_no_crea_cliente_con_adeudo_inicial_invalido(): void
+    {
+        $this->postJson('/api/customer', [
+            'name' => 'Loncheria Doña Mary',
+            'initial_charge_amount' => 0,
+        ], $this->authHeaders())
+            ->assertStatus(400);
+    }
+
     public function test_no_crea_cliente_con_nombre_duplicado(): void
     {
         $existing = $this->crearCliente();
