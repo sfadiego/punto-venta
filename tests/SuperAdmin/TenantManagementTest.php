@@ -86,6 +86,46 @@ class TenantManagementTest extends TestCase
         $this->assertFalse($ids->contains($demo->id));
     }
 
+    public function test_lista_tenants_status_todos_excluye_inactivos(): void
+    {
+        $activo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'activo-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Activo',
+        ]);
+        $inactivo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'inactivo-'.uniqid(),
+            BusinessConfigModel::ACTIVO => false,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Inactivo',
+        ]);
+
+        $response = $this->getJson('/api/super-admin/tenant?status=all&limit=100', $this->superAdminHeaders())
+            ->assertStatus(206);
+
+        $ids = collect($response->json('data'))->pluck('id');
+
+        $this->assertTrue($ids->contains($activo->id));
+        $this->assertFalse($ids->contains($inactivo->id));
+    }
+
+    public function test_lista_tenants_status_inactivos_los_muestra(): void
+    {
+        $inactivo = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'inactivo-'.uniqid(),
+            BusinessConfigModel::ACTIVO => false,
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Inactivo',
+        ]);
+
+        $response = $this->getJson('/api/super-admin/tenant?status=inactive&limit=100', $this->superAdminHeaders())
+            ->assertStatus(206);
+
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($inactivo->id));
+    }
+
     public function test_lista_tenants_activos_excluye_eliminados(): void
     {
         $eliminado = BusinessConfigModel::create([

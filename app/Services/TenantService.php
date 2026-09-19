@@ -67,6 +67,13 @@ class TenantService extends DataTable
             $query->where(BusinessConfigModel::ACTIVO, false);
         }
 
+        // "Todos" no debe incluir tenants inactivos por defecto — solo se ven explícitamente
+        // seleccionando "Inactivos". Demo sí se incluye aquí (a diferencia de "Activos", que
+        // los excluye) porque el filtro de demo es independiente (ver $isDemo abajo).
+        if ($status === TenantStatusEnum::All) {
+            $query->where(BusinessConfigModel::ACTIVO, true);
+        }
+
         $isDemo = request()->query('is_demo');
         if ($isDemo !== null) {
             $query->where(BusinessConfigModel::IS_DEMO, filter_var($isDemo, FILTER_VALIDATE_BOOLEAN));
