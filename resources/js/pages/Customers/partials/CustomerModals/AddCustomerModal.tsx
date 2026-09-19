@@ -2,6 +2,7 @@ import { X, UserPlus, Loader } from "lucide-react";
 import { FormikProps } from "formik";
 import { CustomerForm } from "./useAddCustomerModal";
 import { CustomerFormFields } from "./CustomerFormFields";
+import { CustomerInitialChargeFields } from "./CustomerInitialChargeFields";
 
 interface AddCustomerModalProps {
     isOpen: boolean;
@@ -16,8 +17,8 @@ export const AddCustomerModal = ({ isOpen, formik, onClose }: AddCustomerModalPr
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
-                <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-stone-100 shrink-0">
+            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-stone-100 shrink-0">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
                             <UserPlus size={16} className="text-amber-600" />
@@ -32,20 +33,24 @@ export const AddCustomerModal = ({ isOpen, formik, onClose }: AddCustomerModalPr
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} noValidate className="p-5 overflow-y-auto">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-6 overflow-y-auto space-y-5">
                     <CustomerFormFields formik={formik} />
 
-                    <label className="flex items-center gap-2.5 mt-5 px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-100 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={formik.values.allow_credit}
-                            onChange={(e) => formik.setFieldValue("allow_credit", e.target.checked)}
-                            className="w-4 h-4 rounded border-stone-300 text-amber-500 focus:ring-amber-500"
-                        />
-                        <span className="text-sm text-stone-700">Permite crédito</span>
-                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-stone-50 border border-stone-100 cursor-pointer h-fit">
+                            <input
+                                type="checkbox"
+                                checked={formik.values.allow_credit}
+                                onChange={(e) => formik.setFieldValue("allow_credit", e.target.checked)}
+                                className="w-4 h-4 rounded border-stone-300 text-amber-500 focus:ring-amber-500"
+                            />
+                            <span className="text-sm text-stone-700">Permite crédito</span>
+                        </label>
 
-                    <div className="flex gap-2 pt-5">
+                        <CustomerInitialChargeFields formik={formik} />
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
                         <button
                             type="button"
                             onClick={onClose}

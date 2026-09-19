@@ -41,7 +41,13 @@ class CustomersController extends Controller
             CustomerModel::ALLOW_CREDIT => $params->boolean('allow_credit', true),
         ]);
 
-        return Response::success($customer);
+        // Adeudo inicial opcional, en la misma petición — mismo criterio de negocio que
+        // registerCharge() (alta de deuda previa al sistema), aquí para clientes nuevos.
+        if ($params->filled('initial_charge_amount')) {
+            $this->applyCharge($customer, (float) $params->input('initial_charge_amount'), $params->input('initial_charge_note'));
+        }
+
+        return Response::success($customer->fresh());
     }
 
     public function show(CustomerModel $customer): JsonResponse
@@ -100,17 +106,29 @@ class CustomersController extends Controller
      */
     public function registerCharge(CustomerModel $customer, CustomerChargeStoreRequest $params): JsonResponse
     {
+        $charge = $this->applyCharge($customer, (float) $params->amount, $params->note);
+
+        return Response::success($charge->load('customer'));
+    }
+
+    /**
+     * Crea el registro de cargo y suma el monto al balance del cliente — compartido entre
+     * registerCharge() (cliente existente, desde el detalle) y store() (adeudo inicial
+     * opcional al dar de alta un cliente nuevo).
+     */
+    private function applyCharge(CustomerModel $customer, float $amount, ?string $note): CustomerChargeModel
+    {
         $locked = CustomerModel::where('id', $customer->id)->lockForUpdate()->first();
 
         $charge = CustomerChargeModel::create([
             CustomerChargeModel::CUSTOMER_ID => $locked->id,
-            CustomerChargeModel::AMOUNT => $params->amount,
+            CustomerChargeModel::AMOUNT => $amount,
             CustomerChargeModel::CREATED_BY => auth()->id(),
-            CustomerChargeModel::NOTE => $params->note,
+            CustomerChargeModel::NOTE => $note,
         ]);
 
-        $locked->increment('balance', $params->amount);
+        $locked->increment('balance', $amount);
 
-        return Response::success($charge->load('customer'));
+        return $charge;
     }
 }

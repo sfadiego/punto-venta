@@ -23,8 +23,8 @@ export const EditCustomerModal = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
-                <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-stone-100 shrink-0">
+            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-stone-100 shrink-0">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
                             <UserCog size={16} className="text-amber-600" />
@@ -44,10 +44,10 @@ export const EditCustomerModal = ({
                     </button>
                 </div>
 
-                <form onSubmit={formik.handleSubmit} noValidate className="p-5 overflow-y-auto">
+                <form onSubmit={formik.handleSubmit} noValidate className="p-6 overflow-y-auto space-y-5">
                     <CustomerFormFields formik={formik} />
 
-                    <div className="flex gap-2 pt-5">
+                    <div className="flex gap-2 pt-2">
                         <button
                             type="button"
                             onClick={onClose}

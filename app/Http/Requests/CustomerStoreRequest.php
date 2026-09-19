@@ -27,6 +27,11 @@ class CustomerStoreRequest extends FormRequest
             CustomerModel::ADDRESS => 'nullable|string|max:500',
             CustomerModel::DELIVERY_REFERENCE => 'nullable|string|max:500',
             CustomerModel::ALLOW_CREDIT => 'sometimes|boolean',
+            // Adeudo inicial opcional — para dar de alta clientes que ya traían deuda antes de
+            // integrar el sistema (alta masiva pre-lanzamiento). Mismas reglas que
+            // CustomerChargeStoreRequest (registerCharge), salvo que aquí no es 'required'.
+            'initial_charge_amount' => 'nullable|numeric|min:0.01',
+            'initial_charge_note' => 'nullable|string|max:500',
         ];
     }
 }
