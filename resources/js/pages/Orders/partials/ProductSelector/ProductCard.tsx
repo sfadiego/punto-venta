@@ -76,7 +76,14 @@ export const ProductCard = ({
                     />
 
                     <div className="relative flex flex-col gap-2">
-                        <p className="text-sm font-semibold text-stone-900 leading-tight truncate">
+                        {/* line-clamp-2 en vez de truncate: los nombres largos se cortaban a una
+                        sola línea sin forma de leer el resto (ej. "PARES ZAP INFANTE 17/21
+                        CHAR/NEGRO M 1..."). Con 2 líneas los nombres cortos se ven igual que
+                        antes; solo los largos ocupan más alto, sin afectar el resto de la grid. */}
+                        <p
+                            className="text-sm font-semibold text-stone-900 leading-tight line-clamp-2"
+                            title={product.nombre}
+                        >
                             {product.nombre}
                         </p>
 

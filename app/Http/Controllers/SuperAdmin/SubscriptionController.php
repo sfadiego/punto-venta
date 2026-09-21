@@ -22,6 +22,13 @@ class SubscriptionController extends Controller
     public function index(): JsonResponse
     {
         $query = BusinessConfigModel::withoutTrashed()
+            // Solo clientes activos o demo — un cliente inactivo (activo=false, dado de baja
+            // pero no eliminado) no debe aparecer en el panel de suscripciones salvo que sea
+            // demo (los demo se muestran/ocultan aparte, vía el filtro is_demo de abajo).
+            ->where(function ($q) {
+                $q->where(BusinessConfigModel::ACTIVO, true)
+                    ->orWhere(BusinessConfigModel::IS_DEMO, true);
+            })
             ->withCount('users')
             ->orderBy(BusinessConfigModel::BUSINESS_NAME);
 

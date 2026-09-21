@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
-import { useCreateOrderProduct, useUpdateOrderProduct, useDeleteOrderItem, useClearOrderCart } from "@/services/useOrderService";
+import { useCreateOrderProduct, useUpdateOrderProduct, useDeleteOrderItem, useClearOrderCart, useShowOrder } from "@/services/useOrderService";
 import { IProduct } from "@/models/IProduct";
 import { IProductVariant } from "@/models/IProductVariant";
 import { IOrderProduct } from "@/models/IOrderProduct";
@@ -11,6 +11,7 @@ import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { IModalCartItem } from "@/models/IModalCartItem";
 import { getAvailableStockFor } from "@/utils/stock";
 import { isWeightUnit } from "@/utils/weightUnits";
+import { buildModalCartItems } from "@/utils/sellByWeightCartCalc";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
 import { useTicketDrawer } from "./useTicketDrawer";
 import { useLastAddedFlash } from "./useLastAddedFlash";
@@ -23,6 +24,10 @@ import { MAX_CANTIDAD_KG } from "./quickSaleConstants";
 // useQuickSalePayment.ts), así que aquí no hace falta invalidar la query de productos.
 export const useQuickSaleCart = (resumeOrderId: number | null) => {
     const invalidateResumeOrderQueries = useInvalidateResumeOrderQueries(resumeOrderId);
+    // enabled: false — useResumeOrder ya hace el fetch inicial con esta misma query key; aquí
+    // solo se usa refetch() bajo demanda para resincronizar el carrito cuando un 422 revela que
+    // quedó desactualizado (ver resyncCartFromServer).
+    const { refetch: refetchResumeOrder } = useShowOrder(resumeOrderId ?? 0, false);
     const [cart, setCart] = useState<IModalCartItem[]>([]);
     const { lastAddedOrderProductId, flashLastAdded } = useLastAddedFlash();
     const { isDrawerOpen, toggleDrawer } = useTicketDrawer(cart.length);
@@ -44,6 +49,16 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
     // mismo producto nunca se mezclan aunque coincida el precio.
     const findCartItem = (productId: number, variantId?: number | null) =>
         cart.find((item) => item.productId === productId && (item.variantId ?? null) === (variantId ?? null));
+
+    // Un 422 en cualquier mutación de carrito (agregar/quitar/actualizar cantidad) casi siempre
+    // significa que el carrito local quedó desactualizado respecto al servidor — la orden o la
+    // caja se cerró desde otro dispositivo, o el item ya no existe (doble click, ya se había
+    // quitado). En vez de dejar el error mostrado y que el usuario reintente el mismo click que
+    // va a seguir fallando, se trae el estado real de la orden y se reemplaza el carrito local.
+    const resyncCartFromServer = async () => {
+        const { data: freshOrder } = await refetchResumeOrder();
+        if (freshOrder) setCart(buildModalCartItems(freshOrder.order_products));
+    };
 
     const addToCart = async (product: IProduct, cantidadKg: number, variant: IProductVariant | null = null) => {
         if (cantidadKg <= 0) return;
@@ -116,6 +131,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
             } catch (error) {
                 logUnexpectedError(error, "useQuickSaleCart.addToCart");
                 toast.error(getUserFacingErrorMessage(error, "Error al agregar el producto."));
+                await resyncCartFromServer();
             }
             return;
         }
@@ -178,6 +194,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
             } catch (error) {
                 logUnexpectedError(error, "useQuickSaleCart.decrementFromCart");
                 toast.error(getUserFacingErrorMessage(error, "Error al quitar el producto."));
+                await resyncCartFromServer();
             }
             return;
         }
@@ -233,6 +250,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
             } catch (error) {
                 logUnexpectedError(error, "useQuickSaleCart.setLineQuantity");
                 toast.error(getUserFacingErrorMessage(error, "Error al actualizar la cantidad."));
+                await resyncCartFromServer();
             }
             return;
         }
@@ -259,6 +277,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
             } catch (error) {
                 logUnexpectedError(error, "useQuickSaleCart.removeFromCart");
                 toast.error(getUserFacingErrorMessage(error, "Error al quitar el producto."));
+                await resyncCartFromServer();
             }
             return;
         }
@@ -277,6 +296,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
             } catch (error) {
                 logUnexpectedError(error, "useQuickSaleCart.clearCart");
                 toast.error(getUserFacingErrorMessage(error, "Error al vaciar el ticket."));
+                await resyncCartFromServer();
             }
             return;
         }
