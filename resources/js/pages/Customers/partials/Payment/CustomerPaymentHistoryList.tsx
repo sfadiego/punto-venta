@@ -1,6 +1,6 @@
 import { ICustomerPayment } from "@/models/ICustomer";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
-import { formatOrderTime } from "@/utils/dateUtils";
+import { formatOrderDateTime } from "@/utils/dateUtils";
 
 interface CustomerPaymentHistoryListProps {
     payments?: ICustomerPayment[];
@@ -16,7 +16,7 @@ export const CustomerPaymentHistoryList = ({ payments }: CustomerPaymentHistoryL
                 {payments.map((payment) => (
                     <div key={payment.id} className="flex items-center justify-between text-sm py-1.5 border-b border-stone-50 last:border-0">
                         <div className="min-w-0">
-                            <p className="text-stone-700">{formatOrderTime(payment.created_at)}</p>
+                            <p className="text-stone-700">{formatOrderDateTime(payment.created_at)}</p>
                             {payment.note && <p className="text-xs text-stone-400 truncate">{payment.note}</p>}
                         </div>
                         <span className="font-semibold text-green-600 tabular-nums shrink-0 ml-2">
