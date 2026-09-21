@@ -120,6 +120,22 @@ export const daysSince = (dateStr: string | null | undefined): number | null => 
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 };
 
+/** Formatea una fecha ISO como tiempo relativo corto, ej. "hace 12 min" / "hace 3 h" / "hace 22 días". */
+export const formatTimeAgo = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return "Sin actividad";
+
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const minutes = Math.floor(diffMs / (1000 * 60));
+    if (minutes < 1) return "hace un momento";
+    if (minutes < 60) return `hace ${minutes} min`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `hace ${hours} h`;
+
+    const days = Math.floor(hours / 24);
+    return `hace ${days} día${days !== 1 ? "s" : ""}`;
+};
+
 /** Calcula la fecha de expiración de una suscripción a partir del plan y la fecha de inicio. */
 export const computeExpiresAt = (plan: string, startsAt: string): string | null => {
     const d = parseDateLocal(startsAt);

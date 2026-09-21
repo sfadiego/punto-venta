@@ -4,6 +4,7 @@ use App\Http\Controllers\ClientErrorController;
 use App\Http\Controllers\PrinterAgentController;
 use App\Http\Controllers\SuperAdmin\AppSettingController;
 use App\Http\Controllers\SuperAdmin\ClientLeadController;
+use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\SubscriptionController;
 use App\Http\Controllers\SuperAdmin\SuperAdminAuthController;
 use App\Http\Controllers\SuperAdmin\SuperAdminUserController;
@@ -19,6 +20,7 @@ Route::prefix('super-admin')->group(function () {
     Route::post('auth/login', [SuperAdminAuthController::class, 'login'])->middleware('throttle:login');
 
     Route::middleware(['auth:sanctum', SuperAdminMiddleware::class])->group(function () {
+        Route::get('dashboard', [DashboardController::class, 'index']);
         Route::get('error-logs', [ClientErrorController::class, 'index']);
         Route::delete('error-logs/prune', [ClientErrorController::class, 'prune']);
         Route::post('printer-agent/download', [PrinterAgentController::class, 'download']);

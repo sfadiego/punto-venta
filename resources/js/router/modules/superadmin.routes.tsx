@@ -4,6 +4,7 @@ import { superAdminAuth } from "@/contexts/SuperAdminContext";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 
 const SuperAdminLoginPage = lazy(() => import("@/pages/SuperAdmin/Login/SuperAdminLoginPage"));
+const DashboardPage       = lazy(() => import("@/pages/SuperAdmin/Dashboard/DashboardPage"));
 const TenantListPage      = lazy(() => import("@/pages/SuperAdmin/Tenants/TenantListPage"));
 const TenantFormPage      = lazy(() => import("@/pages/SuperAdmin/Tenants/TenantFormPage"));
 const TenantUsersPage     = lazy(() => import("@/pages/SuperAdmin/TenantUsers/TenantUsersPage"));
@@ -19,6 +20,10 @@ export const superAdminRoutes = [
     {
         path: SuperAdminRoutes.Login,
         element: <SuperAdminLoginPage />,
+    },
+    {
+        path: SuperAdminRoutes.Dashboard,
+        element: <SuperAdminRoute><DashboardPage /></SuperAdminRoute>,
     },
     {
         path: SuperAdminRoutes.Tenants,
