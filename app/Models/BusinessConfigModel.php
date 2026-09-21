@@ -145,6 +145,16 @@ class BusinessConfigModel extends Model
         self::MAX_USERS,
     ];
 
+    /** Días restantes de la suscripción cacheada del tenant (negativo si ya venció, null sin fecha). */
+    public function getDaysRemainingAttribute(): ?int
+    {
+        if (! $this->subscription_expires_at) {
+            return null;
+        }
+
+        return (int) Carbon::today()->diffInDays($this->subscription_expires_at, false);
+    }
+
     public function getSubscriptionStatusAttribute(): string
     {
         if ($this->subscription_plan === 'lifetime') {
@@ -222,6 +232,34 @@ class BusinessConfigModel extends Model
         $features = self::find($tenantId)?->tipo_negocio->features() ?? [];
 
         return ($features['sell_by_weight'] ?? false) || ($features['is_retail'] ?? false);
+    }
+
+    /**
+     * Subqueries de última actividad por tenant — dos fuentes por separado (portable entre
+     * MySQL/SQLite, sin GREATEST()): el login/venta más reciente de tenant_activity_logs, y el
+     * último uso real de sesión vía Sanctum. Combinar ambas (ver combineLastActivity()) evita
+     * marcar como "sin actividad" a un tenant con usuarios navegando activamente sin volver a
+     * loguearse ni cerrar una venta (ActivityTypeEnum solo cubre LOGIN y SALE_CLOSED).
+     * Reutilizado por TenantService::makeQuery() y DashboardService.
+     */
+    public static function lastActivitySelects(): array
+    {
+        $table = (new self)->getTable();
+
+        return [
+            'last_login_activity_at' => TenantActivityLogModel::query()
+                ->selectRaw('MAX('.TenantActivityLogModel::CREATED_AT.')')
+                ->whereColumn(TenantActivityLogModel::TENANT_ID, $table.'.id'),
+            'last_session_activity_at' => PersonalAccessToken::query()
+                ->selectRaw('MAX('.PersonalAccessToken::LAST_USED_AT.')')
+                ->whereColumn(PersonalAccessToken::TENANT_ID, $table.'.id'),
+        ];
+    }
+
+    /** Combina las dos fuentes de lastActivitySelects() en un único timestamp (el más reciente). */
+    public static function combineLastActivity(?string $loginAt, ?string $sessionAt): ?string
+    {
+        return collect([$loginAt, $sessionAt])->filter()->max();
     }
 
     /** Crea el tenant por defecto si no existe (usado en seeders). */

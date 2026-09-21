@@ -94,8 +94,6 @@ class SubscriptionController extends Controller
 
     private function formatTenant(BusinessConfigModel $tenant): array
     {
-        $expiresAt = $tenant->subscription_expires_at;
-
         return [
             'id' => $tenant->id,
             'business_name' => $tenant->business_name,
@@ -105,11 +103,9 @@ class SubscriptionController extends Controller
             'primary_color' => $tenant->primary_color,
             'users_count' => $tenant->users_count,
             'subscription_plan' => $tenant->subscription_plan,
-            'subscription_expires_at' => $expiresAt?->toDateString(),
+            'subscription_expires_at' => $tenant->subscription_expires_at?->toDateString(),
             'subscription_status' => $tenant->subscription_status,
-            'days_remaining' => $expiresAt
-                ? (int) Carbon::today()->diffInDays($expiresAt, false)
-                : null,
+            'days_remaining' => $tenant->days_remaining,
         ];
     }
 

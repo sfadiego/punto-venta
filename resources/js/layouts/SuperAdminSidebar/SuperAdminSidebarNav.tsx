@@ -1,8 +1,9 @@
-import { LayoutDashboard, CreditCard, Settings2, AlertTriangle, Users } from "lucide-react";
+import { LayoutDashboard, CreditCard, Settings2, AlertTriangle, Users, Gauge } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 
 export const NAV_ITEMS = [
+    { to: SuperAdminRoutes.Dashboard, label: "Dashboard", icon: <Gauge size={16} /> },
     { to: SuperAdminRoutes.Tenants, label: "Clientes", icon: <LayoutDashboard size={16} /> },
     { to: SuperAdminRoutes.ClientLeads, label: "Seguimiento", icon: <Users size={16} /> },
     { to: SuperAdminRoutes.Subscriptions, label: "Suscripciones", icon: <CreditCard size={16} /> },

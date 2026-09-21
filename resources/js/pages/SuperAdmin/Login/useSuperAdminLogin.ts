@@ -20,7 +20,7 @@ export const useSuperAdminLogin = () => {
         onSubmit: async (values, helpers) => {
             try {
                 await superAdminAuth.login(values.email, values.password);
-                navigate(SuperAdminRoutes.Tenants, { replace: true });
+                navigate(SuperAdminRoutes.Dashboard, { replace: true });
             } catch (error) {
                 toast.error(getUserFacingErrorMessage(error, "Credenciales inválidas o sin permisos de super administrador."));
                 helpers.setSubmitting(false);

@@ -26,6 +26,7 @@ export enum ApiRoutes {
     DemoRequest = "/api/demo-request",
     AppTheme = "/api/app-theme",
     SuperAdminAuth         = "/api/super-admin/auth",
+    SuperAdminDashboard    = "/api/super-admin/dashboard",
     SuperAdminTenant       = "/api/super-admin/tenant",
     SuperAdminSubscription = "/api/super-admin/subscription",
     SuperAdminSettings     = "/api/super-admin/settings",

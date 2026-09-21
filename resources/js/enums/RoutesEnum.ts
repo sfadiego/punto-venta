@@ -24,6 +24,7 @@ export enum AdminRoutes {
 
 export enum SuperAdminRoutes {
     Login         = "/admin/login",
+    Dashboard     = "/admin/dashboard",
     Tenants       = "/admin/tenants",
     NewTenant     = "/admin/tenants/new",
     EditTenant    = "/admin/tenants/:id",
