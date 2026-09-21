@@ -1,7 +1,7 @@
 import { Loader } from "lucide-react";
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { useDashboardPage } from "./useDashboardPage";
-import { KpiRow } from "./partials/KpiRow";
+import { KpiRow } from "./partials/Kpi/KpiRow";
 import { ExpiringSubscriptionsCard } from "./partials/ExpiringSubscriptionsCard";
 import { StaleTenantsCard } from "./partials/StaleTenantsCard";
 import { RecentErrorsCard } from "./partials/RecentErrorsCard";
