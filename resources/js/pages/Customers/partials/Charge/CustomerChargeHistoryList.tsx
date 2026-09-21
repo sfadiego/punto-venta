@@ -1,6 +1,6 @@
 import { ICustomerCharge } from "@/models/ICustomer";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
-import { formatOrderTime } from "@/utils/dateUtils";
+import { formatOrderDateTime } from "@/utils/dateUtils";
 
 interface CustomerChargeHistoryListProps {
     charges?: ICustomerCharge[];
@@ -16,7 +16,7 @@ export const CustomerChargeHistoryList = ({ charges }: CustomerChargeHistoryList
                 {charges.map((charge) => (
                     <div key={charge.id} className="flex items-center justify-between text-sm py-1.5 border-b border-stone-50 last:border-0">
                         <div className="min-w-0">
-                            <p className="text-stone-700">{formatOrderTime(charge.created_at)}</p>
+                            <p className="text-stone-700">{formatOrderDateTime(charge.created_at)}</p>
                             {charge.note && <p className="text-xs text-stone-400 truncate">{charge.note}</p>}
                         </div>
                         <span className="font-semibold text-red-600 tabular-nums shrink-0 ml-2">
