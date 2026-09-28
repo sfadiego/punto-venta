@@ -32,6 +32,16 @@ export interface ISubscription {
     days_remaining: number | null; // null para lifetime
 }
 
+// Subconjunto de ISubscriptionDetail que viaja pegado al error de login cuando la
+// suscripción del tenant está vencida/pendiente (ver AuthService::login) — el usuario está
+// bloqueado y sin token, así que no puede pedir /admin/config/subscription-status aparte.
+export interface ISubscriptionExpiredInfo {
+    business_name: string;
+    amount_due: number | null;
+    payment_whatsapp: string | null;
+    payment_info: IPaymentInfo | null;
+}
+
 export interface ITenantWithSubscription {
     id: number;
     business_name: string;

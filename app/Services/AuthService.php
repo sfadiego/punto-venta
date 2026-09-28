@@ -7,6 +7,7 @@ use App\Enums\ActivityTypeEnum;
 use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionStatusEnum;
+use App\Models\AppSettingModel;
 use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
 use App\Models\User;
@@ -58,7 +59,17 @@ class AuthService
                     ? 'Este negocio aún no tiene una suscripción activa. Contacta al administrador para activar tu plan.'
                     : 'La suscripción de este negocio ha vencido. Contacta al administrador para renovarla.';
 
-                return AuthAttemptResult::fail($message, 'SUBSCRIPTION_EXPIRED', Http::Forbidden);
+                // Mismos datos que BusinessConfigController::subscriptionStatus() muestra ya
+                // logueado con la suscripción en gracia — aquí el usuario está bloqueado y sin
+                // token, así que van pegados a la respuesta del login en vez de requerir un
+                // segundo request autenticado que nunca podría hacer.
+                $data = [
+                    'business_name' => $tenant->business_name,
+                    'amount_due' => $tenant->subscription_amount,
+                    ...AppSettingModel::paymentInfo(),
+                ];
+
+                return AuthAttemptResult::fail($message, 'SUBSCRIPTION_EXPIRED', Http::Forbidden, $data);
             }
         }
 

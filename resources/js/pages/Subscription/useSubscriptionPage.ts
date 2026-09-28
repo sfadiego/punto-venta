@@ -2,6 +2,7 @@ import { useGET } from "@/hooks/useApi";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { PLAN_LABELS } from "@/enums/SubscriptionPlanEnum";
 import { ISubscriptionDetail } from "@/models/ISubscription";
+import { buildWhatsappRenewalUrl } from "@/utils/subscriptionRenewal";
 
 export const useSubscriptionPage = () => {
     const { data, isLoading } = useGET<ISubscriptionDetail>({
@@ -19,17 +20,7 @@ export const useSubscriptionPage = () => {
           })
         : null;
 
-    const whatsappUrl = (() => {
-        if (!data?.payment_whatsapp) return null;
-
-        const message = [
-            `Hola, soy ${data.business_name}.`,
-            `Quiero renovar mi suscripción y adjunto mi comprobante de pago.`,
-            `Quedo pendiente de confirmación. ¡Gracias!`,
-        ].join(" ");
-
-        return `https://wa.me/${data.payment_whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
-    })();
+    const whatsappUrl = data ? buildWhatsappRenewalUrl(data.business_name, data.payment_whatsapp) : null;
 
     return { data, isLoading, planLabel, expiresLabel, whatsappUrl };
 };

@@ -1,5 +1,5 @@
 import { CreditCard, Calendar, Clock } from "lucide-react";
-import { Row, Divider } from "./SubscriptionRow";
+import { Row, Divider } from "@/components/subscription/SubscriptionRow";
 
 interface SubscriptionPlanCardProps {
     planLabel: string | null;

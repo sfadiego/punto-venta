@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BusinessConfigUpdateRequest;
 use App\Models\AppSettingModel;
 use App\Models\ProductImageModel;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
@@ -88,14 +87,11 @@ class BusinessConfigController extends Controller
         return Response::success([
             'status' => $tenant->subscription_status,
             'plan' => $tenant->subscription_plan,
-            'days_remaining' => $tenant->subscription_expires_at
-                ? (int) Carbon::today()->diffInDays($tenant->subscription_expires_at, false)
-                : null,
+            'days_remaining' => $tenant->days_remaining,
             'expires_at' => $tenant->subscription_expires_at?->toDateString(),
             'business_name' => $tenant->business_name,
-            'payment_whatsapp' => config('business.payment_whatsapp'),
-            'payment_info' => json_decode(AppSettingModel::getValue('payment_info', 'null'), true),
             'amount_due' => $tenant->subscription_amount,
+            ...AppSettingModel::paymentInfo(),
         ]);
     }
 }

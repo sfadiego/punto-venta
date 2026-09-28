@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import {
     useListTenants,
+    useListTenantsPaginated,
     useDeleteTenant,
     useToggleTenant,
     useRestoreTenant,
@@ -13,6 +14,13 @@ import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { ITenant } from "@/models/ITenant";
 
+// Límite generoso para los widgets de resumen (usuarios activos / sin actividad reciente) —
+// necesitan ver TODOS los tenants elegibles para sumar bien, no solo la página actual de la
+// tabla. El total real de tenants en este sistema es pequeño (decenas, no miles).
+const WIDGETS_LIMIT = 200;
+const DEFAULT_LIMIT = 10;
+const SEARCH_DEBOUNCE_MS = 400;
+
 const toIsDemo = (filter: TenantDemoFilterEnum): boolean | undefined =>
     filter === TenantDemoFilterEnum.Demo ? true : undefined;
 
@@ -20,16 +28,44 @@ export const useTenantList = () => {
     const [status, setStatus] = useState<TenantStatusEnum>(TenantStatusEnum.All);
     const [demoFilter, setDemoFilter] = useState<TenantDemoFilterEnum>(TenantDemoFilterEnum.All);
     const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(DEFAULT_LIMIT);
 
-    const { data: tenants = [], isLoading, refetch, isRefetching } = useListTenants(status, 30_000, toIsDemo(demoFilter));
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    const { data, isLoading, refetch, isRefetching } = useListTenantsPaginated({
+        status,
+        isDemo: toIsDemo(demoFilter),
+        search: debouncedSearch || undefined,
+        page,
+        limit,
+    });
+
+    // Fuente independiente de la tabla — ver comentario de WIDGETS_LIMIT arriba.
+    const { data: allTenants = [] } = useListTenants(TenantStatusEnum.All, 30_000, undefined, WIDGETS_LIMIT);
+
     const deleteMutation = useDeleteTenant();
     const toggleMutation = useToggleTenant();
     const restoreMutation = useRestoreTenant();
 
-    const filtered = tenants.filter((t) =>
-        t.business_name.toLowerCase().includes(search.toLowerCase()) ||
-        t.slug.toLowerCase().includes(search.toLowerCase())
-    );
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        setPage(1);
+    };
+
+    const handleStatusChange = (value: TenantStatusEnum) => {
+        setStatus(value);
+        setPage(1);
+    };
+
+    const handleDemoFilterChange = (value: TenantDemoFilterEnum) => {
+        setDemoFilter(value);
+        setPage(1);
+    };
 
     const handleToggle = async (tenant: ITenant) => {
         const action = tenant.activo ? "desactivar" : "activar";
@@ -95,17 +131,23 @@ export const useTenantList = () => {
     };
 
     return {
-        tenants: filtered,
-        allTenants: tenants,
+        records: data?.data ?? [],
+        totalRecords: data?.total ?? 0,
+        perPage: data?.per_page ?? limit,
+        page,
+        setPage,
+        limit,
+        setLimit,
+        allTenants,
         isLoading,
         isRefetching,
         refetch,
         status,
-        setStatus,
+        setStatus: handleStatusChange,
         demoFilter,
-        setDemoFilter,
+        setDemoFilter: handleDemoFilterChange,
         search,
-        setSearch,
+        setSearch: handleSearchChange,
         handleToggle,
         handleRestore,
         handleDelete,

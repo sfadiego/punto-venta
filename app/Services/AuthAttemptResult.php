@@ -25,8 +25,8 @@ final class AuthAttemptResult
         return new self(success: true, data: $data);
     }
 
-    public static function fail(string $message, ?string $code = null, Http $status = Http::UnprocessableEntity): self
+    public static function fail(string $message, ?string $code = null, Http $status = Http::UnprocessableEntity, ?array $data = null): self
     {
-        return new self(success: false, message: $message, code: $code, status: $status);
+        return new self(success: false, data: $data, message: $message, code: $code, status: $status);
     }
 }
