@@ -38,7 +38,7 @@ class AuthController extends Controller
         $result = $authService->login($params->email, $params->password, $params->slug);
 
         if (! $result->success) {
-            $data = $result->code ? ['code' => $result->code] : null;
+            $data = $result->code ? ['code' => $result->code, ...($result->data ?? [])] : $result->data;
 
             return Response::error($result->message, $data, $result->status);
         }

@@ -1,19 +1,24 @@
-import { Building2, Plus, Search, Loader } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { useTenantList } from "./useTenantList";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
-import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
 import { ActiveUsersWidget } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersWidget";
 import { InactiveTenantsWidget } from "@/components/SuperAdmin/Tenants/Activity/InactiveTenantsWidget";
 import { MrrWidget } from "@/components/SuperAdmin/Tenants/Subscription/MrrWidget";
+import { TenantsTable } from "@/components/SuperAdmin/Tenants/TenantsTable";
 import { SelectTenantFilter } from "./partials/SelectTenantFilter";
-import { TenantCard } from "./partials/TenantCard";
 
 export default function TenantListPage() {
     const navigate = useNavigate();
     const {
-        tenants,
+        records,
+        totalRecords,
+        perPage,
+        page,
+        setPage,
+        limit,
+        setLimit,
         allTenants,
         isLoading,
         isRefetching,
@@ -46,7 +51,7 @@ export default function TenantListPage() {
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                     <ActiveUsersWidget tenants={allTenants} onRefresh={refetch} isRefreshing={isRefetching} />
                     <InactiveTenantsWidget tenants={allTenants} />
                     <MrrWidget />
@@ -74,32 +79,20 @@ export default function TenantListPage() {
                     </div>
                 </div>
 
-                {isLoading ? (
-                    <div className="flex justify-center py-20">
-                        <Loader size={28} className="animate-spin text-indigo-500" />
-                    </div>
-                ) : tenants.length === 0 ? (
-                    <div className="flex flex-col items-center py-20 text-slate-400">
-                        <Building2 size={40} className="mb-3 opacity-40" />
-                        <p className="font-medium">No hay clientes en esta categoría</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {tenants.map((tenant) => (
-                            <TenantCard
-                                key={tenant.id}
-                                tenant={tenant}
-                                isDeleted={status === TenantStatusEnum.Deleted}
-                                onEdit={() =>
-                                    navigate(SuperAdminRoutes.EditTenant.replace(":id", String(tenant.id)))
-                                }
-                                onToggle={() => handleToggle(tenant)}
-                                onRestore={() => handleRestore(tenant)}
-                                onDelete={() => handleDelete(tenant)}
-                            />
-                        ))}
-                    </div>
-                )}
+                <TenantsTable
+                    records={records}
+                    totalRecords={totalRecords}
+                    page={page}
+                    perPage={perPage}
+                    limit={limit}
+                    isLoading={isLoading}
+                    onPageChange={setPage}
+                    onLimitChange={setLimit}
+                    onEdit={(tenant) => navigate(SuperAdminRoutes.EditTenant.replace(":id", String(tenant.id)))}
+                    onToggle={handleToggle}
+                    onRestore={handleRestore}
+                    onDelete={handleDelete}
+                />
             </div>
         </SuperAdminLayout>
     );

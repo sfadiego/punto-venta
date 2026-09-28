@@ -8,6 +8,7 @@ import { isAxiosError, getUserFacingErrorMessage } from "@/utils/axiosError";
 import { ApiErrorCodeEnum } from "@/enums/ApiErrorCodeEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { toast } from "react-toastify";
+import { ISubscriptionExpiredInfo } from "@/models/ISubscription";
 
 const validationSchema = Yup.object<ISignInForm>({
     email: Yup.string()
@@ -27,12 +28,17 @@ export const useAuth = () => {
     // error transitorio de credenciales — se muestra fijo arriba del formulario en vez de
     // un toast que desaparece solo.
     const [banner, setBanner] = useState<string | null>(null);
+    // Suscripción vencida trae además los datos de pago (ver AuthService::login) — el toast
+    // ya avisa del bloqueo; esto solo habilita el badge debajo del form que abre el modal con
+    // el detalle (reutiliza PaymentInfoCard/RenewalCard de SubscriptionPage).
+    const [subscriptionExpired, setSubscriptionExpired] = useState<ISubscriptionExpiredInfo | null>(null);
 
     const formik = useFormik<ISignInForm>({
         initialValues,
         validationSchema,
         onSubmit: async (values) => {
             setBanner(null);
+            setSubscriptionExpired(null);
             try {
                 const slug = localStorage.getItem("tenantSlug") ?? undefined;
                 const { access_token, user, features, role_permissions, tenant_slug } = await loginMutation.mutateAsync({ ...values, slug });
@@ -44,6 +50,9 @@ export const useAuth = () => {
 
                     if (code === ApiErrorCodeEnum.NoBranchAssigned) {
                         setBanner(getUserFacingErrorMessage(error, "Tu usuario no tiene ninguna sucursal asignada."));
+                    } else if (code === ApiErrorCodeEnum.SubscriptionExpired) {
+                        toast.error(getUserFacingErrorMessage(error, "La suscripción de este negocio ha vencido."));
+                        setSubscriptionExpired(error.response?.data?.data as ISubscriptionExpiredInfo);
                     } else {
                         toast.error(getUserFacingErrorMessage(error, "Credenciales incorrectas"));
                     }
@@ -55,5 +64,5 @@ export const useAuth = () => {
         },
     });
 
-    return { formik, loginMutation, banner };
+    return { formik, loginMutation, banner, subscriptionExpired };
 };

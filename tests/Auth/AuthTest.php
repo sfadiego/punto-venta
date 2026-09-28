@@ -4,6 +4,7 @@ namespace Tests\Auth;
 
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionPlanEnum;
+use App\Models\AppSettingModel;
 use App\Models\BranchModel;
 use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
@@ -291,6 +292,57 @@ class AuthTest extends TestCase
 
         $response->assertStatus(403)
             ->assertJsonPath('data.code', 'CONCURRENT_USERS_LIMIT');
+    }
+
+    public function test_login_bloquea_suscripcion_vencida(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $tenant->update([
+            BusinessConfigModel::BUSINESS_NAME => 'Sucursales',
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Monthly->value,
+            BusinessConfigModel::SUBSCRIPTION_AMOUNT => 350,
+            'subscription_expires_at' => now()->subDays(10),
+        ]);
+        AppSettingModel::setValue('payment_info', json_encode([
+            'bank' => 'BBVA',
+            'account' => '1234567890',
+            'holder' => 'Mi Negocio SA',
+            'concept' => 'Suscripción POS',
+        ]));
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJsonPath('data.code', 'SUBSCRIPTION_EXPIRED')
+            ->assertJsonPath('data.business_name', 'Sucursales')
+            ->assertJsonPath('data.amount_due', 350)
+            ->assertJsonPath('data.payment_info.bank', 'BBVA')
+            ->assertJsonPath('data.payment_info.account', '1234567890');
+    }
+
+    public function test_login_bloqueado_por_suscripcion_no_deja_token_valido(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $tenant->update([
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Monthly->value,
+            'subscription_expires_at' => now()->subDays(10),
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJsonMissingPath('data.access_token');
+        $this->assertSame(0, PersonalAccessToken::where('tokenable_id', $admin->id)->count());
     }
 
     public function test_login_de_la_misma_cuenta_no_compite_por_cupo_contra_si_misma(): void

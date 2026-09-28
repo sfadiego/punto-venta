@@ -2,8 +2,8 @@ import { CreditCard } from "lucide-react";
 import { useSubscriptionPage } from "./useSubscriptionPage";
 import { SubscriptionStatusCard } from "./partials/SubscriptionStatusCard";
 import { SubscriptionPlanCard } from "./partials/SubscriptionPlanCard";
-import { PaymentInfoCard } from "./partials/PaymentInfoCard";
-import { RenewalCard } from "./partials/RenewalCard";
+import { PaymentInfoCard } from "@/components/subscription/PaymentInfoCard";
+import { RenewalCard } from "@/components/subscription/RenewalCard";
 
 function SubscriptionPage() {
     const { data, isLoading, planLabel, expiresLabel, whatsappUrl } = useSubscriptionPage();
