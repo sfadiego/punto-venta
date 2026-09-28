@@ -10,6 +10,7 @@ use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -60,6 +61,59 @@ class OrderProductService
         OrdersUpdated::dispatchAfterCommit('product_updated', (int) $order->id);
 
         return $orderProduct;
+    }
+
+    /**
+     * addProducts — alta en lote (checkout de QuickSale): un solo lock, un solo delta al
+     * total de la orden, un solo evento — en vez de que el frontend llame addProduct() una
+     * vez por línea del carrito. Solo cubre productos de catálogo (nunca "extras", el
+     * carrito de QuickSale no los trae) — el precio, igual que en addProduct(), siempre se
+     * resuelve del catálogo/variante, nunca del valor que mande el cliente.
+     *
+     * @param  array<array{producto_id:int, variant_id?:?int, cantidad:float}>  $items
+     */
+    public function addProducts(OrderModel $order, array $items): Collection
+    {
+        $orderDiscount = $order->descuento ?? 0;
+
+        OrderModel::lockForUpdate()->find($order->id);
+
+        $productIds = collect($items)->pluck('producto_id')->filter()->unique();
+        $variantIds = collect($items)->pluck('variant_id')->filter()->unique();
+        $products = ProductModel::whereIn('id', $productIds)->get()->keyBy('id');
+        $variants = $variantIds->isNotEmpty()
+            ? ProductVariantModel::whereIn('id', $variantIds)->get()->keyBy('id')
+            : collect();
+
+        $totalDeltaSubtotal = 0.0;
+        $orderProducts = collect();
+
+        foreach ($items as $item) {
+            $variantId = $item['variant_id'] ?? null;
+            $precio = $variantId
+                ? (float) ($variants->get($variantId)?->precio ?? 0)
+                : (float) ($products->get($item['producto_id'])?->precio ?? 0);
+            $cantidad = (float) $item['cantidad'];
+
+            $orderProducts->push(OrderProductModel::create([
+                OrderProductModel::PRODUCTO_ID => $item['producto_id'],
+                OrderProductModel::VARIANT_ID => $variantId,
+                OrderProductModel::PEDIDO_ID => $order->id,
+                OrderProductModel::CANTIDAD => $cantidad,
+                OrderProductModel::PRECIO => $precio,
+                OrderProductModel::DESCUENTO => 0,
+                OrderProductModel::IS_READY => false,
+            ]));
+
+            $totalDeltaSubtotal += $this->lineSubtotal($precio, $cantidad, 0);
+        }
+
+        $this->applyOrderDeltaIncrement($order->id, $totalDeltaSubtotal, $orderDiscount);
+
+        $this->resetStatusIfReady($order->fresh());
+        OrdersUpdated::dispatchAfterCommit('product_updated', (int) $order->id);
+
+        return $orderProducts;
     }
 
     /**

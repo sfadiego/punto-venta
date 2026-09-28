@@ -13,7 +13,12 @@ Route::prefix('order')->group(function () {
 
         Route::middleware('permission:viewSales')->group(function () {
             Route::get('/sales-by-category', 'salesByCategory');
-            Route::get('/sales-report/export', 'exportSalesReport');
+            // throttle:10,1 — 10 exportaciones por minuto por usuario. Genera un PDF con
+            // DomPDF (pesado en CPU/memoria) sin límite de filas más allá del rango de
+            // fechas pedido; el límite es generoso a propósito para no afectar el uso normal
+            // (nadie exporta el mismo reporte 10 veces en un minuto), solo corta un loop
+            // accidental o un abuso deliberado.
+            Route::middleware('throttle:10,1')->get('/sales-report/export', 'exportSalesReport');
         });
 
         Route::middleware('permission:viewCloseSales')->get('/credit-customers', 'creditCustomers');
@@ -33,6 +38,12 @@ Route::prefix('order')->group(function () {
             Route::put('', 'update');
             Route::middleware('permission:deleteOrder')->delete('', 'delete');
             Route::middleware('permission:printTicket')->prefix('print')->group(base_path('routes/modules/printer.php'));
+
+            // products (plural) — alta en lote del carrito completo, un request en vez de
+            // uno por línea (ver OrderProductService::addProducts). Mismo permiso que el
+            // alta individual de abajo.
+            Route::middleware('permission:takeOrder,viewOrders')
+                ->post('products', [OrderProductController::class, 'storeBatch']);
 
             Route::prefix('product')->group(function () {
                 Route::controller(OrderProductController::class)->group(function () {

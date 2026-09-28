@@ -96,6 +96,154 @@ class OrderProductTest extends TestCase
             ->assertStatus(400);
     }
 
+    // ── StoreBatch — checkout de QuickSale ────────────────────
+
+    private function crearProductoConStock(float $stock): ProductModel
+    {
+        return ProductModel::create([
+            ProductModel::NOMBRE => 'Producto con stock',
+            ProductModel::PRECIO => 30,
+            ProductModel::CATEGORIA_ID => CategoryModel::first()->id,
+            ProductModel::ACTIVO => true,
+            ProductModel::MANAGE_STOCK => true,
+            ProductModel::STOCK => $stock,
+        ]);
+    }
+
+    public function test_agrega_varios_productos_en_lote(): void
+    {
+        $orden = $this->crearOrden();
+        $producto1 = $this->crearProducto();
+        $producto2 = $this->crearProducto();
+
+        $response = $this->postJson("/api/order/{$orden->id}/products", [
+            'items' => [
+                [OrderProductModel::PRODUCTO_ID => $producto1->id, OrderProductModel::CANTIDAD => 2],
+                [OrderProductModel::PRODUCTO_ID => $producto2->id, OrderProductModel::CANTIDAD => 1],
+            ],
+        ], $this->authHeaders());
+
+        $response->assertStatus(200)->assertJsonPath('status', 'OK');
+        $this->assertCount(2, $response->json('data'));
+        $this->assertDatabaseCount('order_product', 2);
+
+        // 2 * 45 + 1 * 45 = 135 — el precio se resuelve del catálogo, no del payload.
+        $this->assertEquals(135, OrderModel::find($orden->id)->total);
+    }
+
+    public function test_batch_resuelve_precio_del_catalogo_no_del_payload(): void
+    {
+        $orden = $this->crearOrden();
+        $producto = $this->crearProducto(); // precio catálogo = 45
+
+        $this->postJson("/api/order/{$orden->id}/products", [
+            'items' => [
+                [OrderProductModel::PRODUCTO_ID => $producto->id, OrderProductModel::CANTIDAD => 1, OrderProductModel::PRECIO => 1],
+            ],
+        ], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.0.precio', 45);
+    }
+
+    public function test_batch_dispara_un_solo_evento_orders_updated(): void
+    {
+        Event::fake([OrdersUpdated::class]);
+        $orden = $this->crearOrden();
+        $producto1 = $this->crearProducto();
+        $producto2 = $this->crearProducto();
+
+        $this->postJson("/api/order/{$orden->id}/products", [
+            'items' => [
+                [OrderProductModel::PRODUCTO_ID => $producto1->id, OrderProductModel::CANTIDAD => 1],
+                [OrderProductModel::PRODUCTO_ID => $producto2->id, OrderProductModel::CANTIDAD => 1],
+            ],
+        ], $this->authHeaders())
+            ->assertStatus(200);
+
+        Event::assertDispatchedTimes(OrdersUpdated::class, 1);
+    }
+
+    public function test_batch_vacio_falla(): void
+    {
+        $orden = $this->crearOrden();
+
+        $this->postJson("/api/order/{$orden->id}/products", ['items' => []], $this->authHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_batch_con_stock_insuficiente_rechaza_toda_la_request(): void
+    {
+        $orden = $this->crearOrden();
+        $productoConStock = $this->crearProductoConStock(5);
+        $productoSinStock = $this->crearProducto();
+
+        $this->postJson("/api/order/{$orden->id}/products", [
+            'items' => [
+                [OrderProductModel::PRODUCTO_ID => $productoConStock->id, OrderProductModel::CANTIDAD => 10],
+                [OrderProductModel::PRODUCTO_ID => $productoSinStock->id, OrderProductModel::CANTIDAD => 1],
+            ],
+        ], $this->authHeaders())
+            ->assertStatus(400);
+
+        // Ninguna línea se creó — un batch inválido no se aplica parcialmente.
+        $this->assertDatabaseCount('order_product', 0);
+    }
+
+    public function test_batch_suma_cantidades_del_mismo_producto_contra_el_stock(): void
+    {
+        // Dos líneas de 3 c/u del mismo producto individualmente caben en un stock de 5,
+        // pero juntas (6) lo exceden — debe rechazarse por la suma, no evaluarse aislado.
+        $orden = $this->crearOrden();
+        $producto = $this->crearProductoConStock(5);
+
+        $this->postJson("/api/order/{$orden->id}/products", [
+            'items' => [
+                [OrderProductModel::PRODUCTO_ID => $producto->id, OrderProductModel::CANTIDAD => 3],
+                [OrderProductModel::PRODUCTO_ID => $producto->id, OrderProductModel::CANTIDAD => 3],
+            ],
+        ], $this->authHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_batch_dentro_del_stock_disponible_funciona(): void
+    {
+        $orden = $this->crearOrden();
+        $producto = $this->crearProductoConStock(5);
+
+        $this->postJson("/api/order/{$orden->id}/products", [
+            'items' => [
+                [OrderProductModel::PRODUCTO_ID => $producto->id, OrderProductModel::CANTIDAD => 2],
+                [OrderProductModel::PRODUCTO_ID => $producto->id, OrderProductModel::CANTIDAD => 2],
+            ],
+        ], $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertDatabaseCount('order_product', 2);
+    }
+
+    public function test_batch_en_orden_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
+        $producto = $this->crearProducto();
+
+        $this->postJson("/api/order/{$orden->id}/products", [
+            'items' => [[OrderProductModel::PRODUCTO_ID => $producto->id, OrderProductModel::CANTIDAD => 1]],
+        ], $this->authHeaders())
+            ->assertStatus(422);
+
+        $this->assertDatabaseCount('order_product', 0);
+    }
+
+    public function test_batch_sin_autenticacion_no_accede(): void
+    {
+        $orden = $this->crearOrden();
+        $producto = $this->crearProducto();
+
+        $this->postJson("/api/order/{$orden->id}/products", [
+            'items' => [[OrderProductModel::PRODUCTO_ID => $producto->id, OrderProductModel::CANTIDAD => 1]],
+        ])->assertStatus(401);
+    }
+
     // ── Totales de orden ─────────────────────────────────────
 
     public function test_agrega_producto_actualiza_total_de_orden(): void

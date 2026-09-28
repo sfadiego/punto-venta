@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { NavigateFunction } from "react-router-dom";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import { useShowOrder, useStoreOrder, useCreateOrderProduct, useUpdateOrderData } from "@/services/useOrderService";
+import { useShowOrder, useStoreOrder, useCreateOrderProducts, useUpdateOrderData } from "@/services/useOrderService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { resolveSaleName } from "@/utils/resolveSaleName";
@@ -47,7 +47,7 @@ export const useResumeOrder = ({
     const resumeInitializedRef = useRef(false);
 
     const { mutateAsync: storeOrder } = useStoreOrder();
-    const { mutateAsync: createOrderProduct } = useCreateOrderProduct();
+    const { mutateAsync: createOrderProducts } = useCreateOrderProducts();
     const { mutateAsync: updateOrderData } = useUpdateOrderData();
 
     const [nombrePedido, setNombrePedido] = useState("");
@@ -95,10 +95,14 @@ export const useResumeOrder = ({
         });
         const order = (res as { data: { data: IOrder } }).data.data;
 
-        for (const item of cart) {
-            await createOrderProduct({
+        // Un solo request con todo el carrito (ver useCreateOrderProducts/
+        // OrderProductService::addProducts) en vez de un POST secuencial por línea — con
+        // carritos de varias líneas y muchos cajeros cobrando a la vez, esto evitaba que el
+        // checkout formara fila N veces por el pool de PHP-FPM en vez de una sola.
+        if (cart.length > 0) {
+            await createOrderProducts({
                 orderId: order.id,
-                data: { producto_id: item.productId, cantidad: item.cantidad, precio: item.precioEfectivo },
+                items: cart.map((item) => ({ producto_id: item.productId, cantidad: item.cantidad })),
             });
         }
 

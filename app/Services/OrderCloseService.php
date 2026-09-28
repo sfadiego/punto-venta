@@ -74,7 +74,10 @@ class OrderCloseService
         // query por línea dentro del each() de abajo.
         $products = ProductModel::whereIn('id', $items->pluck('producto_id')->unique())->get()->keyBy('id');
 
-        $items->each(function (OrderProductModel $item) use ($products) {
+        // Ordenado por producto_id antes de descontar — mismo criterio que
+        // OrderSaleService::createDirectSale(): evita deadlocks entre cierres concurrentes
+        // que comparten productos pero los tienen en orden distinto en su lista de líneas.
+        $items->sortBy('producto_id')->each(function (OrderProductModel $item) use ($products) {
             $product = $products->get($item->producto_id);
             // Ver comentario equivalente en OrderSaleService::createDirectSale — una línea
             // con variante descuenta el stock de esa variante, no el del producto base.

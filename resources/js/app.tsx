@@ -15,6 +15,12 @@ const queryClient = new QueryClient({
         queries: {
             refetchOnWindowFocus: false,
             staleTime: 2 * 60 * 1000, // 2 min — evita refetch en cada navegación
+            // Sin esto, el default de TanStack (3 reintentos con backoff) amplifica la carga
+            // justo cuando el backend ya está batallando (timeouts/5xx bajo alta concurrencia)
+            // — cada query que use useQuery/useInfiniteQuery directo (fuera de hooks/useApi.ts,
+            // que ya ponía retry:false explícito) heredaba esto sin darse cuenta. Una query que
+            // sí necesite reintentar puede pasar su propio `retry` y sobreescribe este default.
+            retry: false,
         },
     },
 });

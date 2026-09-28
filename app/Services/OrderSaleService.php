@@ -56,6 +56,13 @@ class OrderSaleService
             OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::IN_PROCESS->value,
         ]);
 
+        // Los order_product se crean en el orden en que el cliente armó el carrito (así se ven
+        // en el ticket), pero el descuento de stock se hace después, ordenado por producto_id
+        // — dos ventas concurrentes que comparten productos pueden haberlos agregado al
+        // carrito en orden distinto; si cada una bloquea sus filas en un orden diferente, es
+        // el escenario clásico de deadlock (A espera a B, B espera a A). Bloquear siempre en
+        // el mismo orden (product_id ascendente) lo evita sin cambiar nada visible al usuario.
+        $rowsToDeduct = [];
         foreach ($items as $item) {
             $orderProduct = OrderProductModel::create([
                 OrderProductModel::PEDIDO_ID => $order->id,
@@ -65,17 +72,21 @@ class OrderSaleService
                 OrderProductModel::PRECIO => $item['precio'],
             ]);
 
-            $product = $products->get($item['producto_id']);
+            $rowsToDeduct[] = ['item' => $item, 'orderProduct' => $orderProduct, 'product' => $products->get($item['producto_id'])];
+        }
+
+        foreach (collect($rowsToDeduct)->sortBy(fn ($row) => $row['product']?->id ?? 0) as $row) {
+            $product = $row['product'];
             // Una línea con variante descuenta el stock de esa variante (ver StockService)
             // en vez del stock del producto base — cada talla/variante lleva su propia
             // existencia cuando el producto maneja stock.
             if ($product && $product->manage_stock) {
                 $this->stockService->deduct(
                     productId: $product->id,
-                    quantity: (float) $item['cantidad'],
+                    quantity: (float) $row['item']['cantidad'],
                     reason: StockMovementReasonEnum::Sale,
-                    variantId: $item['variant_id'] ?? null,
-                    reference: $orderProduct,
+                    variantId: $row['item']['variant_id'] ?? null,
+                    reference: $row['orderProduct'],
                     createdBy: auth()->id(),
                 );
             }
