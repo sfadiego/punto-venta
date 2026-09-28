@@ -39,14 +39,20 @@ export const CategorySelect = <T,>({ name, formik, categories, label = "", place
     }, []);
 
     const handleToggle = () => {
-        if (!open) formik.setFieldTouched(name, true);
+        // shouldValidate=false: no hay valor nuevo que validar aquí, solo marca touched para
+        // que el error (si ya existía) se muestre al cerrar sin elegir nada.
+        if (!open) formik.setFieldTouched(name, true, false);
         setOpen((prev) => !prev);
         setSearch("");
     };
 
     const handleSelect = (cat: ICategory) => {
+        // setFieldValue ya dispara su propia validación con el valor nuevo — si
+        // setFieldTouched también valida (su default), ambas validaciones corren async y la
+        // de setFieldTouched puede resolver con el valor viejo (vacío) y pisar el resultado
+        // correcto, dejando el error de "requerido" pegado aunque ya haya selección.
         formik.setFieldValue(name, String(cat.id));
-        formik.setFieldTouched(name, true);
+        formik.setFieldTouched(name, true, false);
         setOpen(false);
         setSearch("");
     };
