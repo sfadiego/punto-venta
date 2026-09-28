@@ -48,14 +48,20 @@ class DashboardService
         ];
     }
 
-    /** Usuarios con una sesión usada en los últimos N minutos (ver PersonalAccessToken::activeWindowMinutes()), across todos los tenants. */
+    /**
+     * Usuarios con una sesión usada en los últimos N minutos (ver PersonalAccessToken::activeWindowMinutes()),
+     * across todos los tenants. whereNotNull(tenant_id) excluye las sesiones del propio panel
+     * SuperAdmin (User::issueAccessToken() deja tenant_id null para esos usuarios) — si no,
+     * el SuperAdmin logueado se contaba a sí mismo como "usuario activo" de un tenant.
+     */
     private function activeUsersNow(): int
     {
-        return PersonalAccessToken::where(
-            PersonalAccessToken::LAST_USED_AT,
-            '>=',
-            now()->subMinutes(PersonalAccessToken::activeWindowMinutes()),
-        )->count();
+        return PersonalAccessToken::whereNotNull(PersonalAccessToken::TENANT_ID)
+            ->where(
+                PersonalAccessToken::LAST_USED_AT,
+                '>=',
+                now()->subMinutes(PersonalAccessToken::activeWindowMinutes()),
+            )->count();
     }
 
     private function errorsLast24h(): array

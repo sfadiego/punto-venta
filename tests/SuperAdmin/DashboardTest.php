@@ -8,6 +8,7 @@ use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\ClientLeadModel;
 use App\Models\ErrorReporting;
+use App\Models\PersonalAccessToken;
 use App\Models\User;
 use Carbon\Carbon;
 use Tests\TestCase;
@@ -138,6 +139,36 @@ class DashboardTest extends TestCase
             ->assertStatus(200);
 
         $this->assertGreaterThanOrEqual(1, $response->json('data.client_leads.follow_up'));
+    }
+
+    public function test_sesion_del_superadmin_no_cuenta_como_usuario_activo(): void
+    {
+        // authHeaders() crea el token vía createToken() genérico (no User::issueAccessToken()),
+        // así que queda con tenant_id null — igual que el token real que emite
+        // SuperAdminAuthController::login(). El propio request ya "toca" last_used_at de ese
+        // token (vía el guard de Sanctum, antes de llegar al controller), así que si el filtro
+        // de tenant_id no existiera, este request se contaría a sí mismo como usuario activo.
+        $response = $this->getJson('/api/super-admin/dashboard', $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertSame(0, $response->json('data.active_users_now'));
+    }
+
+    public function test_cuenta_solo_sesiones_de_usuarios_de_tenant(): void
+    {
+        $user = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+        $token = $user->createToken('tenant-session')->accessToken;
+        // last_used_at no está en $fillable (ver PersonalAccessToken) — update() lo ignora en
+        // silencio, hay que forzarlo con forceFill().
+        $token->forceFill([
+            PersonalAccessToken::TENANT_ID => $user->tenant_id,
+            PersonalAccessToken::LAST_USED_AT => now(),
+        ])->save();
+
+        $response = $this->getJson('/api/super-admin/dashboard', $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertGreaterThanOrEqual(1, $response->json('data.active_users_now'));
     }
 
     public function test_sin_autenticacion_no_accede(): void
