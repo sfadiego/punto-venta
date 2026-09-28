@@ -83,6 +83,11 @@ export const useOrderPreviewModal = (orderId: number) => {
                 },
                 onError: (error) => {
                     toast.error(getUserFacingErrorMessage(error, "Error al actualizar el estado"));
+                    // Un timeout del lado del cliente no significa que el backend no haya
+                    // aplicado el cambio (ver incidente de useOrderPreviewModal.toggleProductReady
+                    // — el servidor sí procesó, la respuesta nunca llegó) — refrescar evita que la
+                    // UI se quede mostrando un estatus viejo.
+                    invalidateOrder();
                 },
             },
         );
@@ -105,6 +110,10 @@ export const useOrderPreviewModal = (orderId: number) => {
                 "useOrderPreviewModal.toggleProductReady",
             );
             toast.error(getUserFacingErrorMessage(error, "Error al actualizar el platillo"));
+            // Igual que en markServed: un timeout/error de red no implica que el backend haya
+            // fallado (puede haber aplicado el cambio igual) — refrescar el cache en vez de
+            // dejar la fila mostrando un is_ready desactualizado.
+            invalidateOrder();
         }
     };
 
