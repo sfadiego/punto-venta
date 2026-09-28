@@ -12,7 +12,7 @@ export const ProductCodeField = ({ formik }: ProductCodeFieldProps) => (
             name="product_code"
             label="Código"
             formik={formik}
-            placeholder="generado automáticamente"
+            placeholder="ej: 1234567890"
             maxLength={64}
         />
     </div>

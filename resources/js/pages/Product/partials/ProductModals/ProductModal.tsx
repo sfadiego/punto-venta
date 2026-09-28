@@ -67,7 +67,7 @@ export const ProductModal = ({
                                 name="nombre"
                                 label="Nombre *"
                                 formik={formik}
-                                placeholder={sellByWeight ? "Ej: Lomo de res" : "Ej: Café americano"}
+                                placeholder={"Ej: Nombre producto"}
                                 maxLength={255}
                             />
                         </div>
