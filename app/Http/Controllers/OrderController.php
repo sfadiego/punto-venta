@@ -191,6 +191,10 @@ class OrderController extends Controller
             return Response::error('Se requiere sistema_id, fecha, semana o mes.');
         }
 
+        if ($exportService->exceedsRowLimit($sistemaId, $date, $week, $month)) {
+            return Response::error('El período seleccionado tiene demasiadas ventas para exportar en un solo reporte. Acorta el rango de fechas.');
+        }
+
         $sellByWeight = (bool) ($request->user()->tenant->tipo_negocio->features()['sell_by_weight'] ?? false);
 
         $pdf = $exportService->buildPdf($sistemaId, $date, $week, $month, $sellByWeight);

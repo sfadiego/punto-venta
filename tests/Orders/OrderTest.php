@@ -1019,6 +1019,49 @@ class OrderTest extends TestCase
         $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
     }
 
+    public function test_export_reporte_ventas_rechaza_periodo_con_demasiadas_filas(): void
+    {
+        $report = $this->crearReporte();
+        $tenantId = BusinessConfigModel::first()->id;
+        $statusId = OrderStatusEnum::CLOSED->value;
+
+        // Inserción masiva (no Eloquent::create en loop) — 5001 filas superan
+        // SalesReportExportService::MAX_ROWS (5000) sin que el test se vuelva lento.
+        $rows = [];
+        for ($i = 0; $i < 5001; $i++) {
+            $rows[] = [
+                OrderModel::TOTAL => 100,
+                OrderModel::SUBTOTAL => 100,
+                OrderModel::DESCUENTO => 0,
+                OrderModel::NOMBRE_PEDIDO => 'Test Orden',
+                OrderModel::ESTATUS_PEDIDO_ID => $statusId,
+                OrderModel::SISTEMA_ID => $report->id,
+                OrderModel::TENANT_ID => $tenantId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+        foreach (array_chunk($rows, 500) as $chunk) {
+            OrderModel::insert($chunk);
+        }
+
+        $this->getJson("/api/order/sales-report/export?sistema_id={$report->id}", $this->authHeaders())
+            ->assertStatus(422);
+    }
+
+    public function test_export_reporte_ventas_limita_a_10_por_minuto(): void
+    {
+        $report = $this->crearReporte();
+        $headers = array_merge($this->authHeaders(), ['Accept' => '*/*']);
+        $url = "/api/order/sales-report/export?sistema_id={$report->id}";
+
+        for ($i = 0; $i < 10; $i++) {
+            $this->get($url, $headers)->assertStatus(200);
+        }
+
+        $this->get($url, $headers)->assertStatus(429);
+    }
+
     // ── CreditCustomers ──────────────────────────────────────
 
     private function venderACredito(int $sistemaId, CustomerModel $customer, float $total, bool $cerrada = true): OrderModel

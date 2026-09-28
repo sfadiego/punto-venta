@@ -73,7 +73,10 @@ export const useInfiniteIndexOrder = (sistemaId: number | null, branchId?: numbe
                 ? lastPage.current_page + 1
                 : undefined,
         enabled: sistemaId !== null,
-        refetchInterval: 60_000,
+        // Sin refetchInterval: useOrdersSocket ya refresca esta misma query (queryKey
+        // "orders-infinite") en cada evento .orders.updated del WebSocket — el poll de 60s
+        // era tráfico duplicado sobre un canal que ya funciona, multiplicado por cada
+        // Dashboard abierto en modo restaurante.
     });
 };
 
@@ -254,6 +257,16 @@ export const useCreateOrderProduct = () => {
     return useMutation({
         mutationFn: ({ orderId, data }: { orderId: number; data: Record<string, unknown> }) =>
             axiosPOST(axiosApi, { url: `${url}/${orderId}/product`, data }),
+    });
+};
+
+// Alta en lote — todo el carrito en un solo request (ver OrderProductService::addProducts).
+// Usado por el checkout de QuickSale en vez de llamar useCreateOrderProduct una vez por línea.
+export const useCreateOrderProducts = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: ({ orderId, items }: { orderId: number; items: Record<string, unknown>[] }) =>
+            axiosPOST(axiosApi, { url: `${url}/${orderId}/products`, data: { items } }),
     });
 };
 

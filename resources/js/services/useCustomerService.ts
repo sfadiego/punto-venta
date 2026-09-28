@@ -42,14 +42,17 @@ export const useIndexCustomersPaginated = ({
     });
 
 // Lightweight full list — used by the sale-modal customer picker.
-// staleTime 0: siempre refresca al montar (ej. al abrir el modal de cobro),
-// ya que el saldo/allow_credit debe estar al día para decidir si se puede fiar.
+// staleTime 8s: el saldo/allow_credit debe estar razonablemente al día para decidir si se
+// puede fiar, pero 0 refrescaba la lista completa cada vez que un cajero abría/cerraba el
+// modal de cobro — con muchos cajeros cobrando seguido, eso es una petición extra por venta.
+// 8s cubre aperturas rápidas repetidas sin notarse (nadie fía dos veces en <8s al mismo
+// cliente) y sigue siendo prácticamente "al día" para el caso real.
 export const useCustomerList = () => {
     const { axiosApi } = useAxios();
     return useQuery<ICustomer[]>({
         queryKey: [`${url}/list`],
         queryFn: () => axiosGET(axiosApi, { url: `${url}/list` }),
-        staleTime: 0,
+        staleTime: 8_000,
     });
 };
 

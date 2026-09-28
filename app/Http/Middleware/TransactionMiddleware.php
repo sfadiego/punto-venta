@@ -54,6 +54,12 @@ class TransactionMiddleware
                 DB::rollBack();
 
                 if ($attempts < self::MAX_ATTEMPTS && $this->isDeadlock($e)) {
+                    // Jitter corto antes de reintentar: sin esto, varias requests que
+                    // chocaron en el mismo deadlock reintentan en el mismo instante y pueden
+                    // volver a chocar entre sí bajo carga alta. 50-150ms es imperceptible
+                    // para el usuario pero suficiente para desincronizar los reintentos.
+                    usleep(random_int(50_000, 150_000));
+
                     continue;
                 }
 

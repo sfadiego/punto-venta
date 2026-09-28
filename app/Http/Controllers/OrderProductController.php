@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
 use App\Exceptions\InvalidStockReturnException;
+use App\Http\Requests\OrderProductBatchStoreRequest;
 use App\Http\Requests\OrderProductReturnRequest;
 use App\Http\Requests\OrderProductStoreRequest;
 use App\Http\Requests\OrderProductUpdateRequest;
@@ -59,6 +60,21 @@ class OrderProductController extends Controller
         }
 
         return Response::success($this->service->addProduct($order, $params));
+    }
+
+    /**
+     * storeBatch — agrega varios productos de catálogo a la orden en un solo request (usado
+     * por el checkout de QuickSale, un carrito completo de un tirón en vez de un POST por
+     * línea — ver OrderProductService::addProducts).
+     */
+    public function storeBatch(string $orderId, OrderProductBatchStoreRequest $params): JsonResponse
+    {
+        $order = OrderModel::with('sistema')->find($orderId);
+        if ($error = $this->assertOrderEditable($order)) {
+            return $error;
+        }
+
+        return Response::success($this->service->addProducts($order, $params->input('items')));
     }
 
     /**
