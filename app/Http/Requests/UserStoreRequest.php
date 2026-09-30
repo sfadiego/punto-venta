@@ -32,7 +32,10 @@ class UserStoreRequest extends FormRequest
             'apellido_paterno' => 'required|string|max:100',
             'apellido_materno' => 'nullable|string|max:100',
             'email' => ['required', 'email', Rule::unique('users', 'email')],
-            'usuario' => ['required', 'string', 'max:80', Rule::unique('users', 'usuario')],
+            // usuario no se usa para login (eso es email, ver AuthService::login) — es solo
+            // una referencia visual, así que debe ser único por tenant, no global. Antes
+            // "admin" en un tenant bloqueaba a cualquier otro tenant de usar el mismo usuario.
+            'usuario' => ['required', 'string', 'max:80', Rule::unique('users', 'usuario')->where('tenant_id', $tenantId)],
             'password' => ['required', 'string', 'min:8'],
             'rol_id' => ['required', Rule::in($allowedRoles)],
             'activo' => 'boolean',

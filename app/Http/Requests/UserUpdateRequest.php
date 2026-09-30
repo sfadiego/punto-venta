@@ -38,7 +38,8 @@ class UserUpdateRequest extends FormRequest
             'apellido_paterno' => 'required|string|max:100',
             'apellido_materno' => 'nullable|string|max:100',
             'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($userId)],
-            'usuario' => ['required', 'string', 'max:80', Rule::unique('users', 'usuario')->ignore($userId)],
+            // usuario único por tenant, no global — ver comentario en UserStoreRequest.
+            'usuario' => ['required', 'string', 'max:80', Rule::unique('users', 'usuario')->where('tenant_id', $tenantId)->ignore($userId)],
             'password' => 'nullable|string|min:8',
             // Esta ruta solo la alcanza un Admin de tenant (gate 'role.admin'). Nunca debe
             // poder asignar SUPERADMIN — ese rol se gestiona exclusivamente desde el panel

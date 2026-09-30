@@ -179,15 +179,35 @@ class TenantUserTest extends TestCase
             ->assertStatus(400);
     }
 
-    public function test_no_crea_usuario_con_usuario_duplicado(): void
+    public function test_no_crea_usuario_con_usuario_duplicado_en_el_mismo_tenant(): void
     {
         $tenant = $this->crearTenant();
-        $existing = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+        $existing = User::create(array_merge($this->userPayload(), [
+            User::TENANT_ID => $tenant->id,
+        ]));
 
         $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $this->userPayload([
             'usuario' => $existing->usuario,
         ]), $this->superAdminHeaders())
             ->assertStatus(400);
+    }
+
+    public function test_crea_usuario_con_usuario_repetido_de_otro_tenant(): void
+    {
+        // usuario no se usa para login (eso es email) — dos tenants distintos deben poder
+        // usar el mismo "admin" como usuario sin chocar entre sí. Antes esto fallaba porque
+        // la unicidad era global en vez de por tenant.
+        $otroTenant = $this->crearTenant();
+        $existingEnOtroTenant = User::create(array_merge($this->userPayload(['usuario' => 'admin']), [
+            User::TENANT_ID => $otroTenant->id,
+        ]));
+
+        $tenant = $this->crearTenant();
+
+        $this->postJson("/api/super-admin/tenant/{$tenant->id}/users", $this->userPayload([
+            'usuario' => $existingEnOtroTenant->usuario,
+        ]), $this->superAdminHeaders())
+            ->assertStatus(200);
     }
 
     public function test_no_crea_usuario_con_rol_invalido(): void

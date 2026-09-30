@@ -26,7 +26,12 @@ class TenantStoreRequest extends FormRequest
             'admin_nombre' => 'required|string|max:100',
             'admin_apellido' => 'required|string|max:100',
             'admin_email' => 'required|email|unique:users,email',
-            'admin_usuario' => 'required|string|unique:users,usuario',
+            // Sin unique: el tenant se está creando en este mismo request — parte de cero
+            // usuarios, así que no hay nada contra qué comparar. usuario tampoco se usa para
+            // login (eso es email), es único por tenant en el resto de los formularios que sí
+            // tienen un tenant existente contra el cual scopear (ver UserStoreRequest,
+            // TenantUserStoreRequest) — aquí simplemente no aplica.
+            'admin_usuario' => 'required|string|max:80',
             'admin_password' => 'required|string|min:6',
             BusinessConfigModel::TIPO_NEGOCIO => ['nullable', Rule::enum(BusinessTypeEnum::class)],
             BusinessConfigModel::IS_DEMO => 'nullable|boolean',

@@ -17,13 +17,15 @@ class TenantUserUpdateRequest extends FormRequest
     public function rules(): array
     {
         $userId = $this->route('user');
+        $tenantId = $this->route('tenant')?->id;
 
         return [
             'nombre' => 'required|string|max:100',
             'apellido_paterno' => 'required|string|max:100',
             'apellido_materno' => 'nullable|string|max:100',
             'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($userId)],
-            'usuario' => ['required', 'string', 'max:80', Rule::unique('users', 'usuario')->ignore($userId)],
+            // usuario único por tenant, no global — ver comentario en TenantUserStoreRequest.
+            'usuario' => ['required', 'string', 'max:80', Rule::unique('users', 'usuario')->where('tenant_id', $tenantId)->ignore($userId)],
             'password' => 'nullable|string|min:8',
             'rol_id' => ['required', new Enum(RoleEnum::class)],
             'activo' => 'boolean',
