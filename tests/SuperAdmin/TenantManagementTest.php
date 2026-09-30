@@ -222,6 +222,17 @@ class TenantManagementTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => $payload['admin_email']]);
     }
 
+    public function test_crea_tenant_con_admin_usuario_repetido_de_otro_tenant(): void
+    {
+        // admin_usuario no se usa para login (eso es admin_email) — dos tenants distintos
+        // deben poder usar "admin" como usuario de su administrador sin chocar entre sí.
+        $this->postJson('/api/super-admin/tenant', $this->tenantPayload(['admin_usuario' => 'admin']), $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->postJson('/api/super-admin/tenant', $this->tenantPayload(['admin_usuario' => 'admin']), $this->superAdminHeaders())
+            ->assertStatus(200);
+    }
+
     public function test_crea_tenant_crea_suscripcion_mensual_inicial(): void
     {
         $payload = $this->tenantPayload();
