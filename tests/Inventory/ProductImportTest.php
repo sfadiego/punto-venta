@@ -141,23 +141,93 @@ class ProductImportTest extends TestCase
             ->assertStatus(403);
     }
 
-    public function test_negocio_no_retail_no_puede_importar(): void
+    public function test_negocio_no_retail_sin_stock_enabled_puede_importar_sin_columnas_de_stock(): void
     {
-        // Tipo de negocio por defecto del seeder no es retail — no se llama marcarComoRetailConStock().
+        // Tipo de negocio por defecto del seeder no es retail y stock_enabled es false por
+        // defecto — no se llama marcarComoRetailConStock(). La importación ya no depende de
+        // stock_enabled: un tenant sin manejo de stock puede dar de alta su catálogo por CSV
+        // dejando las columnas de stock vacías (ver ProductImportService::resolveRow()).
+        $this->crearCategoria('Ropa');
+
         $file = $this->csvFile([$this->fila()]);
-        $this->postJson('/api/product/import/preview', ['file' => $file], $this->authHeaders())
-            ->assertStatus(403);
+        $response = $this->postJson('/api/product/import/commit', ['file' => $file], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_create', 1);
+
+        $productId = $response->json('data.rows.0.data.product_id');
+        $this->assertFalse(ProductModel::find($productId)->manage_stock);
     }
 
-    public function test_retail_sin_stock_enabled_no_puede_importar(): void
+    public function test_retail_sin_stock_enabled_puede_importar(): void
     {
         BusinessConfigModel::first()->update([
             BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Retail->value,
             BusinessConfigModel::STOCK_ENABLED => false,
         ]);
+        $this->crearCategoria('Ropa');
 
         $file = $this->csvFile([$this->fila()]);
         $this->postJson('/api/product/import/preview', ['file' => $file], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_create', 1);
+    }
+
+    // ── Cafetería / venta por peso / restaurante — endpoint compartido con retail ─────
+
+    public function test_venta_por_peso_con_stock_enabled_puede_importar(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::VentaPorPeso->value,
+            BusinessConfigModel::STOCK_ENABLED => true,
+        ]);
+        $this->crearCategoria('Ropa');
+
+        $file = $this->csvFile([$this->fila()]);
+        $this->postJson('/api/product/import/preview', ['file' => $file], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_create', 1);
+    }
+
+    public function test_restaurante_con_stock_enabled_puede_importar(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Restaurante->value,
+            BusinessConfigModel::STOCK_ENABLED => true,
+        ]);
+        $this->crearCategoria('Ropa');
+
+        $file = $this->csvFile([$this->fila()]);
+        $this->postJson('/api/product/import/commit', ['file' => $file], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_create', 1);
+    }
+
+    public function test_rol_con_view_products_puede_importar_en_venta_por_peso(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::VentaPorPeso->value,
+            BusinessConfigModel::STOCK_ENABLED => true,
+        ]);
+        $this->crearCategoria('Ropa');
+        $this->otorgarPermiso(RoleEnum::CAJA->value, 'viewProducts');
+        $caja = $this->crearUsuario(RoleEnum::CAJA);
+
+        $file = $this->csvFile([$this->fila()]);
+        $this->postJson('/api/product/import/preview', ['file' => $file], $this->authHeaders($caja))
+            ->assertStatus(200);
+    }
+
+    public function test_rol_sin_view_products_ni_manage_stock_no_puede_importar_en_venta_por_peso(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::VentaPorPeso->value,
+            BusinessConfigModel::STOCK_ENABLED => true,
+        ]);
+        $this->otorgarPermiso(RoleEnum::CAJA->value, 'takeOrder');
+        $caja = $this->crearUsuario(RoleEnum::CAJA);
+
+        $file = $this->csvFile([$this->fila()]);
+        $this->postJson('/api/product/import/preview', ['file' => $file], $this->authHeaders($caja))
             ->assertStatus(403);
     }
 

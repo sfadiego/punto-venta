@@ -4,8 +4,8 @@ import { StockAdjustmentPanel } from "./StockAdjustment/StockAdjustmentPanel";
 import { useStockAdjustmentPanel } from "./StockAdjustment/useStockAdjustmentPanel";
 import { StockReturnPanel } from "./StockReturn/StockReturnPanel";
 import { useStockReturnPanel } from "./StockReturn/useStockReturnPanel";
-import { ImportProductsPanel } from "./ProductImport/ImportProductsPanel";
-import { useImportProductsPanel } from "./ProductImport/useImportProductsPanel";
+import { ImportProductsPanel } from "@/components/products/ProductImport/ImportProductsPanel";
+import { useImportProductsPanel } from "@/components/products/ProductImport/useImportProductsPanel";
 
 interface InventoryActionsModalProps {
     isOpen: boolean;
