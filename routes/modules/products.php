@@ -44,10 +44,15 @@ Route::prefix('product')->group(function () {
     Route::middleware('permission:viewProducts,manageStock')
         ->post('{product}/stock-adjustment', [ProductController::class, 'stockAdjustment']);
 
-    // Importación masiva de productos (CSV) — módulo de Inventario, exclusivo de negocios
-    // retail (ver RetailStockMiddleware). Prefijo /import antes del grupo {product} para no
-    // colisionar con el route-model-binding de show/update/delete.
-    Route::middleware(['permission:manageStock', 'retail.stock'])->prefix('import')->group(function () {
+    // Importación masiva de productos (CSV) — disponible para cualquier tipo de negocio,
+    // independiente de business_config.stock_enabled: un tenant sin manejo de stock puede
+    // igual dar de alta su catálogo por CSV dejando las columnas de stock vacías (ver
+    // ProductImportService::resolveRow()). Mismo patrón OR que stock-adjustment arriba: retail
+    // entra desde el módulo de Inventario (manageStock), venta_por_peso/restaurante desde el
+    // botón en ProductsPage (viewProducts, el permiso base para ver esa página — mismo criterio
+    // que ya usan ahí los accesos rápidos de stock, sin permiso adicional). Prefijo /import
+    // antes del grupo {product} para no colisionar con el route-model-binding de show/update/delete.
+    Route::middleware('permission:viewProducts,manageStock')->prefix('import')->group(function () {
         Route::controller(ProductImportController::class)->group(function () {
             Route::post('preview', 'preview');
             Route::post('commit', 'commit');

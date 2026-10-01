@@ -13,8 +13,11 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Importación masiva de productos desde CSV (módulo de Inventario, exclusivo retail —
- * ver RetailStockMiddleware). Flujo de dos pasos: preview() (Fase 1, no escribe nada) →
+ * Importación masiva de productos desde CSV — compartida entre el módulo de Inventario
+ * (retail, ver RetailStockMiddleware para el flujo de kardex/reajuste) y el botón de
+ * ProductsPage (resto de tipos de negocio). No depende de business_config.stock_enabled: un
+ * tenant sin manejo de stock puede importar su catálogo igual, dejando las columnas de stock
+ * vacías (ver resolveRow()). Flujo de dos pasos: preview() (Fase 1, no escribe nada) →
  * commit() (Fase 2, aplica lo que preview() ya reportó). Ambos comparten resolveRow(), así
  * que lo que el usuario ve en la vista previa es exactamente lo que se aplicaría al confirmar.
  */

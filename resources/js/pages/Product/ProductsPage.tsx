@@ -1,11 +1,13 @@
 import { useMemo } from "react";
 import { DataTable, DataTableColumn } from "mantine-datatable";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw, Upload } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { getAggregateVariantStock, hasActiveVariants, isProductRowLowStock } from "@/utils/stock";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
+import { useModal } from "@/hooks/useModal";
+import { ProductImportModal } from "@/components/products/ProductImport/ProductImportModal";
 import { useProductsPage } from "./useProductsPage";
 import { CategoryFilter } from "./partials/CategoryFilter";
 import { LowStockFilter } from "./partials/LowStockFilter";
@@ -60,6 +62,14 @@ export default function ProductsPage() {
     // Inventario — el acceso rápido de Productos se oculta ahí para no duplicarlo.
     const { features } = useAxios();
     const showStockActions = stockEnabled && features?.is_retail !== true;
+
+    // Importación masiva de productos por CSV — exclusiva de cafetería/venta por peso/
+    // restaurante (el flujo retail ya tiene su propia importación embebida en
+    // InventoryActionsModal, dentro de Inventario). A diferencia de showStockActions, no
+    // depende de stockEnabled: un tenant sin manejo de stock puede igual dar de alta su
+    // catálogo por CSV dejando esas columnas vacías.
+    const showImportButton = features?.is_retail !== true;
+    const { isOpen: isImportModalOpen, openModal: openImportModal, closeModal: closeImportModal } = useModal();
 
     const {
         isOpen: isRestockOpen,
@@ -276,6 +286,15 @@ export default function ProductsPage() {
                         <RefreshCw size={15} />
                         <span className="hidden sm:inline">Actualizar</span>
                     </button>
+                    {showImportButton && (
+                        <button
+                            onClick={openImportModal}
+                            className="flex items-center gap-2 text-sm font-medium text-stone-500 hover:text-stone-700 bg-white border border-stone-200 px-3 py-2 rounded-xl hover:bg-stone-50 transition-colors"
+                        >
+                            <Upload size={15} />
+                            <span className="hidden sm:inline">Importar productos</span>
+                        </button>
+                    )}
                     <button
                         onClick={openAddModal}
                         className="flex items-center gap-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-xl transition-colors shadow-sm shadow-amber-200"
@@ -403,6 +422,8 @@ export default function ProductsPage() {
                 fetchNextPage={fetchNextMovementsPage}
                 onClose={closeMovementsModal}
             />
+
+            <ProductImportModal isOpen={isImportModalOpen} onClose={closeImportModal} />
         </div>
     );
 }
