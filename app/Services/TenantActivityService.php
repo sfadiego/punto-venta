@@ -57,4 +57,39 @@ class TenantActivityService
 
         return ['daily' => $daily, 'hourly' => $hourly];
     }
+
+    /**
+     * Horario de mayor uso a nivel sistema (todos los tenants) — a diferencia de report(), que
+     * es por tenant, aquí se agrupa por hora en PHP en vez de una función de fecha específica
+     * del motor (HOUR() de MySQL no existe en SQLite, usado por los tests) — solo se trae la
+     * columna created_at, sin cargar el modelo completo por fila.
+     *
+     * @return array{hourly: array<int, array{hour: int, count: int}>, peak_hour: int|null, peak_count: int}
+     */
+    public function systemHourlyReport(int $days = 30): array
+    {
+        $from = now()->subDays($days - 1)->startOfDay();
+
+        $countsByHour = [];
+        TenantActivityLogModel::query()
+            ->where(TenantActivityLogModel::CREATED_AT, '>=', $from)
+            ->pluck(TenantActivityLogModel::CREATED_AT)
+            ->each(function ($createdAt) use (&$countsByHour) {
+                $hour = (int) Carbon::parse($createdAt)->format('G');
+                $countsByHour[$hour] = ($countsByHour[$hour] ?? 0) + 1;
+            });
+
+        $hourly = [];
+        for ($hour = 0; $hour < 24; $hour++) {
+            $hourly[] = ['hour' => $hour, 'count' => $countsByHour[$hour] ?? 0];
+        }
+
+        $peak = collect($hourly)->sortByDesc('count')->first();
+
+        return [
+            'hourly' => $hourly,
+            'peak_hour' => $peak['count'] > 0 ? $peak['hour'] : null,
+            'peak_count' => $peak['count'],
+        ];
+    }
 }

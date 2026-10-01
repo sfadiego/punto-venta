@@ -1,3 +1,5 @@
+import { IHourlyActivityPoint } from "@/models/ITenantActivity";
+
 export interface IDashboardTenantCounts {
     active: number;
     demo: number;
@@ -48,6 +50,12 @@ export interface IDashboardFeatureAdoption {
     customers: number;
 }
 
+export interface IDashboardUsageHourly {
+    hourly: IHourlyActivityPoint[];
+    peak_hour: number | null;
+    peak_count: number;
+}
+
 export interface IDashboardSummary {
     tenants: IDashboardTenantCounts;
     active_users_now: number;
@@ -58,4 +66,5 @@ export interface IDashboardSummary {
     stale_tenants: IDashboardStaleTenant[];
     client_leads: IDashboardClientLeads;
     feature_adoption: IDashboardFeatureAdoption;
+    usage_hourly: IDashboardUsageHourly;
 }
