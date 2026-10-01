@@ -7,6 +7,7 @@ import { StaleTenantsCard } from "./partials/StaleTenantsCard";
 import { RecentErrorsCard } from "./partials/RecentErrorsCard";
 import { ClientLeadsSummaryCard } from "./partials/ClientLeadsSummaryCard";
 import { FeatureAdoptionCard } from "./partials/FeatureAdoptionCard";
+import { PeakUsageHourCard } from "./partials/PeakUsageHourCard";
 
 export default function DashboardPage() {
     const { summary, isLoading } = useDashboardPage();
@@ -38,6 +39,8 @@ export default function DashboardPage() {
                         </div>
 
                         <RecentErrorsCard errors={summary.recent_errors} />
+
+                        <PeakUsageHourCard usage={summary.usage_hourly} />
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <ClientLeadsSummaryCard leads={summary.client_leads} />

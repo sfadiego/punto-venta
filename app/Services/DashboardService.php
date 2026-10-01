@@ -11,7 +11,10 @@ use Carbon\Carbon;
 
 class DashboardService
 {
-    public function __construct(private readonly SubscriptionStatisticsService $statisticsService) {}
+    public function __construct(
+        private readonly SubscriptionStatisticsService $statisticsService,
+        private readonly TenantActivityService $activityService,
+    ) {}
 
     /** Ventana usada para "suscripciones por vencer" y "sin actividad reciente". */
     const EXPIRING_SOON_DAYS = 7;
@@ -34,6 +37,7 @@ class DashboardService
             'stale_tenants' => $this->staleTenants(),
             'client_leads' => $this->clientLeadsByStatus(),
             'feature_adoption' => $this->featureAdoption(),
+            'usage_hourly' => $this->activityService->systemHourlyReport(),
         ];
     }
 

@@ -7,8 +7,10 @@ use App\Enums\ClientLeadStatusEnum;
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\ClientLeadModel;
+use App\Enums\ActivityTypeEnum;
 use App\Models\ErrorReporting;
 use App\Models\PersonalAccessToken;
+use App\Models\TenantActivityLogModel;
 use App\Models\User;
 use Carbon\Carbon;
 use Tests\TestCase;
@@ -38,8 +40,70 @@ class DashboardTest extends TestCase
                     'stale_tenants',
                     'client_leads' => ['follow_up', 'customer', 'discarded'],
                     'feature_adoption' => ['multi_branch', 'printer', 'stock', 'customers'],
+                    'usage_hourly' => ['hourly', 'peak_hour', 'peak_count'],
                 ],
             ]);
+    }
+
+    public function test_usage_hourly_reporta_24_horas_y_sin_actividad_peak_hour_es_null(): void
+    {
+        $response = $this->getJson('/api/super-admin/dashboard', $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $usage = $response->json('data.usage_hourly');
+        $this->assertCount(24, $usage['hourly']);
+        $this->assertSame(0, $usage['hourly'][0]['hour']);
+        $this->assertSame(23, $usage['hourly'][23]['hour']);
+    }
+
+    public function test_usage_hourly_identifica_la_hora_con_mas_eventos_entre_tenants(): void
+    {
+        $tenantA = BusinessConfigModel::first();
+        $tenantB = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'tenant-b-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Tenant B',
+        ]);
+
+        $horaPico = now()->setTime(14, 0);
+        TenantActivityLogModel::create([
+            TenantActivityLogModel::TENANT_ID => $tenantA->id,
+            TenantActivityLogModel::TYPE => ActivityTypeEnum::LOGIN->value,
+            TenantActivityLogModel::CREATED_AT => $horaPico,
+        ]);
+        TenantActivityLogModel::create([
+            TenantActivityLogModel::TENANT_ID => $tenantB->id,
+            TenantActivityLogModel::TYPE => ActivityTypeEnum::SALE_CLOSED->value,
+            TenantActivityLogModel::CREATED_AT => $horaPico->copy()->addMinutes(10),
+        ]);
+        TenantActivityLogModel::create([
+            TenantActivityLogModel::TENANT_ID => $tenantA->id,
+            TenantActivityLogModel::TYPE => ActivityTypeEnum::LOGIN->value,
+            TenantActivityLogModel::CREATED_AT => now()->setTime(3, 0),
+        ]);
+
+        $response = $this->getJson('/api/super-admin/dashboard', $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $usage = $response->json('data.usage_hourly');
+        $this->assertSame(14, $usage['peak_hour']);
+        $this->assertSame(2, $usage['peak_count']);
+    }
+
+    public function test_usage_hourly_ignora_eventos_fuera_de_la_ventana_de_30_dias(): void
+    {
+        TenantActivityLogModel::create([
+            TenantActivityLogModel::TENANT_ID => BusinessConfigModel::first()->id,
+            TenantActivityLogModel::TYPE => ActivityTypeEnum::LOGIN->value,
+            TenantActivityLogModel::CREATED_AT => now()->subDays(45)->setTime(9, 0),
+        ]);
+
+        $response = $this->getJson('/api/super-admin/dashboard', $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $usage = $response->json('data.usage_hourly');
+        $this->assertNull($usage['peak_hour']);
+        $this->assertSame(0, $usage['peak_count']);
     }
 
     public function test_cuenta_tenants_por_estatus(): void
