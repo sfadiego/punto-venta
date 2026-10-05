@@ -74,6 +74,7 @@ export const ProductAutocomplete = ({
                                 onClick={() => onSelect(product)}
                                 className="w-full text-left px-3 py-2.5 text-sm text-stone-700 hover:bg-stone-50 border-b border-stone-100 last:border-0"
                             >
+                                {product.product_code && <span className="text-stone-400">{product.product_code} </span>}
                                 {product.nombre}
                             </button>
                         </li>

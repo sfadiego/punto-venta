@@ -41,7 +41,7 @@ class KardexService extends DataTable
     public function makeQuery(): Builder
     {
         $query = $this->model->newQuery()
-            ->with(['product:id,nombre', 'variant:id,nombre', 'createdBy:id,nombre']);
+            ->with(['product:id,nombre,product_code', 'variant:id,nombre', 'createdBy:id,nombre']);
 
         $productId = request()->query('product_id');
         if ($productId) {

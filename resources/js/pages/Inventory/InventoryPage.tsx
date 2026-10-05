@@ -52,6 +52,7 @@ export default function InventoryPage() {
                 title: "Producto",
                 render: (m: IStockMovement) => (
                     <span className="text-sm text-stone-900 font-medium">
+                        {m.product?.product_code && <span className="text-stone-400 font-normal mr-1"> {m.product.product_code}</span>}
                         {m.product?.nombre ?? `#${m.product_id}`}
                         {m.variant?.nombre && <span className="text-stone-400 font-normal"> ({m.variant.nombre})</span>}
                     </span>
@@ -134,7 +135,7 @@ export default function InventoryPage() {
 
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-stone-100 flex flex-wrap items-end gap-3">
-                    <div className="w-full sm:w-56 relative">
+                    <div className="w-full sm:flex-1 sm:min-w-80 sm:max-w-xl relative">
                         <ProductAutocomplete
                             value={productFilter.query}
                             onChange={productFilter.handleQueryChange}
