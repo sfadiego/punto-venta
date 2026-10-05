@@ -100,6 +100,18 @@ class KardexTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
+    public function test_incluye_el_codigo_del_producto_en_cada_movimiento(): void
+    {
+        $this->marcarComoRetailConStock();
+        $product = $this->crearProducto();
+        $product->update([ProductModel::PRODUCT_CODE => 'COD-123']);
+        $this->crearMovimiento($product, StockMovementTypeEnum::Entry, StockMovementReasonEnum::ManualAdjustment);
+
+        $this->getJson('/api/kardex', $this->authHeaders())
+            ->assertStatus(206)
+            ->assertJsonPath('data.0.product.product_code', 'COD-123');
+    }
+
     public function test_filtra_por_product_id(): void
     {
         $this->marcarComoRetailConStock();

@@ -16,6 +16,6 @@ export interface IStockMovement {
     created_at: string;
     // Solo presentes en el kardex global (GET /api/kardex) — el kardex por producto
     // (GET /api/product/{id}/stock-movements) no los necesita, ya está en ese contexto.
-    product?: { id: number; nombre: string } | null;
+    product?: { id: number; nombre: string; product_code: string } | null;
     variant?: { id: number; nombre: string } | null;
 }
