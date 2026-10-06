@@ -10,7 +10,16 @@ chown -R www-data:www-data "$APP_DIR/storage/app/private"
 chmod -R 775 "$APP_DIR/storage/app/private"
 
 # setup laravel
-/usr/local/bin/laravel_setup.sh || echo "Aviso: Falló el setup de Laravel"
+# El setup es tolerante a fallos (permisos, seeders, cachés...) salvo las migraciones: laravel_setup.sh
+# sale con 42 si fallan y en ese caso el contenedor no arranca.
+/usr/local/bin/laravel_setup.sh || {
+    status=$?
+    if [ "$status" -eq 42 ]; then
+        echo "ERROR: migraciones fallidas, el contenedor no arrancará."
+        exit 1
+    fi
+    echo "Aviso: Falló el setup de Laravel"
+}
 
 # --- inicio ---
 cd "$APP_DIR" || exit 1

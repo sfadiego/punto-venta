@@ -14,15 +14,14 @@ interface AddonPickerRowProps {
 export const AddonPickerRow = ({ addon, quantity, onAdd, onRemove }: AddonPickerRowProps) => (
     <div className="w-full flex items-center gap-3 px-3 py-3">
         <span className="flex-1 min-w-0 text-sm font-medium text-stone-800 break-words">{addon.name}</span>
-        <span className="text-sm font-bold tabular-nums shrink-0" style={{ color: "var(--color-primary)" }}>
+        <span className="text-sm font-bold tabular-nums shrink-0 text-[var(--color-primary)]">
             {formatAddonPrice(addon.price)}
         </span>
         {quantity === 0 ? (
             <button
                 type="button"
                 onClick={() => onAdd(addon.id)}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-white transition-opacity active:opacity-70 shrink-0"
-                style={{ backgroundColor: "var(--color-primary)" }}
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-white bg-[var(--color-primary)] transition-opacity active:opacity-70 shrink-0"
                 aria-label={`Agregar ${addon.name}`}
             >
                 <Plus size={14} />

@@ -95,8 +95,7 @@ export const AddonPickerModal = ({
                         type="button"
                         onClick={picker.confirmWithAddons}
                         disabled={picker.selectedCount === 0}
-                        className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition-opacity disabled:bg-stone-300 disabled:cursor-not-allowed"
-                        style={picker.selectedCount === 0 ? undefined : { backgroundColor: "var(--color-primary)" }}
+                        className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold bg-[var(--color-primary)] transition-opacity disabled:bg-stone-300 disabled:cursor-not-allowed"
                     >
                         {picker.selectedCount === 0
                             ? isEdit ? "Guardar" : "Agregar"
