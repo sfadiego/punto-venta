@@ -60,7 +60,7 @@ class DashboardTest extends TestCase
     {
         $tenantA = BusinessConfigModel::first();
         $tenantB = BusinessConfigModel::create([
-            BusinessConfigModel::SLUG => 'tenant-b-'.uniqid(),
+            BusinessConfigModel::SLUG => 'tenant-b-' . uniqid(),
             BusinessConfigModel::ACTIVO => true,
             BusinessConfigModel::BUSINESS_NAME => 'Tenant B',
         ]);
@@ -109,19 +109,19 @@ class DashboardTest extends TestCase
     public function test_cuenta_tenants_por_estatus(): void
     {
         BusinessConfigModel::create([
-            BusinessConfigModel::SLUG => 'activo-'.uniqid(),
+            BusinessConfigModel::SLUG => 'activo-' . uniqid(),
             BusinessConfigModel::ACTIVO => true,
             BusinessConfigModel::IS_DEMO => false,
             BusinessConfigModel::BUSINESS_NAME => 'Negocio Activo',
         ]);
         BusinessConfigModel::create([
-            BusinessConfigModel::SLUG => 'demo-'.uniqid(),
+            BusinessConfigModel::SLUG => 'demo-' . uniqid(),
             BusinessConfigModel::ACTIVO => true,
             BusinessConfigModel::IS_DEMO => true,
             BusinessConfigModel::BUSINESS_NAME => 'Negocio Demo',
         ]);
         BusinessConfigModel::create([
-            BusinessConfigModel::SLUG => 'inactivo-'.uniqid(),
+            BusinessConfigModel::SLUG => 'inactivo-' . uniqid(),
             BusinessConfigModel::ACTIVO => false,
             BusinessConfigModel::IS_DEMO => false,
             BusinessConfigModel::BUSINESS_NAME => 'Negocio Inactivo',
@@ -139,7 +139,7 @@ class DashboardTest extends TestCase
     public function test_incluye_suscripcion_por_vencer_en_los_proximos_7_dias(): void
     {
         $tenant = BusinessConfigModel::create([
-            BusinessConfigModel::SLUG => 'vence-pronto-'.uniqid(),
+            BusinessConfigModel::SLUG => 'vence-pronto-' . uniqid(),
             BusinessConfigModel::ACTIVO => true,
             BusinessConfigModel::IS_DEMO => false,
             BusinessConfigModel::BUSINESS_NAME => 'Vence Pronto',
@@ -156,7 +156,7 @@ class DashboardTest extends TestCase
     public function test_excluye_suscripcion_fuera_de_la_ventana(): void
     {
         $tenant = BusinessConfigModel::create([
-            BusinessConfigModel::SLUG => 'vence-lejos-'.uniqid(),
+            BusinessConfigModel::SLUG => 'vence-lejos-' . uniqid(),
             BusinessConfigModel::ACTIVO => true,
             BusinessConfigModel::IS_DEMO => false,
             BusinessConfigModel::BUSINESS_NAME => 'Vence Lejos',
@@ -193,7 +193,7 @@ class DashboardTest extends TestCase
     {
         ClientLeadModel::create([
             ClientLeadModel::BUSINESS_NAME => 'Lead Seguimiento',
-            ClientLeadModel::EMAIL => 'lead-'.uniqid().'@test.com',
+            ClientLeadModel::EMAIL => 'lead-' . uniqid() . '@test.com',
             ClientLeadModel::PHONE => '5512345678',
             ClientLeadModel::BUSINESS_NICHE => BusinessNicheEnum::Otro->value,
             ClientLeadModel::STATUS => ClientLeadStatusEnum::FollowUp->value,
