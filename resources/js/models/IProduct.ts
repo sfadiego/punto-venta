@@ -4,6 +4,7 @@ import { IProductVariant } from "@/models/IProductVariant";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { IconSourceEnum } from "@/enums/IconSourceEnum";
 import { IBranchListItem } from "@/models/IBranch";
+import { IAddon } from "@/models/IAddon";
 
 export interface IProduct {
     id: number;
@@ -26,4 +27,6 @@ export interface IProduct {
     product_code: string | null;
     /** Sucursales donde el producto está disponible — vacío/ausente = todas las sucursales. */
     branches?: IBranchListItem[];
+    /** Toppings asignados al producto (los de catálogo eliminados no vienen). */
+    addons?: IAddon[];
 }

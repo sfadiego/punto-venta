@@ -21,6 +21,7 @@ import { StockMovementsModal } from "./partials/StockMovementsModal/StockMovemen
 import { useStockMovementsModal } from "./partials/StockMovementsModal/useStockMovementsModal";
 import { ProductTableActions } from "./partials/ProductTableActions";
 import { ProductSearch } from "./partials/ProductSearch";
+import { AddonsButton } from "./partials/Addons/AddonsButton";
 import { formatMoney } from "@/utils/formatCurrency";
 import { useAxios } from "@/hooks/useAxios";
 
@@ -52,6 +53,7 @@ export default function ProductsPage() {
 
     const {
         isEdit, formik, categories: modalCategories, sellByWeight, stockEnabled, currentStock, showBranchSelector,
+        showAddonsField, productAddons,
     } = useProductModal(
         editingProduct,
         invalidateProducts,
@@ -295,6 +297,7 @@ export default function ProductsPage() {
                             <span className="hidden sm:inline">Importar productos</span>
                         </button>
                     )}
+                    <AddonsButton />
                     <button
                         onClick={openAddModal}
                         className="flex items-center gap-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-xl transition-colors shadow-sm shadow-amber-200"
@@ -374,6 +377,8 @@ export default function ProductsPage() {
                 currentStock={currentStock}
                 productVariants={editingProduct?.variants ?? []}
                 showBranchSelector={showBranchSelector}
+                showAddonsField={showAddonsField}
+                productAddons={productAddons}
                 onClose={handleModalClose}
             />
 

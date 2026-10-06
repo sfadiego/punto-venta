@@ -16,6 +16,8 @@ import { ProductModalFooter } from "./ProductModalFooter";
 import { Input } from "@/components/ui/form/Input";
 import { Textarea } from "@/components/ui/form/textarea";
 import { ProductBranchesField } from "./ProductBranchesField";
+import { ProductAddonsField } from "./ProductAddons/ProductAddonsField";
+import { IAddon } from "@/models/IAddon";
 
 interface ProductModalProps {
     isOpen: boolean;
@@ -27,6 +29,8 @@ interface ProductModalProps {
     currentStock?: string | null;
     productVariants: IProductVariant[];
     showBranchSelector: boolean;
+    showAddonsField: boolean;
+    productAddons: IAddon[];
     onClose: () => void;
 }
 
@@ -40,6 +44,8 @@ export const ProductModal = ({
     currentStock,
     productVariants,
     showBranchSelector,
+    showAddonsField,
+    productAddons,
     onClose,
 }: ProductModalProps) => {
     if (!isOpen) return null;
@@ -92,6 +98,8 @@ export const ProductModal = ({
                     <ProductPricingFields formik={formik} categories={categories} />
 
                     {showBranchSelector && <ProductBranchesField formik={formik} />}
+
+                    {showAddonsField && <ProductAddonsField formik={formik} productAddons={productAddons} />}
 
                     {sellByWeight && <UnidadMedidaField formik={formik} />}
 
