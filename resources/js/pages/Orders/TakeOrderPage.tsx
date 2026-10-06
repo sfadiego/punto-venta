@@ -46,6 +46,7 @@ export default function TakeOrderPage() {
         addExtra,
         updateQuantity,
         saveObservacion,
+        updateLineAddons,
         removeFromCart,
         clearCart,
         isClearingCart,
@@ -101,6 +102,7 @@ export default function TakeOrderPage() {
             onUpdate={updateQuantity}
             onRemove={removeFromCart}
             onNote={saveObservacion}
+            onEditAddons={updateLineAddons}
             onClear={clearCart}
             isClearingCart={isClearingCart}
             onUpdateDiscount={updateOrderDiscount}

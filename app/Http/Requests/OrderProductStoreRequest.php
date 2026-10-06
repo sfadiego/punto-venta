@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesOrderProductAddons;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
@@ -12,6 +13,8 @@ use Illuminate\Validation\Validator;
 
 class OrderProductStoreRequest extends FormRequest
 {
+    use ValidatesOrderProductAddons;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -47,12 +50,22 @@ class OrderProductStoreRequest extends FormRequest
                 : 'nullable|numeric|min:0|max:99999',
             OrderProductModel::NOMBRE_EXTRA => 'nullable|string|max:255',
             OrderProductModel::OBSERVACION => 'nullable|string|max:200',
+            ...$this->addonRules(),
         ];
+    }
+
+    public function messages(): array
+    {
+        return $this->addonMessages();
     }
 
     public function withValidator(Validator $validator): void
     {
         $validator->after(function ($validator) {
+            $this->validateAddonSelections($validator, [
+                '' => ['producto_id' => $this->producto_id ? (int) $this->producto_id : null, 'addons' => $this->input('addons')],
+            ]);
+
             if (! $this->producto_id && ! $this->nombre_extra) {
                 $validator->errors()->add('producto_id', 'Se requiere un producto o un nombre de extra.');
             }

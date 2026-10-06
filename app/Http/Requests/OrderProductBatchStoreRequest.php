@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesOrderProductAddons;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
@@ -18,6 +19,8 @@ use Illuminate\Validation\Validator;
  */
 class OrderProductBatchStoreRequest extends FormRequest
 {
+    use ValidatesOrderProductAddons;
+
     public function authorize(): bool
     {
         return true;
@@ -38,13 +41,32 @@ class OrderProductBatchStoreRequest extends FormRequest
                 Rule::exists('product_variants', 'id')->where('tenant_id', $tenantId),
             ],
             'items.*.'.OrderProductModel::CANTIDAD => 'required|numeric|min:0.001|max:99',
+            ...$this->addonRules('items.*.'),
         ];
+    }
+
+    public function messages(): array
+    {
+        return collect($this->addonMessages())
+            ->mapWithKeys(fn (string $message, string $key) => ['items.*.'.$key => $message])
+            ->all();
     }
 
     public function withValidator(Validator $validator): void
     {
         $validator->after(function ($validator) {
             $items = $this->input('items', []);
+
+            // Toppings de todas las líneas en una sola pasada (sin consultas por línea).
+            $addonLines = [];
+            foreach ($items as $index => $item) {
+                $addonLines["items.{$index}"] = [
+                    'producto_id' => isset($item['producto_id']) ? (int) $item['producto_id'] : null,
+                    'addons' => $item['addons'] ?? null,
+                ];
+            }
+            $this->validateAddonSelections($validator, $addonLines);
+
             $order = OrderModel::find($this->route('order'));
             $branchId = $order?->sistema?->branch_id;
 

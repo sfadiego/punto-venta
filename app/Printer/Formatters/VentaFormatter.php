@@ -154,6 +154,10 @@ class VentaFormatter implements TicketFormatterInterface
      * Línea de producto en dos líneas:
      * "Pecho de res             $70.00"  ← nombre + total (ancho según el papel)
      * "  0.350 kg x $200.00"             ← cantidad (con decimales si es peso) x precio
+     *
+     * Con toppings, el precio por unidad ya los incluye (2 x $65 = 45 + 20 de nieve, por 2) y cada
+     * topping se lista debajo con su aporte por unidad:
+     * "  + Nieve x2              +$40"
      */
     private function productLine(array $item): string
     {
@@ -169,12 +173,18 @@ class VentaFormatter implements TicketFormatterInterface
             ? $this->trimTrailingZeros($item['cantidad'], 3).' '.$unidad
             : (int) $item['cantidad'];
 
-        $line2 = '  '.$cantidadStr.' x $'.$this->trimTrailingZeros($item['precio'], 2, ',');
+        // precio_con_toppings = precio base + toppings por unidad (igual a precio sin toppings).
+        $unitPrice = $item['precio_con_toppings'] ?? $item['precio'];
+        $line2 = '  '.$cantidadStr.' x $'.$this->trimTrailingZeros($unitPrice, 2, ',');
 
         $lines = $line1."\n".$line2;
 
+        foreach ($item['addons'] ?? [] as $addon) {
+            $lines .= "\n".$this->addonLine($addon);
+        }
+
         if ($item['descuento'] > 0) {
-            $originalTotal = $item['precio'] * $item['cantidad'];
+            $originalTotal = $unitPrice * $item['cantidad'];
             $saved = round($originalTotal - $item['total'], 2);
             $lines .= "\n  Desc. ".(int) $item['descuento'].'% (-$'.number_format($saved, 2).')';
         }
@@ -184,6 +194,24 @@ class VentaFormatter implements TicketFormatterInterface
         }
 
         return $lines;
+    }
+
+    /**
+     * Línea de un topping: "  + Nieve x2" y, si cuesta algo, su aporte por unidad del producto
+     * ("+$40") alineado a la derecha en la columna de totales.
+     */
+    private function addonLine(array $addon): string
+    {
+        $label = '  + '.$addon['nombre'].($addon['cantidad'] > 1 ? ' x'.$addon['cantidad'] : '');
+        $label = mb_substr($label, 0, $this->colName);
+
+        if ($addon['precio'] <= 0) {
+            return $label;
+        }
+
+        $amount = '+$'.$this->trimTrailingZeros($addon['precio'] * $addon['cantidad'], 2, ',');
+
+        return str_pad($label, $this->colName).str_pad($amount, $this->colTotal, ' ', STR_PAD_LEFT);
     }
 
     /**

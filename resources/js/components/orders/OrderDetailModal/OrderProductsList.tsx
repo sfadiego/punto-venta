@@ -3,6 +3,7 @@ import { Loader, ChevronDown, ChevronRight } from "lucide-react";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { formatCantidad } from "@/utils/formatUnits";
 import { formatCurrencyTrimmed as formatCurrency } from "@/utils/formatCurrency";
+import { getOrderProductAddonsUnitTotal } from "@/utils/cartAddons";
 
 interface OrderProductsListProps {
     isLoading: boolean;
@@ -37,17 +38,27 @@ export const OrderProductsList = ({ isLoading, orderProducts }: OrderProductsLis
             {isExpanded && (
                 <div className="rounded-xl border border-stone-100 divide-y divide-stone-100 max-h-56 overflow-y-auto">
                     {orderProducts.map((item, idx) => (
-                        <div key={item.id ?? idx} className="flex items-center gap-2 px-3 py-1.5">
-                            <span className="text-[11px] text-stone-400 shrink-0 min-w-[2rem] text-right tabular-nums">
-                                {formatCantidad(item)}
-                            </span>
-                            <p className="text-xs text-stone-700 truncate flex-1 min-w-0">
-                                {item.product?.nombre ?? "Producto"}
-                                {item.variant && <span className="text-stone-400"> · {item.variant.nombre}</span>}
-                            </p>
-                            <span className="text-xs font-medium text-stone-700 shrink-0">
-                                {formatCurrency(item.precio * item.cantidad)}
-                            </span>
+                        <div key={item.id ?? idx} className="px-3 py-1.5">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[11px] text-stone-400 shrink-0 min-w-[2rem] text-right tabular-nums">
+                                    {formatCantidad(item)}
+                                </span>
+                                <p className="text-xs text-stone-700 truncate flex-1 min-w-0">
+                                    {item.product?.nombre ?? "Producto"}
+                                    {item.variant && <span className="text-stone-400"> · {item.variant.nombre}</span>}
+                                </p>
+                                {/* El total de la línea incluye sus toppings (precio unitario + toppings) × cantidad. */}
+                                <span className="text-xs font-medium text-stone-700 shrink-0">
+                                    {formatCurrency((item.precio + getOrderProductAddonsUnitTotal(item)) * item.cantidad)}
+                                </span>
+                            </div>
+                            {(item.addons ?? []).map((addon) => (
+                                <p key={addon.id} className="pl-[2.5rem] text-[11px] text-stone-400 truncate">
+                                    + {addon.name}
+                                    {addon.quantity > 1 && ` ×${addon.quantity}`}
+                                    {addon.price > 0 && ` · ${formatCurrency(addon.price * addon.quantity)}`}
+                                </p>
+                            ))}
                         </div>
                     ))}
                 </div>

@@ -151,7 +151,8 @@ class OrderModel extends Model
             ->where(function ($q) {
                 $q->whereNotNull('producto_id')->orWhereNotNull('nombre_extra');
             })
-            ->selectRaw('ROUND(SUM(precio * cantidad * (1 - COALESCE(descuento, 0) / 100.0)), 2) as total')
+            // El precio unitario de cada línea incluye la suma de sus toppings (copia del momento de la venta).
+            ->selectRaw('ROUND(SUM((precio + COALESCE((SELECT SUM(a.price * a.quantity) FROM order_product_addons a WHERE a.order_product_id = order_product.id), 0)) * cantidad * (1 - COALESCE(descuento, 0) / 100.0)), 2) as total')
             ->value('total') ?? 0.0;
     }
 

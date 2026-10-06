@@ -84,7 +84,10 @@ class OrderController extends Controller
 
         return Response::success($order->load([
             'orderProducts.product',
+            // Toppings que ofrece cada producto: el carrito los necesita para editar los de una línea.
+            'orderProducts.product.addons',
             'orderProducts.variant',
+            'orderProducts.addons',
             // Devoluciones de cada línea (módulo de Inventario) — se cargan siempre, el
             // costo es despreciable cuando no hay ninguna (constraint vacía). El frontend
             // decide si mostrar la sección según si viene algo o no.

@@ -158,7 +158,7 @@ class OrderSaleService
         // la misma sería incorrecto — cada unidad se totaliza por separado y se muestra desglosada.
         $rows = $query
             ->groupBy('categories.id', 'categories.nombre', 'product.unidad_medida')
-            ->selectRaw('categories.id, categories.nombre, product.unidad_medida, SUM(order_product.cantidad) as total_cantidad, ROUND(SUM(order_product.precio * order_product.cantidad * (1 - COALESCE(order_product.descuento, 0) / 100) * (1 - COALESCE(o.descuento, 0) / 100)), 2) as total_revenue')
+            ->selectRaw('categories.id, categories.nombre, product.unidad_medida, SUM(order_product.cantidad) as total_cantidad, ROUND(SUM((order_product.precio + COALESCE((SELECT SUM(a.price * a.quantity) FROM order_product_addons a WHERE a.order_product_id = order_product.id), 0)) * order_product.cantidad * (1 - COALESCE(order_product.descuento, 0) / 100) * (1 - COALESCE(o.descuento, 0) / 100)), 2) as total_revenue')
             ->get();
 
         $categories = $rows

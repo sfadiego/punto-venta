@@ -6,6 +6,7 @@ use App\Enums\OrderStatusEnum;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +59,26 @@ class OrderProductModel extends Model
     public function variant(): HasOne
     {
         return $this->hasOne(ProductVariantModel::class, 'id', self::VARIANT_ID);
+    }
+
+    /** Toppings elegidos en esta línea (con copia de nombre y precio del momento de la venta). */
+    public function addons(): HasMany
+    {
+        return $this->hasMany(OrderProductAddonModel::class, OrderProductAddonModel::ORDER_PRODUCT_ID);
+    }
+
+    /** Suma de los toppings por UNA unidad de la línea. */
+    public function addonsUnitTotal(): float
+    {
+        $addons = $this->relationLoaded('addons') ? $this->addons : $this->addons()->get();
+
+        return round($addons->sum(fn (OrderProductAddonModel $addon) => $addon->price * $addon->quantity), 2);
+    }
+
+    /** Precio de una unidad ya con sus toppings: lo que se multiplica por cantidad y descuento. */
+    public function unitPriceWithAddons(): float
+    {
+        return round((float) $this->precio + $this->addonsUnitTotal(), 2);
     }
 
     // Inverso del morphTo StockMovementModel::reference() — usado por OrderService para

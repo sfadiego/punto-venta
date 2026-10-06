@@ -2,6 +2,7 @@ import { Loader, CheckCircle2, Circle, ChevronDown, ChevronRight, MessageSquare 
 import { IProductGroup } from "@/models/IProductGroup";
 import { formatCantidad, formatUnitsLabel, formatGroupSummary } from "@/utils/formatUnits";
 import { ProductLineItem } from "./ProductLineItem";
+import { ProductAddonsBadges } from "./ProductAddonsBadges";
 
 interface ProductGroupCardProps {
     group: IProductGroup;
@@ -45,6 +46,7 @@ export const ProductGroupCard = ({
                     >
                         {group.name}
                     </p>
+                    <ProductAddonsBadges addons={group.addons} isReady={group.allReady} />
                     {hasMany && (
                         <p className="text-xs text-stone-400 mt-0.5">
                             {formatGroupSummary(group)}

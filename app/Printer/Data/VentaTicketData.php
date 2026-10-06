@@ -31,12 +31,14 @@ class VentaTicketData implements TicketDataInterface
 
     public function toArray(): array
     {
-        $order = $this->venta->load('orderProducts.product');
+        $order = $this->venta->load('orderProducts.product', 'orderProducts.addons');
         $config = BusinessConfigModel::find($order->tenant_id);
 
         $products = $order->orderProducts->map(function ($item): array {
             $cantidad = (float) $item->cantidad;
-            $lineTotal = (float) $item->precio * $cantidad;
+            // El precio unitario incluye los toppings: la cantidad y el descuento los multiplican igual que al producto.
+            $unitPriceWithAddons = $item->unitPriceWithAddons();
+            $lineTotal = $unitPriceWithAddons * $cantidad;
             $discount = $lineTotal * ((float) $item->descuento / 100);
             $unidad = $item->product?->unidad_medida?->value ?? 'unidad';
 
@@ -45,6 +47,12 @@ class VentaTicketData implements TicketDataInterface
                 'cantidad' => $cantidad,
                 'unidad_medida' => $unidad,
                 'precio' => (float) $item->precio,
+                'precio_con_toppings' => $unitPriceWithAddons,
+                'addons' => $item->addons->map(fn ($addon): array => [
+                    'nombre' => $addon->name,
+                    'cantidad' => (int) $addon->quantity,
+                    'precio' => (float) $addon->price,
+                ])->all(),
                 'descuento' => (float) $item->descuento,
                 'total' => round($lineTotal - $discount, 2),
                 'es_extra' => ! is_null($item->nombre_extra),

@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\DB;
  */
 class OrderProductService
 {
+    public function __construct(private readonly OrderProductAddonService $addonService) {}
+
     /**
      * store — el stock no se toca aquí, se descuenta recién al cerrar la orden
      * (ver OrderController::update).
@@ -31,6 +33,9 @@ class OrderProductService
         $itemDescuento = $params->descuento ?? 0;
 
         OrderModel::lockForUpdate()->find($order->id);
+
+        // Un extra libre nunca lleva toppings (lo rechaza la request); solo líneas de catálogo.
+        $addonRows = $params->nombre_extra ? [] : $this->addonService->rowsFor($params->input('addons', []));
 
         if ($params->nombre_extra) {
             $precio = (float) $params->precio;
@@ -54,13 +59,18 @@ class OrderProductService
             ]);
         }
 
-        $deltaSubtotal = $this->lineSubtotal($precio, $params->cantidad, $itemDescuento);
+        $this->addonService->attach($orderProduct, $addonRows);
+
+        // El precio unitario de la línea incluye sus toppings: la cantidad y el descuento de la
+        // línea los multiplican igual que al producto.
+        $unitPrice = $precio + $this->addonService->unitTotal($addonRows);
+        $deltaSubtotal = $this->lineSubtotal($unitPrice, $params->cantidad, $itemDescuento);
         $this->applyOrderDeltaIncrement($order->id, $deltaSubtotal, $orderDiscount);
 
         $this->resetStatusIfReady($order->fresh());
         OrdersUpdated::dispatchAfterCommit('product_updated', (int) $order->id);
 
-        return $orderProduct;
+        return $orderProduct->load('addons');
     }
 
     /**
@@ -70,7 +80,7 @@ class OrderProductService
      * carrito de QuickSale no los trae) — el precio, igual que en addProduct(), siempre se
      * resuelve del catálogo/variante, nunca del valor que mande el cliente.
      *
-     * @param  array<array{producto_id:int, variant_id?:?int, cantidad:float}>  $items
+     * @param  array<array{producto_id:int, variant_id?:?int, cantidad:float, addons?:array}>  $items
      */
     public function addProducts(OrderModel $order, array $items): Collection
     {
@@ -85,8 +95,13 @@ class OrderProductService
             ? ProductVariantModel::whereIn('id', $variantIds)->get()->keyBy('id')
             : collect();
 
+        // Toppings de todas las líneas con una sola consulta (sin N+1 por línea).
+        $addonsById = $this->addonService->loadAddons(
+            collect($items)->flatMap(fn (array $item) => collect($item['addons'] ?? [])->pluck('addon_id'))->filter()->unique()->all()
+        );
+
         $totalDeltaSubtotal = 0.0;
-        $orderProducts = collect();
+        $orderProducts = (new OrderProductModel)->newCollection();
 
         foreach ($items as $item) {
             $variantId = $item['variant_id'] ?? null;
@@ -94,8 +109,9 @@ class OrderProductService
                 ? (float) ($variants->get($variantId)?->precio ?? 0)
                 : (float) ($products->get($item['producto_id'])?->precio ?? 0);
             $cantidad = (float) $item['cantidad'];
+            $addonRows = $this->addonService->rowsFor($item['addons'] ?? [], $addonsById);
 
-            $orderProducts->push(OrderProductModel::create([
+            $orderProduct = OrderProductModel::create([
                 OrderProductModel::PRODUCTO_ID => $item['producto_id'],
                 OrderProductModel::VARIANT_ID => $variantId,
                 OrderProductModel::PEDIDO_ID => $order->id,
@@ -103,9 +119,11 @@ class OrderProductService
                 OrderProductModel::PRECIO => $precio,
                 OrderProductModel::DESCUENTO => 0,
                 OrderProductModel::IS_READY => false,
-            ]));
+            ]);
+            $this->addonService->attach($orderProduct, $addonRows);
+            $orderProducts->push($orderProduct);
 
-            $totalDeltaSubtotal += $this->lineSubtotal($precio, $cantidad, 0);
+            $totalDeltaSubtotal += $this->lineSubtotal($precio + $this->addonService->unitTotal($addonRows), $cantidad, 0);
         }
 
         $this->applyOrderDeltaIncrement($order->id, $totalDeltaSubtotal, $orderDiscount);
@@ -113,7 +131,7 @@ class OrderProductService
         $this->resetStatusIfReady($order->fresh());
         OrdersUpdated::dispatchAfterCommit('product_updated', (int) $order->id);
 
-        return $orderProducts;
+        return $orderProducts->load('addons');
     }
 
     /**
@@ -123,7 +141,8 @@ class OrderProductService
     public function updateProduct(OrderModel $order, OrderProductModel $orderProduct, OrderProductUpdateRequest $params): OrderProductModel
     {
         $orderDiscount = $order->descuento ?? 0;
-        $oldLineSubtotal = $this->lineSubtotal($orderProduct->precio, $orderProduct->cantidad, $orderProduct->descuento);
+        $orderProduct->loadMissing('addons');
+        $oldLineSubtotal = $this->lineSubtotal($orderProduct->unitPriceWithAddons(), $orderProduct->cantidad, $orderProduct->descuento);
 
         $data = [];
         if (isset($params->cantidad)) {
@@ -142,16 +161,23 @@ class OrderProductService
         OrderModel::lockForUpdate()->find($order->id);
 
         $orderProduct->update($data);
-        $orderProduct->refresh();
 
-        $newLineSubtotal = $this->lineSubtotal($orderProduct->precio, $orderProduct->cantidad, $orderProduct->descuento);
+        // Con la llave "addons" presente se reemplaza el conjunto completo (vacío = quitar todos);
+        // sin ella los toppings de la línea no se tocan.
+        if ($params->has('addons') && $orderProduct->producto_id) {
+            $this->addonService->replace($orderProduct, $this->addonService->rowsFor($params->input('addons') ?? []));
+        }
+
+        $orderProduct->refresh()->load('addons');
+
+        $newLineSubtotal = $this->lineSubtotal($orderProduct->unitPriceWithAddons(), $orderProduct->cantidad, $orderProduct->descuento);
         $deltaSubtotal = $newLineSubtotal - $oldLineSubtotal;
         $this->applyOrderDeltaIncrement($order->id, $deltaSubtotal, $orderDiscount);
 
         $this->resetStatusIfReady($order->fresh());
         OrdersUpdated::dispatchAfterCommit('product_updated', (int) $order->id);
 
-        return $orderProduct->refresh();
+        return $orderProduct;
     }
 
     /**
@@ -183,8 +209,10 @@ class OrderProductService
     public function removeItem(OrderModel $order, OrderProductModel $item): void
     {
         $orderDiscount = $order->descuento ?? 0;
-        $lineSubtotal = $this->lineSubtotal($item->precio, $item->cantidad, $item->descuento);
+        $item->loadMissing('addons');
+        $lineSubtotal = $this->lineSubtotal($item->unitPriceWithAddons(), $item->cantidad, $item->descuento);
 
+        // Los toppings de la línea se borran en cascada (FK de order_product_addons).
         $item->delete();
 
         $this->applyOrderDeltaDecrement($order, $lineSubtotal, $orderDiscount);

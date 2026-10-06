@@ -45,6 +45,8 @@ export type ProductForm = {
     icon_source: IconSourceEnum;
     /** Vacío = disponible en todas las sucursales (ver ProductBranchesField). */
     branch_ids: string[];
+    /** Toppings asignados al producto (ids como string, igual que branch_ids). */
+    addon_ids: string[];
 };
 
 const baseSchema = {
@@ -122,8 +124,11 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
     const schema = useMemo(() => Yup.object({
         ...baseSchema,
         branch_ids: Yup.array().of(Yup.string()),
+        addon_ids: Yup.array().of(Yup.string()),
     }), []);
     const sellByWeight = features?.sell_by_weight === true;
+    // Toppings: solo restaurante/cafetería (vista de cocina activa).
+    const showAddonsField = features?.kitchen_view === true;
     // Bandera por tenant (business_config.stock_enabled, gestionada desde SuperAdmin) — no
     // depende del tipo de negocio: reemplaza el bloqueo anterior que deshabilitaba "Maneja
     // stock" para todo negocio tipo restaurante sin excepción.
@@ -157,6 +162,7 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
             icon_name: product?.icon_name ?? "",
             icon_source: product?.icon_source ?? IconSourceEnum.Openmoji,
             branch_ids: product?.branches?.map((b) => String(b.id)) ?? [],
+            addon_ids: product?.addons?.map((a) => String(a.id)) ?? [],
         },
         validationSchema: schema,
         onSubmit: async (values, helpers) => {
@@ -174,6 +180,8 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
                 // Solo se envía si el checklist está visible (2+ sucursales autorizadas) —
                 // con 0-1 no hay nada que restringir y el backend no espera el campo.
                 ...(showBranchSelector ? { branch_ids: values.branch_ids.map(Number) } : {}),
+                // Sin el campo visible no se envía: el backend conserva las asignaciones actuales.
+                ...(showAddonsField ? { addon_ids: values.addon_ids.map(Number) } : {}),
             };
 
             // El stock inicial se puede capturar al crear, o al activar "Maneja stock" por
@@ -227,6 +235,11 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
                     if (branchError && !showBranchSelector) {
                         toast.error(branchError[1]);
                     }
+                    // El campo de toppings no pinta errores por clave addon_ids.N — se avisa por toast.
+                    const addonError = Object.entries(fieldErrors).find(([key]) => key.startsWith("addon_ids"));
+                    if (addonError) {
+                        toast.error(addonError[1]);
+                    }
                 } else {
                     logUnexpectedError(error, "useProductModal.onSubmit");
                     toast.error(getUserFacingErrorMessage(error, `Error al ${isEdit ? "actualizar" : "crear"} el producto`));
@@ -243,6 +256,8 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
         stockEnabled,
         currentStock: product?.stock ?? null,
         showBranchSelector,
+        showAddonsField,
+        productAddons: product?.addons ?? [],
     };
 };
 

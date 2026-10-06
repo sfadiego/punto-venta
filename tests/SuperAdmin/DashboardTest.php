@@ -2,12 +2,12 @@
 
 namespace Tests\SuperAdmin;
 
+use App\Enums\ActivityTypeEnum;
 use App\Enums\BusinessNicheEnum;
 use App\Enums\ClientLeadStatusEnum;
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\ClientLeadModel;
-use App\Enums\ActivityTypeEnum;
 use App\Models\ErrorReporting;
 use App\Models\PersonalAccessToken;
 use App\Models\TenantActivityLogModel;

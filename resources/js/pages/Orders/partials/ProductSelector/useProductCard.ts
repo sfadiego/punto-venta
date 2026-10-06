@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useModal } from "@/hooks/useModal";
+import { IAddonSelection } from "@/models/IAddon";
 import { ICartItem } from "@/models/ICartItem";
 import { IProduct } from "@/models/IProduct";
 import { IProductVariant } from "@/models/IProductVariant";
@@ -12,6 +14,7 @@ type OnAdd = (
     price: number,
     variantId?: number | null,
     variantName?: string | null,
+    addons?: IAddonSelection[],
 ) => void | Promise<void>;
 
 export const useProductCard = (
@@ -21,6 +24,11 @@ export const useProductCard = (
     onUpdateQuantity: (orderProductId: number, delta: number) => void,
 ) => {
     const { isOpen, openModal, closeModal } = useModal();
+    const addonPicker = useModal();
+    // Variante elegida mientras se escogen sus toppings (null = producto sin variante).
+    const [pendingVariant, setPendingVariant] = useState<IProductVariant | null>(null);
+    const activeAddons = (product.addons ?? []).filter((addon) => addon.is_active);
+    const hasAddons = activeAddons.length > 0;
     const activeVariants = (product.variants ?? []).filter((v) => v.activo);
     const hasVariants = activeVariants.length > 0;
     const isManagedStock = product.manage_stock;
@@ -47,11 +55,36 @@ export const useProductCard = (
             openModal();
             return;
         }
+        // Un producto con toppings siempre abre el selector (con "Sin toppings" a un clic) para
+        // que no se olvide ofrecerlos.
+        if (hasAddons) {
+            addonPicker.openModal();
+            return;
+        }
         onAdd(product.id, product.nombre, product.precio);
     };
 
-    const handleAddVariant = (variant: IProductVariant) =>
+    const handleAddVariant = (variant: IProductVariant) => {
+        if (hasAddons) {
+            // Primero la variante y luego los toppings.
+            setPendingVariant(variant);
+            closeModal();
+            addonPicker.openModal();
+            return;
+        }
         onAdd(product.id, product.nombre, variant.precio, variant.id, variant.nombre);
+    };
+
+    const closeAddonPicker = () => {
+        addonPicker.closeModal();
+        setPendingVariant(null);
+    };
+
+    const handleConfirmAddons = (selection: IAddonSelection[]) => {
+        const price = pendingVariant?.precio ?? product.precio;
+        onAdd(product.id, product.nombre, price, pendingVariant?.id ?? null, pendingVariant?.nombre ?? null, selection);
+        closeAddonPicker();
+    };
 
     const handleRemoveVariant = (variant: IProductVariant) => {
         const item = cart.find(
@@ -76,5 +109,11 @@ export const useProductCard = (
         isManagedStock,
         stockExhausted,
         variantOptions,
+        activeAddons,
+        isAddonPickerOpen: addonPicker.isOpen,
+        closeAddonPicker,
+        handleConfirmAddons,
+        addonPickerTitle: pendingVariant ? `${product.nombre} (${pendingVariant.nombre})` : product.nombre,
+        addonPickerBasePrice: pendingVariant?.precio ?? product.precio,
     };
 };

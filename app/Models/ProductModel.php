@@ -239,6 +239,11 @@ class ProductModel extends Model
         return $this->branches()->doesntExist() || $this->branches()->where('branches.id', $branchId)->exists();
     }
 
+    public function addons(): BelongsToMany
+    {
+        return $this->belongsToMany(AddonModel::class, 'addon_product', 'product_id', 'addon_id');
+    }
+
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariantModel::class, ProductVariantModel::PRODUCT_ID, 'id')

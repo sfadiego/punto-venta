@@ -1,5 +1,6 @@
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { ICartItem } from "@/models/ICartItem";
+import { getCartItemUnitPrice } from "@/utils/cartAddons";
 
 export const buildCartItems = (orderProducts: IOrderProduct[] = []): ICartItem[] =>
     orderProducts.map((op) => ({
@@ -14,6 +15,13 @@ export const buildCartItems = (orderProducts: IOrderProduct[] = []): ICartItem[]
         isReady: op.is_ready ?? false,
         variantId: op.variant_id ?? null,
         variantName: op.variant?.nombre ?? null,
+        addons: (op.addons ?? []).map((addon) => ({
+            addonId: addon.addon_id,
+            name: addon.name,
+            price: addon.price,
+            quantity: addon.quantity,
+        })),
+        availableAddons: (op.product?.addons ?? []).filter((addon) => addon.is_active),
         manageStock: op.product?.manage_stock ?? false,
         stock: op.product?.stock ?? null,
         variantStock: op.variant?.stock ?? null,
@@ -37,7 +45,7 @@ export const getCartQuantityFor = (cart: ICartItem[], productId: number, variant
 export const calcCartTotals = (cart: ICartItem[], orderDiscount: number) => {
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     const subtotal = cart.reduce(
-        (sum, item) => sum + item.price * item.quantity * (1 - item.descuento / 100),
+        (sum, item) => sum + getCartItemUnitPrice(item) * item.quantity * (1 - item.descuento / 100),
         0,
     );
     const total = subtotal * (1 - orderDiscount / 100);

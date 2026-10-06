@@ -31,7 +31,7 @@ class OrderProductController extends Controller
     public function index(OrderModel $order): JsonResponse
     {
         return Response::success(
-            OrderProductModel::with(['product', 'variant'])
+            OrderProductModel::with(['product.addons', 'variant', 'addons'])
                 ->where('pedido_id', $order->id)
                 ->get()
         );
@@ -43,7 +43,7 @@ class OrderProductController extends Controller
     public function show(OrderModel $order, string $productId): JsonResponse
     {
         return Response::success(
-            OrderProductModel::with(['product', 'variant'])->where('pedido_id', $order->id)
+            OrderProductModel::with(['product.addons', 'variant', 'addons'])->where('pedido_id', $order->id)
                 ->where('producto_id', $productId)
                 ->get()
         );
