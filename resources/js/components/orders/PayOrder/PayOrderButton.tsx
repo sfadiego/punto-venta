@@ -3,6 +3,7 @@ import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { usePayOrder } from "./usePayOrder";
 import { RestaurantPayModal } from "./RestaurantPayModal";
+import { useLayawayPay } from "../Layaway/useLayawayPay";
 
 interface PayOrderButtonProps {
     order: IOrder;
@@ -39,6 +40,15 @@ export const PayOrderButton = ({
         handleSelectCredit,
         handleSelectMethod,
     } = usePayOrder(order, onSuccess);
+    const layaway = useLayawayPay({
+        orderId: order.id,
+        total: order.total,
+        isOpen,
+        onSuccess: () => {
+            handleClose();
+            onSuccess?.();
+        },
+    });
 
     const isPayable =
         [OrderStatusEnum.InProcess, OrderStatusEnum.Served].includes(order.estatus_pedido_id) &&
@@ -95,6 +105,7 @@ export const PayOrderButton = ({
                 onSelectMethod={handleSelectMethod}
                 onSelectCredit={handleSelectCredit}
                 onSelectCustomer={setSelectedCustomerId}
+                layaway={layaway}
             />
         </>
     );

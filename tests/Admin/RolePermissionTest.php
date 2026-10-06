@@ -239,7 +239,8 @@ class RolePermissionTest extends TestCase
     // Reproduce el bug reportado: un tenant retail nuevo (sin role_permission_configs)
     // debía mostrar los checks de Empleado ya marcados con los defaults, no todo vacío.
     // 'kitchenView' queda fuera del default en retail (sin BusinessTypeEnum::features()
-    // ['kitchen_view']) — ver RolePermissionService::defaultsForTenant().
+    // ['kitchen_view']) — ver RolePermissionService::defaultsForTenant(). 'layaway' (apartados) sí
+    // entra: en retail el Empleado es quien cobra (no existen Caja/Cocina), así que debe poder apartar.
     public function test_retail_index_precarga_defaults_para_rol_nunca_configurado(): void
     {
         $admin = $this->crearAdminRetail();
@@ -248,7 +249,7 @@ class RolePermissionTest extends TestCase
             ->assertStatus(200);
 
         $this->assertEqualsCanonicalizing(
-            ['viewDashboard', 'viewOrders', 'viewProducts', 'takeOrder', 'editOrderName', 'printTicket', 'payOrder'],
+            ['viewDashboard', 'viewOrders', 'viewProducts', 'takeOrder', 'editOrderName', 'printTicket', 'payOrder', 'layaway'],
             $response->json('data.'.RoleEnum::EMPLOYE->value)
         );
     }

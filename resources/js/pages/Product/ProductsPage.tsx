@@ -22,6 +22,7 @@ import { useStockMovementsModal } from "./partials/StockMovementsModal/useStockM
 import { ProductTableActions } from "./partials/ProductTableActions";
 import { ProductSearch } from "./partials/ProductSearch";
 import { AddonsButton } from "./partials/Addons/AddonsButton";
+import { ExportProductsButton } from "./partials/ExportProducts/ExportProductsButton";
 import { formatMoney } from "@/utils/formatCurrency";
 import { useAxios } from "@/hooks/useAxios";
 
@@ -297,6 +298,7 @@ export default function ProductsPage() {
                             <span className="hidden sm:inline">Importar productos</span>
                         </button>
                     )}
+                    <ExportProductsButton />
                     <AddonsButton />
                     <button
                         onClick={openAddModal}

@@ -2,9 +2,17 @@
 
 namespace Database\Seeders;
 
+use App\Enums\IconSourceEnum;
 use App\Models\CategoryModel;
 use Illuminate\Database\Seeder;
 
+/**
+ * Íconos iniciales de las categorías sembradas. Este seeder corre en CADA despliegue (ver
+ * docker/php/laravel_setup.sh), así que solo debe completar categorías que todavía no tienen
+ * ícono: sobrescribir uno elegido por el usuario deshacía su cambio y, al no tocar icon_source,
+ * dejaba un nombre de Lucide (ej. "Sparkles") con origen OpenMoji/emoji, que se pinta como una
+ * imagen rota. Al asignar un ícono se escribe también icon_source para dejar el par coherente.
+ */
 class CategoriesIconsSeeder extends Seeder
 {
     public function run(): void
@@ -32,7 +40,12 @@ class CategoriesIconsSeeder extends Seeder
 
         foreach ($icons as $nombre => $iconName) {
             CategoryModel::where(CategoryModel::NOMBRE, $nombre)
-                ->update([CategoryModel::ICON_NAME => $iconName]);
+                // icon_name es NOT NULL con default '' (ver la migración de categories): vacío = sin ícono.
+                ->where(CategoryModel::ICON_NAME, '')
+                ->update([
+                    CategoryModel::ICON_NAME => $iconName,
+                    CategoryModel::ICON_SOURCE => IconSourceEnum::Lucide->value,
+                ]);
         }
     }
 }

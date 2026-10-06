@@ -75,6 +75,7 @@ class MainOrderReportController extends Controller
             'neto' => round($bruto - $domicilios, 2),
             'propinas' => $propinas,
             'gastos' => $gastos,
+            'apartados' => $system->layawaySummary(),
             'by_payment_method' => $system->totalByPaymentMethod(),
         ]);
     }
@@ -93,7 +94,8 @@ class MainOrderReportController extends Controller
             return Response::error('Debes finalizar todas las órdenes activas para cerrar la caja.');
         }
 
-        if ($system->totalSalesByDay() == 0) {
+        // Una sesión con solo abonos/reembolsos de apartados también tiene movimiento de caja.
+        if ($system->totalSalesByDay() == 0 && ! $system->hasLayawayMovements()) {
             return Response::error('No se puede cerrar la caja sin ventas registradas.');
         }
 

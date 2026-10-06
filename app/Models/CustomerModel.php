@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatusEnum;
 use App\Models\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -50,6 +51,22 @@ class CustomerModel extends Model
     {
         return $this->hasMany(OrderModel::class, 'customer_id')
             ->where('is_credit', true)
+            ->orderByDesc('created_at');
+    }
+
+    /** Apartados activos del cliente (aún sin liquidar ni cancelar). */
+    public function activeLayaways(): HasMany
+    {
+        return $this->hasMany(OrderModel::class, 'customer_id')
+            ->where(OrderModel::ESTATUS_PEDIDO_ID, OrderStatusEnum::LAYAWAY->value);
+    }
+
+    /** Órdenes que tienen o tuvieron abonos de apartado (activas, liquidadas o canceladas). */
+    public function layawayOrders(): HasMany
+    {
+        return $this->hasMany(OrderModel::class, 'customer_id')
+            ->whereHas('layawayPayments')
+            ->with('layawayPayments')
             ->orderByDesc('created_at');
     }
 

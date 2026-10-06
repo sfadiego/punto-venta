@@ -2,12 +2,15 @@ import { DollarSign, Bike, ReceiptText } from "lucide-react";
 import { SummaryCard } from "../SummaryCards/SummaryCard";
 import { CloseSalesSectionHeading } from "../CloseSalesSectionHeading";
 import { CloseSalesExpensesButton } from "./CloseSalesExpensesButton";
+import { CloseSalesLayawayCard } from "./CloseSalesLayawayCard";
 import { formatCurrency } from "@/utils/formatCurrency";
+import { ILayawaySummary } from "@/services/useOpenSalesService";
 
 interface CloseSalesCashSummaryProps {
     efectivoInicio: number;
     totalDomicilios: number;
     totalGastos: number;
+    layawaySummary: ILayawaySummary;
     onViewExpenses: () => void;
 }
 
@@ -15,6 +18,7 @@ export const CloseSalesCashSummary = ({
     efectivoInicio,
     totalDomicilios,
     totalGastos,
+    layawaySummary,
     onViewExpenses,
 }: CloseSalesCashSummaryProps) => (
     <div className="mb-6">
@@ -40,6 +44,10 @@ export const CloseSalesCashSummary = ({
                     valueColor="text-red-500"
                     note="Absorbido por el negocio, pagado en efectivo"
                 />
+            )}
+
+            {(layawaySummary.abonos > 0 || layawaySummary.reembolsos > 0) && (
+                <CloseSalesLayawayCard layawaySummary={layawaySummary} />
             )}
 
             {totalGastos > 0 && (

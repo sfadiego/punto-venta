@@ -8,11 +8,12 @@ interface CustomerSearchPanelProps {
     setSearch: (v: string) => void;
     selectedCustomerId: number | null;
     onSelect: (id: number) => void;
+    requireCredit: boolean;
     onOpenNewForm: () => void;
 }
 
 export const CustomerSearchPanel = ({
-    customers, search, setSearch, selectedCustomerId, onSelect, onOpenNewForm,
+    customers, search, setSearch, selectedCustomerId, onSelect, requireCredit, onOpenNewForm,
 }: CustomerSearchPanelProps) => (
     <>
         <div className="relative">
@@ -32,7 +33,7 @@ export const CustomerSearchPanel = ({
             )}
             {customers.map((customer) => {
                 const isSelected = customer.id === selectedCustomerId;
-                const blocked = !customer.allow_credit;
+                const blocked = requireCredit && !customer.allow_credit;
                 return (
                     <button
                         key={customer.id}
@@ -52,7 +53,7 @@ export const CustomerSearchPanel = ({
                         {blocked ? (
                             <Lock size={12} className="shrink-0" />
                         ) : (
-                            Number(customer.balance) > 0 && (
+                            requireCredit && Number(customer.balance) > 0 && (
                                 <span className={`text-xs shrink-0 tabular-nums ${isSelected ? "text-white" : "text-red-500"}`}>
                                     {formatCurrency(Number(customer.balance))}
                                 </span>

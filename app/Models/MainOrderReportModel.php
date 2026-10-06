@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\LayawayPaymentTypeEnum;
 use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
 use App\Models\Traits\HasTenant;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -75,34 +77,96 @@ class MainOrderReportModel extends Model
         return $this->refresh();
     }
 
+    /**
+     * Dinero que entró en esta sesión: ventas cerradas completas + movimiento neto de apartados
+     * (abonos menos reembolsos recibidos/devueltos en esta caja). Un apartado liquidado NO suma su
+     * total aquí — solo lo abonado en esta sesión; el resto ya entró en las sesiones anteriores.
+     */
     public function totalSalesByDay(): float
     {
         return (float) round(
-            OrderModel::where('sistema_id', $this->id)
-                ->where('estatus_pedido_id', OrderStatusEnum::CLOSED->value)
-                ->whereNull('deleted_at')
-                ->sum('total'),
+            $this->closedSalesQuery()->sum('total') + $this->layawaySummary()['neto'],
             2
         );
     }
 
-    public function totalByPaymentMethod(): array
+    /**
+     * Órdenes cerradas de la sesión que no pasaron por un apartado — su dinero entró completo al
+     * cerrarse. Las que sí pasaron por un apartado se cuentan por sus abonos (layawaySummary).
+     */
+    private function closedSalesQuery(): Builder
     {
-        return OrderModel::query()
-            ->where('sistema_id', $this->id)
+        return OrderModel::where('sistema_id', $this->id)
             ->where('estatus_pedido_id', OrderStatusEnum::CLOSED->value)
             ->whereNull('deleted_at')
+            ->whereDoesntHave('layawayPayments');
+    }
+
+    /** @return array{abonos: float, reembolsos: float, neto: float} */
+    public function layawaySummary(): array
+    {
+        $totals = OrderLayawayPaymentModel::where(OrderLayawayPaymentModel::SISTEMA_ID, $this->id)
+            ->selectRaw('type, ROUND(SUM(amount), 2) as total')
+            ->groupBy('type')
+            ->pluck('total', 'type');
+
+        $deposits = (float) ($totals[LayawayPaymentTypeEnum::Deposit->value] ?? 0);
+        $refunds = (float) ($totals[LayawayPaymentTypeEnum::Refund->value] ?? 0);
+
+        return [
+            'abonos' => $deposits,
+            'reembolsos' => $refunds,
+            'neto' => round($deposits - $refunds, 2),
+        ];
+    }
+
+    public function hasLayawayMovements(): bool
+    {
+        return OrderLayawayPaymentModel::where(OrderLayawayPaymentModel::SISTEMA_ID, $this->id)->exists();
+    }
+
+    /**
+     * Totales por método de pago: ventas cerradas completas + movimiento neto de apartados de la
+     * sesión (abonos suman, reembolsos restan) — de ahí sale el efectivo físico esperado en caja.
+     * La propina solo existe en ventas normales.
+     */
+    public function totalByPaymentMethod(): array
+    {
+        $byMethod = [];
+
+        $orders = $this->closedSalesQuery()
             ->selectRaw('payment_method_id, ROUND(SUM(total), 2) as total, ROUND(SUM(propina), 2) as propina')
             ->groupBy('payment_method_id')
             ->with('paymentMethod:id,name')
-            ->get()
-            ->map(fn ($order) => [
+            ->get();
+
+        foreach ($orders as $order) {
+            $byMethod[$order->payment_method_id] = [
                 'payment_method_id' => $order->payment_method_id,
                 'name' => $order->paymentMethod?->name ?? 'Sin método',
                 'total' => (float) $order->total,
                 'propina' => (float) $order->propina,
-            ])
-            ->toArray();
+            ];
+        }
+
+        $movements = OrderLayawayPaymentModel::where(OrderLayawayPaymentModel::SISTEMA_ID, $this->id)
+            ->selectRaw('payment_method_id, ROUND(SUM(CASE WHEN type = ? THEN amount ELSE -amount END), 2) as total', [LayawayPaymentTypeEnum::Deposit->value])
+            ->groupBy('payment_method_id')
+            ->with('paymentMethod:id,name')
+            ->get();
+
+        foreach ($movements as $movement) {
+            $methodId = $movement->payment_method_id;
+            $byMethod[$methodId] ??= [
+                'payment_method_id' => $methodId,
+                'name' => $movement->paymentMethod?->name ?? 'Sin método',
+                'total' => 0.0,
+                'propina' => 0.0,
+            ];
+            $byMethod[$methodId]['total'] = round($byMethod[$methodId]['total'] + (float) $movement->total, 2);
+        }
+
+        return array_values($byMethod);
     }
 
     public function totalPropinasByDay(): float

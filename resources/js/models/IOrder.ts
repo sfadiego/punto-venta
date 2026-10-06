@@ -2,6 +2,7 @@ import { IOrderStatus } from "./IOrderStatus";
 import { IOrderProduct } from "./IOrderProduct";
 import { IPaymentMethod } from "./IPaymentMethod";
 import { ICustomer } from "./ICustomer";
+import { ILayawayPayment } from "./ILayaway";
 
 export interface IOrder {
     id: number;
@@ -26,6 +27,10 @@ export interface IOrder {
     is_credit: boolean;
     credit_applied_at: string | null;
     customer?: Pick<ICustomer, "id" | "name" | "balance" | "phone"> | null;
+    // Apartados (retail): total abonado y fecha límite (YYYY-MM-DD). Cero/null en ventas normales.
+    amount_paid: number;
+    layaway_due_date: string | null;
+    layaway_payments?: ILayawayPayment[];
     // Calculado al vuelo contra stock_movements (OrderService::makeQuery) — true si alguna
     // línea de la orden tiene al menos una devolución registrada.
     has_return?: boolean;

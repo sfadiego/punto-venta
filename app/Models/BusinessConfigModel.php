@@ -88,6 +88,10 @@ class BusinessConfigModel extends Model
 
     const MAX_USERS = 'max_users';
 
+    const LAYAWAY_MIN_PERCENT = 'layaway_min_percent';
+
+    const LAYAWAY_DAYS = 'layaway_days';
+
     const GRACE_DAYS = 3;
 
     protected $casts = [
@@ -105,6 +109,8 @@ class BusinessConfigModel extends Model
         self::LOGO_ICON_SOURCE => IconSourceEnum::class,
         self::SUBSCRIPTION_EXPIRES_AT => 'date',
         self::SUBSCRIPTION_AMOUNT => 'float',
+        self::LAYAWAY_MIN_PERCENT => 'float',
+        self::LAYAWAY_DAYS => 'integer',
     ];
 
     protected $fillable = [
@@ -143,6 +149,8 @@ class BusinessConfigModel extends Model
         self::SUBSCRIPTION_EXPIRES_AT,
         self::SUBSCRIPTION_AMOUNT,
         self::MAX_USERS,
+        self::LAYAWAY_MIN_PERCENT,
+        self::LAYAWAY_DAYS,
     ];
 
     /** Días restantes de la suscripción cacheada del tenant (negativo si ya venció, null sin fecha). */

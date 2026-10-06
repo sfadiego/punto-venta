@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LayawayController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderProductController;
 use App\Http\Controllers\PrintController;
@@ -23,6 +24,11 @@ Route::prefix('order')->group(function () {
 
         Route::middleware('permission:viewCloseSales')->get('/credit-customers', 'creditCustomers');
 
+        // Resumen de apartados (tarjetas del tab Apartados) — antes del grupo {order} para que
+        // Laravel no intente resolver "layaways" como un id de orden.
+        Route::middleware(['permission:layaway', 'retail'])
+            ->get('/layaways/summary', [LayawayController::class, 'summary']);
+
         Route::middleware('permission:printTicket')->get('/print/test-bytes', [PrintController::class, 'testBytes']);
 
         // Combobox de órdenes cerradas para el modal de Devolución (Inventario) — debe ir
@@ -37,6 +43,16 @@ Route::prefix('order')->group(function () {
             // OrderCloseService, no aquí (un solo permission:xxx sería incorrecto).
             Route::put('', 'update');
             Route::middleware('permission:deleteOrder')->delete('', 'delete');
+
+            // Apartados (solo retail): anticipo + abonos hasta liquidar. Permiso propio
+            // `layaway` — Admin siempre pasa; Caja lo trae por defecto.
+            Route::prefix('layaway')->middleware(['permission:layaway', 'retail'])
+                ->controller(LayawayController::class)->group(function () {
+                    Route::get('', 'show');
+                    Route::post('', 'store');
+                    Route::post('payment', 'payment');
+                    Route::post('cancel', 'cancel');
+                });
             Route::middleware('permission:printTicket')->prefix('print')->group(base_path('routes/modules/printer.php'));
 
             // products (plural) — alta en lote del carrito completo, un request en vez de

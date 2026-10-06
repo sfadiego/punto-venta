@@ -30,6 +30,10 @@ export interface IBusinessConfig {
     // (ver TenantBranchController::enable), nunca editable desde este formulario.
     multi_branch_enabled?: boolean;
     costo_domicilio_default: number;
+    // Apartados (retail): anticipo mínimo (%) y plazo por defecto (días). Opcionales en el
+    // payload de guardado — el backend solo los toca si vienen (ver BusinessConfigController).
+    layaway_min_percent?: number;
+    layaway_days?: number;
     logo_icon: string | null;
     logo_icon_source: IconSourceEnum | null;
     logo_upload_enabled: boolean;

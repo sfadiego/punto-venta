@@ -7,6 +7,7 @@ import { AdminRoutes } from "@/enums/RoutesEnum";
 import { useOrderList } from "./useOrderList";
 import { OrderFilters } from "./partials/OrderFilters";
 import { OrderSearch } from "./partials/OrderSearch";
+import { LayawaySummaryCards } from "./partials/Layaway/LayawaySummaryCards";
 import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { ExpensesButton } from "@/components/orders/ExpensesButton";
@@ -33,6 +34,9 @@ export default function OrderListPage() {
         sellByWeight,
         kitchenView,
         isRetail,
+        showLayaways,
+        showingLayaways,
+        layawaySummary,
         handleEstatusChange,
         handleSearchChange,
         handleClearFilters,
@@ -41,6 +45,8 @@ export default function OrderListPage() {
     const { can } = usePermissions();
 
     const handleRowClick = (order: IOrder) => {
+        // Un apartado no se edita como carrito: se gestiona con Ver / Abonar / Cancelar.
+        if (order.estatus_pedido_id === OrderStatusEnum.Layaway) return;
         if (sellByWeight) {
             if (order.estatus_pedido_id === OrderStatusEnum.InProcess) {
                 navigate(`${AdminRoutes.QuickSale}/${order.id}`);
@@ -93,6 +99,8 @@ export default function OrderListPage() {
                     <p className="text-stone-400 text-sm">No hay una caja abierta.</p>
                 </div>
             ) : (
+                <>
+                {showingLayaways && <LayawaySummaryCards summary={layawaySummary} />}
                 <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
                     <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
                         <div className="flex-1 min-w-[220px] lg:max-w-sm">
@@ -102,6 +110,7 @@ export default function OrderListPage() {
                             <OrderFilters
                                 estatusId={estatusId}
                                 showOrderServed={showOrderServed}
+                                showLayaways={showLayaways}
                                 onEstatusChange={handleEstatusChange}
                                 onClear={handleClearFilters}
                             />
@@ -113,7 +122,9 @@ export default function OrderListPage() {
                         onRowClick={({ record }: { record: IOrder }) => handleRowClick(record)}
                         rowStyle={(record: IOrder) => ({
                             cursor:
-                                sellByWeight
+                                record.estatus_pedido_id === OrderStatusEnum.Layaway
+                                    ? "default"
+                                    : sellByWeight
                                     ? record.estatus_pedido_id === OrderStatusEnum.InProcess
                                         ? "pointer"
                                         : "default"
@@ -124,6 +135,7 @@ export default function OrderListPage() {
                         rowClassName={(record: IOrder) => getRowClassName(record)}
                     />
                 </div>
+                </>
             )}
         </div>
     );

@@ -1,6 +1,7 @@
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
+import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
 import { navItems, NavItem } from "./navItems";
 
 // Único lugar donde se resuelve qué items del sidebar se muestran y con qué label, para que
@@ -37,11 +38,26 @@ export const useSidebarNav = () => {
     // "Pedidos" aplica a venta por peso y Retail (ambos sin kitchen_view); "Órdenes" solo a
     // Restaurante (servicio en mesa). No usar sellByWeight aquí: Retail comparte sellByWeight=false
     // con Restaurante, así que no distingue entre ambos.
+    // "layaway" (apartados) ya está gateado por features.is_retail en isActionApplicable
+    // (permissionUtils.ts). Los apartados se gestionan desde Pedidos, así que el aviso de la nueva
+    // función vive en ese item (solo para quien puede usarlos).
+    const layawayEnabled = can("layaway");
     const items: NavItem[] = navItems
         .filter((item) => can(item.permission))
-        .map((item) =>
-            item.path === "/orders" && !kitchenView ? { ...item, label: "Pedidos" } : item,
-        );
+        .map((item) => {
+            if (item.path !== "/orders") return item;
+            return {
+                ...item,
+                label: kitchenView ? item.label : "Pedidos",
+                ...(layawayEnabled && {
+                    spotlight: {
+                        key: FeatureSpotlightKey.LayawaySection,
+                        title: "Apartados",
+                        description: "Ahora puedes apartar productos con un anticipo y dar seguimiento a los abonos en Pedidos, en el filtro \"Apartados\".",
+                    },
+                }),
+            };
+        });
 
     const hasFooterSection = providersEnabled || employeesEnabled || hasConfigSection;
 

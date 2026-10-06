@@ -26,6 +26,7 @@ export default function CloseSalesPage() {
         totalDomicilios,
         totalNeto,
         totalGastos,
+        layawaySummary,
         efectivoCierre,
         totalEfectivoPagado,
         totalTransferenciaPagado,
@@ -36,6 +37,7 @@ export default function CloseSalesPage() {
         openExpensesModal,
         closeExpensesModal,
         sellByWeight,
+        showDelivery,
         hasActiveOrders,
         activeOrdersCount,
         isLoading,
@@ -95,10 +97,11 @@ export default function CloseSalesPage() {
                 efectivoInicio={efectivoInicio}
                 totalDomicilios={totalDomicilios}
                 totalGastos={totalGastos}
+                layawaySummary={layawaySummary}
                 onViewExpenses={openExpensesModal}
             />
 
-            <CloseSalesTotalBanner total={totalEnCaja} />
+            <CloseSalesTotalBanner total={totalEnCaja} showDelivery={showDelivery} />
             
             {sellByWeight && can("viewSales") && (
                 <CloseSalesCategoryReportWidget onOpen={categoryModal.open} />

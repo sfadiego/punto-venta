@@ -55,8 +55,14 @@ class OrderModel extends Model
 
     const CREDIT_APPLIED_AT = 'credit_applied_at';
 
+    const AMOUNT_PAID = 'amount_paid';
+
+    const LAYAWAY_DUE_DATE = 'layaway_due_date';
+
     protected $casts = [
         self::IS_CREDIT => 'boolean',
+        self::AMOUNT_PAID => 'float',
+        self::LAYAWAY_DUE_DATE => 'date:Y-m-d',
     ];
 
     public static $ALLOWED_UPDATE = [
@@ -83,6 +89,8 @@ class OrderModel extends Model
         self::PAYMENT_METHOD_ID,
         self::CUSTOMER_ID,
         self::IS_CREDIT,
+        self::AMOUNT_PAID,
+        self::LAYAWAY_DUE_DATE,
     ];
 
     public function paymentMethod(): BelongsTo
@@ -93,6 +101,13 @@ class OrderModel extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(CustomerModel::class, self::CUSTOMER_ID);
+    }
+
+    public function layawayPayments(): HasMany
+    {
+        return $this->hasMany(OrderLayawayPaymentModel::class, OrderLayawayPaymentModel::ORDER_ID)
+            ->orderBy('created_at')
+            ->orderBy('id');
     }
 
     public function sistema(): BelongsTo

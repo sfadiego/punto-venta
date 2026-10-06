@@ -6,6 +6,7 @@ use App\Enums\IconSourceEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BusinessConfigUpdateRequest;
 use App\Models\AppSettingModel;
+use App\Models\BusinessConfigModel;
 use App\Models\ProductImageModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -50,6 +51,13 @@ class BusinessConfigController extends Controller
             'costo_domicilio_default' => $request->costo_domicilio_default ?? 0,
             'menu_enabled' => $request->boolean('menu_enabled'),
         ]);
+
+        // Opcionales: solo se tocan si vienen en la request, para no pisar el valor guardado
+        // cuando otra sección del panel guarda sin enviarlos.
+        $tenant->update(array_filter([
+            BusinessConfigModel::LAYAWAY_MIN_PERCENT => $request->input('layaway_min_percent'),
+            BusinessConfigModel::LAYAWAY_DAYS => $request->input('layaway_days'),
+        ], fn ($value) => $value !== null));
 
         return Response::success($tenant->fresh());
     }

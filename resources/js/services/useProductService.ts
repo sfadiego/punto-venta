@@ -163,3 +163,12 @@ export const useAdjustProductStock = () => {
         }) => axiosPOST(axiosApi, { url: `${adminUrl}/${productId}/stock-adjustment`, data }),
     });
 };
+
+// Descarga del catálogo completo en CSV (solo retail) — reporte informativo, no es el formato de
+// importación. Ver ProductExportService.
+export const useExportProductCatalog = () => {
+    const { axiosApi } = useAxios();
+
+    return (): Promise<Blob> =>
+        axiosGET(axiosApi, { url: `${url}/export`, responseType: "blob" });
+};

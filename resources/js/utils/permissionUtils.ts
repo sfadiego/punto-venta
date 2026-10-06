@@ -23,7 +23,8 @@ export type Action =
     | "viewEmployees"
     | "registerExpense"
     | "manageStock"
-    | "manageBranches";
+    | "manageBranches"
+    | "layaway";
 
 export const ALL_ACTIONS: Action[] = [
     "viewDashboard",
@@ -48,6 +49,7 @@ export const ALL_ACTIONS: Action[] = [
     "registerExpense",
     "manageStock",
     "manageBranches",
+    "layaway",
 ];
 
 export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
@@ -74,6 +76,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "registerExpense",
         "manageStock",
         "manageBranches",
+        "layaway",
     ]),
     [RoleEnum.Employe]: new Set<Action>([
         "viewDashboard",
@@ -84,6 +87,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "printTicket",
         "kitchenView",
         "payOrder",
+        "layaway",
     ]),
     [RoleEnum.Cocina]: new Set<Action>([
         "viewDashboard",
@@ -97,6 +101,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "payOrder",
         "printTicket",
         "registerExpense",
+        "layaway",
     ]),
 };
 
@@ -129,6 +134,7 @@ export const PERMISSION_LABELS: Record<Action, string> = {
     registerExpense: "Registrar gastos",
     manageStock: "Administrar inventario",
     manageBranches: "Administrar sucursales",
+    layaway: "Gestionar apartados",
 };
 
 // Acciones cuya aplicabilidad depende del tipo de negocio (features), no del rol.
@@ -138,9 +144,11 @@ export const PERMISSION_LABELS: Record<Action, string> = {
 // RestaurantPayModal y CloseSalesPage, que combinan este permiso con esa bandera).
 // "manageStock" gatea la página de Inventario, exclusiva de negocios retail (features.is_retail);
 // venta por peso y restaurante siguen usando el acceso rápido de stock dentro de Productos.
+// "layaway" (apartados) también es exclusivo de retail.
 export const isActionApplicable = (action: Action, features?: IBusinessFeatures | null): boolean => {
     if (action === "kitchenView" && features?.kitchen_view === false) return false;
     if (action === "manageStock" && features?.is_retail !== true) return false;
+    if (action === "layaway" && features?.is_retail !== true) return false;
     return true;
 };
 

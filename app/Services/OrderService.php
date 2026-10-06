@@ -58,11 +58,17 @@ class OrderService extends DataTable
             // El buscador de la sesión actual ignora el filtro de estatus activo y busca
             // tanto en órdenes activas como cerradas — el usuario decide el alcance con el
             // texto, no con los botones de filtro.
-            $query->whereIn(OrderModel::ESTATUS_PEDIDO_ID, [
-                OrderStatusEnum::IN_PROCESS->value,
-                OrderStatusEnum::SERVED->value,
-                OrderStatusEnum::CLOSED->value,
-            ])->where(function (Builder $q) use ($search) {
+            // Excepción: el tab de Apartados (estatus = solo Apartado) busca únicamente entre
+            // apartados — de lo contrario buscar un cliente ahí traería ventas normales.
+            $onlyLayaways = $rawEstatus !== null
+                && array_map('intval', explode(',', $rawEstatus)) === [OrderStatusEnum::LAYAWAY->value];
+
+            $query->whereIn(
+                OrderModel::ESTATUS_PEDIDO_ID,
+                $onlyLayaways
+                    ? [OrderStatusEnum::LAYAWAY->value]
+                    : [OrderStatusEnum::IN_PROCESS->value, OrderStatusEnum::SERVED->value, OrderStatusEnum::CLOSED->value]
+            )->where(function (Builder $q) use ($search) {
                 $q->where(OrderModel::NOMBRE_PEDIDO, 'like', "%{$search}%")
                     ->orWhere('id', 'like', "%{$search}%")
                     ->orWhereHas('customer', function (Builder $c) use ($search) {

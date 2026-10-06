@@ -20,12 +20,19 @@ export interface IPaymentMethodTotal {
     propina: number;
 }
 
+export interface ILayawaySummary {
+    abonos: number;
+    reembolsos: number;
+    neto: number;
+}
+
 export interface ITotalCurrentSale {
     bruto: number;
     domicilios: number;
     neto: number;
     propinas: number;
     gastos: number;
+    apartados: ILayawaySummary;
     by_payment_method: IPaymentMethodTotal[];
 }
 

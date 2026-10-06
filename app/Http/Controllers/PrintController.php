@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\OrderModel;
 use App\Printer\Connectors\BufferConnector;
+use App\Printer\Data\LayawayTicketData;
 use App\Printer\Data\TestTicketData;
 use App\Printer\Data\VentaTicketData;
+use App\Printer\Dto\TicketDataInterface;
 use App\Printer\Factory\PrinterServiceFactory;
+use App\Printer\Formatters\LayawayFormatter;
 use App\Printer\Formatters\TestTicketFormatter;
 use App\Printer\Formatters\VentaFormatter;
+use App\Printer\Interface\TicketFormatterInterface;
 use App\Printer\Service\PrinterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,8 +25,9 @@ class PrintController extends Controller
     {
         try {
             $tenant = $request->user()->tenant;
-            $service = PrinterServiceFactory::make(new VentaFormatter, $tenant);
-            $service->printTicket(new VentaTicketData($order));
+            [$formatter, $ticketData] = $this->ticketFor($order);
+            $service = PrinterServiceFactory::make($formatter, $tenant);
+            $service->printTicket($ticketData);
 
             return Response::success($order, 'Impresión enviada');
         } catch (\Throwable $th) {
@@ -60,9 +65,10 @@ class PrintController extends Controller
     {
         try {
             $tenant = $request->user()->tenant;
+            [$formatter, $ticketData] = $this->ticketFor($order);
             $connector = new BufferConnector($tenant);
-            $service = new PrinterService($connector, new VentaFormatter);
-            $service->printTicket(new VentaTicketData($order));
+            $service = new PrinterService($connector, $formatter);
+            $service->printTicket($ticketData);
 
             $bytes = $connector->getBytes();
 
@@ -73,6 +79,21 @@ class PrintController extends Controller
         } catch (\Throwable $th) {
             return $this->printFailure($th, 'raw-bytes');
         }
+    }
+
+    /**
+     * Una orden que pasó por un apartado (activo, liquidado o cancelado) imprime el comprobante de
+     * apartado — abonos y saldo incluidos —; cualquier otra, el ticket de venta normal.
+     *
+     * @return array{0: TicketFormatterInterface, 1: TicketDataInterface}
+     */
+    private function ticketFor(OrderModel $order): array
+    {
+        if ($order->layawayPayments()->exists()) {
+            return [new LayawayFormatter, new LayawayTicketData($order)];
+        }
+
+        return [new VentaFormatter, new VentaTicketData($order)];
     }
 
     /**

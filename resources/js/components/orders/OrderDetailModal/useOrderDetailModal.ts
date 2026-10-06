@@ -12,6 +12,7 @@ export const useOrderDetailModal = () => {
         isOpen: !!order,
         order,
         orderProducts: orderDetail?.order_products ?? [],
+        layawayPayments: orderDetail?.layaway_payments ?? [],
         isLoadingProducts,
         open: (o: IOrder) => setOrder(o),
         close: () => setOrder(null),

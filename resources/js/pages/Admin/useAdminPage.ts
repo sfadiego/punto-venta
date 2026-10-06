@@ -8,9 +8,10 @@ export const useAdminPage = () => {
     const { features } = useAxios();
     const { hasRole } = usePermissions();
     const sellByWeight = features?.sell_by_weight ?? false;
+    const isRetail = features?.is_retail === true;
     // Solo Admin puede editar la configuración del negocio. Un rol con permiso
     // "viewAdmin" otorgado ve la sección en modo de solo lectura.
     const isReadOnly = !hasRole(RoleEnum.Admin);
 
-    return { config, isLoading, sellByWeight, isReadOnly };
+    return { config, isLoading, sellByWeight, isRetail, isReadOnly };
 };

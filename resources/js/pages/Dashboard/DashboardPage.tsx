@@ -1,5 +1,6 @@
 import { Widget } from "@/components/dashboard/widgets/Widget";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
+import { LayawayDueAlert } from "./partials/LayawayDueAlert/LayawayDueAlert";
 import {
     Award, ShoppingCart, Package, Landmark,
     Lock, Unlock, LucideIcon,
@@ -101,6 +102,7 @@ export default function DashboardPage() {
             </div>
 
             <SubscriptionBanner />
+            <LayawayDueAlert />
             {sistemaId && can("managePendingOrders") && <PendingOrdersSection />}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
                 {stats.map((stat) => (

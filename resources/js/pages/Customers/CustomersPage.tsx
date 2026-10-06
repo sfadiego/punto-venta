@@ -4,14 +4,18 @@ import { Plus, RefreshCw, Search } from "lucide-react";
 import { ICustomer } from "@/models/ICustomer";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { Input } from "@/components/ui/form/Input";
+import { useAxios } from "@/hooks/useAxios";
 import { useCustomersPage } from "./useCustomersPage";
 import { AddCustomerModal } from "./partials/CustomerModals/AddCustomerModal";
 import { useAddCustomerModal } from "./partials/CustomerModals/useAddCustomerModal";
 import { EditCustomerModal } from "./partials/CustomerModals/EditCustomerModal";
 import { useEditCustomerModal } from "./partials/CustomerModals/useEditCustomerModal";
 import { CustomerTableActions } from "./partials/CustomerTableActions";
+import { CustomerLayawayBadge } from "./partials/CustomerLayawayBadge";
 
 export default function CustomersPage() {
+    const { features } = useAxios();
+    const showLayaways = features?.is_retail === true;
     const {
         customers,
         total,
@@ -67,6 +71,16 @@ export default function CustomersPage() {
                     </span>
                 ),
             },
+            ...(showLayaways
+                ? [
+                      {
+                          accessor: "layaway_count",
+                          title: "Apartados",
+                          width: 140,
+                          render: (customer: ICustomer) => <CustomerLayawayBadge customer={customer} />,
+                      } as DataTableColumn<ICustomer>,
+                  ]
+                : []),
             {
                 accessor: "allow_credit",
                 title: "Crédito",
@@ -90,7 +104,7 @@ export default function CustomersPage() {
                 ),
             },
         ],
-        [setEditingCustomer],
+        [setEditingCustomer, showLayaways],
     );
 
     return (

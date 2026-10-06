@@ -60,10 +60,18 @@ export function SidebarNav({ onItemClick }: SidebarNavProps) {
                         )}
 
                         {item.path === "/sales" && inventoryEnabled && (
-                            <SidebarNavItem
-                                item={{ label: "Inventario", icon: Boxes, path: "/inventory", permission: "manageStock" }}
-                                onClick={onItemClick}
-                            />
+                            <FeatureSpotlight
+                                featureKey={FeatureSpotlightKey.InventorySection}
+                                title="Sección de Inventario"
+                                description="Descubre la nueva sección de inventario, donde podrás consultar el kardex de movimientos, reajustar el stock y registrar devoluciones."
+                                variant="block"
+                                placement="right-start"
+                            >
+                                <SidebarNavItem
+                                    item={{ label: "Inventario", icon: Boxes, path: "/inventory", permission: "manageStock" }}
+                                    onClick={onItemClick}
+                                />
+                            </FeatureSpotlight>
                         )}
                     </Fragment>
                 ))}

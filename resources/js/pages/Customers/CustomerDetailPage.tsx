@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { RoleEnum } from "@/enums/RoleEnum";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAxios } from "@/hooks/useAxios";
 import { useCustomerDetailPage } from "./useCustomerDetailPage";
 import { CustomerBalanceCard } from "./partials/CustomerBalanceCard";
 import { CustomerPaymentForm } from "./partials/Payment/CustomerPaymentForm";
@@ -10,6 +11,7 @@ import { CustomerChargeModal } from "./partials/Charge/CustomerChargeModal";
 import { CustomerCreditOrdersList } from "./partials/CustomerCreditOrdersList";
 import { CustomerPaymentHistoryList } from "./partials/Payment/CustomerPaymentHistoryList";
 import { CustomerChargeHistoryList } from "./partials/Charge/CustomerChargeHistoryList";
+import { CustomerLayawayList } from "./partials/Layaway/CustomerLayawayList";
 import { OrderDetailModal } from "@/components/orders/OrderDetailModal/OrderDetailModal";
 import { useOrderDetailModal } from "@/components/orders/OrderDetailModal/useOrderDetailModal";
 
@@ -18,6 +20,7 @@ export default function CustomerDetailPage() {
     const { id } = useParams<{ id: string }>();
     const customerId = Number(id);
     const { hasRole } = usePermissions();
+    const { features } = useAxios();
     const isAdmin = hasRole(RoleEnum.Admin);
 
     const {
@@ -79,12 +82,16 @@ export default function CustomerDetailPage() {
                 <CustomerCreditOrdersList orders={customer.credit_orders} onViewOrder={orderDetailModal.open} />
                 <CustomerPaymentHistoryList payments={customer.payments} />
                 <CustomerChargeHistoryList charges={customer.charges} />
+                {features?.is_retail === true && (
+                    <CustomerLayawayList orders={customer.layaway_orders} onViewOrder={orderDetailModal.open} />
+                )}
             </div>
 
             <OrderDetailModal
                 isOpen={orderDetailModal.isOpen}
                 order={orderDetailModal.order}
                 orderProducts={orderDetailModal.orderProducts}
+                layawayPayments={orderDetailModal.layawayPayments}
                 isLoadingProducts={orderDetailModal.isLoadingProducts}
                 onClose={orderDetailModal.close}
             />

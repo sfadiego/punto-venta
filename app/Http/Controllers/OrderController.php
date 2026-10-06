@@ -97,6 +97,8 @@ class OrderController extends Controller
                 ->latest(),
             'paymentMethod:id,name',
             'customer:id,name,phone',
+            // Historial de abonos/reembolsos — vacío salvo en apartados.
+            'layawayPayments.paymentMethod:id,name',
         ]));
     }
 
@@ -111,6 +113,12 @@ class OrderController extends Controller
         // Devolución (OrderProductController::returnStock), que sí restaura stock con auditoría.
         if ($order->estatus_pedido_id === OrderStatusEnum::CLOSED->value) {
             return Response::error('No se puede eliminar una orden ya cerrada. Usa Devolución para revertir productos vendidos.');
+        }
+
+        // Un apartado ya descontó stock y puede tener dinero abonado — se cancela con
+        // POST /order/{order}/layaway/cancel (restituye stock y reembolsa), no borrándolo.
+        if ($order->estatus_pedido_id === OrderStatusEnum::LAYAWAY->value) {
+            return Response::error('No se puede eliminar un apartado. Cancélalo para devolver el stock y reembolsar los abonos.');
         }
 
         if (! $order->loadMissing('sistema')->isAccessibleByUser(auth()->user())) {

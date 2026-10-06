@@ -15,11 +15,11 @@ class VentaFormatter implements TicketFormatterInterface
         '80' => 48,
     ];
 
-    private int $width;
+    protected int $width;
 
-    private int $colName; // nombre del producto
+    protected int $colName; // nombre del producto
 
-    private int $colTotal; // total (right-aligned, incluye $)
+    protected int $colTotal; // total (right-aligned, incluye $)
 
     public function format(TicketDataInterface $data, Printer $printer): void
     {
@@ -39,6 +39,7 @@ class VentaFormatter implements TicketFormatterInterface
         $printer->feed(1);
         $printer->text($d['fecha_string'].'  '.$d['hora']."\n");
         $printer->feed(1);
+        $this->headerExtra($printer, $d);
         $printer->text($this->line('=')."\n");
 
         // ─── Info del pedido ──────────────────────────────────
@@ -97,6 +98,8 @@ class VentaFormatter implements TicketFormatterInterface
             $printer->text($this->totalRow('Propina 10%:', '$'.number_format($propina, 2))."\n");
         }
 
+        $this->afterTotals($printer, $d);
+
         // ─── Pie del ticket ───────────────────────────────────
         $printer->feed(1);
         $printer->text($this->line('=')."\n");
@@ -133,9 +136,17 @@ class VentaFormatter implements TicketFormatterInterface
         return self::CHARS_PER_PAPER_WIDTH[$paperWidth ?? '58'] ?? 32;
     }
 
+    // ─── Ganchos para tickets derivados (ej. apartados) ───────
+
+    /** Se imprime bajo la fecha, antes del detalle del pedido. Vacío por defecto. */
+    protected function headerExtra(Printer $printer, array $d): void {}
+
+    /** Se imprime tras los totales, antes del pie del ticket. Vacío por defecto. */
+    protected function afterTotals(Printer $printer, array $d): void {}
+
     // ─── Helpers ──────────────────────────────────────────────
 
-    private function line(string $char): string
+    protected function line(string $char): string
     {
         return str_repeat($char, $this->width);
     }
@@ -227,7 +238,7 @@ class VentaFormatter implements TicketFormatterInterface
     /**
      * Fila de total: label a la izquierda, valor a la derecha (ancho según el papel).
      */
-    private function totalRow(string $label, string $value): string
+    protected function totalRow(string $label, string $value): string
     {
         $valueLen = strlen($value);
         $labelLen = $this->width - $valueLen;

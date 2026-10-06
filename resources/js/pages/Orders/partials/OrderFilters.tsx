@@ -11,6 +11,8 @@ const BASE_STATUS_OPTIONS = [
 interface OrderFiltersProps {
     estatusId: string;
     showOrderServed?: boolean;
+    /** Apartados (solo retail con permiso `layaway`): agrega el filtro "Apartados". */
+    showLayaways?: boolean;
     onEstatusChange: (value: string) => void;
     onClear: () => void;
 }
@@ -18,6 +20,7 @@ interface OrderFiltersProps {
 export const OrderFilters = ({
     estatusId,
     showOrderServed = true,
+    showLayaways = false,
     onEstatusChange,
     onClear,
 }: OrderFiltersProps) => {
@@ -28,6 +31,7 @@ export const OrderFilters = ({
             (!o.orderServedOnly || showOrderServed) &&
             (!o.hideWhenNoServed || showOrderServed)
         ),
+        ...(showLayaways ? [{ value: String(OrderStatusEnum.Layaway), label: "Apartados", dot: "bg-purple-400" }] : []),
     ];
     const hasActiveFilters = estatusId !== activeStatuses;
 

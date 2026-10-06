@@ -5,6 +5,8 @@ import { useAxios } from "@/hooks/useAxios";
 export const useCloseSalesSummary = () => {
     const { features, branchId } = useAxios();
     const sellByWeight = features?.sell_by_weight === true;
+    // `features` guardadas antes de show_delivery no traen la clave — siguen viendo el domicilio.
+    const showDelivery = features?.show_delivery !== false;
 
     // Sin branchId, getActiveSale() resuelve la PRIMERA caja abierta del tenant sin
     // importar sucursal — con 2+ sucursales activas, el usuario podría terminar cerrando
@@ -22,6 +24,7 @@ export const useCloseSalesSummary = () => {
     const totalPropinas       = totales?.propinas   ?? 0;
     const totalGastos         = totales?.gastos     ?? 0;
     const byPaymentMethod     = totales?.by_payment_method ?? [];
+    const layawaySummary      = totales?.apartados ?? { abonos: 0, reembolsos: 0, neto: 0 };
 
     const totalEfectivoPagado     = byPaymentMethod
         .filter((m) => m.name.toLowerCase().includes("efectivo"))
@@ -62,7 +65,9 @@ export const useCloseSalesSummary = () => {
         totalPropinasTarjeta,
         totalPropinaEfectivo,
         byPaymentMethod,
+        layawaySummary,
         sellByWeight,
+        showDelivery,
         isLoading: loadingSale || loadingTotal,
     };
 };

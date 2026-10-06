@@ -52,7 +52,12 @@ class CustomersController extends Controller
 
     public function show(CustomerModel $customer): JsonResponse
     {
-        return Response::success($customer->load(['creditOrders', 'payments', 'charges']));
+        return Response::success($customer->load([
+            'creditOrders',
+            'payments',
+            'charges',
+            'layawayOrders.layawayPayments.paymentMethod:id,name',
+        ]));
     }
 
     public function update(CustomerModel $customer, CustomerUpdateRequest $params): JsonResponse

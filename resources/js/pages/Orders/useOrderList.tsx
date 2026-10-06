@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAxios } from "@/hooks/useAxios";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useDataTable, DataTableRenderersMap } from "@/hooks/useDatatable";
 import { useIndexOrder } from "@/services/useOrderService";
+import { useLayawaySummary } from "@/services/useLayawayService";
 import { IOrder } from "@/models/IOrder";
 import { getStatusStyle, getStatusLabel, getActiveStatuses } from "@/utils/orderStatus";
 import { formatOrderTime } from "@/utils/dateUtils";
@@ -13,6 +16,7 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { PaymentOrCreditBadge } from "@/components/orders/PaymentOrCreditBadge";
 import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
+import { layawayColumns } from "./partials/Layaway/layawayColumns";
 
 const renderersMap: DataTableRenderersMap = {
     nombre_pedido: (o: IOrder) => (
@@ -58,7 +62,8 @@ const ventaPorPesoActionsColumn: DataTableColumn<IOrder> = {
 };
 
 export const useOrderList = () => {
-    const { sistemaId, features } = useAxios();
+    const { sistemaId, features, branchId } = useAxios();
+    const { can } = usePermissions();
     const showOrderServed = features?.order_served !== false;
     const sellByWeight = features?.sell_by_weight === true;
     // "Pedidos" aplica a venta por peso y Retail (ambos sin kitchen_view); "Órdenes" solo a
@@ -70,15 +75,27 @@ export const useOrderList = () => {
         ? String(OrderStatusEnum.InProcess)
         : getActiveStatuses(showOrderServed);
 
-    const [estatusId, setEstatusId] = useState<string>(defaultStatuses);
+    const showLayaways = isRetail && can("layaway");
+
+    // Los avisos del dashboard enlazan a /orders?estatus=7 para abrir directo el tab Apartados.
+    const [searchParams] = useSearchParams();
+    const requestedEstatus = searchParams.get("estatus");
+    const initialEstatus =
+        showLayaways && requestedEstatus === String(OrderStatusEnum.Layaway) ? requestedEstatus : defaultStatuses;
+    const [estatusId, setEstatusId] = useState<string>(initialEstatus);
     const [search, setSearch] = useState("");
+    const showingLayaways = showLayaways && estatusId === String(OrderStatusEnum.Layaway);
+    const { data: layawaySummary } = useLayawaySummary(branchId, showingLayaways);
 
     const { dataTableProps, isLoading, isFetching, refetch, setPage } = useDataTable({
         service: useIndexOrder,
         payload: {
-            sistema_id: sistemaId,
+            // Los apartados duran más que una sesión de caja: se listan todos, no solo los de la
+            // sesión actual (acotados a la sucursal activa cuando hay sucursales).
+            sistema_id: showingLayaways ? undefined : sistemaId,
             estatus_pedido_id: estatusId,
             search,
+            ...(showingLayaways && branchId ? { branch_id: branchId } : {}),
         },
         renderersMap,
     });
@@ -88,8 +105,9 @@ export const useOrderList = () => {
     const enhancedDataTableProps = useMemo(
         () => ({
             ...dataTableProps,
-            columns:
-                dataTableProps.columns.length > 0
+            columns: showingLayaways
+                ? layawayColumns
+                : dataTableProps.columns.length > 0
                     ? ([
                           ...dataTableProps.columns.filter((col) => {
                               const accessor = col.accessor as string;
@@ -101,7 +119,7 @@ export const useOrderList = () => {
                       ] as DataTableColumn<IOrder>[])
                     : [],
         }),
-        [dataTableProps, sellByWeight, showingClosed],
+        [dataTableProps, sellByWeight, showingClosed, showingLayaways],
     );
 
     const handleEstatusChange = (value: string) => {
@@ -132,6 +150,9 @@ export const useOrderList = () => {
         sellByWeight,
         kitchenView,
         isRetail,
+        showLayaways,
+        showingLayaways,
+        layawaySummary,
         handleEstatusChange,
         handleSearchChange,
         handleClearFilters,

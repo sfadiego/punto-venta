@@ -1,6 +1,8 @@
 import { Modal } from "@mantine/core";
 import { IOrder } from "@/models/IOrder";
 import { IOrderProduct } from "@/models/IOrderProduct";
+import { ILayawayPayment } from "@/models/ILayaway";
+import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { Receipt, Landmark } from "lucide-react";
 import { OrderDeliveryBadge } from "@/components/orders/OrderDeliveryBadge";
 import { getStatusStyle, getStatusLabel } from "@/utils/orderStatus";
@@ -9,11 +11,14 @@ import { PrintTicketButton } from "@/components/orders/PrintTicket/PrintTicketBu
 import { PaymentOrCreditBadge } from "@/components/orders/PaymentOrCreditBadge";
 import { OrderProductsList } from "./OrderProductsList";
 import { OrderReturnsList } from "./OrderReturnsList";
+import { LayawayOrderSection } from "@/components/orders/Layaway/LayawayOrderSection";
 
 interface OrderDetailModalProps {
     isOpen: boolean;
     order: IOrder | null;
     orderProducts: IOrderProduct[];
+    /** Historial de abonos — solo aplica a apartados (liquidados, cancelados o activos). */
+    layawayPayments?: ILayawayPayment[];
     isLoadingProducts: boolean;
     onClose: () => void;
 }
@@ -27,7 +32,9 @@ const formatDate = (dateStr: string) =>
         minute: "2-digit",
     });
 
-export const OrderDetailModal = ({ isOpen, order, orderProducts, isLoadingProducts, onClose }: OrderDetailModalProps) => {
+export const OrderDetailModal = ({ isOpen, order, orderProducts, layawayPayments = [], isLoadingProducts, onClose }: OrderDetailModalProps) => {
+    const isLayaway = order?.estatus_pedido_id === OrderStatusEnum.Layaway || layawayPayments.length > 0;
+
     return (
         <Modal
             opened={isOpen}
@@ -38,7 +45,7 @@ export const OrderDetailModal = ({ isOpen, order, orderProducts, isLoadingProduc
                     <span className="font-semibold text-stone-800">Detalle de orden</span>
                 </div>
             }
-            size="sm"
+            size={isLayaway ? "lg" : "sm"}
             radius="lg"
             padding="lg"
         >
@@ -75,6 +82,8 @@ export const OrderDetailModal = ({ isOpen, order, orderProducts, isLoadingProduc
                     <OrderProductsList isLoading={isLoadingProducts} orderProducts={orderProducts} />
 
                     {order.has_return && <OrderReturnsList orderProducts={orderProducts} />}
+
+                    {isLayaway && <LayawayOrderSection order={order} payments={layawayPayments} />}
 
                     {/* Totals */}
                     <div className="bg-stone-50 rounded-2xl border border-stone-100 p-4 space-y-3">
