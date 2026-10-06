@@ -3,6 +3,8 @@ import { ICartItem } from "@/models/ICartItem";
 import { getAvailableStock } from "@/utils/stock";
 import { formatMoney } from "@/utils/formatCurrency";
 import { CartItemNote } from "./CartItemNote";
+import { CartItemAddons } from "./CartItemAddons";
+import { IAddonSelection } from "@/models/IAddon";
 import { useCartItemRow } from "./useCartItemRow";
 
 interface CartItemRowProps {
@@ -12,6 +14,7 @@ interface CartItemRowProps {
     onUpdate: (orderProductId: number, delta: number) => void;
     onRemove: (orderProductId: number) => void;
     onNote: (orderProductId: number, note: string) => Promise<void>;
+    onEditAddons: (orderProductId: number, addons: IAddonSelection[]) => Promise<void>;
     onUpdateProductDiscount: (
         orderProductId: number,
         descuento: number,
@@ -25,6 +28,7 @@ export const CartItemRow = ({
     onUpdate,
     onRemove,
     onNote,
+    onEditAddons,
     onUpdateProductDiscount,
 }: CartItemRowProps) => {
     const {
@@ -33,6 +37,7 @@ export const CartItemRow = ({
         discountInput,
         setDiscountInput,
         discountInputRef,
+        unitPrice,
         itemTotal,
         canDiscount,
         applyProductDiscount,
@@ -68,17 +73,23 @@ export const CartItemRow = ({
                             </span>
                         )}
                     </div>
+                    <CartItemAddons
+                        item={item}
+                        isReadOnly={isReadOnly}
+                        isPending={isPending}
+                        onEdit={onEditAddons}
+                    />
                     <div className="flex items-center gap-1.5 mt-0.5">
                         <p
                             className={`text-xs tabular-nums ${item.descuento > 0 ? "line-through text-stone-300" : "text-stone-400"}`}
                         >
-                            ${formatMoney(item.price)} c/u
+                            ${formatMoney(unitPrice)} c/u
                         </p>
                         {item.descuento > 0 && (
                             <p className="text-xs text-emerald-600 tabular-nums">
                                 $
                                 {formatMoney(
-                                    item.price * (1 - item.descuento / 100),
+                                    unitPrice * (1 - item.descuento / 100),
                                 )}{" "}
                                 c/u
                             </p>

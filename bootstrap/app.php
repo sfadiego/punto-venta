@@ -6,6 +6,7 @@ use App\Http\Middleware\CheckSubscription;
 use App\Http\Middleware\ErrorReporting;
 use App\Http\Middleware\PermissionMiddleware;
 use App\Http\Middleware\ResolveTenant;
+use App\Http\Middleware\RestaurantAddonsMiddleware;
 use App\Http\Middleware\RetailStockMiddleware;
 use App\Http\Middleware\TransactionMiddleware;
 use Illuminate\Auth\AuthenticationException;
@@ -34,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role.admin' => AdminOnlyMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'retail.stock' => RetailStockMiddleware::class,
+            'restaurant.addons' => RestaurantAddonsMiddleware::class,
         ]);
         // ResolveTenant asigna app('tenant_id'), usado por TenantScope para filtrar modelos
         // tenant-scoped. Debe correr ANTES de SubstituteBindings — de lo contrario, el binding

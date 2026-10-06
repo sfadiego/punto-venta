@@ -11,6 +11,12 @@ export interface IAddon {
     updated_at?: string;
 }
 
+/** Topping elegido al agregar un producto a la orden (lo que se envía al backend). */
+export interface IAddonSelection {
+    addon_id: number;
+    quantity: number;
+}
+
 export interface IAddonFormPayload {
     name: string;
     price?: number;

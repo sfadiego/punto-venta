@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesOrderProductAddons;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
@@ -11,6 +12,8 @@ use Illuminate\Validation\Validator;
 
 class OrderProductUpdateRequest extends FormRequest
 {
+    use ValidatesOrderProductAddons;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -37,12 +40,27 @@ class OrderProductUpdateRequest extends FormRequest
                 Rule::exists('product_variants', 'id')->where('tenant_id', $tenantId),
             ],
             OrderProductModel::OBSERVACION => 'nullable|string|max:200',
+            ...$this->addonRules(),
         ];
+    }
+
+    public function messages(): array
+    {
+        return $this->addonMessages();
     }
 
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
+            if ($this->has('addons')) {
+                $line = OrderProductModel::find($this->route('product'));
+                if ($line) {
+                    $this->validateAddonSelections($validator, [
+                        '' => ['producto_id' => $line->producto_id, 'addons' => $this->input('addons')],
+                    ]);
+                }
+            }
+
             if (! isset($this->cantidad)) {
                 return;
             }

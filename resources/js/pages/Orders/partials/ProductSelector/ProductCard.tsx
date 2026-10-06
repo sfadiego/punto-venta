@@ -3,6 +3,8 @@ import { ICartItem } from "@/models/ICartItem";
 import { IProduct } from "@/models/IProduct";
 import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { VariantPickerModal } from "@/components/orders/VariantPickerModal/VariantPickerModal";
+import { AddonPickerModal } from "@/components/orders/AddonPickerModal/AddonPickerModal";
+import { IAddonSelection } from "@/models/IAddon";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { useProductCard } from "./useProductCard";
 
@@ -23,6 +25,7 @@ interface ProductCardProps {
         price: number,
         variantId?: number | null,
         variantName?: string | null,
+        addons?: IAddonSelection[],
     ) => void | Promise<void>;
     onUpdateQuantity: (orderProductId: number, delta: number) => void;
 }
@@ -45,6 +48,12 @@ export const ProductCard = ({
         handleRemoveVariant,
         stockExhausted,
         variantOptions,
+        activeAddons,
+        isAddonPickerOpen,
+        closeAddonPicker,
+        handleConfirmAddons,
+        addonPickerTitle,
+        addonPickerBasePrice,
     } = useProductCard(product, cart, onAdd, onUpdateQuantity);
     const disabled = isReadOnly || isPending || stockExhausted;
     const inCart = quantityInCart > 0;
@@ -131,6 +140,15 @@ export const ProductCard = ({
                 onAdd={handleAddVariant}
                 onRemove={handleRemoveVariant}
                 onClose={closePicker}
+            />
+
+            <AddonPickerModal
+                isOpen={isAddonPickerOpen}
+                title={addonPickerTitle}
+                basePrice={addonPickerBasePrice}
+                addons={activeAddons}
+                onConfirm={handleConfirmAddons}
+                onClose={closeAddonPicker}
             />
         </>
     );

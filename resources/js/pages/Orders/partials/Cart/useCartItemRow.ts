@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ICartItem } from "@/models/ICartItem";
+import { getCartItemUnitPrice } from "@/utils/cartAddons";
 
 export const useCartItemRow = (
     item: ICartItem,
@@ -12,7 +13,9 @@ export const useCartItemRow = (
     const [discountInput, setDiscountInput] = useState("");
     const discountInputRef = useRef<HTMLInputElement>(null);
 
-    const itemTotal = item.price * item.quantity * (1 - item.descuento / 100);
+    // El total de la línea incluye sus toppings: la cantidad y el descuento los multiplican igual que al producto.
+    const unitPrice = getCartItemUnitPrice(item);
+    const itemTotal = unitPrice * item.quantity * (1 - item.descuento / 100);
     const canDiscount = !item.isExtra && item.id !== null;
 
     useEffect(() => {
@@ -47,6 +50,7 @@ export const useCartItemRow = (
         discountInput,
         setDiscountInput,
         discountInputRef,
+        unitPrice,
         itemTotal,
         canDiscount,
         applyProductDiscount,

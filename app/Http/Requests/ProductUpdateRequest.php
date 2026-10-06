@@ -6,6 +6,7 @@ use App\Enums\IconSourceEnum;
 use App\Enums\UnidadMedidaEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\ProductModel;
+use App\Rules\AddonsEnabledForTenant;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -81,7 +82,7 @@ class ProductUpdateRequest extends FormRequest
                 Rule::exists('branches', 'id')->where('tenant_id', $tenantId)->where('active', true),
             ],
             // Complementos (toppings/extras) aplicables al producto; vacío = ninguno.
-            'addon_ids' => ['nullable', 'array'],
+            'addon_ids' => ['nullable', 'array', new AddonsEnabledForTenant],
             'addon_ids.*' => [
                 'integer',
                 Rule::exists('addons', 'id')->where('tenant_id', $tenantId)->whereNull('deleted_at'),

@@ -1,6 +1,7 @@
 import { Loader } from "lucide-react";
 import { IOrder } from "@/models/IOrder";
 import { ICartItem } from "@/models/ICartItem";
+import { IAddonSelection } from "@/models/IAddon";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 import { usePayModal } from "./usePayModal";
 import { RestaurantPayModal } from "@/components/orders/PayOrder/RestaurantPayModal";
@@ -31,6 +32,7 @@ interface CartPanelProps {
     onUpdate: (orderProductId: number, delta: number) => void;
     onRemove: (orderProductId: number) => void;
     onNote: (orderProductId: number, note: string) => Promise<void>;
+    onEditAddons: (orderProductId: number, addons: IAddonSelection[]) => Promise<void>;
     onClear: () => void;
     isClearingCart?: boolean;
     onUpdateDiscount: (descuento: number) => Promise<void>;
@@ -62,6 +64,7 @@ export const CartPanel = ({
     onUpdate,
     onRemove,
     onNote,
+    onEditAddons,
     onClear,
     isClearingCart = false,
     onUpdateDiscount,
@@ -141,6 +144,7 @@ export const CartPanel = ({
                                     onUpdate={onUpdate}
                                     onRemove={onRemove}
                                     onNote={onNote}
+                                    onEditAddons={onEditAddons}
                                     onUpdateProductDiscount={
                                         onUpdateProductDiscount
                                     }

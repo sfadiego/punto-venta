@@ -1,6 +1,7 @@
 import { IProduct } from "./IProduct";
 import { IProductVariant } from "./IProductVariant";
 import { IStockMovement } from "./IStockMovement";
+import { IOrderProductAddon } from "./IOrderProductAddon";
 
 export interface IOrderProduct {
     id?: number;
@@ -17,6 +18,8 @@ export interface IOrderProduct {
     updated_at: string;
     product: IProduct;
     variant?: IProductVariant | null;
+    /** Toppings de la línea; ausente en respuestas que no los cargan. */
+    addons?: IOrderProductAddon[];
     // Solo movimientos con reason=Return (OrderController::show) — presente cuando se pide el
     // detalle completo de la orden (useShowOrder), no en los listados paginados.
     stock_movements?: IStockMovement[];

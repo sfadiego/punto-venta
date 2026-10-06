@@ -235,6 +235,16 @@ class BusinessConfigModel extends Model
     }
 
     /**
+     * Los toppings (catálogo, asignación a productos y selección en la venta) solo existen en
+     * negocios de restaurante/cafetería — los que tienen kitchen_view. Única fuente de verdad
+     * para esta regla: usada por RestaurantAddonsMiddleware y AddonsEnabledForTenant.
+     */
+    public static function supportsAddons(?int $tenantId): bool
+    {
+        return self::find($tenantId)?->tipo_negocio?->features()['kitchen_view'] ?? false;
+    }
+
+    /**
      * Subqueries de última actividad por tenant — dos fuentes por separado (portable entre
      * MySQL/SQLite, sin GREATEST()): el login/venta más reciente de tenant_activity_logs, y el
      * último uso real de sesión vía Sanctum. Combinar ambas (ver combineLastActivity()) evita

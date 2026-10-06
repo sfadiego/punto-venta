@@ -4,6 +4,8 @@ import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { isItemAlreadyRemovedError, getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
 import { ICartItem } from "@/models/ICartItem";
+import { IAddonSelection } from "@/models/IAddon";
+import { getAddonsSignature } from "@/utils/cartAddons";
 import {
     useAddProductToOrder,
     useUpdateProductInOrder,
@@ -43,14 +45,20 @@ export const useCartActions = (
         _price: number,
         variantId?: number | null,
         _variantName?: string | null,
+        addons: IAddonSelection[] = [],
     ) => {
         if (isReadOnly || isPending(productId)) return;
 
         // Merge only if the existing entry is still pending (not ready) AND
-        // matches the same variant — different variants of the same product
-        // are distinct lines in the cart.
+        // matches the same variant and the exact same toppings — different variants, or the
+        // same product with different toppings, are distinct lines in the cart.
+        const addonsSignature = getAddonsSignature(addons.map((addon) => ({ id: addon.addon_id, quantity: addon.quantity })));
         const existingItem = cart.find(
-            (item) => item.id === productId && item.variantId === (variantId ?? null) && !item.isReady,
+            (item) =>
+                item.id === productId &&
+                item.variantId === (variantId ?? null) &&
+                !item.isReady &&
+                getAddonsSignature(item.addons.map((addon) => ({ id: addon.addonId, quantity: addon.quantity }))) === addonsSignature,
         );
 
         if (existingItem && isPending(existingItem.orderProductId)) return;
@@ -75,6 +83,7 @@ export const useCartActions = (
                               variant_id: variantId ?? null,
                               cantidad: 1,
                               descuento: 0,
+                              ...(addons.length > 0 ? { addons } : {}),
                           },
                           { onSuccess: invalidateOrder },
                       ),
@@ -155,6 +164,20 @@ export const useCartActions = (
         }
     };
 
+    // Replace the toppings of a line (empty array removes them all). The backend recalculates
+    // the line subtotal and the order total; quantity and discount are left untouched.
+    const updateLineAddons = async (orderProductId: number, addons: IAddonSelection[]) => {
+        if (isReadOnly || isPending(orderProductId)) return;
+        try {
+            await withPending([orderProductId], () =>
+                updateProduct({ orderProductId, data: { addons } }, { onSuccess: invalidateOrder }),
+            );
+        } catch (error) {
+            logUnexpectedError(error, "useCartActions.updateLineAddons");
+            toast.error(getUserFacingErrorMessage(error, "Error al actualizar los toppings"));
+        }
+    };
+
     // Remove any item (product or extra) by orderProductId.
     // Guards on the mutation's own `isPending` too — instead of relying only on
     // the local pending-set — so a second remove/quantity-drop-to-zero can't
@@ -205,6 +228,7 @@ export const useCartActions = (
         addExtra,
         updateQuantity,
         saveObservacion,
+        updateLineAddons,
         removeFromCart,
         clearCart,
         isClearingCart,

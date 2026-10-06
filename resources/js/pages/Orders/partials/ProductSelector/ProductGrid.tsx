@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import { Search, Package, Loader, X } from "lucide-react";
 import { ICartItem } from "@/models/ICartItem";
+import { IAddonSelection } from "@/models/IAddon";
 import { getCartQuantityForProduct } from "@/utils/cartCalc";
 import { useProductGrid } from "./useProductGrid";
 import { CategoryTabs } from "./CategoryTabs";
@@ -17,6 +18,7 @@ interface ProductGridProps {
         price: number,
         variantId?: number | null,
         variantName?: string | null,
+        addons?: IAddonSelection[],
     ) => void;
     onUpdateQuantity: (orderProductId: number, delta: number) => void;
 }
