@@ -5,6 +5,7 @@ import { usePrintOrder, useFetchPrintBytes, IPrintTarget } from "@/services/useO
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { reportClientError } from "@/utils/reportClientError";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { getPrintErrorMessage } from "@/utils/printErrorMessage";
 import { toast } from "react-toastify";
 
 export const usePrintTicket = () => {
@@ -29,7 +30,7 @@ export const usePrintTicket = () => {
         },
         onSuccess: () => toast.success("Ticket impreso"),
         onError: (err: Error) => {
-            toast.error(getUserFacingErrorMessage(err, `Error: ${err.message}`));
+            toast.error(getUserFacingErrorMessage(err, getPrintErrorMessage(err)));
             reportClientError({ message: err.message, stack: err.stack, context: "print-agent" });
         },
     });
@@ -42,7 +43,7 @@ export const usePrintTicket = () => {
         },
         onSuccess: () => toast.success("Ticket impreso"),
         onError: (err: Error) => {
-            toast.error(getUserFacingErrorMessage(err, `Error: ${err.message}`));
+            toast.error(getUserFacingErrorMessage(err, getPrintErrorMessage(err)));
             reportClientError({ message: err.message, stack: err.stack, context: "print-bluetooth" });
         },
     });

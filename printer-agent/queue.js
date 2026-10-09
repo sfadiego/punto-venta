@@ -38,10 +38,20 @@ function parseQueueStatus(stdout) {
     return { enabled: false, reason: reason ? reason.replace(/\.$/, "") : null };
 }
 
-/** Mensaje para el usuario cuando la cola está deshabilitada. */
-function disabledMessage(printer, reason) {
-    return `La impresora "${printer}" está deshabilitada${reason ? ` (${reason})` : ""}. ` +
-        `Revisa que esté encendida, con papel y bien conectada, y reactívala con: cupsenable ${printer}`;
+const MSG_NOT_FOUND = "No se encontró la impresora. Verifica que esté conectada y encendida; si el problema continúa, contacta a soporte.";
+const MSG_DISABLED  = "La impresora no responde. Revisa que esté encendida, con papel y bien conectada, e inténtalo de nuevo.";
+const MSG_SEND_FAIL = "No se pudo enviar el ticket a la impresora. Revisa que esté encendida y conectada.";
+
+/** Error con mensaje para el usuario; `detail` conserva el motivo técnico (solo para la consola del agente). */
+function userError(message, detail) {
+    const err = new Error(message);
+    err.detail = detail;
+    return err;
+}
+
+/** Mensaje para el usuario cuando la cola está deshabilitada (el motivo técnico va en `detail`, no aquí). */
+function disabledMessage() {
+    return MSG_DISABLED;
 }
 
 /** Estado de la cola: { exists, enabled, reason }. `exists` es falso si el sistema no conoce esa impresora. */
@@ -79,7 +89,7 @@ function verifyJob(printer, jobId, deadline, callback) {
     checkQueue(printer, (_, status) => {
         if (status.exists && !status.enabled) {
             // El trabajo no se va a imprimir: se quita para que no salga de golpe al reactivar la cola.
-            return cancelJob(jobId, () => callback(new Error(disabledMessage(printer, status.reason))));
+            return cancelJob(jobId, () => callback(userError(MSG_DISABLED, `La impresora "${printer}" se deshabilitó después de enviar el trabajo${status.reason ? ` (${status.reason})` : ""}. Reactívala con: cupsenable ${printer}`)));
         }
 
         jobPending(printer, jobId, (pending) => {
@@ -96,15 +106,15 @@ function verifyJob(printer, jobId, deadline, callback) {
 function printViaCups(printer, file, callback) {
     checkQueue(printer, (_, status) => {
         if (!status.exists) {
-            return callback(new Error(`La impresora "${printer}" no existe en este equipo. Revisa el nombre en config.json.`));
+            return callback(userError(MSG_NOT_FOUND, `La impresora "${printer}" no existe en este equipo. Revisa el nombre en config.json.`));
         }
         if (!status.enabled) {
             // No se manda: acumularía trabajos en una cola parada que saldrían todos juntos al reactivarla.
-            return callback(new Error(disabledMessage(printer, status.reason)));
+            return callback(userError(MSG_DISABLED, `La impresora "${printer}" está deshabilitada${status.reason ? ` (${status.reason})` : ""}. Reactívala con: cupsenable ${printer}`));
         }
 
         deps.execFile(LP, ["-d", printer, "-o", "raw", file], (err, stdout, stderr) => {
-            if (err) return callback(new Error(String(stderr || err.message).trim()));
+            if (err) return callback(userError(MSG_SEND_FAIL, String(stderr || err.message).trim()));
 
             const jobId = parseJobId(stdout);
             if (!jobId) return callback(null);
@@ -114,4 +124,4 @@ function printViaCups(printer, file, callback) {
     });
 }
 
-module.exports = { printViaCups, parseQueueStatus, parseJobId, disabledMessage, checkQueue, deps, VERIFY_TIMEOUT_MS };
+module.exports = { printViaCups, parseQueueStatus, parseJobId, disabledMessage, userError, checkQueue, deps, VERIFY_TIMEOUT_MS };

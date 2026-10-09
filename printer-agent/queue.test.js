@@ -33,12 +33,10 @@ test("identificador del trabajo que devuelve lp", () => {
     assert.strictEqual(parseJobId(""), null);
 });
 
-test("mensaje para el usuario incluye el motivo y cómo reactivar", () => {
-    const message = disabledMessage("POS58", "Unable to send data to printer");
-    assert.match(message, /POS58/);
-    assert.match(message, /Unable to send data to printer/);
-    assert.match(message, /cupsenable POS58/);
-    assert.doesNotMatch(disabledMessage("POS58", null), /\(null\)/);
+test("mensaje para el usuario es claro y sin jerga técnica", () => {
+    const message = disabledMessage();
+    assert.match(message, /no responde/);
+    assert.doesNotMatch(message, /cupsenable|config\.json|Unable to send|POS58/);
 });
 
 // ─── printViaCups con CUPS simulado ───────────────────────────────────────────
@@ -66,20 +64,24 @@ const run = (printer = "POS58") => new Promise((resolve) => printViaCups(printer
 test("cola deshabilitada antes de enviar: error y no se manda ningún trabajo", async () => {
     const calls = fakeCups({ states: [DISABLED] });
     const err = await run();
-    assert.match(err.message, /deshabilitada \(Unable to send data to printer\)/);
+    assert.match(err.message, /no responde/);
+    assert.match(err.detail, /deshabilitada \(Unable to send data to printer\)/);
+    assert.match(err.detail, /cupsenable POS58/);
     assert.ok(!calls.some((c) => c.startsWith("lp ")), "no debe ejecutar lp");
 });
 
 test("cola inexistente: error claro", async () => {
     deps.execFile = (cmd, args, cb) => cb(new Error("x"), "", 'lpstat: Invalid destination name in list "POS58".');
     const err = await run();
-    assert.match(err.message, /no existe en este equipo/);
+    assert.match(err.message, /No se encontró la impresora/);
+    assert.doesNotMatch(err.message, /config\.json/);
+    assert.match(err.detail, /no existe en este equipo/);
 });
 
 test("la cola se deshabilita después de enviar: cancela el trabajo y avisa", async () => {
     const calls = fakeCups({ states: [ENABLED, DISABLED], jobs: ["POS58-7 diego 1024 fecha\n"] });
     const err = await run();
-    assert.match(err.message, /deshabilitada/);
+    assert.match(err.message, /no responde/);
     assert.ok(calls.includes("cancel POS58-7"), "debe cancelar el trabajo para que no salga de golpe al reactivar");
 });
 
@@ -101,8 +103,10 @@ test("el trabajo sigue en curso al vencer el plazo con la cola habilitada: se da
     }
 });
 
-test("lp falla: devuelve el error de lp", async () => {
+test("lp falla: mensaje claro al usuario y el error de lp solo como detalle", async () => {
     fakeCups({ states: [ENABLED], lpError: "lp: Error - no default destination available." });
     const err = await run();
-    assert.match(err.message, /no default destination/);
+    assert.match(err.message, /No se pudo enviar el ticket/);
+    assert.doesNotMatch(err.message, /lp:|destination/);
+    assert.match(err.detail, /no default destination/);
 });
