@@ -4,12 +4,14 @@ import { SalesByCategoryButton } from "../SalesByCategoryModal/SalesByCategoryMo
 import { ReportModeToggle } from "./ReportModeToggle";
 import { SalesPeriodInput } from "./SalesPeriodInput";
 import { ClearFiltersButton } from "./ClearFiltersButton";
+import { SalesSearch } from "./SalesSearch";
 
 interface SalesFiltersProps {
     fecha: string | null;
     semana: string | null;
     mes: string | null;
     reportMode: SalesReportModeEnum;
+    search: string;
     showCategoryReport?: boolean;
     categoryReportLabel?: string;
     onReportModeChange: (mode: SalesReportModeEnum) => void;
@@ -17,6 +19,7 @@ interface SalesFiltersProps {
     onSemanaChange: (value: string | null) => void;
     onMesChange: (value: string | null) => void;
     onCategoryReport?: () => void;
+    onSearchChange: (value: string) => void;
     onClear: () => void;
 }
 
@@ -25,6 +28,7 @@ export const SalesFilters = ({
     semana,
     mes,
     reportMode,
+    search,
     showCategoryReport = false,
     categoryReportLabel,
     onReportModeChange,
@@ -32,6 +36,7 @@ export const SalesFilters = ({
     onSemanaChange,
     onMesChange,
     onCategoryReport,
+    onSearchChange,
     onClear,
 }: SalesFiltersProps) => {
     const activeByMode: Record<SalesReportModeEnum, boolean> = {
@@ -39,7 +44,8 @@ export const SalesFilters = ({
         [SalesReportModeEnum.Week]: !!semana,
         [SalesReportModeEnum.Month]: !!mes,
     };
-    const hasActive = activeByMode[reportMode];
+    const isSearching = search.trim() !== "";
+    const hasActive = activeByMode[reportMode] || isSearching;
 
     return (
         <div className="flex flex-col gap-3 mb-5">
@@ -56,17 +62,22 @@ export const SalesFilters = ({
             </div>
 
             <div className="flex flex-wrap gap-3 items-end">
-                <ReportModeToggle reportMode={reportMode} onChange={onReportModeChange} />
+                <SalesSearch value={search} onChange={onSearchChange} />
 
-                <SalesPeriodInput
-                    reportMode={reportMode}
-                    fecha={fecha}
-                    semana={semana}
-                    mes={mes}
-                    onFechaChange={onFechaChange}
-                    onSemanaChange={onSemanaChange}
-                    onMesChange={onMesChange}
-                />
+                {/* Al buscar, el periodo no aplica: se atenúa para no sugerir que filtra. */}
+                <div className={`flex flex-wrap gap-3 items-end transition-opacity ${isSearching ? "opacity-40 pointer-events-none" : ""}`}>
+                    <ReportModeToggle reportMode={reportMode} onChange={onReportModeChange} />
+
+                    <SalesPeriodInput
+                        reportMode={reportMode}
+                        fecha={fecha}
+                        semana={semana}
+                        mes={mes}
+                        onFechaChange={onFechaChange}
+                        onSemanaChange={onSemanaChange}
+                        onMesChange={onMesChange}
+                    />
+                </div>
 
                 {hasActive && <ClearFiltersButton onClick={onClear} />}
 
@@ -76,6 +87,12 @@ export const SalesFilters = ({
                     </div>
                 )}
             </div>
+
+            {isSearching && (
+                <p className="text-xs text-stone-400">
+                    Buscando en todo el historial de ventas, sin importar el periodo.
+                </p>
+            )}
         </div>
     );
 };

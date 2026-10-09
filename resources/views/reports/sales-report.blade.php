@@ -28,10 +28,16 @@
         <tr>
             <td>
                 <span class="label">Total de ventas</span>
-                <span class="value">{{ $orders->count() }}</span>
+                <span class="value">{{ $salesCount }}</span>
             </td>
+            @if ($totalReturns > 0)
+                <td>
+                    <span class="label">Devoluciones</span>
+                    <span class="value">-${{ number_format($totalReturns, 2) }}</span>
+                </td>
+            @endif
             <td>
-                <span class="label">Ingreso total</span>
+                <span class="label">{{ $totalReturns > 0 ? 'Ingreso neto' : 'Ingreso total' }}</span>
                 <span class="value">${{ number_format($totalRevenue, 2) }}</span>
             </td>
             <td>
@@ -64,7 +70,12 @@
                     @endif
                     <td>{{ $order->paymentMethod?->name ?? '—' }}</td>
                     <td class="numeric">${{ number_format((float) $order->subtotal, 2) }}</td>
-                    <td class="numeric">${{ number_format((float) $order->total, 2) }}</td>
+                    <td class="numeric">
+                        ${{ number_format((float) $order->total, 2) }}
+                        @if ((float) $order->refunded_amount > 0)
+                            <br><span style="font-size: 10px; color: #b91c1c;">Devuelto -${{ number_format((float) $order->refunded_amount, 2) }}</span>
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr>
@@ -74,12 +85,22 @@
         </tbody>
         @if ($orders->isNotEmpty())
             <tfoot>
+                @if ($totalReturns > 0)
+                    <tr>
+                        <td colspan="{{ $sellByWeight ? 5 : 4 }}">Devoluciones</td>
+                        <td class="numeric">-${{ number_format($totalReturns, 2) }}</td>
+                    </tr>
+                @endif
                 <tr>
-                    <td colspan="{{ $sellByWeight ? 5 : 4 }}">Total de ventas ({{ $orders->count() }})</td>
+                    <td colspan="{{ $sellByWeight ? 5 : 4 }}">{{ $totalReturns > 0 ? 'Ventas netas' : 'Total de ventas' }} ({{ $salesCount }})</td>
                     <td class="numeric">${{ number_format($totalRevenue, 2) }}</td>
                 </tr>
             </tfoot>
         @endif
     </table>
+
+    @if (! empty($slowMoving))
+        @include('reports.partials.slow-moving-section', ['section' => $slowMoving])
+    @endif
 </body>
 </html>

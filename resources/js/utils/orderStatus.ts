@@ -6,6 +6,7 @@ const STATUS_STYLES: Record<number, string> = {
     [OrderStatusEnum.Canceled]:  "bg-red-100 text-red-600",
     [OrderStatusEnum.Served]:    "bg-blue-100 text-blue-700",
     [OrderStatusEnum.Deleted]:   "bg-stone-100 text-stone-400",
+    [OrderStatusEnum.Layaway]:   "bg-purple-100 text-purple-700",
 };
 
 const STATUS_LABELS: Record<number, string> = {
@@ -14,6 +15,7 @@ const STATUS_LABELS: Record<number, string> = {
     [OrderStatusEnum.Canceled]:  "Cancelado",
     [OrderStatusEnum.Served]:    "Orden servida",
     [OrderStatusEnum.Deleted]:   "Eliminado",
+    [OrderStatusEnum.Layaway]:   "Apartado",
 };
 
 export const getStatusStyle = (statusId: number): string =>
@@ -28,3 +30,17 @@ export const getActiveStatuses = (showOrderServed: boolean): string =>
     showOrderServed
         ? `${OrderStatusEnum.InProcess},${OrderStatusEnum.Served}`
         : String(OrderStatusEnum.InProcess);
+
+// Estado de un apartado visto desde el historial del cliente: "Apartado" es activo, "Cerrado"
+// significa que se liquidó y "Cancelado" que se canceló y reembolsó.
+const LAYAWAY_STATUS_LABELS: Record<number, string> = {
+    [OrderStatusEnum.Layaway]:  "Activo",
+    [OrderStatusEnum.Closed]:   "Liquidado",
+    [OrderStatusEnum.Canceled]: "Cancelado",
+};
+
+export const getLayawayStatusLabel = (statusId: number): string =>
+    LAYAWAY_STATUS_LABELS[statusId] ?? getStatusLabel(statusId);
+
+export const getLayawayStatusStyle = (statusId: number): string =>
+    statusId === OrderStatusEnum.Layaway ? "bg-amber-100 text-amber-700" : getStatusStyle(statusId);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\MainOrderStatusEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CloseSalesRequest;
 use App\Http\Requests\OpenSalesRequest;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
@@ -48,6 +49,10 @@ class MainOrderReportController extends Controller
             return Response::error('Existe una session de ventas activa');
         }
 
+        if (MainOrderReportModel::openingsToday($branchId) >= MainOrderReportModel::MAX_OPENINGS_PER_DAY) {
+            return Response::error('Se alcanzó el límite de '.MainOrderReportModel::MAX_OPENINGS_PER_DAY.' aperturas de caja por día.');
+        }
+
         return Response::success(
             MainOrderReportModel::openSales(
                 $params->efectivo_caja_inicio,
@@ -75,11 +80,13 @@ class MainOrderReportController extends Controller
             'neto' => round($bruto - $domicilios, 2),
             'propinas' => $propinas,
             'gastos' => $gastos,
+            'apartados' => $system->layawaySummary(),
+            'devoluciones' => $system->returnsSummary(),
             'by_payment_method' => $system->totalByPaymentMethod(),
         ]);
     }
 
-    public function closeSales(MainOrderReportModel $system): JsonResponse
+    public function closeSales(MainOrderReportModel $system, CloseSalesRequest $params): JsonResponse
     {
         if ($response = $this->assertCanAccessSystem($system)) {
             return $response;
@@ -93,10 +100,17 @@ class MainOrderReportController extends Controller
             return Response::error('Debes finalizar todas las órdenes activas para cerrar la caja.');
         }
 
-        if ($system->totalSalesByDay() == 0) {
-            return Response::error('No se puede cerrar la caja sin ventas registradas.');
+        // Una caja sin ventas ni apartados se puede cerrar, pero con motivo — queda guardado en la
+        // sesión junto con quién y cuándo la cerró. Se valida aquí (y no en el FormRequest) para que
+        // los demás errores del cierre (acceso, caja ya cerrada, órdenes activas) conserven su prioridad.
+        $reason = null;
+        if ($system->isEmptySession()) {
+            $reason = trim((string) $params->input(MainOrderReportModel::EMPTY_CLOSE_REASON));
+            if ($reason === '') {
+                return Response::error('Indica el motivo para cerrar una caja sin ventas.');
+            }
         }
 
-        return Response::success($system->closeSales());
+        return Response::success($system->closeSales($reason));
     }
 }

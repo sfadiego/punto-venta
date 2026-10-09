@@ -5,6 +5,8 @@ import { BusinessInfoSection } from "./partials/BusinessInfo/BusinessInfoSection
 import { PrinterSection } from "./partials/Printer/PrinterSection";
 import { DeliverySection } from "./partials/Delivery/DeliverySection";
 import { ScaleSection } from "./partials/Scale/ScaleSection";
+import { LayawaySection } from "./partials/Layaway/LayawaySection";
+import { ReturnsSection } from "./partials/Returns/ReturnsSection";
 import { MenuSection } from "./partials/Menu/MenuSection";
 import { ReadonlyMenuQrSection } from "./partials/Menu/ReadonlyMenuQrSection";
 import { RolesPermissionsSection } from "./partials/RolesPermissions/RolesPermissionsSection";
@@ -15,7 +17,7 @@ import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/
 import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
 
 function AdminPage() {
-    const { config, isLoading, sellByWeight, isReadOnly } = useAdminPage();
+    const { config, isLoading, sellByWeight, isRetail, isReadOnly } = useAdminPage();
     const printerVisible = import.meta.env.VITE_APP_ENV === "local"
         || config?.printer_enabled === true
         || config?.bluetooth_printing_enabled === true;
@@ -44,7 +46,7 @@ function AdminPage() {
                 </div>
             ) : (
                 <div className="flex gap-8 items-start">
-                    <AdminNav sellByWeight={sellByWeight} printerVisible={printerVisible} />
+                    <AdminNav sellByWeight={sellByWeight} isRetail={isRetail} printerVisible={printerVisible} />
                     <fieldset disabled={isReadOnly} className="flex-1 flex flex-col gap-5 min-w-0 border-0 p-0 m-0">
                         <div id="logo"><LogoSection config={config} /></div>
                         <div id="colores"><ColorsSection config={config} /></div>
@@ -70,6 +72,12 @@ function AdminPage() {
                         )}
                         {sellByWeight && (
                             <div id="bascula"><ScaleSection /></div>
+                        )}
+                        {isRetail && (
+                            <div id="apartados"><LayawaySection config={config} /></div>
+                        )}
+                        {isRetail && (
+                            <div id="devoluciones"><ReturnsSection config={config} /></div>
                         )}
                         <div id="menu">
                             <FeatureSpotlight

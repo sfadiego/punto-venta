@@ -17,4 +17,6 @@ export enum FeatureSpotlightKey {
     ReadonlyMenuSection = "readonly_menu_section",
     ProvidersNavItem = "providers_nav_item",
     EmployeesNavItem = "employees_nav_item",
+    InventorySection = "inventory_section",
+    LayawaySection = "layaway_section",
 }

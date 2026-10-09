@@ -7,6 +7,9 @@ Route::prefix('customer')->group(function () {
     Route::controller(CustomersController::class)->group(function () {
         Route::get('/', 'index');
         Route::get('/list', 'list');
+        // Resumen del adeudo (por cobrar y clientes con adeudo) — mismo alcance que el
+        // listado. Antes del grupo {customer} para que "debt-summary" no se resuelva como un id.
+        Route::get('/debt-summary', 'debtSummary');
         // store queda abierto: alta inline de cliente desde el picker de venta a
         // crédito (SellByWeightSaleModal), accesible a todos los roles en Dashboard.
         Route::post('', 'store');

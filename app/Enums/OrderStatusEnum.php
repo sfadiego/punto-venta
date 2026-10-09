@@ -10,6 +10,7 @@ enum OrderStatusEnum: int
     case DELETED = 4;
     case SERVED = 5;
     case PENDING_CONFIRMATION = 6;
+    case LAYAWAY = 7;
 
     public static function orderStatusName(OrderStatusEnum $status): string
     {
@@ -20,6 +21,7 @@ enum OrderStatusEnum: int
             OrderStatusEnum::DELETED->value => 'deleted',
             OrderStatusEnum::SERVED->value => 'order served',
             OrderStatusEnum::PENDING_CONFIRMATION->value => 'pending confirmation',
+            OrderStatusEnum::LAYAWAY->value => 'layaway',
             default => 'in process',
         };
     }

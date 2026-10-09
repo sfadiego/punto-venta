@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\IconSourceEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BusinessConfigUpdateRequest;
+use App\Http\Requests\BusinessLogoUploadRequest;
 use App\Models\AppSettingModel;
+use App\Models\BusinessConfigModel;
 use App\Models\ProductImageModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -51,13 +53,20 @@ class BusinessConfigController extends Controller
             'menu_enabled' => $request->boolean('menu_enabled'),
         ]);
 
+        // Opcionales: solo se tocan si vienen en la request, para no pisar el valor guardado
+        // cuando otra sección del panel guarda sin enviarlos.
+        $tenant->update(array_filter([
+            BusinessConfigModel::LAYAWAY_MIN_PERCENT => $request->input('layaway_min_percent'),
+            BusinessConfigModel::LAYAWAY_DAYS => $request->input('layaway_days'),
+            BusinessConfigModel::LAYAWAY_RETENTION_PERCENT => $request->input('layaway_retention_percent'),
+            BusinessConfigModel::RETURN_DAYS => $request->input('return_days'),
+        ], fn ($value) => $value !== null));
+
         return Response::success($tenant->fresh());
     }
 
-    public function uploadLogo(Request $request): JsonResponse
+    public function uploadLogo(BusinessLogoUploadRequest $request): JsonResponse
     {
-        $request->validate(['logo' => 'required|image|mimes:png,jpg,jpeg,webp|max:2048']);
-
         $tenant = $request->user()->tenant;
         $upload = ProductImageModel::processImage($request->file('logo'), $tenant->slug);
 

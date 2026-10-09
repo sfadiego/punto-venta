@@ -1095,6 +1095,23 @@ class OrderTest extends TestCase
             ->assertJsonPath('data', []);
     }
 
+    public function test_clientes_a_credito_incluye_cliente_eliminado(): void
+    {
+        $report = $this->crearReporte();
+        $customer = CustomerModel::create([
+            CustomerModel::NAME => 'Cliente borrado',
+            CustomerModel::TENANT_ID => BusinessConfigModel::first()->id,
+        ]);
+        $this->venderACredito($report->id, $customer, 120);
+        $customer->delete();
+
+        $this->getJson("/api/order/credit-customers?sistema_id={$report->id}", $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.0.customer.name', 'Cliente borrado')
+            ->assertJsonPath('data.0.customer_id', $customer->id)
+            ->assertJsonPath('data.0.total_credit', 120);
+    }
+
     public function test_clientes_a_credito_agrupa_por_cliente(): void
     {
         $report = $this->crearReporte();

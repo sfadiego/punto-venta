@@ -28,9 +28,9 @@ export default function CreditCustomersWidget({ sistemaId }: Props) {
             ) : (
                 <div className="divide-y divide-stone-100">
                     {customers.map((item) => (
-                        <div key={item.customer.id} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+                        <div key={item.customer_id} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
                             <div className="min-w-0">
-                                <p className="text-sm font-semibold text-stone-900 truncate">{item.customer.name}</p>
+                                <p className="text-sm font-semibold text-stone-900 truncate">{item.customer?.name ?? "Cliente eliminado"}</p>
                                 <p className="text-xs text-stone-400">
                                     {item.orders_count} venta{item.orders_count !== 1 ? "s" : ""}
                                 </p>

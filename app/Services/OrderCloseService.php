@@ -8,8 +8,6 @@ use App\Enums\StockMovementReasonEnum;
 use App\Events\OrdersUpdated;
 use App\Exceptions\InsufficientStockException;
 use App\Models\OrderModel;
-use App\Models\OrderProductModel;
-use App\Models\ProductModel;
 
 /**
  * Orquesta la actualización de una orden (OrderController::update): descuento de stock
@@ -20,7 +18,7 @@ use App\Models\ProductModel;
 class OrderCloseService
 {
     public function __construct(
-        private readonly StockService $stockService,
+        private readonly OrderStockService $orderStockService,
         private readonly OrderCreditService $creditService,
         private readonly TenantActivityService $activityService,
     ) {}
@@ -39,7 +37,7 @@ class OrderCloseService
         // cancelada nunca dejó tocado el stock de nadie. Si algún producto ya no alcanza,
         // el cierre completo falla y la orden se queda como estaba.
         if ($becomingClosed && ! $wasClosed) {
-            $this->deductStockForOrder($order);
+            $this->orderStockService->deductForOrder($order, StockMovementReasonEnum::Sale);
         }
 
         $order->update(array_merge($data, [
@@ -61,36 +59,5 @@ class OrderCloseService
         OrdersUpdated::dispatchAfterCommit($isServed ? 'served' : 'updated', $order->id);
 
         return $order->fresh(['paymentMethod:id,name', 'customer:id,name,balance,phone']);
-    }
-
-    /**
-     * @throws InsufficientStockException
-     */
-    private function deductStockForOrder(OrderModel $order): void
-    {
-        $items = $order->orderProducts()->whereNotNull('producto_id')->get();
-
-        // Precarga todos los productos referenciados en un solo whereIn, en vez de una
-        // query por línea dentro del each() de abajo.
-        $products = ProductModel::whereIn('id', $items->pluck('producto_id')->unique())->get()->keyBy('id');
-
-        // Ordenado por producto_id antes de descontar — mismo criterio que
-        // OrderSaleService::createDirectSale(): evita deadlocks entre cierres concurrentes
-        // que comparten productos pero los tienen en orden distinto en su lista de líneas.
-        $items->sortBy('producto_id')->each(function (OrderProductModel $item) use ($products) {
-            $product = $products->get($item->producto_id);
-            // Ver comentario equivalente en OrderSaleService::createDirectSale — una línea
-            // con variante descuenta el stock de esa variante, no el del producto base.
-            if ($product && $product->manage_stock) {
-                $this->stockService->deduct(
-                    productId: $product->id,
-                    quantity: (float) $item->cantidad,
-                    reason: StockMovementReasonEnum::Sale,
-                    variantId: $item->variant_id,
-                    reference: $item,
-                    createdBy: auth()->id(),
-                );
-            }
-        });
     }
 }

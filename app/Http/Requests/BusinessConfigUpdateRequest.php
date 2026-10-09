@@ -35,6 +35,11 @@ class BusinessConfigUpdateRequest extends FormRequest
             'logo_icon_source' => ['nullable', Rule::enum(IconSourceEnum::class)],
             'costo_domicilio_default' => 'nullable|numeric|min:0',
             'menu_enabled' => 'nullable|boolean',
+            'layaway_min_percent' => 'nullable|numeric|min:1|max:100',
+            'layaway_days' => 'nullable|integer|min:1|max:365',
+            'layaway_retention_percent' => 'nullable|numeric|min:0|max:100',
+            // 0 = sin límite de días para devolver.
+            'return_days' => 'nullable|integer|min:0|max:365',
         ];
     }
 }

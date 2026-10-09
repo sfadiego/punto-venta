@@ -9,6 +9,8 @@ interface RestaurantSalesModalProps {
     isLoading: boolean;
     isError?: boolean;
     totalBruto: number;
+    /** Devoluciones ya descontadas de las ventas — se muestran aparte para cuadrar con las ventas brutas. */
+    totalReturns?: number;
     totalDomicilios: number;
     totalNeto: number;
     fecha?: string | null;
@@ -25,6 +27,7 @@ export const RestaurantSalesModal = ({
     isLoading,
     isError = false,
     totalBruto,
+    totalReturns = 0,
     totalDomicilios,
     totalNeto,
     fecha,
@@ -81,9 +84,18 @@ export const RestaurantSalesModal = ({
                             <div className="flex items-center justify-between py-3 border-b border-stone-100">
                                 <span className="text-sm text-stone-500">Ventas brutas</span>
                                 <span className="text-lg font-bold text-stone-900 tabular-nums">
-                                    {formatCurrency(totalBruto)}
+                                    {formatCurrency(totalBruto + totalReturns)}
                                 </span>
                             </div>
+
+                            {totalReturns > 0 && (
+                                <div className="flex items-center justify-between py-3 border-b border-stone-100">
+                                    <span className="text-sm text-stone-500">Devoluciones</span>
+                                    <span className="text-base font-semibold text-red-500 tabular-nums">
+                                        -{formatCurrency(totalReturns)}
+                                    </span>
+                                </div>
+                            )}
 
                             {totalDomicilios > 0 && (
                                 <div className="flex items-center justify-between py-3 border-b border-stone-100">

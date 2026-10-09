@@ -14,7 +14,7 @@ import { StockMovementReasonEnum } from "@/enums/StockMovementReasonEnum";
 // puede tener — así nunca se arma una combinación imposible (que solo devolvería una tabla
 // vacía sin explicar por qué).
 export const REASONS_BY_TYPE: Record<StockMovementTypeEnum, StockMovementReasonEnum[]> = {
-    [StockMovementTypeEnum.Entry]: [StockMovementReasonEnum.Return, StockMovementReasonEnum.InitialStock],
-    [StockMovementTypeEnum.Exit]: [StockMovementReasonEnum.Sale, StockMovementReasonEnum.Loss],
+    [StockMovementTypeEnum.Entry]: [StockMovementReasonEnum.Return, StockMovementReasonEnum.InitialStock, StockMovementReasonEnum.LayawayCancel],
+    [StockMovementTypeEnum.Exit]: [StockMovementReasonEnum.Sale, StockMovementReasonEnum.Loss, StockMovementReasonEnum.Layaway],
     [StockMovementTypeEnum.Adjustment]: [StockMovementReasonEnum.ManualAdjustment, StockMovementReasonEnum.InitialStock],
 };

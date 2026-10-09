@@ -3,22 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Core\Enums\Http;
+use App\Http\Requests\PrinterAgentDownloadRequest;
 use App\Services\PrinterAgentPackageService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PrinterAgentController extends Controller
 {
-    public function download(Request $request, PrinterAgentPackageService $service): BinaryFileResponse|JsonResponse
+    public function download(PrinterAgentDownloadRequest $request, PrinterAgentPackageService $service): BinaryFileResponse|JsonResponse
     {
-        $request->validate([
-            'printer' => 'required|string|max:100',
-            'port' => 'nullable|integer|min:1024|max:65535',
-            'platform' => 'required|in:win,mac',
-        ]);
-
         $platform = $request->input('platform');
         $config = [
             'printer' => $request->input('printer'),

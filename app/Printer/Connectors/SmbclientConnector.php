@@ -2,6 +2,7 @@
 
 namespace App\Printer\Connectors;
 
+use Exception;
 use Mike42\Escpos\PrintConnectors\DummyPrintConnector;
 use Mike42\Escpos\Printer;
 
@@ -34,8 +35,8 @@ class SmbclientConnector extends AbstractConnector
                 // Si el puente no está activo, intentamos el método SMB original (para Windows)
                 $this->printViaSmb($data);
             }
-        } catch (\Exception $e) {
-            throw new \Exception('Error de impresión: '.$e->getMessage());
+        } catch (Exception $e) {
+            throw new Exception('Error de impresión: '.$e->getMessage());
         }
 
         $this->connector->finalize();

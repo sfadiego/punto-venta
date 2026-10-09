@@ -10,6 +10,8 @@ interface TenantProvidersEmployeesSectionProps {
     onToggleStock: () => void;
     customersEnabled: boolean;
     onToggleCustomers: () => void;
+    /** Retail: el módulo de clientes es obligatorio (apartados) — se muestra activo y no se puede apagar. */
+    customersLocked?: boolean;
     onSave: () => void;
     isSaving: boolean;
 }
@@ -20,12 +22,14 @@ const ToggleRow = ({
     description,
     enabled,
     onToggle,
+    disabled = false,
 }: {
     icon: React.ReactNode;
     title: string;
     description: string;
     enabled: boolean;
     onToggle: () => void;
+    disabled?: boolean;
 }) => (
     <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -40,9 +44,10 @@ const ToggleRow = ({
         <button
             type="button"
             onClick={onToggle}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
-                enabled ? "bg-indigo-600" : "bg-slate-200"
-            }`}
+            disabled={disabled}
+            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+            } ${enabled ? "bg-indigo-600" : "bg-slate-200"}`}
             role="switch"
             aria-checked={enabled}
         >
@@ -64,6 +69,7 @@ export const TenantProvidersEmployeesSection = ({
     onToggleStock,
     customersEnabled,
     onToggleCustomers,
+    customersLocked = false,
     onSave,
     isSaving,
 }: TenantProvidersEmployeesSectionProps) => (
@@ -95,9 +101,14 @@ export const TenantProvidersEmployeesSection = ({
         <ToggleRow
             icon={<HandCoins size={17} className="text-slate-500" />}
             title="Clientes"
-            description="Habilita la gestión de clientes y ventas a crédito para este cliente (aplica principalmente a negocios tipo restaurante — venta por peso ya la tiene siempre disponible)."
-            enabled={customersEnabled}
+            description={
+                customersLocked
+                    ? "Siempre activo en tiendas retail: es parte del flujo de apartados y no se puede desactivar."
+                    : "Habilita la gestión de clientes y ventas a crédito para este cliente (aplica principalmente a negocios tipo restaurante — venta por peso ya la tiene siempre disponible)."
+            }
+            enabled={customersEnabled || customersLocked}
             onToggle={onToggleCustomers}
+            disabled={customersLocked}
         />
         <SectionSaveButton onSave={onSave} isSaving={isSaving} />
     </section>

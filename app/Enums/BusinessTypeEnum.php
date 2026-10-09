@@ -17,6 +17,15 @@ enum BusinessTypeEnum: string
         };
     }
 
+    /**
+     * Tipos de negocio donde el módulo de clientes no se puede deshabilitar: en retail es parte del
+     * flujo (apartados, historial de abonos), no una opción. Ver BusinessConfigModel::booted().
+     */
+    public function alwaysEnablesCustomers(): bool
+    {
+        return $this === self::Retail;
+    }
+
     /** Features habilitados por tipo de negocio */
     public function features(): array
     {

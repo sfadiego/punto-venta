@@ -30,6 +30,8 @@ export const useSalesByCategoryModal = (
 
     const categories = data?.categories ?? [];
     const totalBruto = categories.reduce((sum, cat) => sum + cat.total_revenue, 0);
+    // Los totales de las categorías ya vienen netos de devoluciones; `totalReturns` permite mostrarlas aparte.
+    const totalReturns = data?.returns ?? 0;
     const totalDomicilios = data?.domicilios ?? 0;
     const totalNeto = totalBruto - totalDomicilios;
     const canDownload = !isLoading && !isError && totalBruto > 0;
@@ -58,6 +60,7 @@ export const useSalesByCategoryModal = (
         isLoading,
         isError,
         totalBruto,
+        totalReturns,
         totalDomicilios,
         totalNeto,
         sistemaId: scopedSistemaId,

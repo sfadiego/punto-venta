@@ -27,6 +27,8 @@ export interface IUseGETProps {
     headers?: AxiosRequestConfig["headers"];
     responseType?: AxiosRequestConfig["responseType"];
     customHost?: typeof ApisEnum[keyof typeof ApisEnum];
+    /** Milisegundos que el dato se considera fresco; 0 = siempre vuelve a pedirse al montar. Por defecto, el global (2 min). */
+    staleTime?: number;
 }
 
 export interface IUseGETMutation {

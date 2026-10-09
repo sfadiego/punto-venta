@@ -3,6 +3,8 @@ import { usePrintTicket } from "./usePrintTicket";
 
 interface PrintTicketButtonProps {
     orderId: number;
+    /** Imprime el comprobante de esta devolución en lugar del ticket de la orden. */
+    returnId?: number;
     showLabel?: boolean;
     className?: string;
 }
@@ -19,6 +21,7 @@ const defaultLabelClass =
 
 export const PrintTicketButton = ({
     orderId,
+    returnId,
     showLabel = false,
     className,
 }: PrintTicketButtonProps) => {
@@ -28,7 +31,7 @@ export const PrintTicketButton = ({
 
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        print(orderId);
+        print(orderId, returnId);
     };
 
     const resolvedClass = className ?? (showLabel ? defaultLabelClass : defaultIconClass);
@@ -38,7 +41,7 @@ export const PrintTicketButton = ({
         <button
             onClick={handleClick}
             disabled={isPending}
-            title="Imprimir ticket"
+            title={returnId ? "Imprimir comprobante de devolución" : "Imprimir ticket"}
             className={resolvedClass}
         >
             {isPending

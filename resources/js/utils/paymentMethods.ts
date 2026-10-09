@@ -1,8 +1,11 @@
 import { IPaymentMethod } from "@/models/IPaymentMethod";
 import { ICustomer } from "@/models/ICustomer";
 
+// Un método de pago es "efectivo" por su nombre — mismo criterio en cobros, cierre de caja y reembolsos.
+export const isCashMethodName = (name: string): boolean => name.toLowerCase().includes("efectivo");
+
 export const findCashPaymentMethod = (methods: IPaymentMethod[]): IPaymentMethod | null =>
-    methods.find((m) => m.active && m.name.toLowerCase().includes("efectivo")) ?? null;
+    methods.find((m) => m.active && isCashMethodName(m.name)) ?? null;
 
 // Preselección al abrir un modal de cobro: "Efectivo" (método más usado); si el negocio no
 // tiene uno configurado como tal, cae al primer método activo.

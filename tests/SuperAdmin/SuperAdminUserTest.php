@@ -4,6 +4,7 @@ namespace Tests\SuperAdmin;
 
 use App\Enums\RoleEnum;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class SuperAdminUserTest extends TestCase
@@ -120,7 +121,7 @@ class SuperAdminUserTest extends TestCase
             User::APELLIDO_MATERNO => '',
             User::EMAIL => 'super-existente-'.uniqid().'@test.com',
             User::USUARIO => 'super-existente-'.uniqid(),
-            User::PASSWORD => \Illuminate\Support\Facades\Hash::make('ClaveActual1'),
+            User::PASSWORD => Hash::make('ClaveActual1'),
             User::ROL_ID => RoleEnum::SUPERADMIN->value,
             User::ACTIVO => true,
             User::TENANT_ID => 1,
@@ -157,7 +158,7 @@ class SuperAdminUserTest extends TestCase
         ], $this->superAdminHeaders())
             ->assertStatus(200);
 
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('ClaveNueva2', $superAdmin->fresh()->password));
+        $this->assertTrue(Hash::check('ClaveNueva2', $superAdmin->fresh()->password));
     }
 
     public function test_password_vacio_conserva_la_actual(): void
@@ -172,7 +173,7 @@ class SuperAdminUserTest extends TestCase
         ], $this->superAdminHeaders())
             ->assertStatus(200);
 
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('ClaveActual1', $superAdmin->fresh()->password));
+        $this->assertTrue(Hash::check('ClaveActual1', $superAdmin->fresh()->password));
     }
 
     public function test_no_actualiza_usuario_que_no_es_superadmin(): void

@@ -1,10 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import { usePrintAgent } from "@/hooks/usePrintAgent";
 import { useBluetoothPrint } from "@/hooks/useBluetoothPrint";
-import { usePrintOrder, useFetchPrintBytes } from "@/services/useOrderService";
+import { usePrintOrder, useFetchPrintBytes, IPrintTarget } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { reportClientError } from "@/utils/reportClientError";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { getPrintErrorMessage } from "@/utils/printErrorMessage";
 import { toast } from "react-toastify";
 
 export const usePrintTicket = () => {
@@ -16,45 +17,48 @@ export const usePrintTicket = () => {
 
     // Impresión vía servidor (CUPS/red) — fallback cuando no hay agente local
     const { mutate: sendPrintServer, isPending: isPendingServer } = useMutation({
-        mutationFn: (orderId: number) => printOrder(orderId),
+        mutationFn: (target: IPrintTarget) => printOrder(target),
         onSuccess: () => toast.success("Ticket enviado a la impresora"),
         onError: (error) => toast.error(getUserFacingErrorMessage(error, "Impresora no disponible")),
     });
 
     // Impresión vía agente WebSocket local
     const { mutate: sendPrintAgent, isPending: isPendingAgent } = useMutation({
-        mutationFn: async (orderId: number) => {
-            const bytes = await fetchPrintBytes(orderId);
+        mutationFn: async (target: IPrintTarget) => {
+            const bytes = await fetchPrintBytes(target);
             await agentPrint(new Uint8Array(bytes as ArrayBuffer));
         },
         onSuccess: () => toast.success("Ticket impreso"),
         onError: (err: Error) => {
-            toast.error(getUserFacingErrorMessage(err, `Error: ${err.message}`));
+            toast.error(getUserFacingErrorMessage(err, getPrintErrorMessage(err)));
             reportClientError({ message: err.message, stack: err.stack, context: "print-agent" });
         },
     });
 
     // Impresión vía Bluetooth (tablet, sin agente)
     const { mutate: sendPrintBluetooth, isPending: isPendingBluetooth } = useMutation({
-        mutationFn: async (orderId: number) => {
-            const bytes = await fetchPrintBytes(orderId);
+        mutationFn: async (target: IPrintTarget) => {
+            const bytes = await fetchPrintBytes(target);
             await blePrint(new Uint8Array(bytes as ArrayBuffer));
         },
         onSuccess: () => toast.success("Ticket impreso"),
         onError: (err: Error) => {
-            toast.error(getUserFacingErrorMessage(err, `Error: ${err.message}`));
+            toast.error(getUserFacingErrorMessage(err, getPrintErrorMessage(err)));
             reportClientError({ message: err.message, stack: err.stack, context: "print-bluetooth" });
         },
     });
 
-    const print = (orderId: number) => {
+    // `returnId` imprime el comprobante de esa devolución en lugar del ticket de la orden.
+    const print = (orderId: number, returnId?: number) => {
+        const target: IPrintTarget = { orderId, returnId };
+
         if (agentConnected) {
-            sendPrintAgent(orderId);
+            sendPrintAgent(target);
             return;
         }
 
         if (bleConnected) {
-            sendPrintBluetooth(orderId);
+            sendPrintBluetooth(target);
             return;
         }
 
@@ -78,7 +82,7 @@ export const usePrintTicket = () => {
             return;
         }
 
-        sendPrintServer(orderId);
+        sendPrintServer(target);
     };
 
     // Visible cuando: agente/Bluetooth ya conectado, config cargando, printer_enabled/bluetooth_printing_enabled activos, o printer_name configurado (servidor).

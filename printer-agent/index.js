@@ -3,6 +3,7 @@ const { exec }            = require("child_process");
 const fs                  = require("fs");
 const os                  = require("os");
 const path                = require("path");
+const { printViaCups }    = require("./queue");
 
 // ─── Configuración ────────────────────────────────────────────────────────────
 
@@ -44,11 +45,13 @@ function printBytes(data, callback) {
     try {
         fs.writeFileSync(tmpFile, data);
     } catch (e) {
-        return callback(new Error(`No se pudo crear archivo temporal: ${e.message}`));
+        console.error(`[print-agent] No se pudo crear archivo temporal: ${e.message}`);
+        return callback(new Error("No se pudo preparar el ticket para imprimir. Inténtalo de nuevo."));
     }
 
     if (!fs.existsSync(tmpFile)) {
-        return callback(new Error(`Archivo temporal no encontrado: ${tmpFile}`));
+        console.error(`[print-agent] Archivo temporal no encontrado: ${tmpFile}`);
+        return callback(new Error("No se pudo preparar el ticket para imprimir. Inténtalo de nuevo."));
     }
 
     console.log(`[print-agent] Archivo temporal: ${tmpFile} (${fs.statSync(tmpFile).size} bytes)`);
@@ -56,17 +59,11 @@ function printBytes(data, callback) {
     const platform = process.platform;
 
     if (platform === "darwin" || platform === "linux") {
-        const lp  = "/usr/bin/lp";
-        const cmd = `${lp} -d "${PRINTER}" -o raw "${tmpFile}"`;
-        console.log(`[print-agent] Ejecutando: ${cmd}`);
-        exec(cmd, (err, stdout, stderr) => {
+        console.log(`[print-agent] Enviando a la cola "${PRINTER}" (lp -o raw)`);
+        printViaCups(PRINTER, tmpFile, (err) => {
             try { fs.unlinkSync(tmpFile); } catch {}
-            if (err) {
-                console.error(`[print-agent] stdout: ${stdout}`);
-                console.error(`[print-agent] stderr: ${stderr}`);
-                return callback(new Error(stderr || err.message));
-            }
-            callback(null);
+            if (err) console.error(`[print-agent] ${err.detail || err.message}`);
+            callback(err);
         });
     } else if (platform === "win32") {
         const cmd = `copy /b "${tmpFile}" "\\\\localhost\\${PRINTER}"`;
@@ -76,13 +73,14 @@ function printBytes(data, callback) {
             if (err) {
                 console.error(`[print-agent] stdout: ${stdout}`);
                 console.error(`[print-agent] stderr: ${stderr}`);
-                return callback(new Error(stderr || err.message));
+                return callback(new Error("No se pudo enviar el ticket a la impresora. Revisa que esté encendida y conectada."));
             }
             callback(null);
         });
     } else {
         try { fs.unlinkSync(tmpFile); } catch {}
-        callback(new Error(`Plataforma no soportada: ${platform}`));
+        console.error(`[print-agent] Plataforma no soportada: ${platform}`);
+        callback(new Error("Este sistema operativo no es compatible con el agente de impresión."));
     }
 }
 
@@ -106,7 +104,7 @@ wss.on("connection", (ws, req) => {
 
         printBytes(data, (err) => {
             if (err) {
-                console.error("[print-agent] Error:", err.message);
+                console.error("[print-agent] Error:", err.detail || err.message);
                 ws.send(JSON.stringify({ ok: false, error: err.message }));
             } else {
                 console.log("[print-agent] Impresión OK");

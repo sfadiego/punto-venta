@@ -1,4 +1,5 @@
 import { Loader } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { IOrder } from "@/models/IOrder";
 import { ICartItem } from "@/models/ICartItem";
 import { IAddonSelection } from "@/models/IAddon";
@@ -9,6 +10,7 @@ import { CartEmptyState } from "./CartEmptyState";
 import { CartItemRow } from "./CartItemRow";
 import { CartFooter } from "./CartFooter/CartFooter";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useLayawayPay } from "@/components/orders/Layaway/Pay/useLayawayPay";
 
 interface CartPanelProps {
     order: IOrder | undefined;
@@ -94,6 +96,16 @@ export const CartPanel = ({
         handleSelectCredit,
         handleSelectMethod,
     } = usePayModal(order?.id ?? 0, totalFinal, { domicilio, domicilioActivo, customerPays });
+    const navigate = useNavigate();
+    const layaway = useLayawayPay({
+        orderId: order?.id ?? 0,
+        total: totalFinal,
+        isOpen: payOpen,
+        onSuccess: () => {
+            closePay();
+            navigate("/");
+        },
+    });
 
     return (
         <>
@@ -202,6 +214,7 @@ export const CartPanel = ({
                 onSelectMethod={handleSelectMethod}
                 onSelectCredit={handleSelectCredit}
                 onSelectCustomer={setSelectedCustomerId}
+                layaway={layaway}
             />
         </>
     );

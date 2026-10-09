@@ -1,6 +1,8 @@
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
+import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
+import { isCustomersModuleEnabled } from "@/utils/customersModule";
 import { navItems, NavItem } from "./navItems";
 
 // Único lugar donde se resuelve qué items del sidebar se muestran y con qué label, para que
@@ -12,11 +14,10 @@ export const useSidebarNav = () => {
     const { features } = useAxios();
     const { data: config } = useGetBusinessConfig();
 
-    const sellByWeight = features?.sell_by_weight === true;
     const kitchenView = features?.kitchen_view === true;
     const providersEnabled = can("viewProviders") && config?.purchases_enabled === true;
     const employeesEnabled = can("viewEmployees") && config?.employees_enabled === true;
-    const customersEnabled = can("viewCustomers") && (sellByWeight || config?.customers_enabled === true);
+    const customersEnabled = can("viewCustomers") && isCustomersModuleEnabled(features, config);
     // manageStock ya está gateado por features.is_retail en isActionApplicable (permissionUtils.ts)
     // — acá solo falta combinar con la config del tenant (stock_enabled).
     const inventoryEnabled = can("manageStock") && config?.stock_enabled === true;
@@ -37,11 +38,26 @@ export const useSidebarNav = () => {
     // "Pedidos" aplica a venta por peso y Retail (ambos sin kitchen_view); "Órdenes" solo a
     // Restaurante (servicio en mesa). No usar sellByWeight aquí: Retail comparte sellByWeight=false
     // con Restaurante, así que no distingue entre ambos.
+    // "layaway" (apartados) ya está gateado por features.is_retail en isActionApplicable
+    // (permissionUtils.ts). Los apartados se gestionan desde Pedidos, así que el aviso de la nueva
+    // función vive en ese item (solo para quien puede usarlos).
+    const layawayEnabled = can("layaway");
     const items: NavItem[] = navItems
         .filter((item) => can(item.permission))
-        .map((item) =>
-            item.path === "/orders" && !kitchenView ? { ...item, label: "Pedidos" } : item,
-        );
+        .map((item) => {
+            if (item.path !== "/orders") return item;
+            return {
+                ...item,
+                label: kitchenView ? item.label : "Pedidos",
+                ...(layawayEnabled && {
+                    spotlight: {
+                        key: FeatureSpotlightKey.LayawaySection,
+                        title: "Apartados",
+                        description: "Ahora puedes apartar productos con un anticipo y dar seguimiento a los abonos en Pedidos, en el filtro \"Apartados\".",
+                    },
+                }),
+            };
+        });
 
     const hasFooterSection = providersEnabled || employeesEnabled || hasConfigSection;
 

@@ -1,5 +1,11 @@
 name: CLAUDE.md Rules
 
+# Solo las reglas críticas de CLAUDE.md (arquitectura y seguridad) y todas bloqueantes: si una falla, el PR no
+# debe entrar. Las convenciones de estilo (tamaño de páginas/hooks, carpetas, enums literales, style inline,
+# imports) las cubren Pint, ESLint y la revisión humana — no se vigilan aquí para no generar ruido.
+#
+# Para correr una regla en local, copia el bloque `run:` de su paso en la raíz del repositorio.
+
 on:
   pull_request:
     branches: [main, develop]
@@ -32,18 +38,16 @@ jobs:
       - name: TypeScript check
         run: pnpm exec tsc --noEmit
 
-  structural-rules:
-    name: Reglas estructurales
+  frontend-rules:
+    name: Reglas de frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verificar convenciones de nombres
+      - name: Convenciones de nombres (models con I, services y hooks con use)
         run: |
           ERRORS=0
 
-          # Models deben tener prefijo I (ej: IOrder.ts)
-          echo "── Verificando models/ ──"
           while IFS= read -r file; do
             base=$(basename "$file")
             if [[ ! "$base" =~ ^I[A-Z] ]]; then
@@ -52,189 +56,75 @@ jobs:
             fi
           done < <(find resources/js/models -name "*.ts" -not -name "index.ts" 2>/dev/null)
 
-          # Services deben tener prefijo use (ej: useOrderService.ts)
-          echo "── Verificando services/ ──"
           while IFS= read -r file; do
             base=$(basename "$file")
             if [[ ! "$base" =~ ^use ]]; then
-              echo "❌ services/$base debe tener prefijo use (ej: useOrderService.ts)"
+              echo "❌ $file debe tener prefijo use (ej: useOrderService.ts)"
               ERRORS=$((ERRORS + 1))
             fi
-          done < <(find resources/js/services -name "*.ts" 2>/dev/null)
+          done < <(find resources/js/services resources/js/hooks -name "*.ts" -not -name "index.ts" 2>/dev/null)
 
-          # Hooks deben tener prefijo use
-          echo "── Verificando hooks/ ──"
-          while IFS= read -r file; do
-            base=$(basename "$file")
-            if [[ ! "$base" =~ ^use ]]; then
-              echo "❌ hooks/$base debe tener prefijo use (ej: useModal.ts)"
-              ERRORS=$((ERRORS + 1))
-            fi
-          done < <(find resources/js/hooks -name "*.ts" -not -name "index.ts" 2>/dev/null)
-
-          echo ""
           if [ $ERRORS -gt 0 ]; then
-            echo "❌ $ERRORS violación(es) de convenciones de nombres (CLAUDE.md)"
+            echo "❌ $ERRORS violación(es) de convenciones de nombres (CLAUDE.md: Convenciones de nombres)"
             exit 1
-          else
-            echo "✅ Convenciones de nombres correctas"
           fi
+          echo "✅ Convenciones de nombres correctas"
 
-      - name: Verificar que no hay peticiones directas a axios en pages/ y components/
+      - name: Sin peticiones HTTP directas en pages/ ni components/
         run: |
           ERRORS=0
-          echo "── Verificando peticiones HTTP directas ──"
 
-          # Buscar imports de axios fuera de configs/ y contexts/
+          # Nunca importar axios: se usa useAxios() y la capa de servicios (services/*.ts).
           while IFS= read -r file; do
             if grep -qE "^import axios|from ['\"]axios['\"]" "$file" 2>/dev/null; then
-              echo "❌ $file importa axios directamente. Usa useAxios() o el servicio (CLAUDE.md: peticiones http)"
+              echo "❌ $file importa axios directamente (CLAUDE.md: peticiones http)"
               ERRORS=$((ERRORS + 1))
             fi
-          done < <(find resources/js/pages resources/js/components -name "*.ts" -o -name "*.tsx" 2>/dev/null)
+          done < <(find resources/js/pages resources/js/components \( -name "*.ts" -o -name "*.tsx" \) 2>/dev/null)
 
-          # Buscar llamadas crudas a axiosPOST/axiosPUT/axiosDELETE/axiosGET/axiosApi.<metodo>
-          # directamente en hooks de pages/ o components/ — deben vivir en services/*.ts
+          # Tampoco llamadas crudas axiosGET/axiosPOST/... ni axiosApi.<método>() en hooks de páginas o componentes.
           while IFS= read -r file; do
             if grep -qE "axios(POST|PUT|DELETE|GET|PATCH)\(|axiosApi\.(get|post|put|delete|patch)\(" "$file" 2>/dev/null; then
-              echo "❌ $file llama axios*() o axiosApi crudo directamente. Muévelo a un hook en services/*.ts (CLAUDE.md: peticiones http)"
+              echo "❌ $file llama axios*() o axiosApi crudo. Muévelo a un hook en services/*.ts (CLAUDE.md: peticiones http)"
               ERRORS=$((ERRORS + 1))
             fi
-          done < <(find resources/js/pages resources/js/components -name "*.ts" -o -name "*.tsx" 2>/dev/null)
+          done < <(find resources/js/pages resources/js/components \( -name "*.ts" -o -name "*.tsx" \) 2>/dev/null)
 
           if [ $ERRORS -gt 0 ]; then
             exit 1
-          else
-            echo "✅ Sin peticiones HTTP directas"
           fi
+          echo "✅ Sin peticiones HTTP directas"
 
-      - name: Verificar que no hay modelos definidos en pages/ o components/
+      - name: Interfaces de dominio en models/ (no en pages/ ni components/)
         run: |
           ERRORS=0
-          echo "── Verificando definición de interfaces ──"
 
-          # Buscar interfaces con prefijo I definidas dentro de pages/ o components/
           while IFS= read -r file; do
             count=$(grep -cE "^export interface I[A-Z]" "$file" 2>/dev/null || true)
             if [ "$count" -gt 0 ]; then
               echo "❌ $file define $count interfaz(ces) de dominio. Muévelas a models/ (CLAUDE.md: Tipos)"
               ERRORS=$((ERRORS + 1))
             fi
-          done < <(find resources/js/pages resources/js/components -name "*.ts" -o -name "*.tsx" 2>/dev/null)
+          done < <(find resources/js/pages resources/js/components \( -name "*.ts" -o -name "*.tsx" \) 2>/dev/null)
 
           if [ $ERRORS -gt 0 ]; then
             exit 1
-          else
-            echo "✅ Interfaces de dominio en models/"
           fi
+          echo "✅ Interfaces de dominio en models/"
 
-      - name: Verificar que no hay inline styles
-        run: |
-          echo "── Verificando inline styles ──"
-
-          # Excluir el caso válido de scrollbarWidth (CategoryFilter) y casos de color picker
-          MATCHES=$(grep -rn "style={{" resources/js/pages resources/js/components \
-            --include="*.tsx" \
-            | grep -v "scrollbarWidth\|msOverflowStyle" \
-            | grep -v "backgroundColor.*color" || true)
-
-          if [ -n "$MATCHES" ]; then
-            echo "⚠️  Posible uso de inline style (CLAUDE.md: Estilos):"
-            echo "$MATCHES"
-            echo ""
-            echo "Usa clases de Tailwind en lugar de style={{}}."
-            # Warning, no bloquea el PR
-          else
-            echo "✅ Sin inline styles detectados"
-          fi
-
-      - name: Verificar tamaño de componentes de página
-        run: |
-          echo "── Verificando tamaño de <FeaturePage>.tsx ──"
-          MAX_LINES=150
-          FOUND=0
-
-          # Solo el componente principal de cada página (pages/<Feature>/<Page>.tsx,
-          # incluyendo pages/SuperAdmin/<Feature>/<Page>.tsx). Excluye partials/ (se
-          # espera que sean piezas pequeñas) y hooks use*.tsx.
-          while IFS= read -r file; do
-            lines=$(wc -l < "$file" | tr -d ' ')
-            if [ "$lines" -gt "$MAX_LINES" ]; then
-              echo "⚠️  $file tiene $lines líneas (límite sugerido: $MAX_LINES)"
-              FOUND=$((FOUND + 1))
-            fi
-          done < <(find resources/js/pages -name "*.tsx" ! -iname "use*" | grep -v "/partials/")
-
-          if [ "$FOUND" -gt 0 ]; then
-            echo ""
-            echo "Considera dividir en partials/ (CLAUDE.md: 'Cuándo dividir un componente de página en partials/')."
-            # Warning, no bloquea el PR — es una señal, no todos los casos ameritan split inmediato.
-          else
-            echo "✅ Todas las páginas dentro del límite sugerido"
-          fi
-
-      - name: Verificar carpetas con muchos archivos sueltos (candidatas a reorganizar)
-        run: |
-          echo "── Verificando organización por funcionalidad (CLAUDE.md: 'Organización de partials/') ──"
-          MAX_FILES=6
-          FOUND=0
-
-          check_dir() {
-            local dir="$1"
-            count=$(find "$dir" -maxdepth 1 -type f \( -name "*.tsx" -o -name "*.ts" \) | wc -l | tr -d ' ')
-            if [ "$count" -gt "$MAX_FILES" ]; then
-              echo "⚠️  $dir tiene $count archivos sueltos (límite sugerido: $MAX_FILES)"
-              FOUND=$((FOUND + 1))
-            fi
-          }
-
-          # Carpetas partials/ de cada página y sus subcarpetas de grupo (ej. partials/Cart/)
-          while IFS= read -r dir; do
-            check_dir "$dir"
-          done < <(find resources/js/pages -type d -path "*/partials*" 2>/dev/null)
-
-          # Todo el árbol de components/ (módulos reutilizables y sus subcarpetas)
-          while IFS= read -r dir; do
-            check_dir "$dir"
-          done < <(find resources/js/components -type d 2>/dev/null)
-
-          if [ "$FOUND" -gt 0 ]; then
-            echo ""
-            echo "Agrupa por sub-funcionalidad en subcarpetas si tiene sentido (CLAUDE.md: 'Organización de partials/')."
-            echo "No todos los casos ameritan split — carpetas de una sola funcionalidad cohesiva (ej. un modal con sus piezas) pueden quedarse así."
-            # Warning, no bloquea el PR — es una señal para revisión humana, no una regla dura.
-          else
-            echo "✅ Sin carpetas con exceso de archivos sueltos"
-          fi
-
-      - name: Verificar que components/ no consume contexto de página
+      - name: Aislamiento de contextos (components/ por props; Context de página en la raíz de la página)
         run: |
           ERRORS=0
-          echo "── Verificando aislamiento de components/ (CLAUDE.md: 'Contextos: globales vs. de página') ──"
 
-          # components/ es global y debe recibir todo por props — no puede importar el
-          # contexto de una página específica (pages/<Feature>/<Feature>Context.tsx),
-          # eso lo ataría a esa página y rompería su portabilidad/testeabilidad aislada.
+          # components/ es global y debe recibir todo por props: no puede importar el contexto de una página.
           while IFS= read -r file; do
-            if grep -qE "from [\"']@/pages/[^\"']*Context[\"']" "$file" 2>/dev/null; then
-              echo "❌ $file importa un contexto de página (@/pages/.../*Context). components/ debe recibir todo por props (CLAUDE.md: 'Contextos: globales vs. de página')"
+            if grep -qE "from [\"'][^\"']*pages/[^\"']*Context[\"']" "$file" 2>/dev/null; then
+              echo "❌ $file importa un contexto de página. components/ recibe todo por props (CLAUDE.md: Contextos)"
               ERRORS=$((ERRORS + 1))
             fi
-          done < <(find resources/js/components -name "*.tsx" -o -name "*.ts" 2>/dev/null)
+          done < <(find resources/js/components \( -name "*.tsx" -o -name "*.ts" \) 2>/dev/null)
 
-          if [ $ERRORS -gt 0 ]; then
-            exit 1
-          else
-            echo "✅ components/ no consume contexto de página"
-          fi
-
-      - name: Verificar que los Context de página vivan en la raíz de pages/<Feature>/
-        run: |
-          ERRORS=0
-          echo "── Verificando ubicación de *Context.tsx (CLAUDE.md: 'Contextos: globales vs. de página') ──"
-
-          # <Feature>Context.tsx debe vivir junto al hook de la página (pages/<Feature>/),
-          # no dentro de partials/ — ahí es donde los partials lo consumen, no donde vive.
+          # <Feature>Context.tsx vive junto al hook de la página, no dentro de partials/.
           while IFS= read -r file; do
             echo "❌ $file — un *Context.tsx de página debe vivir en pages/<Feature>/, no dentro de partials/"
             ERRORS=$((ERRORS + 1))
@@ -242,71 +132,115 @@ jobs:
 
           if [ $ERRORS -gt 0 ]; then
             exit 1
-          else
-            echo "✅ Contextos de página bien ubicados"
           fi
+          echo "✅ Contextos bien aislados"
 
-      - name: Verificar valores de enum usados como string literal (PHP)
+      - name: Formularios con noValidate (la validación vive en Yup, no en el navegador)
         run: |
-          echo "── Verificando literales de enums PHP fuera de app/Enums/ (CLAUDE.md: 'enums — nunca strings/valores literales') ──"
-          FOUND=0
+          ERRORS=0
 
-          # Por cada enum backed en string, solo revisa archivos que YA importan ese enum
-          # (use App\Enums\XxxEnum;) — así un literal coincidente por casualidad en un
-          # dominio no relacionado (ej. "active" como valor libre de otra columna) no se
-          # marca como falso positivo; solo importa si el archivo conoce ese enum específico
-          # y aun así usa el string crudo en vez de XxxEnum::Caso->value.
-          for enum_file in app/Enums/*.php; do
-            enum_name=$(basename "$enum_file" .php)
-            values=$(grep -oE "case [A-Za-z0-9_]+ = '[^']+'" "$enum_file" 2>/dev/null | sed -E "s/.*= '([^']+)'/\1/")
-            [ -z "$values" ] && continue
-
-            files=$(grep -rl "use App\\\\Enums\\\\${enum_name};" app tests --include="*.php" 2>/dev/null | grep -v "^${enum_file}$" || true)
-            [ -z "$files" ] && continue
-
-            while IFS= read -r value; do
-              [ -z "$value" ] && continue
-              while IFS= read -r file; do
-                [ -z "$file" ] && continue
-                MATCHES=$(grep -n "['\"]${value}['\"]" "$file" 2>/dev/null | grep -v "${enum_name}::" || true)
-                if [ -n "$MATCHES" ]; then
-                  echo "⚠️  $file usa \"$value\" como literal pero ya importa ${enum_name} — usa ${enum_name}::Caso->value:"
-                  echo "$MATCHES"
-                  echo ""
-                  FOUND=$((FOUND + 1))
-                fi
-              done <<< "$files"
-            done <<< "$values"
-          done
-
-          if [ "$FOUND" -gt 0 ]; then
-            echo "Revisa los casos anteriores y reemplázalos por el enum correspondiente (CLAUDE.md: 'enums — nunca strings/valores literales')."
-            # Warning, no bloquea el PR — puede haber falsos positivos.
-          else
-            echo "✅ Sin literales de enum detectados"
-          fi
-
-      - name: Verificar tamaño del hook principal de página
-        run: |
-          echo "── Verificando tamaño de use<Feature>Page.ts (CLAUDE.md: 'Cuándo dividir un hook') ──"
-          MAX_LINES=80
-          FOUND=0
-
-          # Solo el hook principal de cada página (pages/<Feature>/use<Feature>Page.ts),
-          # no sus sub-hooks de dominio (esos ya viven divididos y pueden ser más largos
-          # si son cohesivos — la señal aplica al hook que los orquesta).
+          # Un <form> sin noValidate dispara el popup nativo en inglés del navegador y se salta los mensajes de
+          # Yup/Formik (CLAUDE.md: Formularios).
+          # Se cuentan los <form de código real (sin comentarios) y debe haber un noValidate por cada uno.
           while IFS= read -r file; do
-            lines=$(wc -l < "$file" | tr -d ' ')
-            if [ "$lines" -gt "$MAX_LINES" ]; then
-              echo "⚠️  $file tiene $lines líneas (límite sugerido: $MAX_LINES)"
-              FOUND=$((FOUND + 1))
+            forms=$(grep -vE "^[[:space:]]*(//|\*|\{/\*)" "$file" | grep -cE "<form\b" || true)
+            valid=$(grep -vE "^[[:space:]]*(//|\*|\{/\*)" "$file" | grep -c "noValidate" || true)
+            if [ "$forms" -gt "$valid" ]; then
+              echo "❌ $file tiene $forms <form> y solo $valid noValidate"
+              ERRORS=$((ERRORS + 1))
             fi
-          done < <(find resources/js/pages -maxdepth 2 -iname "use*Page.ts")
+          done < <(grep -rlE "<form\b" resources/js --include="*.tsx" 2>/dev/null)
 
-          if [ "$FOUND" -gt 0 ]; then
-            echo ""
-            echo "Considera dividir en sub-hooks por dominio en la misma carpeta (CLAUDE.md: 'Cuándo dividir un hook')."
-            # Warning, no bloquea el PR — es una señal, no todos los casos ameritan split inmediato.
-          else
-            echo "✅ Todos los hooks principales de página dentro del límite sugerido"
+          if [ $ERRORS -gt 0 ]; then
+            exit 1
           fi
+          echo "✅ Todos los formularios llevan noValidate"
+
+  backend-rules:
+    name: Reglas de backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sin DB::transaction en controladores ni servicios
+        run: |
+          # TransactionMiddleware ya envuelve toda request no-GET con reintento en deadlock; una transacción propia
+          # solo crea un savepoint anidado que interfiere con ese reintento (CLAUDE.md: Controladores).
+          MATCHES=$(grep -rnE "DB::transaction\(" app/Http/Controllers app/Services 2>/dev/null \
+            | grep -vE "^[^:]+:[0-9]+:[[:space:]]*(\*|//|#)" || true)
+
+          if [ -n "$MATCHES" ]; then
+            echo "❌ DB::transaction() no se usa en controladores ni servicios (lo maneja TransactionMiddleware):"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "✅ Sin DB::transaction propio"
+
+      - name: env() solo en config/
+        run: |
+          # Fuera de config/*.php, env() deja de funcionar con `php artisan config:cache` (estándar en producción)
+          # y falla en silencio (CLAUDE.md: env() solo en archivos de config). bootstrap/app.php queda fuera: corre antes de cargar la config.
+          MATCHES=$(grep -rnE "\benv\(" app routes database 2>/dev/null \
+            | grep -vE "^[^:]+:[0-9]+:[[:space:]]*(\*|//|#)" || true)
+
+          if [ -n "$MATCHES" ]; then
+            echo "❌ env() fuera de config/. Usa config('archivo.clave'):"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "✅ env() solo en config/"
+
+      - name: Sin ->utc() sobre rangos de fecha
+        run: |
+          # Las fechas en BD se guardan en hora local: convertir el rango a UTC desplaza la ventana de comparación
+          # y da resultados incorrectos sin error visible (CLAUDE.md: Comparaciones de fecha/hora).
+          MATCHES=$(grep -rnE "\->utc\(\)" app 2>/dev/null \
+            | grep -vE "^[^:]+:[0-9]+:[[:space:]]*(\*|//|#)" || true)
+
+          if [ -n "$MATCHES" ]; then
+            echo "❌ ->utc() desplaza los rangos de fecha (la BD guarda hora local):"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "✅ Sin ->utc()"
+
+      - name: Validación en FormRequest, no inline en controladores
+        run: |
+          # Toda validación vive en app/Http/Requests/ (CLAUDE.md: Controladores).
+          MATCHES=$(grep -rnE "\\\$(request|params)->validate\(|request\(\)->validate\(" app/Http/Controllers 2>/dev/null \
+            | grep -vE "^[^:]+:[0-9]+:[[:space:]]*(\*|//|#)" || true)
+
+          if [ -n "$MATCHES" ]; then
+            echo "❌ Validación inline en un controlador. Crea un FormRequest en app/Http/Requests/:"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "✅ Validación en FormRequest"
+
+      - name: Contrato de API (Response::success/error) en controladores
+        run: |
+          # Un JSON crudo rompe el contrato {status, message, data} y obliga al frontend a casos especiales
+          # (CLAUDE.md: Contrato de respuesta de la API). Los middleware y ResponseMacros quedan fuera: ahí se define.
+          MATCHES=$(grep -rnE "Response::json\(|response\(\)->json\(" app/Http/Controllers 2>/dev/null \
+            | grep -vE "^[^:]+:[0-9]+:[[:space:]]*(\*|//|#)" || true)
+
+          if [ -n "$MATCHES" ]; then
+            echo "❌ JSON crudo en un controlador. Usa Response::success()/Response::error():"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "✅ Contrato de API respetado"
+
+      - name: Sin nombres de clase completos inline (usar use)
+        run: |
+          # Declara el `use` al inicio y referencia el nombre corto (CLAUDE.md: PHP — imports y referencias de clases).
+          # Se ignoran comentarios/docblocks y las líneas namespace/use.
+          MATCHES=$(grep -rnE "(^|[^A-Za-z0-9_\\'\"])\\\\[A-Z][A-Za-z]+(\\\\[A-Za-z]+)*(::|\(|[[:space:]]+\\\$)" app tests routes database --include="*.php" 2>/dev/null \
+            | grep -vE "^[^:]+:[0-9]+:[[:space:]]*(\*|//|#|namespace |use )" || true)
+
+          if [ -n "$MATCHES" ]; then
+            echo "❌ Clase referenciada con namespace completo inline. Agrega el use y usa el nombre corto:"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "✅ Sin FQCN inline"

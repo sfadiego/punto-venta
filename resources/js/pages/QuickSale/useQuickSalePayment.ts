@@ -93,10 +93,10 @@ export const useQuickSalePayment = ({
     const printTicket = async (oid: number) => {
         try {
             if (agentConnected) {
-                const bytes = await fetchPrintBytes(oid);
+                const bytes = await fetchPrintBytes({ orderId: oid });
                 await agentPrint(new Uint8Array(bytes as ArrayBuffer));
             } else {
-                await printOrder(oid);
+                await printOrder({ orderId: oid });
             }
             toast.success("Ticket impreso");
         } catch (error) {

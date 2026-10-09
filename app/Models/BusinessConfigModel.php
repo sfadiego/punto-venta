@@ -88,6 +88,14 @@ class BusinessConfigModel extends Model
 
     const MAX_USERS = 'max_users';
 
+    const LAYAWAY_MIN_PERCENT = 'layaway_min_percent';
+
+    const LAYAWAY_DAYS = 'layaway_days';
+
+    const LAYAWAY_RETENTION_PERCENT = 'layaway_retention_percent';
+
+    const RETURN_DAYS = 'return_days';
+
     const GRACE_DAYS = 3;
 
     protected $casts = [
@@ -105,6 +113,10 @@ class BusinessConfigModel extends Model
         self::LOGO_ICON_SOURCE => IconSourceEnum::class,
         self::SUBSCRIPTION_EXPIRES_AT => 'date',
         self::SUBSCRIPTION_AMOUNT => 'float',
+        self::LAYAWAY_MIN_PERCENT => 'float',
+        self::LAYAWAY_DAYS => 'integer',
+        self::LAYAWAY_RETENTION_PERCENT => 'float',
+        self::RETURN_DAYS => 'integer',
     ];
 
     protected $fillable = [
@@ -143,7 +155,22 @@ class BusinessConfigModel extends Model
         self::SUBSCRIPTION_EXPIRES_AT,
         self::SUBSCRIPTION_AMOUNT,
         self::MAX_USERS,
+        self::LAYAWAY_MIN_PERCENT,
+        self::LAYAWAY_DAYS,
+        self::LAYAWAY_RETENTION_PERCENT,
+        self::RETURN_DAYS,
     ];
+
+    protected static function booted(): void
+    {
+        // En retail el módulo de clientes es obligatorio (apartados, historial de abonos): sin importar
+        // cómo se guarde (panel de SuperAdmin, cambio de tipo de negocio, seeders), queda activo.
+        static::saving(function (self $tenant) {
+            if ($tenant->tipo_negocio?->alwaysEnablesCustomers()) {
+                $tenant->customers_enabled = true;
+            }
+        });
+    }
 
     /** Días restantes de la suscripción cacheada del tenant (negativo si ya venció, null sin fecha). */
     public function getDaysRemainingAttribute(): ?int

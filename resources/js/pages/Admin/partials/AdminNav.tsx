@@ -1,4 +1,4 @@
-import { Bike, CreditCard, Globe, Image, Lock, Palette, Phone, Printer, ShieldCheck, Weight } from "lucide-react";
+import { Bike, CreditCard, Gift, Globe, Image, Lock, Palette, Phone, Printer, ShieldCheck, Undo2, Weight } from "lucide-react";
 
 const BASE_SECTIONS = [
     { id: "logo",         label: "Logo",             icon: <Image size={20} /> },
@@ -11,14 +11,21 @@ const BASE_SECTIONS = [
 
 const DELIVERY_SECTION = { id: "domicilio", label: "Domicilio", icon: <Bike size={14} /> };
 const SCALE_SECTION = { id: "bascula", label: "Báscula", icon: <Weight size={14} /> };
+const LAYAWAY_SECTION = { id: "apartados", label: "Apartados", icon: <Gift size={20} /> };
+const RETURNS_SECTION = { id: "devoluciones", label: "Devoluciones", icon: <Undo2 size={20} /> };
 
 interface AdminNavProps {
     sellByWeight?: boolean;
+    isRetail?: boolean;
     printerVisible?: boolean;
 }
 
-export const AdminNav = ({ sellByWeight, printerVisible = false }: AdminNavProps) => {
-    const sections = sellByWeight ? [...BASE_SECTIONS, DELIVERY_SECTION, SCALE_SECTION] : BASE_SECTIONS;
+export const AdminNav = ({ sellByWeight, isRetail = false, printerVisible = false }: AdminNavProps) => {
+    const sections = [
+        ...BASE_SECTIONS,
+        ...(sellByWeight ? [DELIVERY_SECTION, SCALE_SECTION] : []),
+        ...(isRetail ? [LAYAWAY_SECTION, RETURNS_SECTION] : []),
+    ];
 
     const scrollTo = (id: string) => {
         document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });

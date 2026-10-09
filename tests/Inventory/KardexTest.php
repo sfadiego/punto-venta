@@ -13,6 +13,7 @@ use App\Models\ProductModel;
 use App\Models\RolePermission;
 use App\Models\StockMovementModel;
 use App\Models\User;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 /**
@@ -67,7 +68,7 @@ class KardexTest extends TestCase
         StockMovementTypeEnum $type,
         StockMovementReasonEnum $reason,
         float $quantity = 1,
-        ?\Carbon\Carbon $createdAt = null,
+        ?Carbon $createdAt = null,
     ): StockMovementModel {
         $movement = StockMovementModel::create([
             StockMovementModel::PRODUCT_ID => $product->id,

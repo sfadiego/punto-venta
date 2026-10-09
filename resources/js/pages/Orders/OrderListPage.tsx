@@ -7,6 +7,7 @@ import { AdminRoutes } from "@/enums/RoutesEnum";
 import { useOrderList } from "./useOrderList";
 import { OrderFilters } from "./partials/OrderFilters";
 import { OrderSearch } from "./partials/OrderSearch";
+import { LayawaySummaryCards } from "./partials/Layaway/LayawaySummaryCards";
 import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { ExpensesButton } from "@/components/orders/ExpensesButton";
@@ -33,6 +34,10 @@ export default function OrderListPage() {
         sellByWeight,
         kitchenView,
         isRetail,
+        showLayaways,
+        showingLayaways,
+        showingCanceledLayaways,
+        layawaySummary,
         handleEstatusChange,
         handleSearchChange,
         handleClearFilters,
@@ -41,6 +46,9 @@ export default function OrderListPage() {
     const { can } = usePermissions();
 
     const handleRowClick = (order: IOrder) => {
+        // Un apartado no se edita como carrito (se gestiona con Ver / Abonar / Cancelar) y una orden
+        // cancelada ya no se abre.
+        if (order.estatus_pedido_id === OrderStatusEnum.Layaway || order.estatus_pedido_id === OrderStatusEnum.Canceled) return;
         if (sellByWeight) {
             if (order.estatus_pedido_id === OrderStatusEnum.InProcess) {
                 navigate(`${AdminRoutes.QuickSale}/${order.id}`);
@@ -93,15 +101,22 @@ export default function OrderListPage() {
                     <p className="text-stone-400 text-sm">No hay una caja abierta.</p>
                 </div>
             ) : (
+                <>
+                {showingLayaways && <LayawaySummaryCards summary={layawaySummary} />}
                 <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
                     <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
                         <div className="flex-1 min-w-[220px] lg:max-w-sm">
                             <OrderSearch value={search} onChange={handleSearchChange} />
+                            {/* Fuera de Apartados/Cancelados, la búsqueda abarca todas las órdenes y no el filtro activo. */}
+                            {search.trim() !== "" && !showingLayaways && !showingCanceledLayaways && (
+                                <p className="text-xs text-stone-400 mt-1.5">Buscando en todas las órdenes, sin importar el filtro de estatus.</p>
+                            )}
                         </div>
                         <div className="lg:ml-auto">
                             <OrderFilters
                                 estatusId={estatusId}
                                 showOrderServed={showOrderServed}
+                                showLayaways={showLayaways}
                                 onEstatusChange={handleEstatusChange}
                                 onClear={handleClearFilters}
                             />
@@ -113,7 +128,9 @@ export default function OrderListPage() {
                         onRowClick={({ record }: { record: IOrder }) => handleRowClick(record)}
                         rowStyle={(record: IOrder) => ({
                             cursor:
-                                sellByWeight
+                                record.estatus_pedido_id === OrderStatusEnum.Layaway || record.estatus_pedido_id === OrderStatusEnum.Canceled
+                                    ? "default"
+                                    : sellByWeight
                                     ? record.estatus_pedido_id === OrderStatusEnum.InProcess
                                         ? "pointer"
                                         : "default"
@@ -124,6 +141,7 @@ export default function OrderListPage() {
                         rowClassName={(record: IOrder) => getRowClassName(record)}
                     />
                 </div>
+                </>
             )}
         </div>
     );

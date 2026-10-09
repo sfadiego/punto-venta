@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAxios } from "@/hooks/useAxios";
 import { useBestSeller, useAverageTicket } from "@/services/useStatisticsService";
 import { useCurrentTotalSale } from "@/services/useOpenSalesService";
+import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 
 const currentMonth = () => {
@@ -20,6 +21,7 @@ const formatMonth = (month: string) =>
 export const useStatisticsPage = () => {
     const [month, setMonth] = useState<string>(currentMonth());
     const { sistemaId, features } = useAxios();
+    const { data: config } = useGetBusinessConfig();
 
     const { data: bestSellers = [], isLoading } = useBestSeller(month);
     const { data: totalVentasRaw } = useCurrentTotalSale(sistemaId);
@@ -41,6 +43,11 @@ export const useStatisticsPage = () => {
         topProduct,
         averageTicketLabel,
         ordersCount: averageTicket?.orders_count ?? 0,
+        totalReturns: averageTicket?.total_returns ?? 0,
         sellByWeight: features?.sell_by_weight === true,
+        // Productos sin movimiento: solo retail con inventario activo (misma regla del backend, retail.stock).
+        showSlowMoving: features?.is_retail === true && config?.stock_enabled === true,
+        // Clientes con adeudo: solo retail y venta por peso (el backend responde 403 en los demás).
+        showDebtors: features?.is_retail === true || features?.sell_by_weight === true,
     };
 };

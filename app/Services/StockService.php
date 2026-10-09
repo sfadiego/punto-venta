@@ -33,6 +33,7 @@ class StockService
         ?Model $reference = null,
         ?int $createdBy = null,
         ?string $note = null,
+        ?int $orderReturnId = null,
     ): ProductModel|ProductVariantModel {
         return $this->applyMovement(
             $productId,
@@ -43,6 +44,7 @@ class StockService
             $reference,
             $createdBy,
             $note,
+            $orderReturnId,
         );
     }
 
@@ -57,6 +59,7 @@ class StockService
         ?Model $reference = null,
         ?int $createdBy = null,
         ?string $note = null,
+        ?int $orderReturnId = null,
     ): ProductModel|ProductVariantModel {
         return $this->applyMovement(
             $productId,
@@ -67,6 +70,7 @@ class StockService
             $reference,
             $createdBy,
             $note,
+            $orderReturnId,
         );
     }
 
@@ -116,6 +120,7 @@ class StockService
         ?Model $reference,
         ?int $createdBy,
         ?string $note,
+        ?int $orderReturnId = null,
     ): ProductModel|ProductVariantModel {
         $product = ProductModel::where('id', $productId)->lockForUpdate()->first();
 
@@ -163,6 +168,7 @@ class StockService
             StockMovementModel::REASON => $reason,
             StockMovementModel::CREATED_BY => $createdBy,
             StockMovementModel::NOTE => $note,
+            StockMovementModel::ORDER_RETURN_ID => $orderReturnId,
         ]);
 
         if ($reference) {

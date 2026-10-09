@@ -18,13 +18,13 @@ class RolePermissionService
     private const DEFAULTS = [
         RoleEnum::EMPLOYE->value => [
             'viewDashboard', 'viewOrders', 'viewProducts', 'takeOrder',
-            'editOrderName', 'printTicket', 'kitchenView', 'payOrder',
+            'editOrderName', 'printTicket', 'kitchenView', 'payOrder', 'layaway',
         ],
         RoleEnum::COCINA->value => [
             'viewDashboard', 'viewOrders', 'kitchenView', 'printTicket',
         ],
         RoleEnum::CAJA->value => [
-            'viewDashboard', 'viewOrders', 'payOrder', 'printTicket', 'registerExpense',
+            'viewDashboard', 'viewOrders', 'payOrder', 'printTicket', 'registerExpense', 'layaway', 'processReturns',
         ],
     ];
 
@@ -37,14 +37,25 @@ class RolePermissionService
      */
     private function defaultsForTenant(int $tenantId): array
     {
-        $hasKitchen = BusinessConfigModel::find($tenantId)?->tipo_negocio?->features()['kitchen_view'] ?? true;
+        $features = BusinessConfigModel::find($tenantId)?->tipo_negocio?->features();
 
-        if ($hasKitchen) {
+        // Claves que el tipo de negocio no soporta: sin cocina no existe 'kitchenView'; los
+        // apartados ('layaway') y las devoluciones ('processReturns') son exclusivos de retail.
+        $excluded = [];
+        if (! ($features['kitchen_view'] ?? true)) {
+            $excluded[] = 'kitchenView';
+        }
+        if (! ($features['is_retail'] ?? false)) {
+            $excluded[] = 'layaway';
+            $excluded[] = 'processReturns';
+        }
+
+        if ($excluded === []) {
             return self::DEFAULTS;
         }
 
         return array_map(
-            fn (array $keys) => array_values(array_diff($keys, ['kitchenView'])),
+            fn (array $keys) => array_values(array_diff($keys, $excluded)),
             self::DEFAULTS,
         );
     }

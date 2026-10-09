@@ -88,7 +88,7 @@ export const OrderActionGroup = ({
                 </button>
             )}
 
-            {can("deleteOrder") && ![OrderStatusEnum.Closed, OrderStatusEnum.Served].includes(order.estatus_pedido_id) && (
+            {can("deleteOrder") && ![OrderStatusEnum.Closed, OrderStatusEnum.Served, OrderStatusEnum.Layaway, OrderStatusEnum.Canceled].includes(order.estatus_pedido_id) && (
                 <button
                     onClick={onDelete}
                     disabled={isDeleting}

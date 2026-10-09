@@ -7,9 +7,11 @@ interface CustomerCreditPickerProps {
     customers: ICustomer[];
     selectedCustomerId: number | null;
     onSelect: (id: number) => void;
+    /** Venta a crédito exige cliente con crédito habilitado; un apartado acepta a cualquiera. */
+    requireCredit?: boolean;
 }
 
-export const CustomerCreditPicker = ({ customers, selectedCustomerId, onSelect }: CustomerCreditPickerProps) => {
+export const CustomerCreditPicker = ({ customers, selectedCustomerId, onSelect, requireCredit = true }: CustomerCreditPickerProps) => {
     const {
         search, setSearch,
         filtered,
@@ -47,6 +49,7 @@ export const CustomerCreditPicker = ({ customers, selectedCustomerId, onSelect }
                     setSearch={setSearch}
                     selectedCustomerId={selectedCustomerId}
                     onSelect={onSelect}
+                    requireCredit={requireCredit}
                     onOpenNewForm={openNewForm}
                 />
             )}

@@ -17,7 +17,7 @@ export const ClientAccessForm = ({ slug, setSlug, onSubmit, theme = AppThemeEnum
             <h2 className="text-xl font-bold text-stone-900 mb-1">Accede a tu negocio</h2>
             <p className="text-stone-500 text-sm mb-4">Ingresa el identificador de tu negocio</p>
 
-            <form onSubmit={onSubmit} className="flex gap-2">
+            <form onSubmit={onSubmit} noValidate className="flex gap-2">
                 <input
                     type="text"
                     value={slug}

@@ -1,6 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IOrder } from "@/models/IOrder";
+import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { useOrderActions } from "./useOrderActions";
 import { usePermissions } from "@/hooks/usePermissions";
 import { OrderActionGroup, OrderEditControls } from "./OrderActionGroup";
@@ -54,7 +55,7 @@ export const OrderActionButtons = ({ order, onSuccess }: OrderActionButtonsProps
             className="flex items-center justify-center gap-1"
             onClick={(e) => e.stopPropagation()}
         >
-            {can("takeOrder") && (
+            {can("takeOrder") && ![OrderStatusEnum.Layaway, OrderStatusEnum.Canceled].includes(order.estatus_pedido_id) && (
                 <button
                     onClick={(e) => { e.stopPropagation(); navigate(`/take-order/${order.id}`); }}
                     title="Ver orden"

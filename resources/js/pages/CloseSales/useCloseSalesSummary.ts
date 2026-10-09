@@ -5,6 +5,10 @@ import { useAxios } from "@/hooks/useAxios";
 export const useCloseSalesSummary = () => {
     const { features, branchId } = useAxios();
     const sellByWeight = features?.sell_by_weight === true;
+    // `features` guardadas antes de show_delivery no traen la clave — siguen viendo el domicilio.
+    const showDelivery = features?.show_delivery !== false;
+    // Los apartados son exclusivos de retail.
+    const isRetail = features?.is_retail === true;
 
     // Sin branchId, getActiveSale() resuelve la PRIMERA caja abierta del tenant sin
     // importar sucursal — con 2+ sucursales activas, el usuario podría terminar cerrando
@@ -22,6 +26,11 @@ export const useCloseSalesSummary = () => {
     const totalPropinas       = totales?.propinas   ?? 0;
     const totalGastos         = totales?.gastos     ?? 0;
     const byPaymentMethod     = totales?.by_payment_method ?? [];
+    const layawaySummary      = totales?.apartados ?? { abonos: 0, reembolsos: 0, neto: 0 };
+    const returnsSummary      = totales?.devoluciones ?? { total: 0, balance_applied: 0, cash_out: 0, count: 0 };
+
+    // Sesión sin ventas, abonos/reembolsos de apartados ni devoluciones: se cierra con motivo (ver CloseSalesEmptySessionNotice).
+    const isEmptySession          = totalBruto === 0 && layawaySummary.abonos === 0 && layawaySummary.reembolsos === 0 && returnsSummary.count === 0;
 
     const totalEfectivoPagado     = byPaymentMethod
         .filter((m) => m.name.toLowerCase().includes("efectivo"))
@@ -62,7 +71,12 @@ export const useCloseSalesSummary = () => {
         totalPropinasTarjeta,
         totalPropinaEfectivo,
         byPaymentMethod,
+        layawaySummary,
+        returnsSummary,
+        isEmptySession,
         sellByWeight,
+        showDelivery,
+        isRetail,
         isLoading: loadingSale || loadingTotal,
     };
 };

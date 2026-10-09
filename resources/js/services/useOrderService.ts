@@ -13,9 +13,13 @@ import {
 } from "../hooks/useApi";
 import { IOrder, IOrderSummary } from "@/models/IOrder";
 import { IOrderProduct } from "@/models/IOrderProduct";
+import { IOrderReturnPayload } from "@/models/IOrderReturn";
+import { invalidateCustomerQueries } from "@/services/useCustomerService";
+import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
+import { invalidateStatistics } from "@/services/useStatisticsService";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAxios } from "@/hooks/useAxios";
 
 const url = ApiRoutes.Orders;
@@ -32,6 +36,8 @@ export const useIndexOrder = ({
     categoria_id,
     search,
     branch_id,
+    strict_status,
+    layaways_only,
 }: IPaginateServiceProps) =>
     useGET<IPaginate<IOrder>>({
         url,
@@ -48,6 +54,8 @@ export const useIndexOrder = ({
             ...(categoria_id ? { categoria_id } : {}),
             ...(search ? { search } : {}),
             ...(branch_id ? { branch_id } : {}),
+            ...(strict_status ? { strict_status: 1 } : {}),
+            ...(layaways_only ? { layaways_only: 1 } : {}),
         },
         enable: sistema_id !== null,
     });
@@ -95,8 +103,10 @@ export const useStoreOrder = () => {
 };
 // Venta directa — crea la orden + productos + la cierra en un solo paso (OrderSaleService::createDirectSale).
 export const useStoreOrderSale = () => usePOST({ url: `${url}/sale` });
-export const useShowOrder = (orderId: number, enabled = true) =>
-    useGET<IOrder>({ url: `${url}/${orderId}`, enable: !!orderId && enabled });
+// `fresh` salta la caché (staleTime 0): para flujos que deciden con datos que cambian fuera de la orden — la
+// devolución usa el saldo del cliente y lo ya devuelto, que se mueven al abonar o devolver desde otra pantalla.
+export const useShowOrder = (orderId: number, enabled = true, { fresh = false }: { fresh?: boolean } = {}) =>
+    useGET<IOrder>({ url: `${url}/${orderId}`, enable: !!orderId && enabled, ...(fresh ? { staleTime: 0 } : {}) });
 
 // Combobox de devolución (módulo de Inventario) — a diferencia de useIndexOrder, no está
 // acotado a la sesión de caja activa: busca entre TODAS las órdenes cerradas del tenant, de
@@ -297,25 +307,41 @@ export const useDeleteOrderItem = () => {
     });
 };
 
-// Devolución de stock (módulo de Inventario, exclusivo retail) — orderProductId es el id de
-// la línea order_product (no el id del producto de catálogo). El backend valida que la orden
-// esté cerrada y que la cantidad no exceda lo vendido menos lo ya devuelto.
-export const useReturnOrderProduct = () => {
+// Devolución de una o varias líneas de una orden cerrada (módulo de Inventario, exclusivo retail).
+// Cada item usa el id de la línea order_product (no el del producto de catálogo). El backend la
+// aplica completa o no la aplica: valida que la orden esté cerrada y que ninguna cantidad exceda
+// lo vendido menos lo ya devuelto.
+// Una devolución toca stock (productos y kardex), la orden, la caja (reembolso), el saldo del cliente
+// (venta a crédito) y los reportes — se refresca todo sin importar desde qué pantalla se hizo.
+export const invalidateOrderReturnQueries = (
+    queryClient: QueryClient,
+    { orderId, sistemaId, customerId }: { orderId: number; sistemaId?: number | null; customerId?: number | null },
+) => {
+    queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
+    queryClient.invalidateQueries({ queryKey: [ApiRoutes.Kardex] });
+    queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
+    queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
+    // useShowOrder cachea con la key exacta "order/{id}" — sin esto, una segunda devolución parcial
+    // sobre la misma orden (dentro del staleTime de 2 min) ve las líneas con la cantidad ya devuelta
+    // desactualizada.
+    queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${orderId}`] });
+    if (sistemaId) {
+        queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`] });
+    }
+    invalidateCustomerQueries(queryClient);
+    // Detalle del cliente (clave propia): su saldo y su historial de devoluciones cambian en ventas a crédito.
+    if (customerId) {
+        queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/${customerId}`] });
+    }
+    invalidateSalesByCategory(queryClient);
+    invalidateStatistics(queryClient);
+};
+
+export const useCreateOrderReturn = () => {
     const { axiosApi } = useAxios();
     return useMutation({
-        mutationFn: ({
-            orderId,
-            orderProductId,
-            data,
-        }: {
-            orderId: number;
-            orderProductId: number;
-            data: { quantity: number; note?: string };
-        }) =>
-            axiosPOST(axiosApi, {
-                url: `${url}/${orderId}/product/${orderProductId}/return`,
-                data,
-            }),
+        mutationFn: ({ orderId, data }: { orderId: number; data: IOrderReturnPayload }) =>
+            axiosPOST(axiosApi, { url: `${url}/${orderId}/return`, data }),
     });
 };
 
@@ -326,18 +352,27 @@ export const useClearOrderCart = () => {
     });
 };
 
+// Ticket a imprimir: el de la orden o, con `returnId`, el comprobante de esa devolución.
+export interface IPrintTarget {
+    orderId: number;
+    returnId?: number;
+}
+
+const printUrl = ({ orderId, returnId }: IPrintTarget) =>
+    returnId ? `${url}/${orderId}/return/${returnId}/print` : `${url}/${orderId}/print`;
+
 export const usePrintOrder = () => {
     const { axiosApi } = useAxios();
     return useMutation({
-        mutationFn: (orderId: number) => axiosPOST(axiosApi, { url: `${url}/${orderId}/print`, data: {} }),
+        mutationFn: (target: IPrintTarget) => axiosPOST(axiosApi, { url: printUrl(target), data: {} }),
     });
 };
 
 export const useFetchPrintBytes = () => {
     const { axiosApi } = useAxios();
-    return (orderId: number) =>
+    return (target: IPrintTarget) =>
         axiosGET<ArrayBuffer>(axiosApi, {
-            url: ApiRoutes.PrintBytes.replace(":id", String(orderId)),
+            url: target.returnId ? `${printUrl(target)}/bytes` : ApiRoutes.PrintBytes.replace(":id", String(target.orderId)),
             responseType: "arraybuffer",
         });
 };

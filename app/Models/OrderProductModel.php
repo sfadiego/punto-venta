@@ -95,12 +95,14 @@ class OrderProductModel extends Model
             ->with(['product'])
             ->join('order', 'order.id', '=', 'order_product.pedido_id')
             ->where('order.estatus_pedido_id', OrderStatusEnum::CLOSED->value)
-            ->select(DB::raw('SUM(order_product.cantidad) as sumatoria'), 'order_product.producto_id')
+            // Unidades netas: las devueltas con reembolso se restan (una devolución solo de stock no anula la venta).
+            ->select(DB::raw('SUM(order_product.cantidad - COALESCE((SELECT SUM(i.quantity) FROM order_return_items i WHERE i.order_product_id = order_product.id AND i.refund_amount > 0), 0)) as sumatoria'), 'order_product.producto_id')
             ->when($start && $end, fn ($q) => $q->whereBetween('order_product.created_at', [$start, $end]))
             ->when($sistemaId, fn ($q) => $q->where('order.sistema_id', $sistemaId))
             ->when($branchId, fn ($q) => $q->join('main_order_report', 'main_order_report.id', '=', 'order.sistema_id')
                 ->where('main_order_report.branch_id', $branchId))
             ->groupBy('order_product.producto_id')
+            ->having('sumatoria', '>', 0)
             ->orderByDesc('sumatoria')
             ->limit(3)
             ->get();

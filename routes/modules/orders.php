@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\LayawayController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderProductController;
+use App\Http\Controllers\OrderReturnController;
 use App\Http\Controllers\PrintController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +25,11 @@ Route::prefix('order')->group(function () {
 
         Route::middleware('permission:viewCloseSales')->get('/credit-customers', 'creditCustomers');
 
+        // Resumen de apartados (tarjetas del tab Apartados) — antes del grupo {order} para que
+        // Laravel no intente resolver "layaways" como un id de orden.
+        Route::middleware(['permission:layaway', 'retail'])
+            ->get('/layaways/summary', [LayawayController::class, 'summary']);
+
         Route::middleware('permission:printTicket')->get('/print/test-bytes', [PrintController::class, 'testBytes']);
 
         // Combobox de órdenes cerradas para el modal de Devolución (Inventario) — debe ir
@@ -37,6 +44,30 @@ Route::prefix('order')->group(function () {
             // OrderCloseService, no aquí (un solo permission:xxx sería incorrecto).
             Route::put('', 'update');
             Route::middleware('permission:deleteOrder')->delete('', 'delete');
+
+            // Apartados (solo retail): anticipo + abonos hasta liquidar. Permiso propio
+            // `layaway` — Admin siempre pasa; Caja lo trae por defecto.
+            Route::prefix('layaway')->middleware(['permission:layaway', 'retail'])
+                ->controller(LayawayController::class)->group(function () {
+                    Route::get('', 'show');
+                    Route::post('', 'store');
+                    Route::post('payment', 'payment');
+                    Route::post('cancel', 'cancel');
+                });
+            // Devolución de una o varias líneas — módulo de Inventario, exclusivo de negocios
+            // retail con stock_enabled (ver RetailStockMiddleware). Solo aplica sobre órdenes ya
+            // cerradas (validado en OrderReturnStoreRequest).
+            Route::middleware(['permission:processReturns', 'retail.stock'])
+                ->post('return', [OrderReturnController::class, 'store']);
+
+            // Comprobante de una devolución de la orden. scopeBindings: la devolución debe pertenecer a la
+            // orden de la ruta (relación orderReturns), no solo al tenant.
+            Route::middleware('permission:printTicket')->prefix('return/{orderReturn}/print')
+                ->controller(PrintController::class)->scopeBindings()->group(function () {
+                    Route::post('', 'printReturn');
+                    Route::get('bytes', 'returnRawBytes');
+                });
+
             Route::middleware('permission:printTicket')->prefix('print')->group(base_path('routes/modules/printer.php'));
 
             // products (plural) — alta en lote del carrito completo, un request en vez de
@@ -63,12 +94,6 @@ Route::prefix('order')->group(function () {
                     // Única vía que usa Cocina para marcar un platillo listo — no debe
                     // exigir takeOrder (Cocina no lo tiene por default).
                     Route::middleware('permission:kitchenView')->patch('{item}/ready', 'toggleReady');
-
-                    // Devolución de stock — módulo de Inventario, exclusivo de negocios
-                    // retail con stock_enabled (ver RetailStockMiddleware). Solo aplica
-                    // sobre órdenes ya cerradas (validado en OrderProductReturnRequest).
-                    Route::middleware(['permission:manageStock', 'retail.stock'])
-                        ->post('{item}/return', 'returnStock');
                 });
             });
 

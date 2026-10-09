@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductExportController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ProductImportController;
 use App\Http\Controllers\ProductVariantController;
@@ -11,6 +12,12 @@ use Illuminate\Support\Facades\Route;
 // Este middleware cierra el acceso directo al backend sin el permiso, sin cambiar nada para
 // quien ya lo tiene (Employe lo trae por default).
 Route::prefix('product')->group(function () {
+    // Exportación del catálogo (CSV informativo) — solo retail. Mismo patrón OR que la importación
+    // (viewProducts desde la página de Productos, manageStock desde Inventario). Debe ir antes del
+    // grupo {product}: "export" no puede resolverse como un id de producto.
+    Route::middleware(['permission:viewProducts,manageStock', 'retail'])
+        ->get('export', [ProductExportController::class, 'export']);
+
     Route::middleware('permission:viewProducts')->group(function () {
         Route::controller(ProductController::class)->group(function () {
             Route::get('/', 'index');

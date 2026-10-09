@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Core\Enums\Http;
 use App\Models\BusinessConfigModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Response;
@@ -14,14 +15,16 @@ class TenantController extends Controller
         $tenant = BusinessConfigModel::where(BusinessConfigModel::SLUG, $slug)->first();
 
         if (! $tenant) {
-            return Response::json(['message' => 'Negocio no encontrado.'], 404);
+            return Response::error('Negocio no encontrado.', null, Http::NotFound);
         }
 
         if (! $tenant->activo) {
-            return Response::json([
-                'message' => 'Este negocio ha sido desactivado temporalmente. Contacta al administrador.',
-                'code' => 'TENANT_INACTIVE',
-            ], 403);
+            return Response::error(
+                'Este negocio ha sido desactivado temporalmente. Contacta al administrador.',
+                null,
+                Http::Forbidden,
+                'TENANT_INACTIVE',
+            );
         }
 
         return Response::success($tenant);

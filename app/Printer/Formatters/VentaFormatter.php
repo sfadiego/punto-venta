@@ -15,11 +15,11 @@ class VentaFormatter implements TicketFormatterInterface
         '80' => 48,
     ];
 
-    private int $width;
+    protected int $width;
 
-    private int $colName; // nombre del producto
+    protected int $colName; // nombre del producto
 
-    private int $colTotal; // total (right-aligned, incluye $)
+    protected int $colTotal; // total (right-aligned, incluye $)
 
     public function format(TicketDataInterface $data, Printer $printer): void
     {
@@ -27,9 +27,7 @@ class VentaFormatter implements TicketFormatterInterface
 
         $business = $d['business'];
 
-        $this->width = self::charsForPaperWidth($business['paper_width'] ?? '58');
-        $this->colTotal = (int) round($this->width * 9 / 32);
-        $this->colName = $this->width - $this->colTotal;
+        $this->setUpColumns($business);
 
         // ─── Encabezado ───────────────────────────────────────
         $printer->setJustification(Printer::JUSTIFY_CENTER);
@@ -39,6 +37,7 @@ class VentaFormatter implements TicketFormatterInterface
         $printer->feed(1);
         $printer->text($d['fecha_string'].'  '.$d['hora']."\n");
         $printer->feed(1);
+        $this->headerExtra($printer, $d);
         $printer->text($this->line('=')."\n");
 
         // ─── Info del pedido ──────────────────────────────────
@@ -97,7 +96,22 @@ class VentaFormatter implements TicketFormatterInterface
             $printer->text($this->totalRow('Propina 10%:', '$'.number_format($propina, 2))."\n");
         }
 
-        // ─── Pie del ticket ───────────────────────────────────
+        $this->afterTotals($printer, $d);
+
+        $this->printFooter($printer, $business);
+    }
+
+    /** Fija el ancho de línea y las columnas según el papel del negocio. */
+    protected function setUpColumns(array $business): void
+    {
+        $this->width = self::charsForPaperWidth($business['paper_width'] ?? '58');
+        $this->colTotal = (int) round($this->width * 9 / 32);
+        $this->colName = $this->width - $this->colTotal;
+    }
+
+    /** Pie del ticket: leyenda del negocio y sus datos de contacto. */
+    protected function printFooter(Printer $printer, array $business): void
+    {
         $printer->feed(1);
         $printer->text($this->line('=')."\n");
         $printer->setJustification(Printer::JUSTIFY_CENTER);
@@ -133,9 +147,17 @@ class VentaFormatter implements TicketFormatterInterface
         return self::CHARS_PER_PAPER_WIDTH[$paperWidth ?? '58'] ?? 32;
     }
 
+    // ─── Ganchos para tickets derivados (ej. apartados) ───────
+
+    /** Se imprime bajo la fecha, antes del detalle del pedido. Vacío por defecto. */
+    protected function headerExtra(Printer $printer, array $d): void {}
+
+    /** Se imprime tras los totales, antes del pie del ticket. Vacío por defecto. */
+    protected function afterTotals(Printer $printer, array $d): void {}
+
     // ─── Helpers ──────────────────────────────────────────────
 
-    private function line(string $char): string
+    protected function line(string $char): string
     {
         return str_repeat($char, $this->width);
     }
@@ -227,7 +249,7 @@ class VentaFormatter implements TicketFormatterInterface
     /**
      * Fila de total: label a la izquierda, valor a la derecha (ancho según el papel).
      */
-    private function totalRow(string $label, string $value): string
+    protected function totalRow(string $label, string $value): string
     {
         $valueLen = strlen($value);
         $labelLen = $this->width - $valueLen;
@@ -239,7 +261,7 @@ class VentaFormatter implements TicketFormatterInterface
      * Genera el prefijo del folio tomando la primera letra de cada palabra
      * del nombre del negocio en mayúsculas. Ej: "Pollos Sebastián" → "PS".
      */
-    private function folioPrefix(string $businessName): string
+    protected function folioPrefix(string $businessName): string
     {
         $words = preg_split('/\s+/', trim($businessName));
         $prefix = '';

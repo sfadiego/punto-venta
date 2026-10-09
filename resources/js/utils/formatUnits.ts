@@ -27,6 +27,11 @@ export const formatCantidad = (item: IOrderProduct): string => {
 const esPesoUnidad = (unidad?: UnidadMedidaEnum): boolean =>
     unidad === UnidadMedidaEnum.Kg || unidad === UnidadMedidaEnum.Gr || unidad === UnidadMedidaEnum.Litro;
 
+// Cantidad de una línea para mostrar en un badge compacto: "2×" para piezas, "0.35 kg" para peso
+// (la unidad ya indica que es una medida, así que no lleva "×").
+export const formatCantidadBadge = (item: IOrderProduct): string =>
+    esPesoUnidad(item.product?.unidad_medida) ? formatCantidad(item) : `${formatCantidad(item)}×`;
+
 // Etiqueta "N unidades" para una fila de la orden. Para productos por peso retorna null porque
 // el badge ya muestra la unidad de medida (ej. "0.5 kg") y agregar "unidades" sería incorrecto.
 export const formatUnitsLabel = (item: IOrderProduct): string | null => {

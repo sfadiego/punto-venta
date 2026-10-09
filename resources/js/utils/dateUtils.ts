@@ -7,6 +7,20 @@ export const localDateString = (date = new Date()): string => {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 };
 
+/** Fecha límite (YYYY-MM-DD) de un apartado: hoy + N días, en hora local. */
+export const computeLayawayDueDate = (days: number, from = new Date()): string => {
+    const due = new Date(from.getFullYear(), from.getMonth(), from.getDate() + days);
+    return localDateString(due);
+};
+
+/** Días de calendario desde hoy hasta una fecha YYYY-MM-DD (negativo si ya pasó, null si inválida). */
+export const daysUntilDate = (dateStr: string, from = new Date()): number | null => {
+    const target = parseDateLocal(dateStr.slice(0, 10));
+    if (!target) return null;
+    const today = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+};
+
 /** Devuelve el mes actual en formato YYYY-MM. */
 export const currentMonthString = (): string => localDateString().slice(0, 7);
 
@@ -30,6 +44,12 @@ export const formatOrderDateTime = (dateStr: string): string =>
         hour: "2-digit",
         minute: "2-digit",
     });
+
+/** Fecha corta local de un texto "AAAA-MM-DD[ HH:MM:SS]", ej. "28 jun 2026" (es-MX); "—" si viene vacío. */
+export const formatDateShort = (dateStr: string | null | undefined): string => {
+    const date = dateStr ? parseDateLocal(dateStr.slice(0, 10)) : null;
+    return date ? date.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+};
 
 /** Formatea una fecha YYYY-MM-DD a texto largo local, ej. "20 de julio de 2026" (es-MX). */
 export const formatDateLabel = (fecha: string): string =>

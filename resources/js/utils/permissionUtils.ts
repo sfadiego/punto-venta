@@ -23,7 +23,9 @@ export type Action =
     | "viewEmployees"
     | "registerExpense"
     | "manageStock"
-    | "manageBranches";
+    | "manageBranches"
+    | "layaway"
+    | "processReturns";
 
 export const ALL_ACTIONS: Action[] = [
     "viewDashboard",
@@ -48,6 +50,8 @@ export const ALL_ACTIONS: Action[] = [
     "registerExpense",
     "manageStock",
     "manageBranches",
+    "layaway",
+    "processReturns",
 ];
 
 export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
@@ -74,6 +78,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "registerExpense",
         "manageStock",
         "manageBranches",
+        "layaway",
+        "processReturns",
     ]),
     [RoleEnum.Employe]: new Set<Action>([
         "viewDashboard",
@@ -84,6 +90,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "printTicket",
         "kitchenView",
         "payOrder",
+        "layaway",
     ]),
     [RoleEnum.Cocina]: new Set<Action>([
         "viewDashboard",
@@ -97,6 +104,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<number, Set<Action>> = {
         "payOrder",
         "printTicket",
         "registerExpense",
+        "layaway",
+        "processReturns",
     ]),
 };
 
@@ -129,18 +138,23 @@ export const PERMISSION_LABELS: Record<Action, string> = {
     registerExpense: "Registrar gastos",
     manageStock: "Administrar inventario",
     manageBranches: "Administrar sucursales",
+    layaway: "Gestionar apartados",
+    processReturns: "Gestionar devoluciones",
 };
 
 // Acciones cuya aplicabilidad depende del tipo de negocio (features), no del rol.
 // Un negocio de venta por peso no tiene vista de cocina. La disponibilidad de "viewCustomers"
-// ya no depende del tipo de negocio aquí — venta por peso siempre lo tiene (sell_by_weight) y
-// restaurante lo activa por tenant vía business_config.customers_enabled (ver SidebarNav,
-// RestaurantPayModal y CloseSalesPage, que combinan este permiso con esa bandera).
+// ya no depende del tipo de negocio aquí — venta por peso y retail siempre lo tienen y el resto lo
+// activa por tenant vía business_config.customers_enabled (ver utils/customersModule.ts; lo
+// consumen SidebarNav, RestaurantPayModal y CloseSalesPage, que combinan este permiso con esa regla).
 // "manageStock" gatea la página de Inventario, exclusiva de negocios retail (features.is_retail);
 // venta por peso y restaurante siguen usando el acceso rápido de stock dentro de Productos.
+// "layaway" (apartados) y "processReturns" (devoluciones) también son exclusivos de retail.
 export const isActionApplicable = (action: Action, features?: IBusinessFeatures | null): boolean => {
     if (action === "kitchenView" && features?.kitchen_view === false) return false;
     if (action === "manageStock" && features?.is_retail !== true) return false;
+    if (action === "layaway" && features?.is_retail !== true) return false;
+    if (action === "processReturns" && features?.is_retail !== true) return false;
     return true;
 };
 

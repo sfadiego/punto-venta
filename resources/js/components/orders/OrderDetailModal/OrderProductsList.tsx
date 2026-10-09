@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Loader, ChevronDown, ChevronRight } from "lucide-react";
 import { IOrderProduct } from "@/models/IOrderProduct";
-import { formatCantidad } from "@/utils/formatUnits";
+import { formatCantidadBadge } from "@/utils/formatUnits";
 import { formatCurrencyTrimmed as formatCurrency } from "@/utils/formatCurrency";
 import { getOrderProductAddonsUnitTotal } from "@/utils/cartAddons";
 
@@ -36,17 +36,24 @@ export const OrderProductsList = ({ isLoading, orderProducts }: OrderProductsLis
                 {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </button>
             {isExpanded && (
-                <div className="rounded-xl border border-stone-100 divide-y divide-stone-100 max-h-56 overflow-y-auto">
+                <div className="rounded-xl border border-stone-100 divide-y divide-stone-100 max-h-80 overflow-y-auto">
                     {orderProducts.map((item, idx) => (
                         <div key={item.id ?? idx} className="px-3 py-1.5">
                             <div className="flex items-center gap-2">
-                                <span className="text-[11px] text-stone-400 shrink-0 min-w-[2rem] text-right tabular-nums">
-                                    {formatCantidad(item)}
+                                <span className="shrink-0 min-w-[2rem] text-center rounded-md bg-stone-100 px-1.5 py-0.5 text-[11px] font-semibold text-stone-600 tabular-nums">
+                                    {formatCantidadBadge(item)}
                                 </span>
-                                <p className="text-xs text-stone-700 truncate flex-1 min-w-0">
-                                    {item.product?.nombre ?? "Producto"}
-                                    {item.variant && <span className="text-stone-400"> · {item.variant.nombre}</span>}
-                                </p>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs text-stone-700 truncate">
+                                        {item.product?.nombre ?? "Producto"}
+                                        {item.variant && <span className="text-stone-400"> · {item.variant.nombre}</span>}
+                                    </p>
+                                    {item.product?.product_code && (
+                                        <p className="text-[10px] font-semibold text-stone-400 tracking-wide">
+                                            COD. {item.product.product_code}
+                                        </p>
+                                    )}
+                                </div>
                                 {/* El total de la línea incluye sus toppings (precio unitario + toppings) × cantidad. */}
                                 <span className="text-xs font-medium text-stone-700 shrink-0">
                                     {formatCurrency((item.precio + getOrderProductAddonsUnitTotal(item)) * item.cantidad)}

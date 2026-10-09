@@ -16,23 +16,43 @@ class SalesReportExportService
     // tenant con historial enorme) tumbe el proceso generando un PDF gigante.
     private const MAX_ROWS = 5000;
 
+    public function __construct(private readonly SlowMovingSectionBuilder $slowMovingSection) {}
+
     /**
      * Genera el PDF del reporte de ventas (órdenes cerradas) para el período indicado.
      */
     public function buildPdf(?int $sistemaId, ?string $date, ?string $week, ?string $month, bool $sellByWeight): string
     {
-        $orders = $this->closedOrders($sistemaId, $date, $week, $month);
-        $totalRevenue = $orders->sum(OrderModel::TOTAL);
+        return Pdf::loadView('reports.sales-report', $this->viewData($sistemaId, $date, $week, $month, $sellByWeight))
+            ->setPaper('a4', 'portrait')
+            ->output();
+    }
 
-        $pdf = Pdf::loadView('reports.sales-report', [
+    /**
+     * Datos de la vista del reporte. `slowMoving` lleva la sección detallada de productos sin
+     * movimiento (solo retail con inventario activo, null en cualquier otro negocio).
+     *
+     * @return array<string, mixed>
+     */
+    public function viewData(?int $sistemaId, ?string $date, ?string $week, ?string $month, bool $sellByWeight): array
+    {
+        $orders = $this->closedOrders($sistemaId, $date, $week, $month);
+        // Ventas netas de devoluciones: lo reembolsado de estas órdenes se resta, y una venta devuelta por
+        // completo ya no cuenta como venta (ni baja el venta promedio).
+        $totalReturns = round($orders->sum('refunded_amount'), 2);
+        $totalRevenue = round($orders->sum(OrderModel::TOTAL) - $totalReturns, 2);
+        $salesCount = $orders->filter(fn (OrderModel $order): bool => round((float) $order->total - (float) $order->refunded_amount, 2) > 0)->count();
+
+        return [
             'orders' => $orders,
+            'salesCount' => $salesCount,
+            'totalReturns' => $totalReturns,
             'totalRevenue' => $totalRevenue,
-            'averageSale' => $orders->isNotEmpty() ? $totalRevenue / $orders->count() : 0,
+            'averageSale' => $salesCount > 0 ? $totalRevenue / $salesCount : 0,
             'periodLabel' => $this->periodLabel($date, $week, $month),
             'sellByWeight' => $sellByWeight,
-        ])->setPaper('a4', 'portrait');
-
-        return $pdf->output();
+            'slowMoving' => $this->slowMovingSection->build(),
+        ];
     }
 
     private function periodLabel(?string $date, ?string $week, ?string $month): string
@@ -68,6 +88,7 @@ class SalesReportExportService
     public function closedOrders(?int $sistemaId, ?string $date, ?string $week, ?string $month): Collection
     {
         return $this->closedOrdersQuery($sistemaId, $date, $week, $month)
+            ->withRefundedAmount()
             ->with(['paymentMethod:id,name', 'customer:id,name'])
             ->orderBy('created_at')
             ->get();

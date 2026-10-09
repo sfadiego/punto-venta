@@ -15,6 +15,8 @@ export enum ApiRoutes {
     Kardex = "/api/kardex",
     System = "/api/admin/system",
     Statistics = "/api/admin/system/statistics",
+    StatisticsSlowMoving = "/api/admin/system/statistics/slow-moving",
+    StatisticsTopDebtors = "/api/admin/system/statistics/top-debtors",
     AdminUsers = "/api/admin/users",
     PaymentMethods = "/api/admin/payment-methods",
     BusinessConfig = "/api/admin/config",

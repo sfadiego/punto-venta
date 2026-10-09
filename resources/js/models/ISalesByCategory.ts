@@ -15,4 +15,6 @@ export interface ISalesByCategory {
 export interface ISalesByCategoryResponse {
     categories: ISalesByCategory[];
     domicilios: number;
+    // Devoluciones ya descontadas de los totales de las categorías (ventas netas).
+    returns: number;
 }

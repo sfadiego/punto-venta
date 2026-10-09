@@ -4,10 +4,13 @@ namespace App\Services;
 
 use App\Core\Data\IndexData;
 use App\Core\Paginator\DataTable;
+use App\Enums\LayawayPaymentTypeEnum;
 use App\Enums\OrderStatusEnum;
 use App\Enums\StockMovementReasonEnum;
+use App\Models\BusinessConfigModel;
 use App\Models\CustomerModel;
 use App\Models\MainOrderReportModel;
+use App\Models\OrderLayawayPaymentModel;
 use App\Models\OrderModel;
 use App\Models\StockMovementModel;
 use Carbon\Carbon;
@@ -49,6 +52,19 @@ class OrderService extends DataTable
                     });
                 },
             ]);
+        // Los apartados son exclusivos de retail: en cualquier otro tipo de negocio no se mezclan
+        // apartados ni canceladas en la búsqueda, ni se atiende `layaways_only`.
+        $isRetail = BusinessConfigModel::find(app('tenant_id'))?->tipo_negocio?->features()['is_retail'] ?? false;
+
+        // Tab de apartados cancelados (Pedidos): solo órdenes que pasaron por un apartado, con lo
+        // abonado, lo reembolsado y lo retenido de cada una. Las sumas solo se piden aquí.
+        if ($isRetail && request()->boolean('layaways_only')) {
+            $query->whereHas('layawayPayments')
+                ->withSum(['layawayPayments as layaway_deposited' => fn (Builder $q) => $q->where(OrderLayawayPaymentModel::TYPE, LayawayPaymentTypeEnum::Deposit)], OrderLayawayPaymentModel::AMOUNT)
+                ->withSum(['layawayPayments as layaway_refunded' => fn (Builder $q) => $q->where(OrderLayawayPaymentModel::TYPE, LayawayPaymentTypeEnum::Refund)], OrderLayawayPaymentModel::AMOUNT)
+                ->withSum(['layawayPayments as layaway_retained' => fn (Builder $q) => $q->where(OrderLayawayPaymentModel::TYPE, LayawayPaymentTypeEnum::Forfeit)], OrderLayawayPaymentModel::AMOUNT);
+        }
+
         $rawEstatus = request()->query('estatus_pedido_id');
         $sistemaId = request()->query('sistema_id');
         $search = request()->query('search');
@@ -58,11 +74,23 @@ class OrderService extends DataTable
             // El buscador de la sesión actual ignora el filtro de estatus activo y busca
             // tanto en órdenes activas como cerradas — el usuario decide el alcance con el
             // texto, no con los botones de filtro.
-            $query->whereIn(OrderModel::ESTATUS_PEDIDO_ID, [
-                OrderStatusEnum::IN_PROCESS->value,
-                OrderStatusEnum::SERVED->value,
-                OrderStatusEnum::CLOSED->value,
-            ])->where(function (Builder $q) use ($search) {
+            // Excepciones: el tab de Apartados (estatus = solo Apartado) busca únicamente entre
+            // apartados, y una vista que lo pide con `strict_status` (Ventas: solo órdenes
+            // cerradas) respeta su filtro de estatus — de lo contrario buscar ahí traería órdenes
+            // que no son ventas.
+            $estatusIds = $rawEstatus !== null ? array_map('intval', explode(',', $rawEstatus)) : [];
+            $respectsStatus = $estatusIds !== [] && (
+                $estatusIds === [OrderStatusEnum::LAYAWAY->value] || request()->boolean('strict_status')
+            );
+
+            // Sin esa excepción la búsqueda abarca las órdenes activas y cerradas — y, en retail, también
+            // las apartadas y canceladas: un folio se debe encontrar sin importar el filtro activo.
+            $searchStatuses = [OrderStatusEnum::IN_PROCESS->value, OrderStatusEnum::SERVED->value, OrderStatusEnum::CLOSED->value];
+            if ($isRetail) {
+                $searchStatuses = [...$searchStatuses, OrderStatusEnum::LAYAWAY->value, OrderStatusEnum::CANCELED->value];
+            }
+
+            $query->whereIn(OrderModel::ESTATUS_PEDIDO_ID, $respectsStatus ? $estatusIds : $searchStatuses)->where(function (Builder $q) use ($search) {
                 $q->where(OrderModel::NOMBRE_PEDIDO, 'like', "%{$search}%")
                     ->orWhere('id', 'like', "%{$search}%")
                     ->orWhereHas('customer', function (Builder $c) use ($search) {

@@ -4,6 +4,19 @@
 
 set -e
 
+# Clientes git gráficos (VS Code, GitHub Desktop...) ejecutan el hook con un PATH mínimo, sin Homebrew ni nvm,
+# y entonces `pnpm`/`node` no se encuentran. Se agregan las rutas habituales antes de usarlos.
+export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/Library/pnpm:$HOME/.local/share/pnpm:$PATH"
+if [ -d "$HOME/.nvm/versions/node" ]; then
+  NVM_NODE_BIN=$(ls -d "$HOME"/.nvm/versions/node/*/bin 2>/dev/null | sort -V | tail -n 1)
+  [ -n "$NVM_NODE_BIN" ] && export PATH="$NVM_NODE_BIN:$PATH"
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "❌ pnpm no está en el PATH del hook. Instálalo o agrega su ruta en .hooks/pre-commit."
+  exit 1
+fi
+
 STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.(ts|tsx)$" || true)
 
 if [ -z "$STAGED" ]; then

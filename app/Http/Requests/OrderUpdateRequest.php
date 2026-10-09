@@ -92,6 +92,15 @@ class OrderUpdateRequest extends FormRequest
                 }
             }
 
+            // Un apartado solo cambia de estado vía LayawayService (abono/liquidación/cancelación):
+            // cerrarlo por este PUT descontaría el stock otra vez y se saltaría el libro de abonos.
+            $currentOrder = $this->route('order');
+            if ($currentOrder instanceof OrderModel
+                && $currentOrder->estatus_pedido_id === OrderStatusEnum::LAYAWAY->value
+                && $this->has(OrderModel::ESTATUS_PEDIDO_ID)) {
+                $validator->errors()->add(OrderModel::ESTATUS_PEDIDO_ID, 'Un apartado se liquida registrando abonos.');
+            }
+
             // Cerrar (cobrar) una orden retomada contra una caja que ya se cerró dejaría
             // una venta huérfana fuera de cualquier sesión activa, rompiendo el cuadre de
             // caja — solo se valida al intentar cerrar, no en ediciones menores en curso.

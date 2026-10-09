@@ -1,10 +1,13 @@
-import { AlertCircle } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
+import { isCustomersModuleEnabled } from "@/utils/customersModule";
+import { useAxios } from "@/hooks/useAxios";
 import { useCloseSalesPage } from "./useCloseSalesPage";
 import BestSellerWidget from "./partials/BestSellerWidget";
 import CreditCustomersWidget from "./partials/CreditCustomersWidget";
 import CloseSalesCategoryReportWidget from "./partials/CloseSalesCategoryReportWidget";
+import { CloseSalesLoader } from "./partials/CloseSalesLoader";
+import { CloseSalesNoOpenSale } from "./partials/CloseSalesNoOpenSale";
 import { SalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/SalesByCategoryModal";
 import { useSalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/useSalesByCategoryModal";
 import { CloseSalesHeader } from "@/components/CloseSales/CloseSalesHeader";
@@ -16,16 +19,18 @@ import { CloseSalesSessionDetail } from "@/components/CloseSales/CloseSalesSessi
 import { CloseSalesExpensesModal } from "@/components/CloseSales/CashSummary/CloseSalesExpensesModal";
 import { CloseSalesActiveOrdersAlert } from "@/components/CloseSales/CloseSalesActiveOrdersAlert";
 import { CloseSalesCloseButton } from "@/components/CloseSales/CloseSalesCloseButton";
+import { CloseSalesEmptySessionNotice } from "@/components/CloseSales/CloseSalesEmptySessionNotice";
 
 export default function CloseSalesPage() {
     const {
         activeSale,
         sistemaId,
         efectivoInicio,
-        totalBruto,
         totalDomicilios,
         totalNeto,
         totalGastos,
+        layawaySummary,
+        returnsSummary,
         efectivoCierre,
         totalEfectivoPagado,
         totalTransferenciaPagado,
@@ -36,6 +41,11 @@ export default function CloseSalesPage() {
         openExpensesModal,
         closeExpensesModal,
         sellByWeight,
+        showDelivery,
+        isRetail,
+        isEmptySession,
+        emptyReasonFormik,
+        canClose,
         hasActiveOrders,
         activeOrdersCount,
         isLoading,
@@ -45,29 +55,14 @@ export default function CloseSalesPage() {
 
     const totalEnCaja = efectivoCierre + totalTransferenciaPagado;
     const { can } = usePermissions();
+    const { features } = useAxios();
     const categoryModal = useSalesByCategoryModal();
     const { data: config } = useGetBusinessConfig();
-    const customersEnabled = sellByWeight || config?.customers_enabled === true;
+    const customersEnabled = isCustomersModuleEnabled(features, config);
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-64">
-                <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
-    }
+    if (isLoading) return <CloseSalesLoader />;
 
-    if (!activeSale) {
-        return (
-            <div className="px-5 py-6 max-w-3xl mx-auto">
-                <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-4">
-                    <AlertCircle size={48} className="text-stone-300" />
-                    <p className="text-lg font-medium text-stone-500">No hay una caja abierta actualmente</p>
-                    <p className="text-sm">Abre la caja desde el dashboard para registrar ventas.</p>
-                </div>
-            </div>
-        );
-    }
+    if (!activeSale) return <CloseSalesNoOpenSale />;
 
     return (
         <div className="px-5 py-6 max-w-3xl mx-auto">
@@ -95,11 +90,14 @@ export default function CloseSalesPage() {
                 efectivoInicio={efectivoInicio}
                 totalDomicilios={totalDomicilios}
                 totalGastos={totalGastos}
+                layawaySummary={layawaySummary}
+                returnsSummary={returnsSummary}
+                showLayaway={isRetail}
                 onViewExpenses={openExpensesModal}
             />
 
-            <CloseSalesTotalBanner total={totalEnCaja} />
-            
+            <CloseSalesTotalBanner total={totalEnCaja} showDelivery={showDelivery} />
+
             {sellByWeight && can("viewSales") && (
                 <CloseSalesCategoryReportWidget onOpen={categoryModal.open} />
             )}
@@ -113,16 +111,11 @@ export default function CloseSalesPage() {
                 <CloseSalesActiveOrdersAlert count={activeOrdersCount} />
             )}
 
-            {totalBruto === 0 && (
-                <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl px-4 py-3 text-sm mb-4">
-                    <span className="shrink-0">⚠️</span>
-                    <span>No hay ventas registradas en esta sesión. Registra al menos una venta para poder cerrar la caja.</span>
-                </div>
-            )}
+            {isEmptySession && <CloseSalesEmptySessionNotice formik={emptyReasonFormik} />}
 
             <CloseSalesCloseButton
                 isClosing={isClosing}
-                disabled={hasActiveOrders || totalBruto === 0}
+                disabled={!canClose}
                 onClick={handleClose}
             />
 

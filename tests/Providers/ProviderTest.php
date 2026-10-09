@@ -7,6 +7,7 @@ use App\Models\BusinessConfigModel;
 use App\Models\ProviderModel;
 use App\Models\ProviderPurchaseModel;
 use App\Models\User;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 class ProviderTest extends TestCase
@@ -426,7 +427,7 @@ class ProviderTest extends TestCase
     public function test_filtra_compras_por_semana(): void
     {
         $provider = $this->crearProveedor();
-        $inicioSemana = now()->startOfWeek(\Carbon\Carbon::MONDAY);
+        $inicioSemana = now()->startOfWeek(Carbon::MONDAY);
 
         $this->fijarFecha(
             $this->crearCompra($provider->id, ['note' => 'Compra en semana']),

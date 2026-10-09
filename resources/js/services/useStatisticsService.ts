@@ -11,7 +11,9 @@ export interface IBestSellerItem {
 }
 
 export interface IAverageTicket {
+    // Ingresos y ventas netas de devoluciones: `total_returns` es lo reembolsado de esas ventas (ya descontado).
     total_revenue: number;
+    total_returns: number;
     orders_count: number;
     average_ticket: number;
 }
@@ -49,4 +51,9 @@ export const useAverageTicket = (date?: string, sistemaId?: number | null, branc
 export const invalidateStatistics = (queryClient: QueryClient) => {
     queryClient.invalidateQueries({ queryKey: [`${url}/best-seller`] });
     queryClient.invalidateQueries({ queryKey: [`${url}/average-ticket`] });
+    // Una venta a crédito cambia el adeudo del cliente y cualquier venta mueve el stock y la última venta
+    // de sus productos — sin esto, estas secciones de Estadísticas mostraban datos de hasta 2 minutos antes.
+    queryClient.invalidateQueries({ queryKey: [ApiRoutes.StatisticsTopDebtors] });
+    queryClient.invalidateQueries({ queryKey: [ApiRoutes.StatisticsSlowMoving] });
+    queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.StatisticsSlowMoving}/summary`] });
 };

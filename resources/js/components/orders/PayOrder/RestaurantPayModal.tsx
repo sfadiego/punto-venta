@@ -10,6 +10,10 @@ import { PayModalActions } from "../PayModal/PayModalActions";
 import { CustomerCreditPicker } from "@/components/orders/CustomerCredit/CustomerCreditPicker";
 import { useAxios } from "@/hooks/useAxios";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
+import { LayawayPayBody } from "@/components/orders/Layaway/Pay/LayawayPayBody";
+import { LayawayPay } from "@/components/orders/Layaway/Pay/useLayawayPay";
+import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
+import { isCustomersModuleEnabled } from "@/utils/customersModule";
 
 interface RestaurantPayModalProps {
     isOpen: boolean;
@@ -36,6 +40,8 @@ interface RestaurantPayModalProps {
     onSelectMethod: (id: number) => void;
     onSelectCredit?: () => void;
     onSelectCustomer?: (id: number) => void;
+    /** Modo apartado (solo retail) — omitido en los flujos que no lo soportan. */
+    layaway?: LayawayPay;
 }
 
 export const RestaurantPayModal = ({
@@ -63,19 +69,21 @@ export const RestaurantPayModal = ({
     onSelectMethod,
     onSelectCredit,
     onSelectCustomer = () => {},
+    layaway,
 }: RestaurantPayModalProps) => {
     const { features } = useAxios();
-    const sellByWeight = features?.sell_by_weight === true;
     const { data: config } = useGetBusinessConfig();
-    const customersAvailable = sellByWeight || config?.customers_enabled === true;
+    const customersAvailable = isCustomersModuleEnabled(features, config);
 
     if (!isOpen) return null;
+
+    const layawayMode = layaway?.isLayawayMode === true;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+            <div className={`relative bg-white rounded-2xl shadow-xl w-full max-h-[92vh] overflow-y-auto transition-[max-width] duration-300 ease-out ${layawayMode ? "max-w-2xl" : layaway?.isAvailable ? "max-w-lg" : "max-w-sm"}`}>
                 <PayModalHeader onClose={onClose} />
 
                 <div className="p-5 space-y-4">
@@ -89,21 +97,40 @@ export const RestaurantPayModal = ({
 
                     <PaymentMethodSelector
                         paymentMethods={paymentMethods}
-                        paymentMethodId={paymentMethodId}
-                        onSelect={onSelectMethod}
+                        paymentMethodId={layawayMode ? null : paymentMethodId}
+                        onSelect={(id) => {
+                            layaway?.exit();
+                            onSelectMethod(id);
+                        }}
                         creditModeAvailable={customersAvailable && !!onSelectCredit}
-                        isCreditMode={customersAvailable && isCreditMode}
-                        onSelectCredit={customersAvailable ? onSelectCredit : undefined}
+                        isCreditMode={customersAvailable && isCreditMode && !layawayMode}
+                        onSelectCredit={
+                            customersAvailable
+                                ? () => {
+                                      layaway?.exit();
+                                      onSelectCredit?.();
+                                  }
+                                : undefined
+                        }
+                        layawayAvailable={layaway?.isAvailable === true}
+                        isLayawayMode={layawayMode}
+                        onSelectLayaway={layaway?.enter}
                     />
 
-                    {customersAvailable && isCreditMode ? (
-                        <CustomerCreditPicker
-                            customers={customers}
-                            selectedCustomerId={selectedCustomerId}
-                            onSelect={onSelectCustomer}
-                        />
+                    {layaway && layawayMode ? (
+                        <div key="layaway" className="pay-panel-enter">
+                            <LayawayPayBody layaway={layaway} />
+                        </div>
+                    ) : customersAvailable && isCreditMode ? (
+                        <div key="credit" className="pay-panel-enter">
+                            <CustomerCreditPicker
+                                customers={customers}
+                                selectedCustomerId={selectedCustomerId}
+                                onSelect={onSelectCustomer}
+                            />
+                        </div>
                     ) : (
-                        <>
+                        <div key="payment" className="pay-panel-enter space-y-4">
                             <PayTransferAlert isCash={isCash} />
 
                             <PayPropinaInput
@@ -121,15 +148,21 @@ export const RestaurantPayModal = ({
                                 max={Math.ceil(totalFinal * 10)}
                                 totalFinal={totalFinal}
                             />
-                        </>
+                        </div>
                     )}
 
                     <PayModalActions
-                        canPay={canPay}
-                        isPending={isPending}
-                        onPay={onPay}
+                        canPay={layawayMode ? layaway.canSubmit : canPay}
+                        isPending={layawayMode ? layaway.isPending : isPending}
+                        onPay={layawayMode ? layaway.submit : onPay}
                         onClose={onClose}
-                        confirmLabel={isCreditMode ? "Registrar venta a crédito" : "Pagar y cerrar"}
+                        confirmLabel={
+                            layawayMode
+                                ? `Apartar y cobrar ${formatCurrencyTrimmed(layaway.deposit)}`
+                                : isCreditMode
+                                  ? "Registrar venta a crédito"
+                                  : "Pagar y cerrar"
+                        }
                     />
                 </div>
             </div>

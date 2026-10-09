@@ -84,6 +84,7 @@ export const SaleActions = ({ order }: SaleActionsProps) => {
                 isOpen={detailOpen}
                 order={order}
                 orderProducts={orderDetail?.order_products ?? []}
+                orderReturns={orderDetail?.order_returns}
                 isLoadingProducts={isLoadingProducts}
                 onClose={() => setDetailOpen(false)}
             />

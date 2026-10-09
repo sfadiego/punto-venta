@@ -5,4 +5,5 @@ export enum OrderStatusEnum {
     Deleted             = 4,
     Served              = 5,
     PendingConfirmation = 6,
+    Layaway             = 7,
 }

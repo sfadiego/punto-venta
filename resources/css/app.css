@@ -62,3 +62,24 @@ body { color: var(--color-label); }
        vez de tocar el JSX de cada modal que use esta clase. */
     margin-top: 0 !important;
 }
+
+/* Entrada suave del contenido que reemplaza a otro al cambiar de pestaña (ej. modal de cobro:
+   efectivo / crédito / apartar) — sin esto el bloque nuevo aparece de golpe. */
+@keyframes pay-panel-enter {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+.pay-panel-enter {
+    animation: pay-panel-enter 240ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+    .pay-panel-enter {
+        animation: none;
+    }
+}

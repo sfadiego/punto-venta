@@ -9,4 +9,6 @@ enum StockMovementReasonEnum: string
     case ManualAdjustment = 'manual_adjustment';
     case Loss = 'loss';
     case InitialStock = 'initial_stock';
+    case Layaway = 'layaway';
+    case LayawayCancel = 'layaway_cancel';
 }

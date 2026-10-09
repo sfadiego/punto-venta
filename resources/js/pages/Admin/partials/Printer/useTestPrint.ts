@@ -4,6 +4,7 @@ import { usePrintAgent } from "@/hooks/usePrintAgent";
 import { useFetchPrintTestBytes } from "@/services/useOrderService";
 import { reportClientError } from "@/utils/reportClientError";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { getPrintErrorMessage } from "@/utils/printErrorMessage";
 
 export const useTestPrint = () => {
     const { print } = usePrintAgent();
@@ -18,10 +19,9 @@ export const useTestPrint = () => {
             await print(new Uint8Array(bytes as ArrayBuffer));
             toast.success("Impresión de prueba enviada");
         } catch (err) {
-            const fallback = err instanceof Error ? err.message : "Error al imprimir";
-            const msg = getUserFacingErrorMessage(err, fallback);
+            const msg = getUserFacingErrorMessage(err, getPrintErrorMessage(err));
             const stack = err instanceof Error ? err.stack : undefined;
-            toast.error("Error: " + msg);
+            toast.error(msg);
             reportClientError({ message: msg, stack, context: "print-agent-test" });
         } finally {
             setIsPending(false);

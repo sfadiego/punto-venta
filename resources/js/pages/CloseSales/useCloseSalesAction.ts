@@ -12,12 +12,15 @@ export const useCloseSalesAction = (sistemaId: number | null, hasActiveOrders: b
     const queryClient = useQueryClient();
     const { mutateAsync: closeSales, isPending: isClosing } = useCloseSales(sistemaId ?? 0);
 
-    const handleClose = async () => {
+    // `emptyReason`: solo al cerrar una caja sin ventas — el backend lo exige y lo guarda en la sesión.
+    const handleClose = async (emptyReason?: string) => {
         if (hasActiveOrders) return;
 
         const result = await Swal.fire({
             title: "¿Cerrar caja?",
-            text: "Esta acción cerrará la sesión de ventas del día. No podrás registrar más órdenes.",
+            text: emptyReason
+                ? `Esta sesión no tuvo ventas. Se cerrará con el motivo: "${emptyReason}". No podrás registrar más órdenes.`
+                : "Esta acción cerrará la sesión de ventas del día. No podrás registrar más órdenes.",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#ef4444",
@@ -29,7 +32,7 @@ export const useCloseSalesAction = (sistemaId: number | null, hasActiveOrders: b
         if (!result.isConfirmed) return;
 
         try {
-            await closeSales({});
+            await closeSales(emptyReason ? { empty_close_reason: emptyReason } : {});
             queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.System}/active-sale`] });
             toast.success("Caja cerrada exitosamente");
             navigate("/");

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class ProductImageModel extends Model
 {
@@ -63,7 +64,7 @@ class ProductImageModel extends Model
                 self::NOMBRE_ARCHIVO => "{$tenantSlug}/{$filename}",
                 self::URL => $path,
             ];
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             Log::error($th->getMessage());
 
             return false;

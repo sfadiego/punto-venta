@@ -8,6 +8,7 @@ use App\Models\CustomerModel;
 use App\Models\ErrorReporting;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -27,7 +28,7 @@ class BackendErrorMiddlewareTest extends TestCase
     {
         // 'api' group listed first → ErrorReporting wraps auth:sanctum in the pipeline
         Route::get('/api/test-backend-500', function () use ($message) {
-            throw new \RuntimeException($message);
+            throw new RuntimeException($message);
         })->middleware(['api', 'auth:sanctum']);
     }
 
@@ -93,7 +94,7 @@ class BackendErrorMiddlewareTest extends TestCase
     {
         // Sin auth:sanctum en la ruta el middleware corre aunque no haya token
         Route::get('/api/test-public-500', function () {
-            throw new \RuntimeException('Error público sin auth');
+            throw new RuntimeException('Error público sin auth');
         })->middleware(['api']);
 
         $this->getJson('/api/test-public-500')

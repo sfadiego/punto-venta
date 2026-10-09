@@ -7,6 +7,7 @@ use App\Http\Middleware\ErrorReporting;
 use App\Http\Middleware\PermissionMiddleware;
 use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\RestaurantAddonsMiddleware;
+use App\Http\Middleware\RetailMiddleware;
 use App\Http\Middleware\RetailStockMiddleware;
 use App\Http\Middleware\TransactionMiddleware;
 use Illuminate\Auth\AuthenticationException;
@@ -34,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.subscription' => CheckSubscription::class,
             'role.admin' => AdminOnlyMiddleware::class,
             'permission' => PermissionMiddleware::class,
+            'retail' => RetailMiddleware::class,
             'retail.stock' => RetailStockMiddleware::class,
             'restaurant.addons' => RestaurantAddonsMiddleware::class,
         ]);
