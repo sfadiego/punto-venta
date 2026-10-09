@@ -225,10 +225,12 @@ class OrderSaleService
             ->where(OrderModel::IS_CREDIT, true)
             ->whereNotNull(OrderModel::CUSTOMER_ID)
             ->withRefundedAmount()
-            ->with('customer:id,name,phone,balance')
+            // withTrashed: una venta a crédito de un cliente eliminado después sigue siendo parte del cierre.
+            ->with(['customer' => fn ($query) => $query->withTrashed()->select(['id', 'name', 'phone', 'balance'])])
             ->get()
             ->groupBy(OrderModel::CUSTOMER_ID)
             ->map(fn ($orders) => [
+                'customer_id' => $orders->first()->customer_id,
                 'customer' => $orders->first()->customer,
                 'orders_count' => $orders->count(),
                 // Neto de devoluciones: lo devuelto de esas ventas ya no es crédito vigente.
