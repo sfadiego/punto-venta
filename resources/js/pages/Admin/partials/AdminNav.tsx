@@ -23,7 +23,8 @@ interface AdminNavProps {
 export const AdminNav = ({ sellByWeight, isRetail = false, printerVisible = false }: AdminNavProps) => {
     const sections = [
         ...BASE_SECTIONS,
-        ...(sellByWeight ? [DELIVERY_SECTION, SCALE_SECTION] : []),
+        DELIVERY_SECTION,
+        ...(sellByWeight ? [SCALE_SECTION] : []),
         ...(isRetail ? [LAYAWAY_SECTION, RETURNS_SECTION] : []),
     ];
 

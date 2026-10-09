@@ -65,11 +65,9 @@ function AdminPage() {
                         {printerVisible && (
                             <div id="impresora"><PrinterSection config={config} /></div>
                         )}
-                        {sellByWeight && (
-                            <div id="domicilio">
-                                <DeliverySection config={config} />
-                            </div>
-                        )}
+                        <div id="domicilio">
+                            <DeliverySection config={config} />
+                        </div>
                         {sellByWeight && (
                             <div id="bascula"><ScaleSection /></div>
                         )}
