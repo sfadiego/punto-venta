@@ -50,12 +50,14 @@ export const axiosPOST = <Data, Paras>(
         data,
         params,
         headers = {},
+        responseType,
         customHost = host,
     }: IAxiosPostProps<Data, Paras>,
 ) => {
     return axios.post(`${customHost}${url}`, data, {
         params,
         headers,
+        responseType,
     });
 };
 

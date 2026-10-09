@@ -47,6 +47,7 @@ Route::middleware(['auth:sanctum', ResolveTenant::class, 'check.subscription'])-
     require base_path('routes/modules/products.php');
     require base_path('routes/modules/kardex.php');
     require base_path('routes/modules/orderstatus.php');
+    require base_path('routes/modules/printer-agent.php');
     require base_path('routes/modules/system.php');
     require base_path('routes/modules/feature-spotlights.php');
 });
