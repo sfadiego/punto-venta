@@ -25,6 +25,7 @@ export enum ApiRoutes {
     Files = "/api/files",
     PrintBytes     = "/api/order/:id/print/bytes",
     PrintTestBytes = "/api/order/print/test-bytes",
+    PrinterAgentDownload = "/api/printer-agent/download",
     Tenant = "/api/tenant",
     DemoRequest = "/api/demo-request",
     AppTheme = "/api/app-theme",
