@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useModal } from "@/hooks/useModal";
 import { useUpdateOrder } from "@/services/useOrderService";
-import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
 import { useCustomerList } from "@/services/useCustomerService";
 import { usePrintTicket } from "../PrintTicket/usePrintTicket";
@@ -29,10 +28,9 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
     const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
 
     const { mutateAsync: updateOrder, isPending } = useUpdateOrder(order.id);
-    const { data: businessConfig } = useGetBusinessConfig();
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
     const { data: customers = [] } = useCustomerList();
-    const { print } = usePrintTicket();
+    const { print, canPrint } = usePrintTicket();
 
     const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
     const isCash = !selectedMethod || selectedMethod.name.toLowerCase().includes("efectivo");
@@ -92,7 +90,7 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
             closeModal();
             onSuccess?.();
 
-            if (businessConfig?.printer_host) {
+            if (canPrint) {
                 const result = await Swal.fire({
                     title: "¿Imprimir ticket?",
                     icon: "question",

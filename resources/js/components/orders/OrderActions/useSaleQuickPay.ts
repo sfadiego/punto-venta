@@ -3,7 +3,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useUpdateOrder } from "@/services/useOrderService";
-import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
 import { useCustomerList } from "@/services/useCustomerService";
 import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
@@ -27,10 +26,9 @@ export const useSaleQuickPay = (order: IOrder) => {
     const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
 
     const { mutateAsync: updateOrder, isPending: isPaying } = useUpdateOrder(order.id);
-    const { data: businessConfig } = useGetBusinessConfig();
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
     const { data: customers = [] } = useCustomerList();
-    const { print } = usePrintTicket();
+    const { print, canPrint } = usePrintTicket();
 
     const totalFinal = order.total;
     const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
@@ -80,7 +78,7 @@ export const useSaleQuickPay = (order: IOrder) => {
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closePayModal();
 
-            if (businessConfig?.printer_host) {
+            if (canPrint) {
                 const result = await Swal.fire({
                     title: "¿Imprimir ticket?",
                     icon: "question",

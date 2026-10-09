@@ -183,9 +183,9 @@ export const useQuickSalePayment = ({
             creditPayment.setIsCreditMode(false);
             creditPayment.setSelectedCustomerId(null);
 
-            // Solo se pregunta si hay una impresora ya configurada (agente local o CUPS/red) —
-            // si no, se omite el diálogo por completo.
-            if (agentConnected && businessConfig?.printer_name?.trim()) {
+            // Solo se pregunta si hay con qué imprimir: agente local conectado (su impresora se define en el
+            // config.json del agente, no en el negocio) o impresora de servidor/red configurada.
+            if (agentConnected || businessConfig?.printer_name?.trim()) {
                 const { isConfirmed } = await Swal.fire({
                     title: "¿Imprimir ticket?",
                     icon: "question",
