@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useModal } from "@/hooks/useModal";
 import { useUpdateOrder } from "@/services/useOrderService";
-import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
@@ -36,8 +35,7 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
     const creditSelection = useCreditSelection();
 
     const { mutateAsync: updateOrder, isPending } = useUpdateOrder(orderId);
-    const { data: businessConfig } = useGetBusinessConfig();
-    const { print } = usePrintTicket();
+    const { print, canPrint } = usePrintTicket();
 
     const canPay = canPayOrder({
         isCreditMode: creditSelection.isCreditMode,
@@ -112,7 +110,7 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
             toast.success(creditSelection.isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             closeModal();
 
-            if (businessConfig?.printer_host) {
+            if (canPrint) {
                 const result = await Swal.fire({
                     title: "¿Imprimir ticket?",
                     icon: "question",

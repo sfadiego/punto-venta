@@ -6,6 +6,7 @@ import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { reportClientError } from "@/utils/reportClientError";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { getPrintErrorMessage } from "@/utils/printErrorMessage";
+import { canOfferPrint, PrintRouteEnum, resolvePrintRoute } from "@/utils/printRoute";
 import { toast } from "react-toastify";
 
 export const usePrintTicket = () => {
@@ -48,50 +49,41 @@ export const usePrintTicket = () => {
         },
     });
 
+    const route = resolvePrintRoute({ agentConnected, bleConnected, config: businessConfig });
+
     // `returnId` imprime el comprobante de esa devolución en lugar del ticket de la orden.
     const print = (orderId: number, returnId?: number) => {
         const target: IPrintTarget = { orderId, returnId };
 
-        if (agentConnected) {
-            sendPrintAgent(target);
-            return;
+        switch (route) {
+            case PrintRouteEnum.Agent:
+                sendPrintAgent(target);
+                return;
+            case PrintRouteEnum.Bluetooth:
+                sendPrintBluetooth(target);
+                return;
+            case PrintRouteEnum.AgentMissing:
+                toast.error("Agente de impresión no conectado. Verifica que el agente esté corriendo en esta máquina.");
+                return;
+            case PrintRouteEnum.BluetoothMissing:
+                toast.error("Impresora Bluetooth no conectada. Ve a Configuración → Impresora para emparejarla.");
+                return;
+            case PrintRouteEnum.Unconfigured:
+                toast.warning("Impresora no configurada. Ve a Configuración → Impresora para agregarla.");
+                return;
+            case PrintRouteEnum.Server:
+                sendPrintServer(target);
+                return;
+            case PrintRouteEnum.Loading:
+                return;
         }
-
-        if (bleConnected) {
-            sendPrintBluetooth(target);
-            return;
-        }
-
-        // En producción con agente habilitado el servidor no puede imprimir — el agente es el único path válido
-        if (businessConfig?.printer_enabled) {
-            toast.error("Agente de impresión no conectado. Verifica que el agente esté corriendo en esta máquina.");
-            return;
-        }
-
-        if (businessConfig?.bluetooth_printing_enabled) {
-            toast.error("Impresora Bluetooth no conectada. Ve a Configuración → Impresora para emparejarla.");
-            return;
-        }
-
-        // Config aún cargando — esperar
-        if (!businessConfig) return;
-
-        // Fallback local: impresión vía servidor (CUPS / red)
-        if (!businessConfig.printer_name?.trim()) {
-            toast.warning("Impresora no configurada. Ve a Configuración → Impresora para agregarla.");
-            return;
-        }
-
-        sendPrintServer(target);
     };
 
-    // Visible cuando: agente/Bluetooth ya conectado, config cargando, printer_enabled/bluetooth_printing_enabled activos, o printer_name configurado (servidor).
-    const isVisible = agentConnected
-        || bleConnected
-        || !businessConfig
-        || !!businessConfig.printer_enabled
-        || !!businessConfig.bluetooth_printing_enabled
-        || !!businessConfig.printer_name?.trim();
+    // El botón se muestra mientras la config carga o haya algún medio de impresión configurado/conectado.
+    const isVisible = route === PrintRouteEnum.Loading || canOfferPrint(route);
 
-    return { print, isPending: isPendingAgent || isPendingBluetooth || isPendingServer, isVisible };
+    // Criterio para ofrecer "¿Imprimir ticket?" tras cobrar, abonar o devolver (config ya cargada).
+    const canPrint = canOfferPrint(route);
+
+    return { print, isPending: isPendingAgent || isPendingBluetooth || isPendingServer, isVisible, canPrint };
 };
