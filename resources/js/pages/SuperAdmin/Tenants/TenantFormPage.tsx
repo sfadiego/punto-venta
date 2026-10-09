@@ -10,6 +10,7 @@ import { TenantBusinessSection } from "@/components/SuperAdmin/Tenants/Sections/
 import { TenantColorsSection } from "@/components/SuperAdmin/Tenants/Sections/TenantColorsSection";
 import { TenantAdminSection } from "@/components/SuperAdmin/Tenants/Sections/TenantAdminSection";
 import { TenantPrinterSection } from "@/components/SuperAdmin/Tenants/Sections/TenantPrinterSection";
+import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 import { TenantProvidersEmployeesSection } from "@/components/SuperAdmin/Tenants/Sections/TenantProvidersEmployeesSection";
 import { TenantDangerZone } from "@/components/SuperAdmin/Tenants/Sections/TenantDangerZone";
 import { TenantFeatureSpotlightsSection } from "@/components/SuperAdmin/Tenants/TenantFeatureSpotlightsSection/TenantFeatureSpotlightsSection";
@@ -143,6 +144,7 @@ export default function TenantFormPage() {
                                         formik.setFieldValue("stock_enabled", !formik.values.stock_enabled)
                                     }
                                     customersEnabled={formik.values.customers_enabled}
+                                    customersLocked={formik.values.tipo_negocio === BusinessTypeEnum.Retail}
                                     onToggleCustomers={() =>
                                         formik.setFieldValue("customers_enabled", !formik.values.customers_enabled)
                                     }

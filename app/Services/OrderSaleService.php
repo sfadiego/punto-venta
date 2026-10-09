@@ -153,12 +153,18 @@ class OrderSaleService
 
         $this->applyPeriod($query, 'o.created_at', $date, $month, $week);
 
+        // Ventas netas de devoluciones: por línea se resta lo reembolsado (dinero) y las piezas devueltas con
+        // reembolso — una devolución solo de stock no anula la venta. `returns_total` suma lo descontado.
+        $refundedAmount = '(SELECT COALESCE(SUM(i.refund_amount), 0) FROM order_return_items i WHERE i.order_product_id = order_product.id)';
+        $refundedQuantity = '(SELECT COALESCE(SUM(i.quantity), 0) FROM order_return_items i WHERE i.order_product_id = order_product.id AND i.refund_amount > 0)';
+        $lineRevenue = '(order_product.precio + COALESCE((SELECT SUM(a.price * a.quantity) FROM order_product_addons a WHERE a.order_product_id = order_product.id), 0)) * order_product.cantidad * (1 - COALESCE(order_product.descuento, 0) / 100) * (1 - COALESCE(o.descuento, 0) / 100)';
+
         // Se agrupa también por unidad_medida: una misma categoría puede mezclar productos por
         // kg y por L (ej. "Lacteos"), y sumar cantidades de unidades distintas como si fueran
         // la misma sería incorrecto — cada unidad se totaliza por separado y se muestra desglosada.
         $rows = $query
             ->groupBy('categories.id', 'categories.nombre', 'product.unidad_medida')
-            ->selectRaw('categories.id, categories.nombre, product.unidad_medida, SUM(order_product.cantidad) as total_cantidad, ROUND(SUM((order_product.precio + COALESCE((SELECT SUM(a.price * a.quantity) FROM order_product_addons a WHERE a.order_product_id = order_product.id), 0)) * order_product.cantidad * (1 - COALESCE(order_product.descuento, 0) / 100) * (1 - COALESCE(o.descuento, 0) / 100)), 2) as total_revenue')
+            ->selectRaw("categories.id, categories.nombre, product.unidad_medida, SUM(order_product.cantidad - {$refundedQuantity}) as total_cantidad, ROUND(SUM({$lineRevenue} - {$refundedAmount}), 2) as total_revenue, ROUND(SUM({$refundedAmount}), 2) as returns_total")
             ->get();
 
         $categories = $rows
@@ -201,6 +207,8 @@ class OrderSaleService
         return [
             'categories' => $categories,
             'domicilios' => $domicilios,
+            // Devoluciones ya descontadas de los totales de las categorías — para mostrarlas aparte.
+            'returns' => round($rows->sum('returns_total'), 2),
         ];
     }
 
@@ -216,13 +224,15 @@ class OrderSaleService
             ->where(OrderModel::ESTATUS_PEDIDO_ID, OrderStatusEnum::CLOSED->value)
             ->where(OrderModel::IS_CREDIT, true)
             ->whereNotNull(OrderModel::CUSTOMER_ID)
+            ->withRefundedAmount()
             ->with('customer:id,name,phone,balance')
             ->get()
             ->groupBy(OrderModel::CUSTOMER_ID)
             ->map(fn ($orders) => [
                 'customer' => $orders->first()->customer,
                 'orders_count' => $orders->count(),
-                'total_credit' => round($orders->sum(OrderModel::TOTAL), 2),
+                // Neto de devoluciones: lo devuelto de esas ventas ya no es crédito vigente.
+                'total_credit' => round($orders->sum(OrderModel::TOTAL) - $orders->sum('refunded_amount'), 2),
             ])
             ->values()
             ->all();

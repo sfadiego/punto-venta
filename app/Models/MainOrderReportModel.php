@@ -6,6 +6,7 @@ use App\Enums\LayawayPaymentTypeEnum;
 use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
 use App\Models\Traits\HasTenant;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -34,6 +35,20 @@ class MainOrderReportModel extends Model
 
     const BRANCH_ID = 'branch_id';
 
+    const CLOSED_BY = 'closed_by';
+
+    const CLOSED_AT = 'closed_at';
+
+    const EMPTY_CLOSE_REASON = 'empty_close_reason';
+
+    // Tope de aperturas de caja por sucursal y día — evita abrir y cerrar sesiones sin control.
+    // Holgado a propósito: cubre turnos y reaperturas legítimas.
+    const MAX_OPENINGS_PER_DAY = 3;
+
+    // Movimientos de apartados que mueven dinero en la caja: abonos y reembolsos. La retención
+    // (forfeit) queda en el historial, pero no suma ni resta efectivo.
+    private const LAYAWAY_CASH_TYPES = [LayawayPaymentTypeEnum::Deposit, LayawayPaymentTypeEnum::Refund];
+
     protected $fillable = [
         self::ESTATUS_CAJA,
         self::EFECTIVO_CAJA_INICIO,
@@ -43,6 +58,13 @@ class MainOrderReportModel extends Model
         self::USER_ID,
         self::TENANT_ID,
         self::BRANCH_ID,
+        self::CLOSED_BY,
+        self::CLOSED_AT,
+        self::EMPTY_CLOSE_REASON,
+    ];
+
+    protected $casts = [
+        self::CLOSED_AT => 'datetime',
     ];
 
     public function orders()
@@ -79,15 +101,45 @@ class MainOrderReportModel extends Model
 
     /**
      * Dinero que entró en esta sesión: ventas cerradas completas + movimiento neto de apartados
-     * (abonos menos reembolsos recibidos/devueltos en esta caja). Un apartado liquidado NO suma su
-     * total aquí — solo lo abonado en esta sesión; el resto ya entró en las sesiones anteriores.
+     * (abonos menos reembolsos recibidos/devueltos en esta caja) − devoluciones de venta reembolsadas
+     * en esta caja. Un apartado liquidado NO suma su total aquí — solo lo abonado en esta sesión; el
+     * resto ya entró en las sesiones anteriores.
      */
     public function totalSalesByDay(): float
     {
         return (float) round(
-            $this->closedSalesQuery()->sum('total') + $this->layawaySummary()['neto'],
+            $this->closedSalesQuery()->sum('total') + $this->layawaySummary()['neto'] - $this->returnsSummary()['total'],
             2
         );
+    }
+
+    /**
+     * Devoluciones de venta reembolsadas en esta sesión: `total` es todo lo devuelto al cliente y
+     * `balance_applied` la parte que bajó su saldo de crédito (no salió de la caja); `cash_out` es lo
+     * que salió por métodos de pago.
+     *
+     * @return array{total: float, balance_applied: float, cash_out: float, count: int}
+     */
+    public function returnsSummary(): array
+    {
+        $totals = OrderReturnModel::where(OrderReturnModel::SISTEMA_ID, $this->id)
+            ->selectRaw('ROUND(SUM(refund_amount), 2) as total, ROUND(SUM(balance_applied), 2) as balance_applied, COUNT(*) as returns_count')
+            ->first();
+
+        $total = (float) ($totals->total ?? 0);
+        $balance = (float) ($totals->balance_applied ?? 0);
+
+        return [
+            'total' => $total,
+            'balance_applied' => $balance,
+            'cash_out' => round($total - $balance, 2),
+            'count' => (int) ($totals->returns_count ?? 0),
+        ];
+    }
+
+    public function hasReturnMovements(): bool
+    {
+        return OrderReturnModel::where(OrderReturnModel::SISTEMA_ID, $this->id)->exists();
     }
 
     /**
@@ -122,7 +174,9 @@ class MainOrderReportModel extends Model
 
     public function hasLayawayMovements(): bool
     {
-        return OrderLayawayPaymentModel::where(OrderLayawayPaymentModel::SISTEMA_ID, $this->id)->exists();
+        return OrderLayawayPaymentModel::where(OrderLayawayPaymentModel::SISTEMA_ID, $this->id)
+            ->whereIn(OrderLayawayPaymentModel::TYPE, self::LAYAWAY_CASH_TYPES)
+            ->exists();
     }
 
     /**
@@ -150,6 +204,7 @@ class MainOrderReportModel extends Model
         }
 
         $movements = OrderLayawayPaymentModel::where(OrderLayawayPaymentModel::SISTEMA_ID, $this->id)
+            ->whereIn(OrderLayawayPaymentModel::TYPE, self::LAYAWAY_CASH_TYPES)
             ->selectRaw('payment_method_id, ROUND(SUM(CASE WHEN type = ? THEN amount ELSE -amount END), 2) as total', [LayawayPaymentTypeEnum::Deposit->value])
             ->groupBy('payment_method_id')
             ->with('paymentMethod:id,name')
@@ -164,6 +219,30 @@ class MainOrderReportModel extends Model
                 'propina' => 0.0,
             ];
             $byMethod[$methodId]['total'] = round($byMethod[$methodId]['total'] + (float) $movement->total, 2);
+        }
+
+        // Devoluciones: lo que salió por método baja el total de ese método; lo que bajó el saldo de
+        // crédito de un cliente baja el grupo de ventas a crédito (sin método), igual que la venta que revierte.
+        $returns = OrderReturnModel::where(OrderReturnModel::SISTEMA_ID, $this->id)
+            ->selectRaw('refund_payment_method_id, ROUND(SUM(refund_amount - balance_applied), 2) as method_total, ROUND(SUM(balance_applied), 2) as balance_total')
+            ->groupBy('refund_payment_method_id')
+            ->with('refundPaymentMethod:id,name')
+            ->get();
+
+        foreach ($returns as $return) {
+            foreach ([[$return->refund_payment_method_id, (float) $return->method_total], [null, (float) $return->balance_total]] as [$methodId, $amount]) {
+                if ($amount <= 0) {
+                    continue;
+                }
+
+                $byMethod[$methodId] ??= [
+                    'payment_method_id' => $methodId,
+                    'name' => $methodId ? ($return->refundPaymentMethod?->name ?? 'Sin método') : 'Sin método',
+                    'total' => 0.0,
+                    'propina' => 0.0,
+                ];
+                $byMethod[$methodId]['total'] = round($byMethod[$methodId]['total'] - $amount, 2);
+            }
         }
 
         return array_values($byMethod);
@@ -203,7 +282,22 @@ class MainOrderReportModel extends Model
         );
     }
 
-    public function closeSales(): MainOrderReportModel
+    /** Sesión sin ventas, abonos/reembolsos de apartados ni devoluciones — cerrarla exige un motivo. */
+    public function isEmptySession(): bool
+    {
+        return $this->totalSalesByDay() == 0 && ! $this->hasLayawayMovements() && ! $this->hasReturnMovements();
+    }
+
+    /** Aperturas de caja de hoy (abiertas o cerradas) en la sucursal, o en todo el negocio sin sucursal. */
+    public static function openingsToday(?int $branchId = null): int
+    {
+        return static::query()
+            ->when($branchId, fn ($q) => $q->where(self::BRANCH_ID, $branchId))
+            ->whereDate(self::CREATED_AT, Carbon::today())
+            ->count();
+    }
+
+    public function closeSales(?string $emptyCloseReason = null): MainOrderReportModel
     {
         $initialCash = $this->efectivo_caja_inicio;
         $totalBruto = $this->totalSalesByDay();
@@ -214,6 +308,9 @@ class MainOrderReportModel extends Model
             self::VENTA_DIA => $totalBruto,
             self::EFECTIVO_CAJA_CIERRE => $initialCash + $totalBruto - $totalDomicilio - $totalGastos,
             self::ESTATUS_CAJA => MainOrderStatusEnum::CLOSED,
+            self::CLOSED_BY => auth()->id(),
+            self::CLOSED_AT => now(),
+            self::EMPTY_CLOSE_REASON => $emptyCloseReason,
         ]);
 
         return $this->refresh();

@@ -7,7 +7,7 @@ import { useIndexOrder } from "@/services/useOrderService";
 import { useLayawaySummary } from "@/services/useLayawayService";
 import { IOrder } from "@/models/IOrder";
 import { getStatusStyle, getStatusLabel, getActiveStatuses } from "@/utils/orderStatus";
-import { formatOrderTime } from "@/utils/dateUtils";
+import { formatOrderDateTime } from "@/utils/dateUtils";
 import { DataTableColumn } from "mantine-datatable";
 import { Bike, Undo2 } from "lucide-react";
 import { OrderActionButtons } from "@/components/orders/OrderActions/OrderActionButtons";
@@ -17,6 +17,7 @@ import { PaymentOrCreditBadge } from "@/components/orders/PaymentOrCreditBadge";
 import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { layawayColumns } from "./partials/Layaway/layawayColumns";
+import { canceledLayawayColumns } from "./partials/Layaway/canceledLayawayColumns";
 
 const renderersMap: DataTableRenderersMap = {
     nombre_pedido: (o: IOrder) => (
@@ -38,7 +39,7 @@ const renderersMap: DataTableRenderersMap = {
     subtotal: (o: IOrder) => formatCurrencyTrimmed(o.subtotal),
     descuento: (o: IOrder) => (o.descuento > 0 ? `${o.descuento}%` : "—"),
     payment_method: (o: IOrder) => <PaymentOrCreditBadge order={o} />,
-    created_at: (o: IOrder) => formatOrderTime(o.created_at),
+    created_at: (o: IOrder) => formatOrderDateTime(o.created_at),
     estatus_pedido_id: (o: IOrder) => (
         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(o.estatus_pedido_id)}`}>
             {getStatusLabel(o.estatus_pedido_id)}
@@ -85,6 +86,9 @@ export const useOrderList = () => {
     const [estatusId, setEstatusId] = useState<string>(initialEstatus);
     const [search, setSearch] = useState("");
     const showingLayaways = showLayaways && estatusId === String(OrderStatusEnum.Layaway);
+    const showingCanceledLayaways = showLayaways && estatusId === String(OrderStatusEnum.Canceled);
+    // Apartados activos y cancelados duran más que una sesión de caja: se listan de todas las sesiones.
+    const spansSessions = showingLayaways || showingCanceledLayaways;
     const { data: layawaySummary } = useLayawaySummary(branchId, showingLayaways);
 
     const { dataTableProps, isLoading, isFetching, refetch, setPage } = useDataTable({
@@ -92,10 +96,12 @@ export const useOrderList = () => {
         payload: {
             // Los apartados duran más que una sesión de caja: se listan todos, no solo los de la
             // sesión actual (acotados a la sucursal activa cuando hay sucursales).
-            sistema_id: showingLayaways ? undefined : sistemaId,
+            sistema_id: spansSessions ? undefined : sistemaId,
             estatus_pedido_id: estatusId,
             search,
-            ...(showingLayaways && branchId ? { branch_id: branchId } : {}),
+            ...(spansSessions && branchId ? { branch_id: branchId } : {}),
+            // Cancelados: solo apartados cancelados (con sus sumas), y la búsqueda respeta ese filtro.
+            ...(showingCanceledLayaways ? { layaways_only: true, strict_status: true } : {}),
         },
         renderersMap,
     });
@@ -107,7 +113,9 @@ export const useOrderList = () => {
             ...dataTableProps,
             columns: showingLayaways
                 ? layawayColumns
-                : dataTableProps.columns.length > 0
+                : showingCanceledLayaways
+                  ? canceledLayawayColumns
+                  : dataTableProps.columns.length > 0
                     ? ([
                           ...dataTableProps.columns.filter((col) => {
                               const accessor = col.accessor as string;
@@ -119,7 +127,7 @@ export const useOrderList = () => {
                       ] as DataTableColumn<IOrder>[])
                     : [],
         }),
-        [dataTableProps, sellByWeight, showingClosed, showingLayaways],
+        [dataTableProps, sellByWeight, showingClosed, showingLayaways, showingCanceledLayaways],
     );
 
     const handleEstatusChange = (value: string) => {
@@ -152,6 +160,7 @@ export const useOrderList = () => {
         isRetail,
         showLayaways,
         showingLayaways,
+        showingCanceledLayaways,
         layawaySummary,
         handleEstatusChange,
         handleSearchChange,

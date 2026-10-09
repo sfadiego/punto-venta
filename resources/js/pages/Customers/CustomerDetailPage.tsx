@@ -11,6 +11,7 @@ import { CustomerChargeModal } from "./partials/Charge/CustomerChargeModal";
 import { CustomerCreditOrdersList } from "./partials/CustomerCreditOrdersList";
 import { CustomerPaymentHistoryList } from "./partials/Payment/CustomerPaymentHistoryList";
 import { CustomerChargeHistoryList } from "./partials/Charge/CustomerChargeHistoryList";
+import { CustomerBalanceReturnsList } from "./partials/Payment/CustomerBalanceReturnsList";
 import { CustomerLayawayList } from "./partials/Layaway/CustomerLayawayList";
 import { OrderDetailModal } from "@/components/orders/OrderDetailModal/OrderDetailModal";
 import { useOrderDetailModal } from "@/components/orders/OrderDetailModal/useOrderDetailModal";
@@ -82,6 +83,7 @@ export default function CustomerDetailPage() {
                 <CustomerCreditOrdersList orders={customer.credit_orders} onViewOrder={orderDetailModal.open} />
                 <CustomerPaymentHistoryList payments={customer.payments} />
                 <CustomerChargeHistoryList charges={customer.charges} />
+                <CustomerBalanceReturnsList returns={customer.balance_returns} />
                 {features?.is_retail === true && (
                     <CustomerLayawayList orders={customer.layaway_orders} onViewOrder={orderDetailModal.open} />
                 )}
@@ -91,6 +93,7 @@ export default function CustomerDetailPage() {
                 isOpen={orderDetailModal.isOpen}
                 order={orderDetailModal.order}
                 orderProducts={orderDetailModal.orderProducts}
+                orderReturns={orderDetailModal.orderReturns}
                 layawayPayments={orderDetailModal.layawayPayments}
                 isLoadingProducts={orderDetailModal.isLoadingProducts}
                 onClose={orderDetailModal.close}

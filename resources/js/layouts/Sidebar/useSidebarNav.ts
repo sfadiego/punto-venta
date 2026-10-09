@@ -2,6 +2,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useAxios } from "@/hooks/useAxios";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { FeatureSpotlightKey } from "@/enums/FeatureSpotlightEnum";
+import { isCustomersModuleEnabled } from "@/utils/customersModule";
 import { navItems, NavItem } from "./navItems";
 
 // Único lugar donde se resuelve qué items del sidebar se muestran y con qué label, para que
@@ -13,11 +14,10 @@ export const useSidebarNav = () => {
     const { features } = useAxios();
     const { data: config } = useGetBusinessConfig();
 
-    const sellByWeight = features?.sell_by_weight === true;
     const kitchenView = features?.kitchen_view === true;
     const providersEnabled = can("viewProviders") && config?.purchases_enabled === true;
     const employeesEnabled = can("viewEmployees") && config?.employees_enabled === true;
-    const customersEnabled = can("viewCustomers") && (sellByWeight || config?.customers_enabled === true);
+    const customersEnabled = can("viewCustomers") && isCustomersModuleEnabled(features, config);
     // manageStock ya está gateado por features.is_retail en isActionApplicable (permissionUtils.ts)
     // — acá solo falta combinar con la config del tenant (stock_enabled).
     const inventoryEnabled = can("manageStock") && config?.stock_enabled === true;

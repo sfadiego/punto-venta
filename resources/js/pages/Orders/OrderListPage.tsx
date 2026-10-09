@@ -36,6 +36,7 @@ export default function OrderListPage() {
         isRetail,
         showLayaways,
         showingLayaways,
+        showingCanceledLayaways,
         layawaySummary,
         handleEstatusChange,
         handleSearchChange,
@@ -45,8 +46,9 @@ export default function OrderListPage() {
     const { can } = usePermissions();
 
     const handleRowClick = (order: IOrder) => {
-        // Un apartado no se edita como carrito: se gestiona con Ver / Abonar / Cancelar.
-        if (order.estatus_pedido_id === OrderStatusEnum.Layaway) return;
+        // Un apartado no se edita como carrito (se gestiona con Ver / Abonar / Cancelar) y una orden
+        // cancelada ya no se abre.
+        if (order.estatus_pedido_id === OrderStatusEnum.Layaway || order.estatus_pedido_id === OrderStatusEnum.Canceled) return;
         if (sellByWeight) {
             if (order.estatus_pedido_id === OrderStatusEnum.InProcess) {
                 navigate(`${AdminRoutes.QuickSale}/${order.id}`);
@@ -105,6 +107,10 @@ export default function OrderListPage() {
                     <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
                         <div className="flex-1 min-w-[220px] lg:max-w-sm">
                             <OrderSearch value={search} onChange={handleSearchChange} />
+                            {/* Fuera de Apartados/Cancelados, la búsqueda abarca todas las órdenes y no el filtro activo. */}
+                            {search.trim() !== "" && !showingLayaways && !showingCanceledLayaways && (
+                                <p className="text-xs text-stone-400 mt-1.5">Buscando en todas las órdenes, sin importar el filtro de estatus.</p>
+                            )}
                         </div>
                         <div className="lg:ml-auto">
                             <OrderFilters
@@ -122,7 +128,7 @@ export default function OrderListPage() {
                         onRowClick={({ record }: { record: IOrder }) => handleRowClick(record)}
                         rowStyle={(record: IOrder) => ({
                             cursor:
-                                record.estatus_pedido_id === OrderStatusEnum.Layaway
+                                record.estatus_pedido_id === OrderStatusEnum.Layaway || record.estatus_pedido_id === OrderStatusEnum.Canceled
                                     ? "default"
                                     : sellByWeight
                                     ? record.estatus_pedido_id === OrderStatusEnum.InProcess

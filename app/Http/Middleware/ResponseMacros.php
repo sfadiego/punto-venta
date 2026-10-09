@@ -73,12 +73,14 @@ class ResponseMacros
             function (
                 ?string $message = null,
                 ?array $data = null,
-                Http $status = Http::UnprocessableEntity
+                Http $status = Http::UnprocessableEntity,
+                ?string $code = null
             ): JsonResponse {
                 return Response::json([
                     'status' => 'error',
                     'message' => $message,
                     'data' => $data,
+                    ...($code !== null ? ['code' => $code] : []),
                 ], $status->value);
             }
         );

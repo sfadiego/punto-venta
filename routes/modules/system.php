@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\BusinessConfigController;
 use App\Http\Controllers\Admin\ExpensesController;
 use App\Http\Controllers\Admin\MainOrderReportController;
 use App\Http\Controllers\Admin\RolePermissionController;
+use App\Http\Controllers\Admin\SlowMovingProductsController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\UserController;
@@ -61,6 +62,26 @@ Route::prefix('admin')->group(function () {
                 Route::get('best-seller', 'top3BestSeller');
                 Route::get('average-ticket', 'averageTicket');
             });
+
+            // Clientes con más adeudo (retail y venta por peso): exige viewStatistics, y el tipo de negocio
+            // se valida en el controlador.
+            Route::middleware('permission:viewStatistics')->group(function () {
+                Route::get('top-debtors', [StatisticsController::class, 'topDebtors']);
+                // throttle: 10 descargas por minuto — corta un loop accidental, no el uso normal.
+                Route::middleware('throttle:10,1')->get('top-debtors/export', [StatisticsController::class, 'exportTopDebtors']);
+            });
+
+            // Productos con mucho tiempo sin movimiento (retail con stock activo) — la página de
+            // Estadísticas es la única consumidora, así que exige viewStatistics además del tipo
+            // de negocio (retail.stock).
+            Route::middleware(['permission:viewStatistics', 'retail.stock'])
+                ->prefix('slow-moving')
+                ->controller(SlowMovingProductsController::class)
+                ->group(function () {
+                    Route::get('summary', 'summary');
+                    Route::middleware('throttle:10,1')->get('export', 'export');
+                    Route::get('', 'index');
+                });
         });
     });
 

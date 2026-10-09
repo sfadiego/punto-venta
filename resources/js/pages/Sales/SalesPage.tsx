@@ -17,8 +17,10 @@ export default function SalesPage() {
         fecha,
         semana,
         mes,
+        search,
         branchId,
         sellByWeight,
+        handleSearchChange,
         handleReportModeChange,
         handleFechaChange,
         handleSemanaChange,
@@ -60,6 +62,7 @@ export default function SalesPage() {
                     semana={semana}
                     mes={mes}
                     reportMode={reportMode}
+                    search={search}
                     showCategoryReport={true}
                     categoryReportLabel="Reporte de ventas"
                     onReportModeChange={handleReportModeChange}
@@ -67,6 +70,7 @@ export default function SalesPage() {
                     onSemanaChange={handleSemanaChange}
                     onMesChange={handleMesChange}
                     onCategoryReport={categoryModal.open}
+                    onSearchChange={handleSearchChange}
                     onClear={handleClear}
                 />
 
@@ -86,6 +90,7 @@ export default function SalesPage() {
                 isOpen={modal.isOpen}
                 order={modal.order}
                 orderProducts={modal.orderProducts}
+                orderReturns={modal.orderReturns}
                 isLoadingProducts={modal.isLoadingProducts}
                 onClose={modal.close}
             />
@@ -98,6 +103,7 @@ export default function SalesPage() {
                     isLoading={categoryModal.isLoading}
                     isError={categoryModal.isError}
                     totalBruto={categoryModal.totalBruto}
+                    totalReturns={categoryModal.totalReturns}
                     totalDomicilios={categoryModal.totalDomicilios}
                     totalNeto={categoryModal.totalNeto}
                     sistemaId={categoryModal.sistemaId}
@@ -115,6 +121,7 @@ export default function SalesPage() {
                     isLoading={categoryModal.isLoading}
                     isError={categoryModal.isError}
                     totalBruto={categoryModal.totalBruto}
+                    totalReturns={categoryModal.totalReturns}
                     totalDomicilios={categoryModal.totalDomicilios}
                     totalNeto={categoryModal.totalNeto}
                     fecha={categoryModal.fecha}

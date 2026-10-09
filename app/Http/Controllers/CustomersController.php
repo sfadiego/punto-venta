@@ -11,6 +11,7 @@ use App\Models\CustomerChargeModel;
 use App\Models\CustomerModel;
 use App\Models\CustomerPaymentModel;
 use App\Services\CustomerService;
+use App\Services\TopDebtorsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Response;
 
@@ -28,6 +29,11 @@ class CustomersController extends Controller
             ->get();
 
         return Response::success($customers);
+    }
+
+    public function debtSummary(TopDebtorsService $service): JsonResponse
+    {
+        return Response::success($service->summary());
     }
 
     public function store(CustomerStoreRequest $params): JsonResponse
@@ -56,7 +62,11 @@ class CustomersController extends Controller
             'creditOrders',
             'payments',
             'charges',
+            // Devoluciones que bajaron su saldo (venta a crédito) — parte del historial junto a pagos y cargos.
+            'balanceReturns',
             'layawayOrders.layawayPayments.paymentMethod:id,name',
+            // Productos apartados de cada orden (la relación ya trae product y variant).
+            'layawayOrders.orderProducts',
         ]));
     }
 

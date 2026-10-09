@@ -45,6 +45,12 @@ export const formatOrderDateTime = (dateStr: string): string =>
         minute: "2-digit",
     });
 
+/** Fecha corta local de un texto "AAAA-MM-DD[ HH:MM:SS]", ej. "28 jun 2026" (es-MX); "—" si viene vacío. */
+export const formatDateShort = (dateStr: string | null | undefined): string => {
+    const date = dateStr ? parseDateLocal(dateStr.slice(0, 10)) : null;
+    return date ? date.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+};
+
 /** Formatea una fecha YYYY-MM-DD a texto largo local, ej. "20 de julio de 2026" (es-MX). */
 export const formatDateLabel = (fecha: string): string =>
     new Date(fecha + "T00:00:00").toLocaleDateString("es-MX", {

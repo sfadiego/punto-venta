@@ -3,7 +3,7 @@ import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { usePayOrder } from "./usePayOrder";
 import { RestaurantPayModal } from "./RestaurantPayModal";
-import { useLayawayPay } from "../Layaway/useLayawayPay";
+import { useLayawayPay } from "../Layaway/Pay/useLayawayPay";
 
 interface PayOrderButtonProps {
     order: IOrder;

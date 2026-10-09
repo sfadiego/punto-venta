@@ -3,6 +3,7 @@
 use App\Http\Controllers\LayawayController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderProductController;
+use App\Http\Controllers\OrderReturnController;
 use App\Http\Controllers\PrintController;
 use Illuminate\Support\Facades\Route;
 
@@ -53,6 +54,20 @@ Route::prefix('order')->group(function () {
                     Route::post('payment', 'payment');
                     Route::post('cancel', 'cancel');
                 });
+            // Devolución de una o varias líneas — módulo de Inventario, exclusivo de negocios
+            // retail con stock_enabled (ver RetailStockMiddleware). Solo aplica sobre órdenes ya
+            // cerradas (validado en OrderReturnStoreRequest).
+            Route::middleware(['permission:processReturns', 'retail.stock'])
+                ->post('return', [OrderReturnController::class, 'store']);
+
+            // Comprobante de una devolución de la orden. scopeBindings: la devolución debe pertenecer a la
+            // orden de la ruta (relación orderReturns), no solo al tenant.
+            Route::middleware('permission:printTicket')->prefix('return/{orderReturn}/print')
+                ->controller(PrintController::class)->scopeBindings()->group(function () {
+                    Route::post('', 'printReturn');
+                    Route::get('bytes', 'returnRawBytes');
+                });
+
             Route::middleware('permission:printTicket')->prefix('print')->group(base_path('routes/modules/printer.php'));
 
             // products (plural) — alta en lote del carrito completo, un request en vez de
@@ -79,12 +94,6 @@ Route::prefix('order')->group(function () {
                     // Única vía que usa Cocina para marcar un platillo listo — no debe
                     // exigir takeOrder (Cocina no lo tiene por default).
                     Route::middleware('permission:kitchenView')->patch('{item}/ready', 'toggleReady');
-
-                    // Devolución de stock — módulo de Inventario, exclusivo de negocios
-                    // retail con stock_enabled (ver RetailStockMiddleware). Solo aplica
-                    // sobre órdenes ya cerradas (validado en OrderProductReturnRequest).
-                    Route::middleware(['permission:manageStock', 'retail.stock'])
-                        ->post('{item}/return', 'returnStock');
                 });
             });
 

@@ -94,6 +94,7 @@ export function useGET<Response>({
     enable = true,
     responseType = "json",
     customHost,
+    staleTime,
 }: IUseGETProps): UseQueryResult<Response> {
     const { axiosApi } = useAxios();
     return useQuery({
@@ -109,6 +110,7 @@ export function useGET<Response>({
         retry: false,
         enabled: enable,
         refetchOnWindowFocus: false,
+        ...(staleTime !== undefined ? { staleTime } : {}),
     });
 }
 

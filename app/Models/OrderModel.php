@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Enums\OrderStatusEnum;
 use App\Models\Traits\HasTenant;
+use BackedEnum;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -59,10 +61,13 @@ class OrderModel extends Model
 
     const LAYAWAY_DUE_DATE = 'layaway_due_date';
 
+    const CLOSED_AT = 'closed_at';
+
     protected $casts = [
         self::IS_CREDIT => 'boolean',
         self::AMOUNT_PAID => 'float',
         self::LAYAWAY_DUE_DATE => 'date:Y-m-d',
+        self::CLOSED_AT => 'datetime',
     ];
 
     public static $ALLOWED_UPDATE = [
@@ -91,7 +96,43 @@ class OrderModel extends Model
         self::IS_CREDIT,
         self::AMOUNT_PAID,
         self::LAYAWAY_DUE_DATE,
+        self::CLOSED_AT,
     ];
+
+    protected static function booted(): void
+    {
+        // Fecha en que la venta se concreta, sea cual sea el flujo que la cierre (cobro, venta directa,
+        // liquidación de un apartado) — base del plazo de devolución.
+        static::saving(function (OrderModel $order) {
+            // El estatus puede llegar como entero, texto o el propio enum (fábricas, asignaciones directas).
+            $status = $order->estatus_pedido_id instanceof BackedEnum ? $order->estatus_pedido_id->value : $order->estatus_pedido_id;
+
+            if ((int) $status === OrderStatusEnum::CLOSED->value && $order->closed_at === null) {
+                $order->closed_at = now();
+            }
+        });
+    }
+
+    /**
+     * Agrega `refunded_amount`: lo reembolsado por devoluciones de la orden. Las ventas netas de los
+     * reportes y estadísticas restan esto a la venta original (la devolución se atribuye a la orden que
+     * devuelve, no a la fecha ni sesión en que se procesó).
+     */
+    public function scopeWithRefundedAmount(Builder $query): Builder
+    {
+        return $query->withSum('orderReturns as refunded_amount', OrderReturnModel::REFUND_AMOUNT);
+    }
+
+    /**
+     * SQL del total reembolsado de una orden, para usar dentro de consultas crudas (whereRaw/selectRaw)
+     * donde una relación no sirve. `$orderRef` es cómo se llama la orden en esa consulta (tabla o alias).
+     */
+    public static function refundedAmountSql(?string $orderRef = null): string
+    {
+        $orderRef ??= DB::getQueryGrammar()->wrapTable((new static)->getTable());
+
+        return "(SELECT COALESCE(SUM(r.refund_amount), 0) FROM order_returns r WHERE r.order_id = {$orderRef}.id)";
+    }
 
     public function paymentMethod(): BelongsTo
     {
@@ -101,6 +142,12 @@ class OrderModel extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(CustomerModel::class, self::CUSTOMER_ID);
+    }
+
+    /** Devoluciones de la orden (retail), la más reciente primero. */
+    public function orderReturns(): HasMany
+    {
+        return $this->hasMany(OrderReturnModel::class, OrderReturnModel::ORDER_ID)->latest()->latest('id');
     }
 
     public function layawayPayments(): HasMany
@@ -204,11 +251,19 @@ class OrderModel extends Model
             $query->whereHas('sistema', fn ($q) => $q->where(MainOrderReportModel::BRANCH_ID, $branchId));
         }
 
-        $totalRevenue = (float) round($query->sum(self::TOTAL), 2);
-        $ordersCount = (clone $query)->count();
+        // Ventas netas de devoluciones: lo reembolsado de estas órdenes se resta, y una venta devuelta por
+        // completo ya no cuenta como venta (ni baja el ticket promedio).
+        $totalReturns = (float) round(OrderReturnModel::whereIn(OrderReturnModel::ORDER_ID, (clone $query)->select('id'))->sum(OrderReturnModel::REFUND_AMOUNT), 2);
+        $totalRevenue = (float) round($query->sum(self::TOTAL) - $totalReturns, 2);
+        $fullyReturned = (clone $query)
+            ->where(self::TOTAL, '>', 0)
+            ->whereRaw(self::refundedAmountSql().' >= '.DB::getQueryGrammar()->wrap(self::TOTAL))
+            ->count();
+        $ordersCount = (clone $query)->count() - $fullyReturned;
 
         return [
             'total_revenue' => $totalRevenue,
+            'total_returns' => $totalReturns,
             'orders_count' => $ordersCount,
             'average_ticket' => $ordersCount > 0 ? round($totalRevenue / $ordersCount, 2) : 0,
         ];

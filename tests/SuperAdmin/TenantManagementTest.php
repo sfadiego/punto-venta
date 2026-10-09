@@ -2,6 +2,7 @@
 
 namespace Tests\SuperAdmin;
 
+use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
@@ -529,6 +530,55 @@ class TenantManagementTest extends TestCase
             'id' => $tenant->id,
             'customers_enabled' => false,
         ]);
+    }
+
+    // En retail el módulo de clientes es obligatorio (apartados): no se puede deshabilitar.
+    public function test_clientes_no_se_puede_desactivar_en_un_tenant_retail(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Retail->value]);
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", [
+            'slug' => $tenant->slug,
+            'business_name' => $tenant->business_name,
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'tipo_negocio' => BusinessTypeEnum::Retail->value,
+            'customers_enabled' => false,
+        ], $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.customers_enabled', true);
+
+        $this->assertDatabaseHas('business_config', ['id' => $tenant->id, 'customers_enabled' => true]);
+    }
+
+    public function test_cambiar_un_tenant_a_retail_activa_clientes(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::CUSTOMERS_ENABLED => false]);
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", [
+            'slug' => $tenant->slug,
+            'business_name' => $tenant->business_name,
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+            'tipo_negocio' => BusinessTypeEnum::Retail->value,
+            'customers_enabled' => false,
+        ], $this->superAdminHeaders())->assertStatus(200);
+
+        $this->assertDatabaseHas('business_config', ['id' => $tenant->id, 'customers_enabled' => true]);
+    }
+
+    public function test_clientes_sigue_siendo_opcional_en_los_demas_tipos_de_negocio(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::TIPO_NEGOCIO => BusinessTypeEnum::Restaurante->value, BusinessConfigModel::CUSTOMERS_ENABLED => false]);
+
+        $this->assertFalse($tenant->fresh()->customers_enabled);
     }
 
     public function test_customers_enabled_desactivado_por_default_al_crear_tenant(): void

@@ -18,18 +18,17 @@ export const CloseSalesLayawayCard = ({ layawaySummary }: CloseSalesLayawayCardP
                 <div className="min-w-0">
                     <p className="text-xs text-stone-500 font-medium">Apartados</p>
                     <p className="text-xl font-bold text-stone-900 mt-0.5 tabular-nums">{formatCurrency(layawaySummary.neto)}</p>
-                    <p className="text-xs text-stone-400 mt-1">Neto de la sesión · ya incluido en las ventas del día</p>
                 </div>
             </div>
 
-            <dl className="sm:w-60 shrink-0 rounded-xl bg-stone-50 border border-stone-100 px-4 py-3 space-y-2 text-sm">
+            <dl className="sm:w-80 shrink-0 rounded-xl bg-stone-50 border border-stone-100 px-4 py-3 space-y-2 text-sm">
                 <div className="flex items-center justify-between gap-3">
-                    <dt className="text-stone-500">Abonos recibidos</dt>
-                    <dd className="font-semibold text-emerald-600 tabular-nums">+ {formatCurrency(layawaySummary.abonos)}</dd>
+                    <dt className="text-stone-500 whitespace-nowrap">Abonos recibidos</dt>
+                    <dd className="font-semibold text-emerald-600 tabular-nums whitespace-nowrap">+ {formatCurrency(layawaySummary.abonos)}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                    <dt className="text-stone-500">Reembolsos</dt>
-                    <dd className="font-semibold text-red-500 tabular-nums">- {formatCurrency(layawaySummary.reembolsos)}</dd>
+                    <dt className="text-stone-500 whitespace-nowrap">Reembolsos</dt>
+                    <dd className="font-semibold text-red-500 tabular-nums whitespace-nowrap">- {formatCurrency(layawaySummary.reembolsos)}</dd>
                 </div>
             </dl>
         </div>

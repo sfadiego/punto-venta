@@ -202,7 +202,7 @@ class CloseSalesLayawayTest extends TestCase
         $this->assertEquals(300, (float) $caja->fresh()->efectivo_caja_cierre);
     }
 
-    public function test_una_caja_sin_ventas_ni_movimientos_de_apartados_sigue_sin_poder_cerrarse(): void
+    public function test_una_caja_sin_ventas_ni_movimientos_de_apartados_exige_motivo_para_cerrarse(): void
     {
         $caja = $this->crearCaja();
 

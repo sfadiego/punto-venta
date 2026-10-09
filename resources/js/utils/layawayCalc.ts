@@ -2,6 +2,7 @@
 // (layaway_min_percent / layaway_days), usados mientras la configuración no ha cargado.
 export const DEFAULT_LAYAWAY_MIN_PERCENT = 10;
 export const DEFAULT_LAYAWAY_DAYS = 30;
+export const DEFAULT_LAYAWAY_RETENTION_PERCENT = 0;
 
 const PERCENT_OPTIONS = [10, 20, 30, 50];
 
@@ -48,4 +49,18 @@ export const getLayawayDueInfo = (daysLeft: number | null): ILayawayDueInfo => {
     if (daysLeft === 0) return { label: "Vence hoy", tone: "soon" };
     if (daysLeft <= LAYAWAY_SOON_DAYS) return { label: `En ${pluralizeDays(daysLeft)}`, tone: "soon" };
     return { label: `En ${pluralizeDays(daysLeft)}`, tone: "ok" };
+};
+
+const RETENTION_PERCENT_OPTIONS = [10, 20, 30, 50];
+
+/** Porcentajes ofrecidos como atajo al retener: los fijos más el sugerido por el negocio (si no está ya). */
+export const getRetentionPercentOptions = (suggestedPercent: number): number[] =>
+    suggestedPercent > 0 && !RETENTION_PERCENT_OPTIONS.includes(suggestedPercent)
+        ? [suggestedPercent, ...RETENTION_PERCENT_OPTIONS]
+        : RETENTION_PERCENT_OPTIONS;
+
+/** Reparte lo abonado entre lo que se reembolsa y lo que el negocio retiene (la retención se acota a lo abonado). */
+export const splitLayawayRefund = (paid: number, retained: number): { retained: number; refund: number } => {
+    const safeRetained = Math.min(Math.max(roundCents(retained), 0), paid);
+    return { retained: safeRetained, refund: roundCents(paid - safeRetained) };
 };

@@ -9,12 +9,15 @@ use App\Enums\OrderStatusEnum;
 use App\Enums\RoleEnum;
 use App\Models\BranchModel;
 use App\Models\BusinessConfigModel;
+use App\Models\CategoryModel;
 use App\Models\CustomerModel;
 use App\Models\MainOrderReportModel;
 use App\Models\OrderLayawayPaymentModel;
 use App\Models\OrderModel;
+use App\Models\OrderProductModel;
 use App\Models\PaymentMethodModel;
 use App\Models\Permission;
+use App\Models\ProductModel;
 use App\Models\RolePermission;
 use App\Models\User;
 use Carbon\Carbon;
@@ -213,6 +216,30 @@ class LayawayListingTest extends TestCase
         $this->assertSame(0, $rows->firstWhere('id', $sinApartado->id)['layaway_count']);
     }
 
+    public function test_listado_de_clientes_filtra_por_apartados_activos_y_vencidos(): void
+    {
+        $caja = $this->crearCaja();
+        $vencido = $this->crearCliente();
+        $alDia = $this->crearCliente();
+        $liquidado = $this->crearCliente();
+        $sinApartados = $this->crearCliente();
+        $this->crearApartado($caja, $vencido, 1000, 100, Carbon::today()->subDays(2)->toDateString());
+        $this->crearApartado($caja, $alDia, 800, 80);
+        $this->crearApartado($caja, $liquidado, 500, 500, Carbon::today()->subDays(9)->toDateString(), OrderStatusEnum::CLOSED);
+
+        $ids = fn (string $query) => collect($this->getJson("/api/customer{$query}", $this->authHeaders())->assertStatus(206)->json('data'))->pluck('id')->all();
+
+        $this->assertEqualsCanonicalizing([$vencido->id, $alDia->id], $ids('?with_layaway=1'));
+        $this->assertSame([$vencido->id], $ids('?layaway_overdue=1'));
+        $this->assertContains($sinApartados->id, $ids(''));
+        // El vencido solo cuenta apartados ACTIVOS: uno ya liquidado no marca al cliente.
+        $this->assertNotContains($liquidado->id, $ids('?layaway_overdue=1'));
+
+        $row = collect($this->getJson('/api/customer', $this->authHeaders())->json('data'))->firstWhere('id', $vencido->id);
+        $this->assertSame(1, $row['layaway_overdue_count']);
+        $this->assertSame(0, collect($this->getJson('/api/customer', $this->authHeaders())->json('data'))->firstWhere('id', $alDia->id)['layaway_overdue_count']);
+    }
+
     // ── Detalle ──────────────────────────────────────────────
 
     public function test_detalle_de_orden_trae_el_historial_de_abonos_con_su_metodo_de_pago(): void
@@ -233,6 +260,20 @@ class LayawayListingTest extends TestCase
         $otro = $this->crearCliente();
         $mio = $this->crearApartado($caja, $customer, 1000, 100);
         $this->crearApartado($caja, $otro, 700, 70);
+        $camion = ProductModel::create([
+            ProductModel::NOMBRE => 'Camión rojo',
+            ProductModel::PRECIO => 500,
+            ProductModel::CATEGORIA_ID => CategoryModel::first()->id,
+            ProductModel::ACTIVO => true,
+            ProductModel::PRODUCT_CODE => 'CAM01',
+        ]);
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $mio->id,
+            OrderProductModel::PRODUCTO_ID => $camion->id,
+            OrderProductModel::CANTIDAD => 2,
+            OrderProductModel::PRECIO => 500,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
 
         $response = $this->getJson("/api/customer/{$customer->id}", $this->authHeaders())
             ->assertStatus(200);
@@ -241,6 +282,11 @@ class LayawayListingTest extends TestCase
         $this->assertCount(1, $layaways);
         $this->assertSame($mio->id, $layaways[0]['id']);
         $this->assertEquals(100, $layaways[0]['layaway_payments'][0]['amount']);
+        // Qué se apartó: líneas de la orden con su producto.
+        $this->assertCount(1, $layaways[0]['order_products']);
+        $this->assertSame('Camión rojo', $layaways[0]['order_products'][0]['product']['nombre']);
+        $this->assertSame('CAM01', $layaways[0]['order_products'][0]['product']['product_code']);
+        $this->assertEquals(2, $layaways[0]['order_products'][0]['cantidad']);
         $this->assertNotNull($layaways[0]['layaway_payments'][0]['payment_method']);
     }
 }

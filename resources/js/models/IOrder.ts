@@ -3,6 +3,7 @@ import { IOrderProduct } from "./IOrderProduct";
 import { IPaymentMethod } from "./IPaymentMethod";
 import { ICustomer } from "./ICustomer";
 import { ILayawayPayment } from "./ILayaway";
+import { IOrderReturn } from "./IOrderReturn";
 
 export interface IOrder {
     id: number;
@@ -30,10 +31,18 @@ export interface IOrder {
     // Apartados (retail): total abonado y fecha límite (YYYY-MM-DD). Cero/null en ventas normales.
     amount_paid: number;
     layaway_due_date: string | null;
+    // Cuándo se concretó la venta (cerrada o liquidada) — base del plazo de devolución. Null en ventas sin cerrar.
+    closed_at?: string | null;
     layaway_payments?: ILayawayPayment[];
+    // Solo en el listado de apartados cancelados (layaways_only): sumas por tipo de movimiento.
+    layaway_deposited?: number | string | null;
+    layaway_refunded?: number | string | null;
+    layaway_retained?: number | string | null;
     // Calculado al vuelo contra stock_movements (OrderService::makeQuery) — true si alguna
     // línea de la orden tiene al menos una devolución registrada.
     has_return?: boolean;
+    // Devoluciones con su motivo — solo en el detalle de la orden (GET /order/{id}), no en el listado.
+    order_returns?: IOrderReturn[];
 }
 
 // Respuesta ligera de GET /order/closed-list — combobox de devolución (Inventario). No trae

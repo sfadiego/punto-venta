@@ -95,8 +95,13 @@ class OrderController extends Controller
                 ->where(StockMovementModel::REASON, StockMovementReasonEnum::Return)
                 ->with('createdBy:id,nombre')
                 ->latest(),
+            // Devoluciones de la orden con su motivo, agrupando los movimientos de arriba.
+            'orderReturns.createdBy:id,nombre',
+            'orderReturns.refundPaymentMethod:id,name',
+            // Líneas de cada devolución con lo reembolsado — el frontend estima el reembolso de la siguiente.
+            'orderReturns.items',
             'paymentMethod:id,name',
-            'customer:id,name,phone',
+            'customer:id,name,phone,balance',
             // Historial de abonos/reembolsos — vacío salvo en apartados.
             'layawayPayments.paymentMethod:id,name',
         ]));
@@ -110,7 +115,7 @@ class OrderController extends Controller
         // reversión (corrompe el Kardex en silencio). El frontend ya oculta el botón para
         // Closed/Served (OrderActionGroup.tsx), pero eso no protege una request directa a la
         // API — el guard real tiene que vivir aquí. Para cancelar una venta ya cerrada existe
-        // Devolución (OrderProductController::returnStock), que sí restaura stock con auditoría.
+        // Devolución (OrderReturnController::store), que sí restaura stock con auditoría.
         if ($order->estatus_pedido_id === OrderStatusEnum::CLOSED->value) {
             return Response::error('No se puede eliminar una orden ya cerrada. Usa Devolución para revertir productos vendidos.');
         }
@@ -119,6 +124,12 @@ class OrderController extends Controller
         // POST /order/{order}/layaway/cancel (restituye stock y reembolsa), no borrándolo.
         if ($order->estatus_pedido_id === OrderStatusEnum::LAYAWAY->value) {
             return Response::error('No se puede eliminar un apartado. Cancélalo para devolver el stock y reembolsar los abonos.');
+        }
+
+        // Un apartado cancelado o liquidado conserva su historial de abonos, reembolsos y retención (y
+        // el del cliente): eliminar la orden lo dejaría huérfano.
+        if ($order->layawayPayments()->exists()) {
+            return Response::error('No se puede eliminar una orden con historial de apartado.');
         }
 
         if (! $order->loadMissing('sistema')->isAccessibleByUser(auth()->user())) {

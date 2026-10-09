@@ -18,9 +18,9 @@ class ProductExportController extends Controller
             $out = fopen('php://output', 'w');
             // BOM UTF-8: sin él Excel abre el archivo con otra codificación y rompe los acentos.
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, $this->service->headers());
+            fputcsv($out, $this->service->headers(), ',', '"', '');
             foreach ($this->service->rows() as $row) {
-                fputcsv($out, $row);
+                fputcsv($out, $row, ',', '"', '');
             }
             fclose($out);
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);

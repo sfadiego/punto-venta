@@ -3,14 +3,18 @@ import { SummaryCard } from "../SummaryCards/SummaryCard";
 import { CloseSalesSectionHeading } from "../CloseSalesSectionHeading";
 import { CloseSalesExpensesButton } from "./CloseSalesExpensesButton";
 import { CloseSalesLayawayCard } from "./CloseSalesLayawayCard";
+import { CloseSalesReturnsCard } from "./CloseSalesReturnsCard";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { ILayawaySummary } from "@/services/useOpenSalesService";
+import { ILayawaySummary, IReturnsSummary } from "@/services/useOpenSalesService";
 
 interface CloseSalesCashSummaryProps {
     efectivoInicio: number;
     totalDomicilios: number;
     totalGastos: number;
     layawaySummary: ILayawaySummary;
+    returnsSummary: IReturnsSummary;
+    /** Apartados y devoluciones: solo negocios retail. */
+    showLayaway: boolean;
     onViewExpenses: () => void;
 }
 
@@ -19,6 +23,8 @@ export const CloseSalesCashSummary = ({
     totalDomicilios,
     totalGastos,
     layawaySummary,
+    returnsSummary,
+    showLayaway,
     onViewExpenses,
 }: CloseSalesCashSummaryProps) => (
     <div className="mb-6">
@@ -33,6 +39,7 @@ export const CloseSalesCashSummary = ({
                 iconBg="bg-stone-100"
                 label="Efectivo inicial"
                 value={formatCurrency(efectivoInicio)}
+                className="sm:col-span-2"
             />
 
             {totalDomicilios > 0 && (
@@ -46,9 +53,11 @@ export const CloseSalesCashSummary = ({
                 />
             )}
 
-            {(layawaySummary.abonos > 0 || layawaySummary.reembolsos > 0) && (
+            {showLayaway && (layawaySummary.abonos > 0 || layawaySummary.reembolsos > 0) && (
                 <CloseSalesLayawayCard layawaySummary={layawaySummary} />
             )}
+
+            {showLayaway && returnsSummary.count > 0 && <CloseSalesReturnsCard returnsSummary={returnsSummary} />}
 
             {totalGastos > 0 && (
                 <SummaryCard

@@ -93,6 +93,7 @@ class LayawayController extends Controller
                 (int) $params->sistema_id,
                 $params->filled('payment_method_id') ? (int) $params->payment_method_id : null,
                 $params->note,
+                $params->filled('retained_amount') ? (float) $params->retained_amount : null,
             );
         } catch (InvalidLayawayException $e) {
             return Response::error($e->getMessage());

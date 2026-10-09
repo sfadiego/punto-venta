@@ -21,6 +21,9 @@ class LayawayCancelRequest extends FormRequest
                 ->where('tenant_id', app('tenant_id'))
                 ->where('estatus_caja', MainOrderStatusEnum::OPEN->value)],
             'payment_method_id' => 'nullable|exists:payment_methods,id',
+            // Parte de lo abonado que el negocio retiene (0 = reembolso total); el tope contra lo abonado
+            // lo valida LayawayService::cancel().
+            'retained_amount' => 'nullable|numeric|min:0',
             'note' => 'nullable|string|max:500',
         ];
     }

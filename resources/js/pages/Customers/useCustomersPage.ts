@@ -1,46 +1,23 @@
-import { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { invalidateCustomerQueries, useIndexCustomersPaginated } from "@/services/useCustomerService";
-import { ICustomer } from "@/models/ICustomer";
+import { useAxios } from "@/hooks/useAxios";
+import { useCustomerDebtSummary } from "@/services/useCustomerService";
+import { useCustomersFilters } from "./useCustomersFilters";
+import { useCustomersList } from "./useCustomersList";
+import { useCustomerModals } from "./useCustomerModals";
 
+// Hook principal de la página de Clientes: compone filtros, listado, modales y el resumen del adeudo.
 export const useCustomersPage = () => {
-    const queryClient = useQueryClient();
-    const [editingCustomer, setEditingCustomer] = useState<ICustomer | null>(null);
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
-    const [search, setSearch] = useState("");
-    const [withDebt, setWithDebt] = useState(false);
-
-    const { data, isLoading, refetch } = useIndexCustomersPaginated({
-        page, limit, search, withDebt, orderParam: "balance", order: "desc",
-    });
-
-    useEffect(() => {
-        if (!isLoading && data?.data?.length === 0 && page > 1) {
-            setPage((p) => p - 1);
-        }
-    }, [data, isLoading, page]);
-
-    const invalidateCustomers = () => invalidateCustomerQueries(queryClient);
-
-    const pageSize = [10, 20, 50];
+    const { features } = useAxios();
+    const filters = useCustomersFilters();
+    const list = useCustomersList(filters);
+    const modals = useCustomerModals();
+    const { data: debtSummary } = useCustomerDebtSummary();
 
     return {
-        customers: data?.data ?? [],
-        total: data?.total ?? 0,
-        page,
-        limit,
-        pageSize,
-        isLoading,
-        refetch,
-        setPage,
-        setLimit,
-        search,
-        setSearch,
-        withDebt,
-        setWithDebt,
-        editingCustomer,
-        setEditingCustomer,
-        invalidateCustomers,
+        filters,
+        list,
+        modals,
+        debtSummary,
+        // Los apartados son exclusivos de retail.
+        showLayaways: features?.is_retail === true,
     };
 };

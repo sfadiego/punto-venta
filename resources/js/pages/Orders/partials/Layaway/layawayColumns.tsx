@@ -1,8 +1,8 @@
 import { DataTableColumn } from "mantine-datatable";
 import { IOrder } from "@/models/IOrder";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
-import { LayawayProgress } from "@/components/orders/Layaway/LayawayProgress";
-import { LayawayDueBadge } from "@/components/orders/Layaway/LayawayDueBadge";
+import { LayawayProgress } from "@/components/orders/Layaway/Detail/LayawayProgress";
+import { LayawayDueBadge } from "@/components/orders/Layaway/Detail/LayawayDueBadge";
 import { LayawayRowActions } from "./LayawayRowActions";
 
 // Columnas propias del tab "Apartados": el listado paginado del backend trae las columnas
@@ -11,8 +11,9 @@ export const layawayColumns: DataTableColumn<IOrder>[] = [
     {
         accessor: "id",
         title: "#",
-        width: 70,
-        render: (order) => <span className="text-stone-400">#{order.id}</span>,
+        // Ancho para ids largos (ej. #60025743): con menos, el número invade la columna del cliente.
+        width: 130,
+        render: (order) => <span className="text-stone-400 tabular-nums whitespace-nowrap">#{order.id}</span>,
     },
     {
         accessor: "customer",

@@ -26,6 +26,15 @@ export interface ILayawaySummary {
     neto: number;
 }
 
+// Devoluciones de venta reembolsadas en la sesión (retail). `total` ya está descontado de las ventas del
+// día; `balance_applied` es la parte que bajó el saldo de clientes a crédito y no salió de la caja.
+export interface IReturnsSummary {
+    total: number;
+    balance_applied: number;
+    cash_out: number;
+    count: number;
+}
+
 export interface ITotalCurrentSale {
     bruto: number;
     domicilios: number;
@@ -33,6 +42,7 @@ export interface ITotalCurrentSale {
     propinas: number;
     gastos: number;
     apartados: ILayawaySummary;
+    devoluciones: IReturnsSummary;
     by_payment_method: IPaymentMethodTotal[];
 }
 

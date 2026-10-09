@@ -8,6 +8,7 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getFieldErrors, getUserFacingErrorMessage } from "@/utils/axiosError";
 import {
+    invalidateCustomerQueries,
     useShowCustomer,
     useToggleCustomerCredit,
     useRegisterCustomerPayment,
@@ -51,8 +52,8 @@ export const useCustomerDetailPage = (customerId: number) => {
 
     const invalidate = () => {
         queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/${customerId}`] });
-        queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
-        queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/list`] });
+        // Lista de clientes y "Clientes con adeudo" de Estadísticas (un pago o cargo cambia el adeudo).
+        invalidateCustomerQueries(queryClient);
     };
 
     const handleToggleCredit = async () => {

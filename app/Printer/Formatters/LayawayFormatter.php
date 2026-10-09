@@ -42,8 +42,9 @@ class LayawayFormatter extends VentaFormatter
         $printer->setEmphasis(false);
 
         foreach ($layaway['payments'] as $payment) {
-            $label = $payment['fecha'].' '.($payment['is_refund'] ? 'Reembolso' : ($payment['method'] ?: 'Abono'));
-            $amount = ($payment['is_refund'] ? '-$' : '+$').number_format($payment['amount'], 2);
+            // El retenido no mueve efectivo (ya se cobró en un abono): se imprime sin signo.
+            $label = $payment['fecha'].' '.($payment['is_forfeit'] ? 'Retenido' : ($payment['is_refund'] ? 'Reembolso' : ($payment['method'] ?: 'Abono')));
+            $amount = ($payment['is_forfeit'] ? '$' : ($payment['is_refund'] ? '-$' : '+$')).number_format($payment['amount'], 2);
             $printer->text($this->totalRow(mb_substr($label, 0, $this->colName), $amount)."\n");
         }
 

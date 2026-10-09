@@ -6,7 +6,12 @@ import { useUpdateBusinessConfig } from "@/services/useBusinessConfigService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { buildBusinessConfigPayload } from "@/utils/businessConfigPayload";
-import { calcDepositFromPercent, DEFAULT_LAYAWAY_DAYS, DEFAULT_LAYAWAY_MIN_PERCENT } from "@/utils/layawayCalc";
+import {
+    calcDepositFromPercent,
+    DEFAULT_LAYAWAY_DAYS,
+    DEFAULT_LAYAWAY_MIN_PERCENT,
+    DEFAULT_LAYAWAY_RETENTION_PERCENT,
+} from "@/utils/layawayCalc";
 
 const schema = Yup.object({
     layaway_min_percent: Yup.number()
@@ -20,11 +25,17 @@ const schema = Yup.object({
         .integer("Debe ser un número entero de días")
         .min(1, "Debe ser al menos 1 día")
         .max(365, "No puede pasar de 365 días"),
+    layaway_retention_percent: Yup.number()
+        .typeError("Ingresa un porcentaje válido")
+        .required("Ingresa el porcentaje")
+        .min(0, "No puede ser negativo")
+        .max(100, "No puede pasar de 100%"),
 });
 
 export interface LayawayFormValues {
     layaway_min_percent: number;
     layaway_days: number;
+    layaway_retention_percent: number;
 }
 
 // Ejemplo del anticipo mínimo sobre una venta de este monto, mostrado bajo el campo de porcentaje.
@@ -38,6 +49,7 @@ export const useLayawaySection = (config: IBusinessConfig | undefined) => {
         initialValues: {
             layaway_min_percent: config?.layaway_min_percent ?? DEFAULT_LAYAWAY_MIN_PERCENT,
             layaway_days: config?.layaway_days ?? DEFAULT_LAYAWAY_DAYS,
+            layaway_retention_percent: config?.layaway_retention_percent ?? DEFAULT_LAYAWAY_RETENTION_PERCENT,
         },
         validationSchema: schema,
         onSubmit: async (values, { setSubmitting }) => {
@@ -47,6 +59,7 @@ export const useLayawaySection = (config: IBusinessConfig | undefined) => {
                     buildBusinessConfigPayload(config, {
                         layaway_min_percent: Number(values.layaway_min_percent),
                         layaway_days: Number(values.layaway_days),
+                        layaway_retention_percent: Number(values.layaway_retention_percent),
                     }),
                 );
                 toast.success("Configuración de apartados guardada.");

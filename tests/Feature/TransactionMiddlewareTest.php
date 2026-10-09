@@ -14,6 +14,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use PDOException;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -106,11 +108,11 @@ class TransactionMiddlewareTest extends TestCase
         DB::shouldReceive('rollBack')->once();
         DB::shouldReceive('commit')->never();
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
 
         $this->middleware->handle(
             $this->makeRequest('POST'),
-            fn () => throw new \RuntimeException('fail')
+            fn () => throw new RuntimeException('fail')
         );
     }
 
@@ -156,7 +158,7 @@ class TransactionMiddlewareTest extends TestCase
 
         $attempts = 0;
 
-        $e = new \PDOException('Deadlock found when trying to get lock');
+        $e = new PDOException('Deadlock found when trying to get lock');
         $e->errorInfo = [40001, 1213, 'Deadlock found'];
 
         $response = $this->middleware->handle(
@@ -185,7 +187,7 @@ class TransactionMiddlewareTest extends TestCase
 
         $attempts = 0;
 
-        $e = new \PDOException('Lock wait timeout exceeded');
+        $e = new PDOException('Lock wait timeout exceeded');
         $e->errorInfo = ['HY000', 1205, 'Lock wait timeout exceeded'];
 
         $response = $this->middleware->handle(
@@ -215,10 +217,10 @@ class TransactionMiddlewareTest extends TestCase
 
         $attempts = 0;
 
-        $e = new \PDOException('Deadlock found when trying to get lock; try restarting transaction');
+        $e = new PDOException('Deadlock found when trying to get lock; try restarting transaction');
         $e->errorInfo = [40001, 1213, 'Deadlock found'];
 
-        $this->expectException(\PDOException::class);
+        $this->expectException(PDOException::class);
 
         $this->middleware->handle(
             $this->makeRequest('POST'),
@@ -246,7 +248,7 @@ class TransactionMiddlewareTest extends TestCase
             function () use (&$attempts) {
                 $attempts++;
                 if ($attempts === 1) {
-                    throw new \RuntimeException('Deadlock found when trying to get lock');
+                    throw new RuntimeException('Deadlock found when trying to get lock');
                 }
 
                 return new JsonResponse(['status' => 'OK']);
@@ -313,7 +315,7 @@ class TransactionMiddlewareTest extends TestCase
                 OrderModel::TENANT_ID => $tenant->id,
             ]);
 
-            throw new \RuntimeException('Simulated failure');
+            throw new RuntimeException('Simulated failure');
         })->middleware(['api']);
 
         $this->postJson('/api/test-tx-rollback')->assertStatus(500);

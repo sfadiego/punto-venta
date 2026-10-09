@@ -30,6 +30,7 @@ export const LayawayRowActions = ({ order }: LayawayRowActionsProps) => {
                 isOpen={detailOpen}
                 order={orderDetail ?? order}
                 orderProducts={orderDetail?.order_products ?? []}
+                orderReturns={orderDetail?.order_returns}
                 layawayPayments={orderDetail?.layaway_payments}
                 isLoadingProducts={isFetching}
                 onClose={() => setDetailOpen(false)}

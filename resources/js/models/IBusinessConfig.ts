@@ -34,6 +34,10 @@ export interface IBusinessConfig {
     // payload de guardado — el backend solo los toca si vienen (ver BusinessConfigController).
     layaway_min_percent?: number;
     layaway_days?: number;
+    // % de lo abonado que se sugiere retener al cancelar un apartado (0 = reembolso total).
+    layaway_retention_percent?: number;
+    // Devoluciones (retail): días desde la venta durante los que se acepta una devolución (0 = sin límite).
+    return_days?: number;
     logo_icon: string | null;
     logo_icon_source: IconSourceEnum | null;
     logo_upload_enabled: boolean;

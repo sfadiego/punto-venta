@@ -4,6 +4,8 @@ import { StatisticsSummaryCards } from "./partials/StatisticsSummaryCards";
 import { StatisticsEmptyState } from "./partials/StatisticsEmptyState";
 import { BestSellerSection } from "./partials/BestSellerSection";
 import { TopDebtorsWidget } from "./partials/TopDebtorsWidget";
+import { DebtorsSection } from "./partials/DebtorsSection/DebtorsSection";
+import { SlowMovingProductsSection } from "./partials/SlowMovingProducts/SlowMovingProductsSection";
 
 export default function StatisticsPage() {
     const {
@@ -17,7 +19,10 @@ export default function StatisticsPage() {
         topProduct,
         averageTicketLabel,
         ordersCount,
+        totalReturns,
         sellByWeight,
+        showSlowMoving,
+        showDebtors,
     } = useStatisticsPage();
 
     return (
@@ -38,6 +43,7 @@ export default function StatisticsPage() {
                         topProduct={topProduct}
                         averageTicketLabel={averageTicketLabel}
                         ordersCount={ordersCount}
+                        totalReturns={totalReturns}
                         rankingCount={bestSellers.length}
                     />
 
@@ -48,6 +54,18 @@ export default function StatisticsPage() {
             {sellByWeight && (
                 <div className="mt-5">
                     <TopDebtorsWidget />
+                </div>
+            )}
+
+            {showDebtors && (
+                <div className="mt-5">
+                    <DebtorsSection />
+                </div>
+            )}
+
+            {showSlowMoving && (
+                <div className="mt-5">
+                    <SlowMovingProductsSection />
                 </div>
             )}
         </div>

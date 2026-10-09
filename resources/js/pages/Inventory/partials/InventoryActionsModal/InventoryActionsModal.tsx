@@ -2,8 +2,8 @@ import { X, PackagePlus, Undo2, Upload, LucideIcon } from "lucide-react";
 import { InventoryActionsTab } from "./useInventoryActionsModal";
 import { StockAdjustmentPanel } from "./StockAdjustment/StockAdjustmentPanel";
 import { useStockAdjustmentPanel } from "./StockAdjustment/useStockAdjustmentPanel";
-import { StockReturnPanel } from "./StockReturn/StockReturnPanel";
-import { useStockReturnPanel } from "./StockReturn/useStockReturnPanel";
+import { OrderReturnPanel } from "@/components/orders/OrderReturn/OrderReturnPanel";
+import { useOrderReturnPanel } from "@/components/orders/OrderReturn/useOrderReturnPanel";
 import { ImportProductsPanel } from "@/components/products/ProductImport/ImportProductsPanel";
 import { useImportProductsPanel } from "@/components/products/ProductImport/useImportProductsPanel";
 
@@ -23,7 +23,7 @@ const TABS: { key: InventoryActionsTab; label: string; icon: LucideIcon }[] = [
 
 export const InventoryActionsModal = ({ isOpen, activeTab, setActiveTab, title, onClose }: InventoryActionsModalProps) => {
     const adjustmentPanel = useStockAdjustmentPanel();
-    const returnPanel = useStockReturnPanel();
+    const returnPanel = useOrderReturnPanel();
     const importPanel = useImportProductsPanel();
 
     if (!isOpen) return null;
@@ -78,9 +78,9 @@ export const InventoryActionsModal = ({ isOpen, activeTab, setActiveTab, title, 
                     ))}
                 </div>
 
-                <div className="p-5 border-t border-stone-200 max-h-[70vh] overflow-y-auto">
+                <div className="p-5 border-t border-stone-200 max-h-[calc(100vh-10rem)] overflow-y-auto">
                     {activeTab === "reajuste" && <StockAdjustmentPanel {...adjustmentPanel} />}
-                    {activeTab === "devolucion" && <StockReturnPanel {...returnPanel} />}
+                    {activeTab === "devolucion" && <OrderReturnPanel {...returnPanel} />}
                     {activeTab === "importar" && <ImportProductsPanel {...importPanel} />}
                 </div>
             </div>

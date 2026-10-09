@@ -35,6 +35,7 @@ class LayawayTicketData implements TicketDataInterface
                 'payments' => $payments->map(fn ($payment): array => [
                     'fecha' => Carbon::parse($payment->created_at)->setTimezone($timezone)->format('d/m'),
                     'is_refund' => $payment->type === LayawayPaymentTypeEnum::Refund,
+                    'is_forfeit' => $payment->type === LayawayPaymentTypeEnum::Forfeit,
                     'method' => $payment->paymentMethod?->name,
                     'amount' => (float) $payment->amount,
                 ])->all(),

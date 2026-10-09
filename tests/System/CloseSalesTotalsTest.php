@@ -549,12 +549,12 @@ class CloseSalesTotalsTest extends TestCase
             ->assertStatus(422);
     }
 
-    public function test_cierre_caja_bloquea_si_no_hay_ventas(): void
+    public function test_cierre_de_caja_sin_ventas_exige_un_motivo(): void
     {
         $caja = $this->crearCaja();
 
         $this->postJson("/api/admin/system/{$caja->id}/close", [], $this->authHeaders())
             ->assertStatus(422)
-            ->assertJsonPath('message', 'No se puede cerrar la caja sin ventas registradas.');
+            ->assertJsonPath('message', 'Indica el motivo para cerrar una caja sin ventas.');
     }
 }

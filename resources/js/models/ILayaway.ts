@@ -40,6 +40,8 @@ export interface ILayawayPaymentPayload {
 export interface ILayawayCancelPayload {
     sistema_id: number;
     payment_method_id?: number;
+    // Parte de lo abonado que el negocio retiene (0 o ausente = reembolso total).
+    retained_amount?: number;
     note?: string;
 }
 

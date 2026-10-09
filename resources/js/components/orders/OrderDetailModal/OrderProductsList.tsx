@@ -36,7 +36,7 @@ export const OrderProductsList = ({ isLoading, orderProducts }: OrderProductsLis
                 {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </button>
             {isExpanded && (
-                <div className="rounded-xl border border-stone-100 divide-y divide-stone-100 max-h-56 overflow-y-auto">
+                <div className="rounded-xl border border-stone-100 divide-y divide-stone-100 max-h-80 overflow-y-auto">
                     {orderProducts.map((item, idx) => (
                         <div key={item.id ?? idx} className="px-3 py-1.5">
                             <div className="flex items-center gap-2">

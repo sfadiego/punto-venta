@@ -1,6 +1,7 @@
 import { axiosGET, useDELETE, useGET, usePATCH, usePOST, usePUT } from "@/hooks/useApi";
 import { ICustomer, ICustomerCharge, ICustomerDetail, ICustomerPayment } from "@/models/ICustomer";
 import { IPaginate } from "@/intefaces/IPaginate";
+import { ITopDebtorsSummary } from "@/models/ITopDebtors";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { QueryClient, useQuery } from "@tanstack/react-query";
 import { useAxios } from "@/hooks/useAxios";
@@ -13,7 +14,19 @@ const url = ApiRoutes.Customer;
 export const invalidateCustomerQueries = (queryClient: QueryClient) => {
     queryClient.invalidateQueries({ queryKey: [url] });
     queryClient.invalidateQueries({ queryKey: [`${url}/list`] });
+    // El adeudo de los clientes alimenta "Clientes con adeudo" de Estadísticas.
+    queryClient.invalidateQueries({ queryKey: [`${url}/debt-summary`] });
+    // El detalle de una orden trae el saldo del cliente: un abono, cargo o devolución lo deja desactualizado
+    // (claves "/api/order/{id}", que no son prefijo de la lista "/api/order").
+    queryClient.invalidateQueries({
+        predicate: ({ queryKey }) => typeof queryKey[0] === "string" && queryKey[0].startsWith(`${ApiRoutes.Orders}/`),
+    });
+    queryClient.invalidateQueries({ queryKey: [ApiRoutes.StatisticsTopDebtors] });
 };
+
+// Resumen del adeudo de clientes (por cobrar, clientes con adeudo, concentración) — página de Clientes.
+export const useCustomerDebtSummary = () =>
+    useGET<ITopDebtorsSummary>({ url: `${url}/debt-summary` });
 
 // Paginated — used for the customers DataTable
 export const useIndexCustomersPaginated = ({
@@ -21,6 +34,8 @@ export const useIndexCustomersPaginated = ({
     limit = 10,
     search = "",
     withDebt = false,
+    withLayaway = false,
+    layawayOverdue = false,
     orderParam = "name",
     order = "asc",
 }: {
@@ -28,6 +43,9 @@ export const useIndexCustomersPaginated = ({
     limit?: number;
     search?: string;
     withDebt?: boolean;
+    // Solo clientes con apartados activos / con algún apartado vencido (retail).
+    withLayaway?: boolean;
+    layawayOverdue?: boolean;
     orderParam?: string;
     order?: string;
 } = {}) =>
@@ -38,6 +56,8 @@ export const useIndexCustomersPaginated = ({
             page, limit, orderParam, order,
             ...(search ? { search } : {}),
             ...(withDebt ? { with_debt: 1 } : {}),
+            ...(withLayaway ? { with_layaway: 1 } : {}),
+            ...(layawayOverdue ? { layaway_overdue: 1 } : {}),
         },
     });
 

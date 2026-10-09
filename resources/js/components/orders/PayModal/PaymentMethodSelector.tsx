@@ -6,7 +6,8 @@ interface PaymentMethodSelectorProps {
     paymentMethodId: number | null;
     onSelect: (id: number) => void;
     /** Disponibilidad del modo crédito — la decide el caller (sell_by_weight siempre lo tiene,
-     * restaurante depende de business_config.customers_enabled). */
+     * retail también, el resto depende de business_config.customers_enabled — ver
+     * utils/customersModule.ts). */
     creditModeAvailable?: boolean;
     isCreditMode?: boolean;
     onSelectCredit?: () => void;

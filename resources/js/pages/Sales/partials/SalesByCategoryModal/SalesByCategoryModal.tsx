@@ -1,4 +1,4 @@
-import { X, LayoutGrid, Loader, Bike, FileArchive } from "lucide-react";
+import { X, LayoutGrid, Loader, Bike, FileArchive, Undo2 } from "lucide-react";
 import { ISalesByCategory } from "@/models/ISalesByCategory";
 import { formatDateLabel, formatMonthLabel, formatWeekLabel } from "@/utils/dateUtils";
 import { formatCategoryUnits } from "@/utils/formatUnits";
@@ -11,6 +11,8 @@ interface SalesByCategoryModalProps {
     isLoading: boolean;
     isError?: boolean;
     totalBruto: number;
+    /** Devoluciones ya descontadas de los totales — se muestran aparte para cuadrar con las ventas brutas. */
+    totalReturns?: number;
     totalDomicilios: number;
     totalNeto: number;
     sistemaId: number | null;
@@ -29,6 +31,7 @@ export const SalesByCategoryModal = ({
     isLoading,
     isError = false,
     totalBruto,
+    totalReturns = 0,
     totalDomicilios,
     totalNeto,
     sistemaId,
@@ -126,8 +129,17 @@ export const SalesByCategoryModal = ({
                     <div className="px-6 py-4 border-t border-stone-100 bg-stone-50 rounded-b-2xl space-y-2">
                         <div className="flex items-center justify-between text-sm">
                             <span className="text-stone-500">Ventas brutas</span>
-                            <span className="font-semibold text-stone-900 tabular-nums">${totalBruto.toFixed(2)}</span>
+                            <span className="font-semibold text-stone-900 tabular-nums">${(totalBruto + totalReturns).toFixed(2)}</span>
                         </div>
+                        {totalReturns > 0 && (
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="flex items-center gap-1.5 text-stone-500">
+                                    <Undo2 size={13} />
+                                    Devoluciones
+                                </span>
+                                <span className="font-semibold text-red-500 tabular-nums">-${totalReturns.toFixed(2)}</span>
+                            </div>
+                        )}
                         {totalDomicilios > 0 && (
                             <div className="flex items-center justify-between text-sm">
                                 <span className="flex items-center gap-1.5 text-stone-500">

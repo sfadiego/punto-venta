@@ -18,4 +18,8 @@ export interface IPaginateServiceProps {
     categoria_id?: number | null;
     search?: string | null;
     branch_id?: number | null;
+    // Con `search`, respeta el filtro de estatus en vez de buscar entre activas y cerradas.
+    strict_status?: boolean;
+    // Solo órdenes que pasaron por un apartado (con lo abonado/reembolsado/retenido de cada una).
+    layaways_only?: boolean;
 }

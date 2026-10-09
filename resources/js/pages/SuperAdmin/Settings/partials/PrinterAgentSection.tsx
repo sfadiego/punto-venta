@@ -17,7 +17,7 @@ export const PrinterAgentSection = () => {
                 </p>
             </div>
 
-            <form onSubmit={download} className="space-y-4">
+            <form onSubmit={download} noValidate className="space-y-4">
                 {/* Platform selector */}
                 <div className="grid grid-cols-2 gap-2">
                     {([

@@ -34,6 +34,8 @@ class StockMovementModel extends Model
 
     const NOTE = 'note';
 
+    const ORDER_RETURN_ID = 'order_return_id';
+
     const TENANT_ID = 'tenant_id';
 
     protected $casts = [
@@ -54,6 +56,7 @@ class StockMovementModel extends Model
         self::REASON,
         self::CREATED_BY,
         self::NOTE,
+        self::ORDER_RETURN_ID,
         self::TENANT_ID,
         'reference_type',
         'reference_id',

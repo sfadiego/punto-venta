@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Export\CsvExport;
 use App\Http\Controllers\Controller;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
+use App\Services\DebtorsExportService;
+use App\Services\TopDebtorsService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StatisticsController extends Controller
 {
@@ -23,6 +27,36 @@ class StatisticsController extends Controller
         }
 
         return Response::success(OrderProductModel::top3BestSeller($start, $end, $sistemaId, $branchId));
+    }
+
+    /**
+     * Clientes con más adeudo — solo retail y venta por peso (los tipos de negocio donde el crédito a
+     * clientes es parte del flujo); en cualquier otro tipo de negocio responde 403.
+     */
+    public function topDebtors(TopDebtorsService $service): JsonResponse
+    {
+        if (! $this->debtorsReportAvailable()) {
+            return Response::unauthorized();
+        }
+
+        return Response::success($service->top());
+    }
+
+    /** Descarga la cartera completa de clientes con adeudo (CSV). Mismo alcance que topDebtors. */
+    public function exportTopDebtors(DebtorsExportService $service, CsvExport $export): JsonResponse|StreamedResponse
+    {
+        if (! $this->debtorsReportAvailable()) {
+            return Response::unauthorized();
+        }
+
+        return $export->download('clientes-con-adeudo', $service->headers(), $service->rows());
+    }
+
+    private function debtorsReportAvailable(): bool
+    {
+        $features = auth()->user()->tenant->tipo_negocio->features();
+
+        return $features['is_retail'] || $features['sell_by_weight'];
     }
 
     public function averageTicket(Request $request): JsonResponse

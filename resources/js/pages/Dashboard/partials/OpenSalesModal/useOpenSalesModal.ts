@@ -7,6 +7,8 @@ import { useAxios } from "@/hooks/useAxios";
 import { useStoreOpenSales } from "@/services/useOpenSalesService";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IMainOrderReport } from "@/models/IMainOrderReport";
+import { logUnexpectedError } from "@/plugins/logger.plugin";
+import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
 export type OpenSalesForm = {
     efectivo_caja_inicio: string;
@@ -40,19 +42,26 @@ export const useOpenSalesModal = () => {
         },
         validationSchema: schema,
         onSubmit: async (values, helpers) => {
-            const response = await storeSales({
-                user_id: user!.id,
-                efectivo_caja_inicio: Number(values.efectivo_caja_inicio),
-                observaciones: values.observaciones,
-                ...(activeBranchId ? { branch_id: activeBranchId } : {}),
-            });
+            try {
+                const response = await storeSales({
+                    user_id: user!.id,
+                    efectivo_caja_inicio: Number(values.efectivo_caja_inicio),
+                    observaciones: values.observaciones,
+                    ...(activeBranchId ? { branch_id: activeBranchId } : {}),
+                });
 
-            const sale = (response.data as { data: IMainOrderReport }).data;
-            setSistema(sale.id ?? null);
-            queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.System}/active-sale`] });
-            toast.success("Caja abierta exitosamente");
-            helpers.resetForm();
-            closeModal();
+                const sale = (response.data as { data: IMainOrderReport }).data;
+                setSistema(sale.id ?? null);
+                queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.System}/active-sale`] });
+                toast.success("Caja abierta exitosamente");
+                helpers.resetForm();
+                closeModal();
+            } catch (error) {
+                // Ej. "Se alcanzó el límite de 3 aperturas de caja por día." — sin esto el rechazo
+                // de la apertura no se mostraba al usuario.
+                logUnexpectedError(error, "useOpenSalesModal.onSubmit");
+                toast.error(getUserFacingErrorMessage(error, "No se pudo abrir la caja"));
+            }
         },
     });
 

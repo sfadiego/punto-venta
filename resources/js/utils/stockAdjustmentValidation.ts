@@ -4,8 +4,10 @@ import * as Yup from "yup";
 // sentido de negocio. Mismo criterio que ProductImportService::resolveRow() en el backend
 // (importación por CSV) — compartido entre los dos modales de ajuste de stock del frontend
 // (Productos e Inventario) para no repetir la misma regla/mensaje dos veces.
+export const INTEGER_FOR_UNIT_MESSAGE = "Los productos por unidad no aceptan cantidades decimales";
+
 export const integerForUnitTest = (isWeightProduct: boolean): Yup.TestConfig<number | undefined> => ({
     name: "integer-for-unit",
-    message: "Los productos por unidad no aceptan cantidades decimales",
+    message: INTEGER_FOR_UNIT_MESSAGE,
     test: (delta) => isWeightProduct || delta === undefined || Number.isInteger(delta),
 });

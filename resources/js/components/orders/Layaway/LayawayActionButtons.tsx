@@ -1,8 +1,9 @@
-import { Ban, Loader } from "lucide-react";
+import { Ban } from "lucide-react";
 import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { usePermissions } from "@/hooks/usePermissions";
-import { LayawayPaymentModal } from "./LayawayPaymentModal";
+import { LayawayCancelModal } from "./Cancel/LayawayCancelModal";
+import { LayawayPaymentModal } from "./Payment/LayawayPaymentModal";
 import { useLayawayActions } from "./useLayawayActions";
 
 interface LayawayActionButtonsProps {
@@ -14,7 +15,7 @@ interface LayawayActionButtonsProps {
 // no tiene el permiso `layaway`.
 export const LayawayActionButtons = ({ order }: LayawayActionButtonsProps) => {
     const { can } = usePermissions();
-    const { canOperate, isPaymentOpen, openPayment, closePayment, handleCancel, isCancelling } = useLayawayActions(order);
+    const { canOperate, isPaymentOpen, openPayment, closePayment, isCancelOpen, openCancel, closeCancel } = useLayawayActions();
 
     if (order.estatus_pedido_id !== OrderStatusEnum.Layaway || !can("layaway")) return null;
 
@@ -31,15 +32,16 @@ export const LayawayActionButtons = ({ order }: LayawayActionButtonsProps) => {
             </button>
             <button
                 type="button"
-                onClick={handleCancel}
-                disabled={!canOperate || isCancelling}
+                onClick={openCancel}
+                disabled={!canOperate}
                 title="Cancelar apartado"
                 className="flex items-center justify-center w-8 h-8 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-                {isCancelling ? <Loader size={18} className="animate-spin text-red-500" /> : <Ban size={18} />}
+                <Ban size={18} />
             </button>
 
             {isPaymentOpen && <LayawayPaymentModal order={order} onClose={closePayment} />}
+            {isCancelOpen && <LayawayCancelModal order={order} onClose={closeCancel} />}
         </>
     );
 };

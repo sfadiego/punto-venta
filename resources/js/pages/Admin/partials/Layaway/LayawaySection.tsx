@@ -51,6 +51,23 @@ export const LayawaySection = ({ config }: LayawaySectionProps) => {
                         La fecha límite se calcula desde el día del apartado
                     </p>
                 </div>
+
+                <div className="sm:col-span-2">
+                    <Input<LayawayFormValues>
+                        name="layaway_retention_percent"
+                        label="Retención sugerida al cancelar (%)"
+                        inputType="number"
+                        inputMode="decimal"
+                        min={0}
+                        max={100}
+                        step={0.5}
+                        formik={formik}
+                    />
+                    <p className="text-xs text-stone-400 mt-1.5">
+                        Porcentaje de lo abonado que se sugiere retener al cancelar un apartado. 0% reembolsa todo; quien cancela
+                        puede ajustarlo en cada cancelación.
+                    </p>
+                </div>
             </div>
 
             <div className="flex justify-end">

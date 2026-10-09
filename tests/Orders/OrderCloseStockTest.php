@@ -13,6 +13,7 @@ use App\Models\MainOrderReportModel;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
+use App\Models\ProductVariantModel;
 use App\Models\StockMovementModel;
 use App\Models\User;
 use Tests\TestCase;
@@ -248,8 +249,8 @@ class OrderCloseStockTest extends TestCase
         // limitarse por la existencia del producto base ni de ninguna otra cosa.
         $orden = $this->crearOrden();
         $product = $this->crearProductoConStock(1);
-        $variant = \App\Models\ProductVariantModel::factory()->create([
-            \App\Models\ProductVariantModel::PRODUCT_ID => $product->id,
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
             'tenant_id' => BusinessConfigModel::first()->id,
         ]);
 
@@ -266,10 +267,10 @@ class OrderCloseStockTest extends TestCase
     {
         $orden = $this->crearOrden();
         $product = $this->crearProductoConStock(100);
-        $variant = \App\Models\ProductVariantModel::factory()->create([
-            \App\Models\ProductVariantModel::PRODUCT_ID => $product->id,
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
             'tenant_id' => BusinessConfigModel::first()->id,
-            \App\Models\ProductVariantModel::STOCK => 5,
+            ProductVariantModel::STOCK => 5,
         ]);
 
         $this->postJson("/api/order/{$orden->id}/product", [
@@ -291,10 +292,10 @@ class OrderCloseStockTest extends TestCase
     {
         $orden = $this->crearOrden();
         $product = $this->crearProductoConStock(100);
-        $variant = \App\Models\ProductVariantModel::factory()->create([
-            \App\Models\ProductVariantModel::PRODUCT_ID => $product->id,
+        $variant = ProductVariantModel::factory()->create([
+            ProductVariantModel::PRODUCT_ID => $product->id,
             'tenant_id' => BusinessConfigModel::first()->id,
-            \App\Models\ProductVariantModel::STOCK => 5,
+            ProductVariantModel::STOCK => 5,
         ]);
 
         $item = OrderProductModel::create([

@@ -146,13 +146,14 @@ class LayawayService
     }
 
     /**
-     * Cancela el apartado: devuelve el stock y reembolsa todo lo abonado (política por defecto).
-     * El reembolso sale de la caja $sistemaId, en el método indicado o, por defecto, en el del
-     * último abono.
+     * Cancela el apartado: devuelve el stock y reembolsa lo abonado, salvo la parte que el negocio
+     * retiene ($retainedAmount, entre 0 y lo abonado; sin él se reembolsa todo). El reembolso sale
+     * de la caja $sistemaId, en el método indicado o, por defecto, en el del último abono; lo
+     * retenido queda en el historial como "forfeit" y no mueve la caja (ya entró al cobrar el abono).
      *
      * @throws InvalidLayawayException
      */
-    public function cancel(OrderModel $order, int $sistemaId, ?int $paymentMethodId = null, ?string $note = null): OrderModel
+    public function cancel(OrderModel $order, int $sistemaId, ?int $paymentMethodId = null, ?string $note = null, ?float $retainedAmount = null): OrderModel
     {
         $order = $this->lockOrder($order);
 
@@ -162,19 +163,30 @@ class LayawayService
 
         $this->assertSameBranch($order, $sistemaId);
 
+        $paid = round((float) $order->amount_paid, 2);
+        $retained = round($retainedAmount ?? 0, 2);
+        if ($retained < 0 || $retained > $paid + self::EPSILON) {
+            throw new InvalidLayawayException('La retención no puede exceder lo abonado ($'.number_format($paid, 2).').');
+        }
+        $retained = min($retained, $paid);
+        $refund = round($paid - $retained, 2);
+
         $this->orderStockService->restoreForOrder($order, StockMovementReasonEnum::LayawayCancel);
 
-        $refund = round((float) $order->amount_paid, 2);
-        if ($refund > 0) {
-            $methodId = $paymentMethodId
-                ?? $order->layawayPayments()->where(OrderLayawayPaymentModel::TYPE, LayawayPaymentTypeEnum::Deposit)->latest('id')->value(OrderLayawayPaymentModel::PAYMENT_METHOD_ID);
+        $lastDepositMethodId = $order->layawayPayments()->where(OrderLayawayPaymentModel::TYPE, LayawayPaymentTypeEnum::Deposit)->latest('id')->value(OrderLayawayPaymentModel::PAYMENT_METHOD_ID);
 
-            $this->recordMovement($order, LayawayPaymentTypeEnum::Refund, $refund, $methodId, $sistemaId, $note);
+        if ($refund > 0) {
+            $this->recordMovement($order, LayawayPaymentTypeEnum::Refund, $refund, $paymentMethodId ?? $lastDepositMethodId, $sistemaId, $note);
+        }
+
+        if ($retained > 0) {
+            $this->recordMovement($order, LayawayPaymentTypeEnum::Forfeit, $retained, $lastDepositMethodId, $sistemaId, $note);
         }
 
         $order->update([
             OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CANCELED->value,
-            OrderModel::AMOUNT_PAID => 0,
+            // Lo que el negocio conserva de este apartado (0 si se reembolsó todo).
+            OrderModel::AMOUNT_PAID => $retained,
         ]);
 
         OrdersUpdated::dispatchAfterCommit('updated', $order->id);

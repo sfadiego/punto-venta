@@ -3,6 +3,7 @@ const { exec }            = require("child_process");
 const fs                  = require("fs");
 const os                  = require("os");
 const path                = require("path");
+const { printViaCups }    = require("./queue");
 
 // ─── Configuración ────────────────────────────────────────────────────────────
 
@@ -56,17 +57,11 @@ function printBytes(data, callback) {
     const platform = process.platform;
 
     if (platform === "darwin" || platform === "linux") {
-        const lp  = "/usr/bin/lp";
-        const cmd = `${lp} -d "${PRINTER}" -o raw "${tmpFile}"`;
-        console.log(`[print-agent] Ejecutando: ${cmd}`);
-        exec(cmd, (err, stdout, stderr) => {
+        console.log(`[print-agent] Enviando a la cola "${PRINTER}" (lp -o raw)`);
+        printViaCups(PRINTER, tmpFile, (err) => {
             try { fs.unlinkSync(tmpFile); } catch {}
-            if (err) {
-                console.error(`[print-agent] stdout: ${stdout}`);
-                console.error(`[print-agent] stderr: ${stderr}`);
-                return callback(new Error(stderr || err.message));
-            }
-            callback(null);
+            if (err) console.error(`[print-agent] ${err.message}`);
+            callback(err);
         });
     } else if (platform === "win32") {
         const cmd = `copy /b "${tmpFile}" "\\\\localhost\\${PRINTER}"`;

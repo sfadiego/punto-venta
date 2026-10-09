@@ -27,9 +27,7 @@ class VentaFormatter implements TicketFormatterInterface
 
         $business = $d['business'];
 
-        $this->width = self::charsForPaperWidth($business['paper_width'] ?? '58');
-        $this->colTotal = (int) round($this->width * 9 / 32);
-        $this->colName = $this->width - $this->colTotal;
+        $this->setUpColumns($business);
 
         // ─── Encabezado ───────────────────────────────────────
         $printer->setJustification(Printer::JUSTIFY_CENTER);
@@ -100,7 +98,20 @@ class VentaFormatter implements TicketFormatterInterface
 
         $this->afterTotals($printer, $d);
 
-        // ─── Pie del ticket ───────────────────────────────────
+        $this->printFooter($printer, $business);
+    }
+
+    /** Fija el ancho de línea y las columnas según el papel del negocio. */
+    protected function setUpColumns(array $business): void
+    {
+        $this->width = self::charsForPaperWidth($business['paper_width'] ?? '58');
+        $this->colTotal = (int) round($this->width * 9 / 32);
+        $this->colName = $this->width - $this->colTotal;
+    }
+
+    /** Pie del ticket: leyenda del negocio y sus datos de contacto. */
+    protected function printFooter(Printer $printer, array $business): void
+    {
         $printer->feed(1);
         $printer->text($this->line('=')."\n");
         $printer->setJustification(Printer::JUSTIFY_CENTER);
@@ -250,7 +261,7 @@ class VentaFormatter implements TicketFormatterInterface
      * Genera el prefijo del folio tomando la primera letra de cada palabra
      * del nombre del negocio en mayúsculas. Ej: "Pollos Sebastián" → "PS".
      */
-    private function folioPrefix(string $businessName): string
+    protected function folioPrefix(string $businessName): string
     {
         $words = preg_split('/\s+/', trim($businessName));
         $prefix = '';

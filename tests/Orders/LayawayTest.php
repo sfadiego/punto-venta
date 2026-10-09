@@ -326,6 +326,106 @@ class LayawayTest extends TestCase
             ->assertStatus(422);
     }
 
+    // ── Cancelación con retención ────────────────────────────
+
+    private function apartadoConAbonos(float $anticipo = 100, float $abono = 200): array
+    {
+        [$order, $product] = $this->crearOrden();
+        $this->postJson("/api/order/{$order->id}/layaway", $this->payload($this->crearCliente(), $anticipo), $this->authHeaders())->assertStatus(200);
+        $this->postJson("/api/order/{$order->id}/layaway/payment", $this->abono($abono), $this->authHeaders())->assertStatus(200);
+
+        return [$order, $product];
+    }
+
+    private function movimientos(OrderModel $order, LayawayPaymentTypeEnum $type)
+    {
+        return OrderLayawayPaymentModel::where(OrderLayawayPaymentModel::ORDER_ID, $order->id)
+            ->where(OrderLayawayPaymentModel::TYPE, $type->value)
+            ->get();
+    }
+
+    public function test_cancelar_reteniendo_todo_no_reembolsa_y_el_negocio_conserva_lo_abonado(): void
+    {
+        [$order, $product] = $this->apartadoConAbonos();
+
+        $this->postJson("/api/order/{$order->id}/layaway/cancel", ['sistema_id' => $this->caja->id, 'retained_amount' => 300], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.estatus_pedido_id', OrderStatusEnum::CANCELED->value)
+            ->assertJsonPath('data.amount_paid', 300);
+
+        $this->assertCount(0, $this->movimientos($order, LayawayPaymentTypeEnum::Refund));
+        $retenido = $this->movimientos($order, LayawayPaymentTypeEnum::Forfeit);
+        $this->assertCount(1, $retenido);
+        $this->assertEquals(300, $retenido->first()->amount);
+        // El stock vuelve aunque el dinero se quede.
+        $this->assertEquals(10.0, (float) $product->fresh()->stock);
+    }
+
+    public function test_cancelar_reteniendo_una_parte_reembolsa_el_resto(): void
+    {
+        [$order] = $this->apartadoConAbonos();
+
+        $this->postJson("/api/order/{$order->id}/layaway/cancel", ['sistema_id' => $this->caja->id, 'retained_amount' => 90.5], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.amount_paid', 90.5);
+
+        $this->assertEquals(209.5, $this->movimientos($order, LayawayPaymentTypeEnum::Refund)->first()->amount);
+        $this->assertEquals(90.5, $this->movimientos($order, LayawayPaymentTypeEnum::Forfeit)->first()->amount);
+    }
+
+    public function test_sin_retencion_el_reembolso_sigue_siendo_total(): void
+    {
+        [$order] = $this->apartadoConAbonos();
+
+        $this->postJson("/api/order/{$order->id}/layaway/cancel", ['sistema_id' => $this->caja->id], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.amount_paid', 0);
+
+        $this->assertEquals(300, $this->movimientos($order, LayawayPaymentTypeEnum::Refund)->first()->amount);
+        $this->assertCount(0, $this->movimientos($order, LayawayPaymentTypeEnum::Forfeit));
+    }
+
+    public function test_la_retencion_no_puede_exceder_lo_abonado_ni_ser_negativa(): void
+    {
+        [$order, $product] = $this->apartadoConAbonos();
+
+        $this->postJson("/api/order/{$order->id}/layaway/cancel", ['sistema_id' => $this->caja->id, 'retained_amount' => 300.01], $this->authHeaders())
+            ->assertStatus(422);
+        $this->postJson("/api/order/{$order->id}/layaway/cancel", ['sistema_id' => $this->caja->id, 'retained_amount' => -5], $this->authHeaders())
+            ->assertStatus(400);
+
+        // Nada cambió: sigue activo, con su stock descontado y sin movimientos de cancelación.
+        $this->assertSame(OrderStatusEnum::LAYAWAY->value, $order->fresh()->estatus_pedido_id);
+        $this->assertEquals(9.0, (float) $product->fresh()->stock);
+        $this->assertCount(0, $this->movimientos($order, LayawayPaymentTypeEnum::Refund));
+        $this->assertCount(0, $this->movimientos($order, LayawayPaymentTypeEnum::Forfeit));
+    }
+
+    public function test_lo_retenido_no_mueve_la_caja(): void
+    {
+        [$order] = $this->apartadoConAbonos();
+        $this->postJson("/api/order/{$order->id}/layaway/cancel", ['sistema_id' => $this->caja->id, 'retained_amount' => 120], $this->authHeaders())->assertStatus(200);
+
+        // Entraron 300 en abonos y salieron 180 de reembolso; los 120 retenidos no suman ni restan.
+        $this->getJson("/api/admin/system/{$this->caja->id}/total-current-sales", $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.apartados.abonos', 300)
+            ->assertJsonPath('data.apartados.reembolsos', 180)
+            ->assertJsonPath('data.apartados.neto', 120)
+            ->assertJsonPath('data.bruto', 120);
+    }
+
+    public function test_una_caja_con_solo_una_retencion_sigue_considerandose_sin_movimiento_de_caja(): void
+    {
+        [$order] = $this->apartadoConAbonos();
+        $otraCaja = $this->crearCaja();
+
+        $this->postJson("/api/order/{$order->id}/layaway/cancel", ['sistema_id' => $otraCaja->id, 'retained_amount' => 300], $this->authHeaders())->assertStatus(200);
+
+        $this->assertFalse($otraCaja->fresh()->hasLayawayMovements());
+        $this->assertTrue($otraCaja->fresh()->isEmptySession());
+    }
+
     // ── Guards sobre un apartado ─────────────────────────────
 
     public function test_apartado_no_se_cierra_por_el_put_de_la_orden(): void
@@ -347,6 +447,16 @@ class LayawayTest extends TestCase
     {
         [$order] = $this->crearOrden();
         $this->postJson("/api/order/{$order->id}/layaway", $this->payload($this->crearCliente(), 100), $this->authHeaders())->assertStatus(200);
+
+        $this->deleteJson("/api/order/{$order->id}", [], $this->authHeaders())->assertStatus(422);
+
+        $this->assertNotNull(OrderModel::find($order->id));
+    }
+
+    public function test_un_apartado_cancelado_conserva_su_historial_y_no_se_puede_eliminar(): void
+    {
+        [$order] = $this->apartadoConAbonos();
+        $this->postJson("/api/order/{$order->id}/layaway/cancel", ['sistema_id' => $this->caja->id, 'retained_amount' => 50], $this->authHeaders())->assertStatus(200);
 
         $this->deleteJson("/api/order/{$order->id}", [], $this->authHeaders())->assertStatus(422);
 
@@ -390,10 +500,12 @@ class LayawayTest extends TestCase
             'label_color' => '#112233',
             'layaway_min_percent' => 25,
             'layaway_days' => 45,
+            'layaway_retention_percent' => 20,
         ], $this->authHeaders())->assertStatus(200);
 
         $tenant->refresh();
         $this->assertEquals(25.0, $tenant->layaway_min_percent);
         $this->assertSame(45, $tenant->layaway_days);
+        $this->assertEquals(20.0, $tenant->layaway_retention_percent);
     }
 }

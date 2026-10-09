@@ -10,7 +10,7 @@ import { CartEmptyState } from "./CartEmptyState";
 import { CartItemRow } from "./CartItemRow";
 import { CartFooter } from "./CartFooter/CartFooter";
 import { usePermissions } from "@/hooks/usePermissions";
-import { useLayawayPay } from "@/components/orders/Layaway/useLayawayPay";
+import { useLayawayPay } from "@/components/orders/Layaway/Pay/useLayawayPay";
 
 interface CartPanelProps {
     order: IOrder | undefined;

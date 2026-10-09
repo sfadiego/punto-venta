@@ -73,19 +73,30 @@ class VentaTicketData implements TicketDataInterface
             'hora' => Carbon::parse($order->created_at)->setTimezone(config('app.timezone'))->format('H:i'),
             'products' => $products,
             'sell_by_weight' => (bool) ($config?->tipo_negocio?->features()['sell_by_weight'] ?? false),
-            'business' => [
-                'name' => $config?->business_name ?? config('business.full_name'),
-                'phone' => $config?->phone,
-                'address' => $config?->address,
-                'facebook' => $config?->facebook,
-                'instagram' => $config?->instagram,
-                'whatsapp' => $config?->whatsapp,
-                'website' => $config?->website,
-                'ticket_footer' => $config?->ticket_footer,
-                'paper_width' => $config?->paper_width ?? '58',
-                'sell_by_weight' => $config?->tipo_negocio?->features()['sell_by_weight'] ?? false,
-                'kitchen_view' => $config?->tipo_negocio?->features()['kitchen_view'] ?? false,
-            ],
+            'business' => self::businessData($config),
+        ];
+    }
+
+    /**
+     * Datos del negocio que todo ticket imprime (encabezado y pie): nombre, contacto, ancho de papel y
+     * las banderas de tipo de negocio que ajustan el formato.
+     *
+     * @return array<string, mixed>
+     */
+    public static function businessData(?BusinessConfigModel $config): array
+    {
+        return [
+            'name' => $config?->business_name ?? config('business.full_name'),
+            'phone' => $config?->phone,
+            'address' => $config?->address,
+            'facebook' => $config?->facebook,
+            'instagram' => $config?->instagram,
+            'whatsapp' => $config?->whatsapp,
+            'website' => $config?->website,
+            'ticket_footer' => $config?->ticket_footer,
+            'paper_width' => $config?->paper_width ?? '58',
+            'sell_by_weight' => $config?->tipo_negocio?->features()['sell_by_weight'] ?? false,
+            'kitchen_view' => $config?->tipo_negocio?->features()['kitchen_view'] ?? false,
         ];
     }
 }

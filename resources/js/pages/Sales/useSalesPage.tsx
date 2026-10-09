@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DataTableColumn } from "mantine-datatable";
 import { Eye, Undo2 } from "lucide-react";
 import { useDataTable, DataTableRenderersMap } from "@/hooks/useDatatable";
@@ -51,7 +51,15 @@ export const useSalesPage = () => {
     const [fecha, setFecha] = useState<string | null>(localDateString());
     const [semana, setSemana] = useState<string | null>(getWeekStart());
     const [mes, setMes] = useState<string | null>(currentMonthString());
+    const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const modal = useOrderDetailModal();
+
+    // Debounce de la búsqueda — no pedir al servidor en cada tecla.
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(search), 400);
+        return () => clearTimeout(timer);
+    }, [search]);
 
     const actionsColumn: DataTableColumn<IOrder> = useMemo(
         () => ({
@@ -83,12 +91,19 @@ export const useSalesPage = () => {
         service: useIndexOrder,
         payload: {
             estatus_pedido_id: OrderStatusEnum.Closed,
-            ...(reportMode === SalesReportModeEnum.Day
-                ? (fecha ? { fecha } : {})
-                : reportMode === SalesReportModeEnum.Week
-                    ? (semana ? { semana } : {})
-                    : (mes ? { mes } : {})),
+            // Al buscar por folio o cliente se ignora el periodo: la venta puede ser de cualquier
+            // fecha y quien busca un folio no necesariamente la recuerda.
+            ...(debouncedSearch
+                ? {}
+                : reportMode === SalesReportModeEnum.Day
+                    ? (fecha ? { fecha } : {})
+                    : reportMode === SalesReportModeEnum.Week
+                        ? (semana ? { semana } : {})
+                        : (mes ? { mes } : {})),
             branch_id: branchId ?? undefined,
+            // strict_status mantiene la búsqueda en órdenes cerradas (esta página solo lista ventas).
+            search: debouncedSearch || undefined,
+            strict_status: true,
         },
         renderersMap,
     });
@@ -140,7 +155,13 @@ export const useSalesPage = () => {
         setPage(1);
     };
 
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        setPage(1);
+    };
+
     const handleClear = () => {
+        setSearch("");
         setReportMode(SalesReportModeEnum.Day);
         setFecha(localDateString());
         setSemana(getWeekStart());
@@ -156,8 +177,10 @@ export const useSalesPage = () => {
         fecha,
         semana,
         mes,
+        search,
         branchId,
         sellByWeight,
+        handleSearchChange,
         handleReportModeChange,
         handleFechaChange,
         handleSemanaChange,

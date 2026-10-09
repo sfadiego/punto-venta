@@ -95,7 +95,7 @@ export function ColorsSection({ config }: ColorsSectionProps) {
                 Identidad y colores
             </h2>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium text-stone-700">
                         Nombre del negocio

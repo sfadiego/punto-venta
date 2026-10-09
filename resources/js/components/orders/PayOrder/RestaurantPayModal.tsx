@@ -10,9 +10,10 @@ import { PayModalActions } from "../PayModal/PayModalActions";
 import { CustomerCreditPicker } from "@/components/orders/CustomerCredit/CustomerCreditPicker";
 import { useAxios } from "@/hooks/useAxios";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
-import { LayawayPayBody } from "@/components/orders/Layaway/LayawayPayBody";
-import { LayawayPay } from "@/components/orders/Layaway/useLayawayPay";
+import { LayawayPayBody } from "@/components/orders/Layaway/Pay/LayawayPayBody";
+import { LayawayPay } from "@/components/orders/Layaway/Pay/useLayawayPay";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
+import { isCustomersModuleEnabled } from "@/utils/customersModule";
 
 interface RestaurantPayModalProps {
     isOpen: boolean;
@@ -71,9 +72,8 @@ export const RestaurantPayModal = ({
     layaway,
 }: RestaurantPayModalProps) => {
     const { features } = useAxios();
-    const sellByWeight = features?.sell_by_weight === true;
     const { data: config } = useGetBusinessConfig();
-    const customersAvailable = sellByWeight || config?.customers_enabled === true;
+    const customersAvailable = isCustomersModuleEnabled(features, config);
 
     if (!isOpen) return null;
 

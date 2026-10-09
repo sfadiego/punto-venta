@@ -24,7 +24,7 @@ class RolePermissionService
             'viewDashboard', 'viewOrders', 'kitchenView', 'printTicket',
         ],
         RoleEnum::CAJA->value => [
-            'viewDashboard', 'viewOrders', 'payOrder', 'printTicket', 'registerExpense', 'layaway',
+            'viewDashboard', 'viewOrders', 'payOrder', 'printTicket', 'registerExpense', 'layaway', 'processReturns',
         ],
     ];
 
@@ -40,13 +40,14 @@ class RolePermissionService
         $features = BusinessConfigModel::find($tenantId)?->tipo_negocio?->features();
 
         // Claves que el tipo de negocio no soporta: sin cocina no existe 'kitchenView'; los
-        // apartados ('layaway') son exclusivos de retail.
+        // apartados ('layaway') y las devoluciones ('processReturns') son exclusivos de retail.
         $excluded = [];
         if (! ($features['kitchen_view'] ?? true)) {
             $excluded[] = 'kitchenView';
         }
         if (! ($features['is_retail'] ?? false)) {
             $excluded[] = 'layaway';
+            $excluded[] = 'processReturns';
         }
 
         if ($excluded === []) {

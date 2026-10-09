@@ -5,6 +5,7 @@ namespace Tests\Orders;
 use App\Enums\BusinessTypeEnum;
 use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
+use App\Enums\ReturnReasonEnum;
 use App\Enums\RoleEnum;
 use App\Enums\StockMovementReasonEnum;
 use App\Enums\StockMovementTypeEnum;
@@ -174,8 +175,10 @@ class OrderReturnDiscoveryTest extends TestCase
         $producto = $this->crearProductoConStock(10);
         $linea = $this->crearLineaVendida($orden, $producto, 5);
 
-        $this->postJson("/api/order/{$orden->id}/product/{$linea->id}/return", [
-            'quantity' => 2,
+        $this->postJson("/api/order/{$orden->id}/return", [
+            'reason' => ReturnReasonEnum::Other->value,
+            'refund' => false,
+            'items' => [['order_product_id' => $linea->id, 'quantity' => 2]],
         ], $this->authHeaders())->assertStatus(200);
 
         $response = $this->getJson("/api/order?estatus_pedido_id={$orden->estatus_pedido_id}", $this->authHeaders())
@@ -223,8 +226,10 @@ class OrderReturnDiscoveryTest extends TestCase
             'reference_id' => $linea->id,
         ]);
 
-        $this->postJson("/api/order/{$orden->id}/product/{$linea->id}/return", [
-            'quantity' => 2,
+        $this->postJson("/api/order/{$orden->id}/return", [
+            'reason' => ReturnReasonEnum::Other->value,
+            'refund' => false,
+            'items' => [['order_product_id' => $linea->id, 'quantity' => 2]],
             'note' => 'Prueba',
         ], $this->authHeaders())->assertStatus(200);
 
@@ -233,7 +238,7 @@ class OrderReturnDiscoveryTest extends TestCase
         $lineaRespuesta = collect($response->json('data.order_products'))->firstWhere('id', $linea->id);
         $this->assertNotNull($lineaRespuesta);
         $this->assertCount(1, $lineaRespuesta['stock_movements']);
-        $this->assertEquals('return', $lineaRespuesta['stock_movements'][0]['reason']);
+        $this->assertEquals(StockMovementReasonEnum::Return->value, $lineaRespuesta['stock_movements'][0]['reason']);
         $this->assertEquals('2.00', $lineaRespuesta['stock_movements'][0]['quantity']);
     }
 

@@ -11,6 +11,9 @@ export interface IStockMovement {
     stock_before: string;
     stock_after: string;
     reason: StockMovementReasonEnum;
+    // Devolución a la que pertenece (retail); null en movimientos que no son devolución y en las
+    // anteriores al registro de devoluciones.
+    order_return_id?: number | null;
     note: string | null;
     created_by: { id: number; nombre: string } | null;
     created_at: string;

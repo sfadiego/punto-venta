@@ -6,6 +6,7 @@ import { PrinterSection } from "./partials/Printer/PrinterSection";
 import { DeliverySection } from "./partials/Delivery/DeliverySection";
 import { ScaleSection } from "./partials/Scale/ScaleSection";
 import { LayawaySection } from "./partials/Layaway/LayawaySection";
+import { ReturnsSection } from "./partials/Returns/ReturnsSection";
 import { MenuSection } from "./partials/Menu/MenuSection";
 import { ReadonlyMenuQrSection } from "./partials/Menu/ReadonlyMenuQrSection";
 import { RolesPermissionsSection } from "./partials/RolesPermissions/RolesPermissionsSection";
@@ -74,6 +75,9 @@ function AdminPage() {
                         )}
                         {isRetail && (
                             <div id="apartados"><LayawaySection config={config} /></div>
+                        )}
+                        {isRetail && (
+                            <div id="devoluciones"><ReturnsSection config={config} /></div>
                         )}
                         <div id="menu">
                             <FeatureSpotlight

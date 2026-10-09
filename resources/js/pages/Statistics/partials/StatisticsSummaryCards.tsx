@@ -1,6 +1,7 @@
 import { TrendingUp, Receipt, Award, DollarSign } from "lucide-react";
 import { IBestSellerItem } from "@/services/useStatisticsService";
 import { formatTotal } from "@/utils/formatUnits";
+import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 
 interface StatisticsSummaryCardsProps {
     cajaAbierta: boolean;
@@ -8,11 +9,13 @@ interface StatisticsSummaryCardsProps {
     topProduct?: IBestSellerItem;
     averageTicketLabel: string;
     ordersCount: number;
+    /** Lo reembolsado por devoluciones de las ventas del mes — la venta promedio ya viene neta. */
+    totalReturns: number;
     rankingCount: number;
 }
 
 export const StatisticsSummaryCards = ({
-    cajaAbierta, totalVentas, topProduct, averageTicketLabel, ordersCount, rankingCount,
+    cajaAbierta, totalVentas, topProduct, averageTicketLabel, ordersCount, totalReturns, rankingCount,
 }: StatisticsSummaryCardsProps) => (
     <div className={`grid grid-cols-1 gap-4 ${cajaAbierta ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
         {cajaAbierta && (
@@ -52,6 +55,7 @@ export const StatisticsSummaryCards = ({
                 <p className="text-2xl font-bold text-stone-900 mt-0.5">{averageTicketLabel}</p>
                 <p className="text-xs text-stone-400 mt-0.5">
                     {ordersCount} venta{ordersCount !== 1 ? "s" : ""} este mes
+                    {totalReturns > 0 && ` · neto de ${formatCurrencyTrimmed(totalReturns)} devueltos`}
                 </p>
             </div>
         </div>

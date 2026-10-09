@@ -99,6 +99,29 @@ class LayawayTicketTest extends TestCase
         $this->assertStringNotContainsString('SALDO PENDIENTE', $content);
     }
 
+    public function test_comprobante_de_apartado_cancelado_con_retencion_muestra_reembolso_y_retenido(): void
+    {
+        $order = $this->crearApartado(OrderStatusEnum::CANCELED, abonado: 0);
+        foreach ([[LayawayPaymentTypeEnum::Refund, 180], [LayawayPaymentTypeEnum::Forfeit, 120]] as [$type, $amount]) {
+            OrderLayawayPaymentModel::create([
+                OrderLayawayPaymentModel::ORDER_ID => $order->id,
+                OrderLayawayPaymentModel::CUSTOMER_ID => $order->customer_id,
+                OrderLayawayPaymentModel::TYPE => $type,
+                OrderLayawayPaymentModel::AMOUNT => $amount,
+                OrderLayawayPaymentModel::PAYMENT_METHOD_ID => PaymentMethodModel::first()->id,
+                OrderLayawayPaymentModel::SISTEMA_ID => $order->sistema_id,
+                OrderLayawayPaymentModel::TENANT_ID => BusinessConfigModel::first()->id,
+            ]);
+        }
+
+        $content = $this->bytes($order);
+
+        $this->assertStringContainsString('Reembolso', $content);
+        $this->assertStringContainsString('-$180.00', $content);
+        $this->assertStringContainsString('Retenido', $content);
+        $this->assertStringContainsString('$120.00', $content);
+    }
+
     public function test_una_venta_normal_sigue_imprimiendo_el_ticket_de_venta(): void
     {
         $order = $this->crearApartado(OrderStatusEnum::CLOSED);
