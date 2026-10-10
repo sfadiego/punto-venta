@@ -5,7 +5,10 @@ const BASE_SECTIONS = [
     { id: "colores", label: "Colores", icon: <Palette size={18} /> },
 ];
 
-const CREATE_SECTION = { id: "admin", label: "Administrador", icon: <UserPlus size={18} /> };
+const CREATE_SECTIONS = [
+    { id: "admin", label: "Administrador", icon: <UserPlus size={18} /> },
+    { id: "plan-inicial", label: "Suscripción inicial", icon: <CreditCard size={18} /> },
+];
 
 const EDIT_SECTIONS = [
     { id: "limite", label: "Límite de usuarios", icon: <Users size={18} /> },
@@ -26,7 +29,7 @@ interface TenantFormNavProps {
 }
 
 export const TenantFormNav = ({ isEdit, showDangerZone = false }: TenantFormNavProps) => {
-    let sections = isEdit ? [...BASE_SECTIONS, ...EDIT_SECTIONS] : [...BASE_SECTIONS, CREATE_SECTION];
+    let sections = isEdit ? [...BASE_SECTIONS, ...EDIT_SECTIONS] : [...BASE_SECTIONS, ...CREATE_SECTIONS];
     if (isEdit && showDangerZone) sections = [...sections, DANGER_SECTION];
 
     const scrollTo = (id: string) => {

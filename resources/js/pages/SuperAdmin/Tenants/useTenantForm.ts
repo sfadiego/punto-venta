@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useFormik, FormikProps } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
@@ -5,8 +6,11 @@ import { toast } from "react-toastify";
 import { useCreateTenant, useUpdateTenant, useListTenants } from "@/services/useSuperAdminService";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
+import { SubscriptionPlanEnum } from "@/enums/SubscriptionPlanEnum";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { buildAdminEmail } from "@/utils/adminEmail";
+import { localDateString } from "@/utils/dateUtils";
 
 export interface TenantFormValues {
     slug: string;
@@ -31,6 +35,11 @@ export interface TenantFormValues {
     admin_email: string;
     admin_usuario: string;
     admin_password: string;
+    plan: SubscriptionPlanEnum;
+    is_trial: boolean;
+    starts_at: string;
+    amount: number | null;
+    notes: string;
 }
 
 export type TenantFormik = FormikProps<TenantFormValues>;
@@ -61,6 +70,13 @@ const createSchema = Yup.object({
     admin_email:    Yup.string().email("Email inválido").required("Requerido"),
     admin_usuario:  Yup.string().required("Requerido").max(255, "Máximo 255 caracteres"),
     admin_password: Yup.string().min(6, "Mínimo 6 caracteres").required("Requerido"),
+    plan:           Yup.string().oneOf(Object.values(SubscriptionPlanEnum)).required("Requerido"),
+    starts_at:      Yup.string().required("Requerido"),
+    notes:          Yup.string().max(250, "Máximo 250 caracteres"),
+    amount:         Yup.number().nullable().when("is_trial", {
+        is: false,
+        then: (schema) => schema.required("Requerido").min(0, "No puede ser negativo"),
+    }),
 });
 
 const editSchema = Yup.object(baseSchema);
@@ -100,6 +116,11 @@ export const useTenantForm = (tenantId?: number) => {
             admin_email:      "",
             admin_usuario:    "",
             admin_password:   "",
+            plan:             SubscriptionPlanEnum.Monthly,
+            is_trial:         true,
+            starts_at:        localDateString(),
+            amount:           null as number | null,
+            notes:            "",
         },
         validationSchema: isEdit ? editSchema : createSchema,
         onSubmit: async (values, helpers) => {
@@ -118,7 +139,7 @@ export const useTenantForm = (tenantId?: number) => {
                     toast.success("Cliente actualizado.");
                 } else {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    await createMutation.mutateAsync(values as any);
+                    await createMutation.mutateAsync({ ...values, amount: values.is_trial || values.amount === null ? null : Number(values.amount) } as any);
                     toast.success("Cliente creado correctamente.");
                 }
                 navigate(SuperAdminRoutes.Tenants);
@@ -129,6 +150,23 @@ export const useTenantForm = (tenantId?: number) => {
             }
         },
     });
+
+    // Al crear, el correo del admin sigue al slug mientras no se haya editado a mano
+    // (vacío o igual al sugerido del slug anterior).
+    const previousSlug = useRef("");
+    useEffect(() => {
+        if (isEdit) return;
+        const current = formik.values.admin_email;
+        if (current === "" || current === buildAdminEmail(previousSlug.current)) {
+            formik.setFieldValue("admin_email", buildAdminEmail(formik.values.slug));
+        }
+        previousSlug.current = formik.values.slug;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formik.values.slug, isEdit]);
+
+    const handleSyncAdminEmail = () => {
+        formik.setFieldValue("admin_email", buildAdminEmail(formik.values.slug));
+    };
 
     const handleResetColors = () => {
         const { primary_color, sidebar_color, font_color, label_color } = formik.values;
@@ -149,5 +187,5 @@ export const useTenantForm = (tenantId?: number) => {
         formik.setFieldValue("label_color",   COLOR_DEFAULTS.label_color);
     };
 
-    return { formik, isEdit, tenant, handleResetColors };
+    return { formik, isEdit, tenant, handleResetColors, handleSyncAdminEmail };
 };

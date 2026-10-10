@@ -1,3 +1,4 @@
+import { isTrialSubscription } from "@/utils/subscriptionHistory";
 import { X, Receipt, Loader } from "lucide-react";
 import { ITenantWithSubscription } from "@/models/ISubscription";
 import { PLAN_LABELS } from "@/enums/SubscriptionPlanEnum";
@@ -42,7 +43,12 @@ export const PaymentHistoryModal = ({ tenant, onClose }: PaymentHistoryModalProp
                             {records.map((r) => (
                                 <li key={r.id} className="border border-slate-100 rounded-xl px-4 py-3">
                                     <div className="flex items-center justify-between gap-3">
-                                        <span className="text-sm font-medium text-slate-800">{PLAN_LABELS[r.plan]}</span>
+                                        <span className="text-sm font-medium text-slate-800">
+                                            {PLAN_LABELS[r.plan]}
+                                            {isTrialSubscription(r) && (
+                                                <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Prueba</span>
+                                            )}
+                                        </span>
                                         <span className="text-sm font-semibold text-indigo-600">
                                             {r.amount != null ? formatCurrency(r.amount) : <span className="text-slate-300 font-normal">Sin monto</span>}
                                         </span>
