@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SubscriptionStoreRequest;
 use App\Models\BusinessConfigModel;
 use App\Models\SubscriptionModel;
+use App\Services\SubscriptionService;
 use App\Services\SubscriptionStatisticsService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -46,25 +47,12 @@ class SubscriptionController extends Controller
     /**
      * Register a payment for a tenant (creates a new subscription record).
      */
-    public function store(BusinessConfigModel $tenant, SubscriptionStoreRequest $request): JsonResponse
+    public function store(BusinessConfigModel $tenant, SubscriptionStoreRequest $request, SubscriptionService $subscriptionService): JsonResponse
     {
         $plan = SubscriptionPlanEnum::from($request->plan);
         $startsAt = Carbon::parse($request->starts_at);
 
-        $log = SubscriptionModel::createFromPlan(
-            tenantId: $tenant->id,
-            plan: $plan,
-            startsAt: $startsAt,
-            amount: $request->amount,
-            notes: $request->notes,
-        );
-
-        $tenant->update([
-            BusinessConfigModel::SUBSCRIPTION_PLAN => $plan->value,
-            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => $log->expires_at,
-            // Solo actualiza max_users si no hay un override manual previo
-            BusinessConfigModel::MAX_USERS => $plan->maxUsers(),
-        ]);
+        $subscriptionService->start($tenant, $plan, $startsAt, $request->amount, $request->notes);
 
         return Response::success($this->formatTenant($tenant->fresh()));
     }

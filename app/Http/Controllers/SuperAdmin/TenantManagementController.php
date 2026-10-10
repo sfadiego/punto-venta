@@ -15,6 +15,7 @@ use App\Models\PersonalAccessToken;
 use App\Models\SubscriptionModel;
 use App\Models\TenantActivityLogModel;
 use App\Models\User;
+use App\Services\SubscriptionService;
 use App\Services\TenantActivityService;
 use App\Services\TenantDemoDataService;
 use App\Services\TenantService;
@@ -30,7 +31,7 @@ class TenantManagementController extends Controller
         return $service->run($data);
     }
 
-    public function store(TenantStoreRequest $param): JsonResponse
+    public function store(TenantStoreRequest $param, SubscriptionService $subscriptionService): JsonResponse
     {
         $tenant = BusinessConfigModel::create([
             BusinessConfigModel::SLUG => $param->slug,
@@ -56,20 +57,14 @@ class TenantManagementController extends Controller
             User::TENANT_ID => $tenant->id,
         ]);
 
-        $initialPlan = SubscriptionPlanEnum::Monthly;
-        $log = SubscriptionModel::createFromPlan(
-            tenantId: $tenant->id,
-            plan: $initialPlan,
-            startsAt: Carbon::today(),
-            amount: 0,
-            notes: 'Suscripción inicial de 1 mes',
+        $isTrial = (bool) ($param->is_trial ?? true);
+        $subscriptionService->start(
+            tenant: $tenant,
+            plan: SubscriptionPlanEnum::tryFrom((string) $param->plan) ?? SubscriptionPlanEnum::Monthly,
+            startsAt: Carbon::parse($param->starts_at ?? Carbon::today()),
+            amount: $isTrial ? 0 : (float) $param->amount,
+            notes: $this->subscriptionNotes($isTrial, $param->notes),
         );
-
-        $tenant->update([
-            BusinessConfigModel::SUBSCRIPTION_PLAN => $initialPlan->value,
-            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => $log->expires_at,
-            BusinessConfigModel::MAX_USERS => $initialPlan->maxUsers(),
-        ]);
 
         return Response::success($tenant);
     }
@@ -159,5 +154,13 @@ class TenantManagementController extends Controller
         $days = (int) ($request->query('days') ?? 30);
 
         return Response::success($service->report($tenant->id, $days));
+    }
+
+    private function subscriptionNotes(bool $isTrial, ?string $notes): string
+    {
+        $base = $isTrial ? SubscriptionModel::TRIAL_NOTES : SubscriptionModel::INITIAL_NOTES;
+        $notes = trim((string) $notes);
+
+        return $notes === '' ? $base : "{$base} — {$notes}";
     }
 }

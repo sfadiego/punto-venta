@@ -8,6 +8,7 @@ import { SubscriptionAmountSection } from "@/components/SuperAdmin/Tenants/Secti
 import { ActiveUsersDetail } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersBadge";
 import { TenantBusinessSection } from "@/components/SuperAdmin/Tenants/Sections/TenantBusinessSection";
 import { TenantColorsSection } from "@/components/SuperAdmin/Tenants/Sections/TenantColorsSection";
+import { TenantSubscriptionStartSection } from "@/components/SuperAdmin/Tenants/Sections/TenantSubscriptionStartSection";
 import { TenantAdminSection } from "@/components/SuperAdmin/Tenants/Sections/TenantAdminSection";
 import { TenantPrinterSection } from "@/components/SuperAdmin/Tenants/Sections/TenantPrinterSection";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
@@ -24,7 +25,7 @@ export default function TenantFormPage() {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const tenantId = id ? Number(id) : undefined;
-    const { formik, isEdit, handleResetColors } = useTenantForm(tenantId);
+    const { formik, isEdit, handleResetColors, handleSyncAdminEmail } = useTenantForm(tenantId);
     const { data: tenantDetail, refetch: refetchDetail, isRefetching: isRefetchingDetail } = useGetTenant(tenantId ?? 0);
 
     return (
@@ -84,7 +85,13 @@ export default function TenantFormPage() {
 
                         {!isEdit && (
                             <div id="admin">
-                                <TenantAdminSection formik={formik} />
+                                <TenantAdminSection formik={formik} onSyncEmail={handleSyncAdminEmail} />
+                            </div>
+                        )}
+
+                        {!isEdit && (
+                            <div id="plan-inicial">
+                                <TenantSubscriptionStartSection formik={formik} />
                             </div>
                         )}
 
