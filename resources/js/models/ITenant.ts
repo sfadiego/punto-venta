@@ -1,5 +1,6 @@
 import { BusinessTypeEnum, IBusinessFeatures } from "@/enums/BusinessTypeEnum";
 import { IconSourceEnum } from "@/enums/IconSourceEnum";
+import { SubscriptionPlanEnum } from "@/enums/SubscriptionPlanEnum";
 
 export interface ITenant {
     id: number;
@@ -52,6 +53,11 @@ export interface ICreateTenantPayload {
     admin_email: string;
     admin_usuario: string;
     admin_password: string;
+    plan: SubscriptionPlanEnum;
+    is_trial: boolean;
+    starts_at: string;
+    amount: number | null;
+    notes?: string;
 }
 
 export interface IUpdateTenantPayload {

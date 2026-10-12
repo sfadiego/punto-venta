@@ -28,6 +28,11 @@ class SubscriptionModel extends Model
 
     const GRACE_DAYS = 3;
 
+    // Una prueba se identifica en el historial por monto 0 y esta nota (sin columna propia).
+    const TRIAL_NOTES = 'Periodo de prueba';
+
+    const INITIAL_NOTES = 'Alta inicial';
+
     protected $fillable = [
         self::TENANT_ID,
         self::PLAN,

@@ -4,8 +4,10 @@ namespace Tests\SuperAdmin;
 
 use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
+use App\Enums\SubscriptionPlanEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
+use App\Models\SubscriptionModel;
 use App\Models\TenantActivityLogModel;
 use App\Models\User;
 use Carbon\Carbon;
@@ -246,6 +248,96 @@ class TenantManagementTest extends TestCase
             'tenant_id' => $tenantId,
             'plan' => 'monthly',
         ]);
+    }
+
+    public function test_crea_tenant_con_periodo_de_prueba_del_plan_elegido(): void
+    {
+        $startsAt = Carbon::today();
+        $response = $this->postJson('/api/super-admin/tenant', $this->tenantPayload([
+            'plan' => SubscriptionPlanEnum::Biweekly->value,
+            'is_trial' => true,
+            'starts_at' => $startsAt->toDateString(),
+        ]), $this->superAdminHeaders())->assertStatus(200);
+
+        $tenantId = $response->json('data.id');
+        $this->assertDatabaseHas('subscriptions', [
+            'tenant_id' => $tenantId,
+            'plan' => SubscriptionPlanEnum::Biweekly->value,
+            'amount' => 0,
+            'notes' => SubscriptionModel::TRIAL_NOTES,
+        ]);
+        $this->assertDatabaseHas('business_config', [
+            'id' => $tenantId,
+            'subscription_plan' => SubscriptionPlanEnum::Biweekly->value,
+            'subscription_expires_at' => $startsAt->copy()->addWeeks(2)->startOfDay()->toDateTimeString(),
+        ]);
+    }
+
+    public function test_crea_tenant_con_plan_pagado(): void
+    {
+        $startsAt = Carbon::today();
+        $response = $this->postJson('/api/super-admin/tenant', $this->tenantPayload([
+            'plan' => SubscriptionPlanEnum::Annual->value,
+            'is_trial' => false,
+            'amount' => 4500,
+            'starts_at' => $startsAt->toDateString(),
+        ]), $this->superAdminHeaders())->assertStatus(200);
+
+        $tenantId = $response->json('data.id');
+        $this->assertDatabaseHas('subscriptions', [
+            'tenant_id' => $tenantId,
+            'plan' => SubscriptionPlanEnum::Annual->value,
+            'amount' => 4500,
+            'notes' => SubscriptionModel::INITIAL_NOTES,
+        ]);
+        $this->assertDatabaseHas('business_config', [
+            'id' => $tenantId,
+            'subscription_expires_at' => $startsAt->copy()->addMonths(12)->startOfDay()->toDateTimeString(),
+        ]);
+    }
+
+    public function test_crea_tenant_agrega_notas_al_registro_inicial(): void
+    {
+        $tenantId = $this->postJson('/api/super-admin/tenant', $this->tenantPayload([
+            'is_trial' => true,
+            'notes' => 'Acordado por WhatsApp',
+        ]), $this->superAdminHeaders())->assertStatus(200)->json('data.id');
+
+        $this->assertDatabaseHas('subscriptions', [
+            'tenant_id' => $tenantId,
+            'notes' => SubscriptionModel::TRIAL_NOTES.' — Acordado por WhatsApp',
+        ]);
+    }
+
+    public function test_crea_tenant_plan_pagado_sin_monto_falla(): void
+    {
+        $this->postJson('/api/super-admin/tenant', $this->tenantPayload([
+            'plan' => SubscriptionPlanEnum::Monthly->value,
+            'is_trial' => false,
+        ]), $this->superAdminHeaders())->assertStatus(400);
+    }
+
+    public function test_crea_tenant_con_plan_invalido_falla(): void
+    {
+        $this->postJson('/api/super-admin/tenant', $this->tenantPayload(['plan' => 'invalido']), $this->superAdminHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_pago_posterior_a_prueba_deja_ambos_registros_en_historial(): void
+    {
+        $headers = $this->superAdminHeaders();
+        $tenantId = $this->postJson('/api/super-admin/tenant', $this->tenantPayload([
+            'plan' => SubscriptionPlanEnum::Weekly->value,
+            'is_trial' => true,
+        ]), $headers)->json('data.id');
+
+        $this->postJson("/api/super-admin/subscription/{$tenantId}", [
+            'plan' => SubscriptionPlanEnum::Monthly->value,
+            'starts_at' => Carbon::today()->addWeek()->toDateString(),
+            'amount' => 450,
+        ], $this->superAdminHeaders())->assertStatus(200);
+
+        $this->assertSame(2, SubscriptionModel::where(SubscriptionModel::TENANT_ID, $tenantId)->count());
     }
 
     public function test_crea_tenant_asigna_max_users_del_plan_inicial(): void
