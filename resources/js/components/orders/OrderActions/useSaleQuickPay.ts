@@ -6,6 +6,7 @@ import { useUpdateOrder } from "@/services/useOrderService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
 import { useCustomerList } from "@/services/useCustomerService";
 import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
+import { useCashDrawer } from "@/components/orders/PrintTicket/useCashDrawer";
 import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
@@ -29,6 +30,7 @@ export const useSaleQuickPay = (order: IOrder) => {
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
     const { data: customers = [] } = useCustomerList();
     const { print, canPrint } = usePrintTicket();
+    const { openCashDrawer } = useCashDrawer();
 
     const totalFinal = order.total;
     const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
@@ -76,6 +78,7 @@ export const useSaleQuickPay = (order: IOrder) => {
                 queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
             }
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
+            if (isCashMethod && !isCreditMode) void openCashDrawer();
             closePayModal();
 
             if (canPrint) {

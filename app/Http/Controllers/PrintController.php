@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BusinessConfigModel;
 use App\Models\OrderModel;
 use App\Models\OrderReturnModel;
 use App\Printer\Connectors\BufferConnector;
@@ -119,6 +120,32 @@ class PrintController extends Controller
     }
 
     /**
+     * Abre el cajón de dinero por la impresora del servidor (ruta CUPS/red). Se llama solo al cobrar
+     * una orden en efectivo — nunca al imprimir un ticket — y solo si el negocio lo activó.
+     */
+    public function openCashDrawer(Request $request)
+    {
+        $tenant = $request->user()->tenant;
+
+        if ($disabled = $this->cashDrawerDisabledResponse($tenant)) {
+            return $disabled;
+        }
+
+        try {
+            PrinterServiceFactory::make(new VentaFormatter, $tenant)->openCashDrawer();
+
+            return Response::success(null, 'Cajón abierto');
+        } catch (Throwable $th) {
+            return $this->printFailure($th, 'open-cash-drawer', 'No se pudo abrir la caja, intenta de nuevo.');
+        }
+    }
+
+    private function cashDrawerDisabledResponse(BusinessConfigModel $tenant): ?JsonResponse
+    {
+        return $tenant->open_cash_drawer ? null : Response::error('La apertura de caja no está activada.');
+    }
+
+    /**
      * Una orden que pasó por un apartado (activo, liquidado o cancelado) imprime el comprobante de
      * apartado — abonos y saldo incluidos —; cualquier otra, el ticket de venta normal.
      *
@@ -138,13 +165,13 @@ class PrintController extends Controller
      * de conexión SMB, etc.) que no deben llegar al cliente — se loguea completo y se
      * responde un mensaje genérico.
      */
-    private function printFailure(Throwable $th, string $context): JsonResponse
+    private function printFailure(Throwable $th, string $context, string $message = 'No se pudo imprimir el ticket, intenta de nuevo.'): JsonResponse
     {
         Log::error("Error al imprimir ({$context})", [
             'message' => $th->getMessage(),
             'trace' => $th->getTraceAsString(),
         ]);
 
-        return Response::error('No se pudo imprimir el ticket, intenta de nuevo.');
+        return Response::error($message);
     }
 }

@@ -1,9 +1,11 @@
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 
+// `open_cash_drawer` es opcional: el backend solo lo toca si viene, así una sección que no lo
+// conoce no lo pisa al guardar.
 export type BusinessConfigPayload = Omit<
     IBusinessConfig,
-    "id" | "slug" | "logo_path" | "logo_upload_enabled" | "bluetooth_printing_enabled" | "created_at" | "updated_at"
->;
+    "id" | "slug" | "logo_path" | "logo_upload_enabled" | "bluetooth_printing_enabled" | "created_at" | "updated_at" | "open_cash_drawer"
+> & { open_cash_drawer?: boolean };
 
 // PUT /admin/config exige el formulario completo (nombre, colores, impresora...) — una sección que
 // solo edita unos campos arma el payload con los valores actuales más sus cambios.
@@ -28,6 +30,7 @@ export const buildBusinessConfigPayload = (
     printer_name: config.printer_name,
     printer_host: config.printer_host,
     paper_width: config.paper_width,
+    open_cash_drawer: config.open_cash_drawer,
     costo_domicilio_default: config.costo_domicilio_default,
     printer_enabled: config.printer_enabled,
     menu_enabled: config.menu_enabled,

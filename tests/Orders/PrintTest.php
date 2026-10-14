@@ -14,7 +14,9 @@ use App\Models\Permission;
 use App\Models\ProductModel;
 use App\Models\RolePermission;
 use App\Models\User;
+use App\Printer\Connectors\BufferConnector;
 use App\Printer\Formatters\VentaFormatter;
+use App\Printer\Service\PrinterService;
 use Tests\TestCase;
 
 class PrintTest extends TestCase
@@ -474,5 +476,84 @@ class PrintTest extends TestCase
         );
 
         $response->assertStatus(200);
+    }
+
+    // ── Cajón de dinero ─────────────────────────────────────────
+
+    /** Secuencia ESC p 0 (pulso del pin 2) que genera Printer::pulse() — abre el cajón. */
+    private const DRAWER_PULSE = "\x1bp0\x3c\x78";
+
+    private function activarCajon(bool $active = true): void
+    {
+        BusinessConfigModel::first()->update([BusinessConfigModel::OPEN_CASH_DRAWER => $active]);
+    }
+
+    public function test_imprimir_ticket_nunca_incluye_el_pulso_del_cajon(): void
+    {
+        // El cajón se abre solo al cobrar: aunque el negocio lo tenga activado, los bytes del ticket
+        // (imprimir o reimprimir) no deben llevar el pulso.
+        $this->activarCajon();
+        $orden = $this->crearOrden();
+
+        $response = $this->get(
+            "/api/order/{$orden->id}/print/bytes",
+            array_merge($this->authHeaders(), ['Accept' => '*/*'])
+        )->assertStatus(200);
+
+        $this->assertStringNotContainsString(self::DRAWER_PULSE, $response->getContent());
+    }
+
+    public function test_cajon_servidor_rechaza_si_el_negocio_no_lo_activo(): void
+    {
+        $this->activarCajon(false);
+
+        $this->postJson('/api/order/cash-drawer', [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'La apertura de caja no está activada.');
+    }
+
+    public function test_cajon_servidor_sin_impresora_configurada_no_expone_detalles(): void
+    {
+        $this->activarCajon();
+
+        $this->postJson('/api/order/cash-drawer', [], $this->authHeaders())
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'No se pudo abrir la caja, intenta de nuevo.');
+    }
+
+    public function test_cajon_servidor_sin_autenticacion_retorna_401(): void
+    {
+        $this->postJson('/api/order/cash-drawer')->assertStatus(401);
+    }
+
+    public function test_pulso_del_cajon_son_los_bytes_que_envia_el_frontend(): void
+    {
+        // Debe coincidir con CASH_DRAWER_PULSE en resources/js/utils/cashDrawer.ts: el navegador manda
+        // estos 5 bytes directo al agente/Bluetooth sin pedirlos al backend.
+        $connector = new BufferConnector(BusinessConfigModel::first());
+        (new PrinterService($connector, new VentaFormatter))->openCashDrawer();
+
+        $this->assertStringContainsString(self::DRAWER_PULSE, $connector->getBytes());
+    }
+
+    public function test_caja_con_pay_order_pasa_el_permiso_para_abrir_el_cajon(): void
+    {
+        $this->activarCajon();
+        $this->otorgarPermiso(RoleEnum::CAJA->value, 'payOrder');
+
+        // Pasa el permiso; sin impresora configurada el servidor responde el error genérico.
+        $this->postJson('/api/order/cash-drawer', [], $this->authHeaders($this->crearUsuario(RoleEnum::CAJA)))
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'No se pudo abrir la caja, intenta de nuevo.');
+    }
+
+    public function test_caja_sin_pay_order_no_puede_abrir_el_cajon(): void
+    {
+        $this->activarCajon();
+        // Configurada con otro permiso para no caer en el fallback a DEFAULTS.
+        $this->otorgarPermiso(RoleEnum::CAJA->value, 'printTicket');
+
+        $this->postJson('/api/order/cash-drawer', [], $this->authHeaders($this->crearUsuario(RoleEnum::CAJA)))
+            ->assertStatus(403);
     }
 }

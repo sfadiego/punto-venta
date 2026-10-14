@@ -4,6 +4,7 @@ import { NavigateFunction } from "react-router-dom";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { usePrintAgent } from "@/hooks/usePrintAgent";
+import { useCashDrawer } from "@/components/orders/PrintTicket/useCashDrawer";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useStoreOrderSale, useUpdateOrderData, usePrintOrder, useFetchPrintBytes } from "@/services/useOrderService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
@@ -63,6 +64,7 @@ export const useQuickSalePayment = ({
     const fetchPrintBytes = useFetchPrintBytes();
     const { mutateAsync: updateOrderData } = useUpdateOrderData();
     const { mutateAsync: storeOrderSale } = useStoreOrderSale();
+    const { openCashDrawer } = useCashDrawer();
     const paymentMethod = usePaymentMethod(total);
     const creditPayment = useCreditPayment();
 
@@ -176,6 +178,7 @@ export const useQuickSalePayment = ({
             }
 
             toast.success(creditPayment.isCreditMode ? "Venta a crédito registrada correctamente." : "Venta registrada correctamente.");
+            if (paymentMethod.isCashMethod && !creditPayment.isCreditMode) void openCashDrawer();
             setShowPayModal(false);
             resetAfterSuccess();
             paymentMethod.setCash("");

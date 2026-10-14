@@ -31,6 +31,7 @@ class BusinessConfigUpdateRequest extends FormRequest
             'printer_name' => 'nullable|string|max:100',
             'printer_host' => 'nullable|string|max:100',
             'paper_width' => 'nullable|in:58,80',
+            'open_cash_drawer' => 'nullable|boolean',
             'logo_icon' => 'nullable|string|max:50',
             'logo_icon_source' => ['nullable', Rule::enum(IconSourceEnum::class)],
             'costo_domicilio_default' => 'nullable|numeric|min:0',

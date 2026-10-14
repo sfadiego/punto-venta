@@ -60,6 +60,7 @@ class BusinessConfigController extends Controller
             BusinessConfigModel::LAYAWAY_DAYS => $request->input('layaway_days'),
             BusinessConfigModel::LAYAWAY_RETENTION_PERCENT => $request->input('layaway_retention_percent'),
             BusinessConfigModel::RETURN_DAYS => $request->input('return_days'),
+            BusinessConfigModel::OPEN_CASH_DRAWER => $request->input('open_cash_drawer'),
         ], fn ($value) => $value !== null));
 
         return Response::success($tenant->fresh());

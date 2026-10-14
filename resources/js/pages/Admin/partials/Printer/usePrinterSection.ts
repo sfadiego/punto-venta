@@ -10,6 +10,7 @@ const schema = Yup.object({
     printer_name: Yup.string().nullable().max(100),
     printer_host: Yup.string().nullable().max(100),
     paper_width: Yup.string().oneOf(["58", "80"]).required(),
+    open_cash_drawer: Yup.boolean().required(),
 });
 
 export const usePrinterSection = (config: IBusinessConfig | undefined) => {
@@ -21,6 +22,7 @@ export const usePrinterSection = (config: IBusinessConfig | undefined) => {
             printer_name: config?.printer_name ?? "",
             printer_host: config?.printer_host ?? "",
             paper_width: config?.paper_width ?? "58",
+            open_cash_drawer: config?.open_cash_drawer ?? false,
         },
         validationSchema: schema,
         onSubmit: async (values, { setSubmitting }) => {
@@ -44,6 +46,7 @@ export const usePrinterSection = (config: IBusinessConfig | undefined) => {
                     printer_name:             values.printer_name || null,
                     printer_host:             values.printer_host || null,
                     paper_width:              values.paper_width as "58" | "80",
+                    open_cash_drawer:         values.open_cash_drawer,
                     costo_domicilio_default:  config.costo_domicilio_default,
                     printer_enabled:          config.printer_enabled,
                     menu_enabled:             config.menu_enabled,
