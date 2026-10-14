@@ -377,6 +377,15 @@ export const useFetchPrintBytes = () => {
         });
 };
 
+// Apertura del cajón de dinero con impresora de servidor (CUPS/red): el backend envía el pulso. Con
+// agente local o Bluetooth el navegador manda el pulso directo (ver useCashDrawer).
+export const useOpenCashDrawer = () => {
+    const { axiosApi } = useAxios();
+    return useMutation({
+        mutationFn: () => axiosPOST(axiosApi, { url: ApiRoutes.CashDrawer, data: {} }),
+    });
+};
+
 export const useFetchPrintTestBytes = () => {
     const { axiosApi } = useAxios();
     return () =>

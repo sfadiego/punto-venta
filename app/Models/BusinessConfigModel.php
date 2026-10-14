@@ -56,6 +56,8 @@ class BusinessConfigModel extends Model
 
     const PAPER_WIDTH = 'paper_width';
 
+    const OPEN_CASH_DRAWER = 'open_cash_drawer';
+
     const PRINTER_ENABLED = 'printer_enabled';
 
     const BLUETOOTH_PRINTING_ENABLED = 'bluetooth_printing_enabled';
@@ -101,6 +103,7 @@ class BusinessConfigModel extends Model
     protected $casts = [
         self::ACTIVO => 'boolean',
         self::IS_DEMO => 'boolean',
+        self::OPEN_CASH_DRAWER => 'boolean',
         self::PRINTER_ENABLED => 'boolean',
         self::BLUETOOTH_PRINTING_ENABLED => 'boolean',
         self::MENU_ENABLED => 'boolean',
@@ -139,6 +142,7 @@ class BusinessConfigModel extends Model
         self::PRINTER_NAME,
         self::PRINTER_HOST,
         self::PAPER_WIDTH,
+        self::OPEN_CASH_DRAWER,
         self::PRINTER_ENABLED,
         self::BLUETOOTH_PRINTING_ENABLED,
         self::MENU_ENABLED,

@@ -27,4 +27,13 @@ class PrinterService
         $this->connector->cut();
         $this->connector->close();
     }
+
+    /** Manda solo el pulso de apertura del cajón (sin imprimir ni cortar nada). */
+    public function openCashDrawer(): void
+    {
+        $this->connector->init();
+        $this->connector->initialize();
+        $this->connector->pulse();
+        $this->connector->close();
+    }
 }

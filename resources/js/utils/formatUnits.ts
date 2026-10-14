@@ -32,13 +32,6 @@ const esPesoUnidad = (unidad?: UnidadMedidaEnum): boolean =>
 export const formatCantidadBadge = (item: IOrderProduct): string =>
     esPesoUnidad(item.product?.unidad_medida) ? formatCantidad(item) : `${formatCantidad(item)}×`;
 
-// Etiqueta "N unidades" para una fila de la orden. Para productos por peso retorna null porque
-// el badge ya muestra la unidad de medida (ej. "0.5 kg") y agregar "unidades" sería incorrecto.
-export const formatUnitsLabel = (item: IOrderProduct): string | null => {
-    if (esPesoUnidad(item.product?.unidad_medida)) return null;
-    return `${formatCantidad(item)} unidades`;
-};
-
 // Valor del badge grande del grupo: suma real de unidades (no cantidad de filas/entregas).
 export const formatGroupTotal = (group: IProductGroup): string => {
     const unidad = group.items[0]?.product?.unidad_medida;
@@ -52,4 +45,10 @@ export const formatGroupSummary = (group: IProductGroup): string => {
         ? formatTotal(group.totalUnits, unidad as UnidadMedidaEnum)
         : `${group.totalUnits} unidades`;
     return `${totalLabel} · ${group.totalCount} entregas · ${group.readyCount}/${group.totalCount} listas`;
+};
+
+// Cantidad del grupo para el badge al frente de la fila: "3×" para piezas, "0.5 kg" para peso.
+export const formatGroupQtyBadge = (group: IProductGroup): string => {
+    const total = formatGroupTotal(group);
+    return esPesoUnidad(group.items[0]?.product?.unidad_medida) ? total : `${total}×`;
 };

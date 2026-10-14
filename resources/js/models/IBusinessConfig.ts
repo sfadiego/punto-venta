@@ -19,6 +19,8 @@ export interface IBusinessConfig {
     printer_name: string | null;
     printer_host: string | null;
     paper_width: "58" | "80";
+    // Manda el pulso de apertura del cajón de dinero al cobrar una orden en efectivo.
+    open_cash_drawer: boolean;
     printer_enabled: boolean;
     bluetooth_printing_enabled: boolean;
     menu_enabled: boolean;

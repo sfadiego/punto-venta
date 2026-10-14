@@ -9,6 +9,7 @@ import { useUpdateOrder } from "@/services/useOrderService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
 import { useCustomerList } from "@/services/useCustomerService";
 import { usePrintTicket } from "../PrintTicket/usePrintTicket";
+import { useCashDrawer } from "../PrintTicket/useCashDrawer";
 import { useAxios } from "@/hooks/useAxios";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
@@ -31,6 +32,7 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
     const { data: customers = [] } = useCustomerList();
     const { print, canPrint } = usePrintTicket();
+    const { openCashDrawer } = useCashDrawer();
 
     const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
     const isCash = !selectedMethod || selectedMethod.name.toLowerCase().includes("efectivo");
@@ -87,6 +89,7 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
                 queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
             }
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
+            if (isCash && !isCreditMode) void openCashDrawer();
             closeModal();
             onSuccess?.();
 

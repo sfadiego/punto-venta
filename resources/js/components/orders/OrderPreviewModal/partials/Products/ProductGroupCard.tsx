@@ -1,8 +1,10 @@
-import { Loader, CheckCircle2, Circle, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { IProductGroup } from "@/models/IProductGroup";
-import { formatCantidad, formatUnitsLabel, formatGroupSummary } from "@/utils/formatUnits";
+import { formatGroupQtyBadge, formatGroupSummary } from "@/utils/formatUnits";
 import { ProductLineItem } from "./ProductLineItem";
 import { ProductAddonsBadges } from "./ProductAddonsBadges";
+import { ObservationTag } from "./ObservationTag";
+import { ReadyToggleButton } from "./ReadyToggleButton";
 
 interface ProductGroupCardProps {
     group: IProductGroup;
@@ -24,62 +26,38 @@ export const ProductGroupCard = ({
     onToggleProductReady,
 }: ProductGroupCardProps) => {
     const hasMany = group.totalCount > 1;
-    const singleUnitsLabel = !hasMany ? (formatUnitsLabel(group.items[0]) ?? formatCantidad(group.items[0])) : null;
+    const observation = !hasMany ? group.items[0].observacion : null;
+
     return (
-        <div className="rounded-xl border overflow-hidden">
-            <div
-                className={`flex gap-3 p-3 items-center transition-colors ${
-                    group.allReady ? "bg-emerald-50 border-emerald-200" : "bg-stone-50 border-stone-100"
-                }`}
-            >
+        <div className="border-b border-dashed border-stone-200 last:border-b-0">
+            <div className={`flex gap-2.5 px-4 py-2 items-center transition-colors ${group.allReady ? "bg-emerald-50/40" : ""}`}>
                 {hasMany && (
                     <button
                         onClick={onToggleExpand}
-                        className="shrink-0 text-stone-400 hover:text-stone-600 transition-colors"
+                        aria-label={isExpanded ? "Contraer" : "Expandir"}
+                        className="shrink-0 -mr-1 text-stone-400 hover:text-stone-600 transition-colors"
                     >
-                        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                        {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     </button>
                 )}
+                <span className={`shrink-0 min-w-[26px] text-xs font-mono font-semibold tabular-nums ${group.allReady ? "text-stone-400" : "text-amber-800"}`}>
+                    {formatGroupQtyBadge(group)}
+                </span>
                 <div className="flex-1 min-w-0">
-                    <p
-                        className={`text-sm font-semibold ${group.allReady ? "text-emerald-700 line-through decoration-emerald-400/60" : "text-stone-900"}`}
-                    >
+                    <p className={`text-[13px] font-medium leading-tight ${group.allReady ? "text-stone-400 line-through decoration-stone-300" : "text-stone-900"}`}>
                         {group.name}
                     </p>
                     <ProductAddonsBadges addons={group.addons} isReady={group.allReady} />
-                    {hasMany && (
-                        <p className="text-xs text-stone-400 mt-0.5">
-                            {formatGroupSummary(group)}
-                        </p>
-                    )}
-                    {!hasMany && (
-                        <p className="text-xs text-stone-400 mt-0.5">{singleUnitsLabel}</p>
-                    )}
-                    {!hasMany && group.items[0].observacion && (
-                        <div className="flex items-start gap-1 mt-1">
-                            <MessageSquare size={11} className="text-amber-500 mt-0.5 shrink-0" />
-                            <p className="text-xs text-amber-700 bg-amber-50 rounded-md px-2 py-0.5">
-                                {group.items[0].observacion}
-                            </p>
-                        </div>
-                    )}
+                    {hasMany && <p className="text-xs text-stone-400 mt-0.5">{formatGroupSummary(group)}</p>}
+                    {observation && <ObservationTag text={observation} />}
                 </div>
-                <button
-                    onClick={onToggleGroupReady}
-                    disabled={groupIsPending}
+                <ReadyToggleButton
+                    isReady={group.allReady}
+                    isPartial={group.readyCount > 0}
+                    isPending={groupIsPending}
                     title={group.allReady ? "Marcar grupo como pendiente" : "Marcar grupo como listo"}
-                    className="shrink-0 self-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {groupIsPending ? (
-                        <Loader size={20} className="animate-spin text-stone-400" />
-                    ) : group.allReady ? (
-                        <CheckCircle2 size={20} className="text-emerald-500" />
-                    ) : group.readyCount > 0 ? (
-                        <CheckCircle2 size={20} className="text-emerald-300" />
-                    ) : (
-                        <Circle size={20} className="text-stone-300 hover:text-emerald-400" />
-                    )}
-                </button>
+                    onClick={onToggleGroupReady}
+                />
             </div>
 
             {hasMany &&
@@ -88,7 +66,6 @@ export const ProductGroupCard = ({
                     <ProductLineItem
                         key={item.id ?? idx}
                         item={item}
-                        groupName={group.name}
                         isPending={item.id !== undefined && pendingProductIds.has(item.id)}
                         onToggleReady={() => item.id !== undefined && onToggleProductReady(item.id)}
                     />

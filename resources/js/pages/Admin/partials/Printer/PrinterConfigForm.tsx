@@ -1,13 +1,14 @@
 import { Loader, Info } from "lucide-react";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
 import { Input } from "@/components/ui/form/Input";
+import { ToggleSwitch } from "@/components/ui/form/ToggleSwitch";
 import { usePrinterSection } from "./usePrinterSection";
 
 interface PrinterConfigFormProps {
     config: IBusinessConfig | undefined;
 }
 
-type PrinterFormValues = { printer_name: string; printer_host: string; paper_width: "58" | "80" };
+type PrinterFormValues = { printer_name: string; printer_host: string; paper_width: "58" | "80"; open_cash_drawer: boolean };
 
 export const PrinterConfigForm = ({ config }: PrinterConfigFormProps) => {
     const { formik } = usePrinterSection(config);
@@ -71,6 +72,21 @@ export const PrinterConfigForm = ({ config }: PrinterConfigFormProps) => {
                 <p className="text-xs text-stone-400">
                     Ancho de la impresora térmica. La mayoría de las impresoras portátiles usan 58mm.
                 </p>
+            </div>
+
+            <div className="flex items-start justify-between gap-4">
+                <div className="space-y-0.5">
+                    <label className="block text-sm font-medium text-stone-700">Abrir caja al cobrar en efectivo</label>
+                    <p className="text-xs text-stone-400">
+                        Manda la señal al cajón de dinero conectado a la impresora al cobrar una orden en efectivo.
+                        No se abre al imprimir ni reimprimir un ticket.
+                    </p>
+                </div>
+                <ToggleSwitch
+                    checked={formik.values.open_cash_drawer}
+                    onChange={(checked) => formik.setFieldValue("open_cash_drawer", checked)}
+                    activeColor="bg-amber-500"
+                />
             </div>
 
             <div className="flex justify-end">

@@ -4,6 +4,7 @@ import { axiosGET, usePOST, axiosPUT, axiosDELETE } from "@/hooks/useApi";
 import { useAxios } from "@/hooks/useAxios";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IBusinessConfig } from "@/models/IBusinessConfig";
+import { BusinessConfigPayload } from "@/utils/businessConfigPayload";
 import { getCachedBusinessConfig, setCachedBusinessConfig } from "@/utils/businessConfigCache";
 
 const url = ApiRoutes.BusinessConfig;
@@ -36,7 +37,7 @@ export const useUpdateBusinessConfig = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: Omit<IBusinessConfig, "id" | "slug" | "logo_path" | "logo_upload_enabled" | "bluetooth_printing_enabled" | "created_at" | "updated_at">) =>
+        mutationFn: (data: BusinessConfigPayload) =>
             axiosPUT(axiosApi, { url, data }),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
     });

@@ -295,6 +295,23 @@ class ProductImportTest extends TestCase
         $this->assertSame(2, ProductModel::where(ProductModel::CATEGORIA_ID, $categoria->id)->count());
     }
 
+    public function test_commit_asigna_orden_ascendente_a_categorias_nuevas(): void
+    {
+        $this->marcarComoRetailConStock();
+        $maxOrden = (int) CategoryModel::max(CategoryModel::ORDEN);
+
+        $file = $this->csvFile([
+            $this->fila(['nombre' => 'Producto A', 'categoria' => 'Categoría Nueva Uno']),
+            $this->fila(['nombre' => 'Producto B', 'categoria' => 'Otra Sección Distinta']),
+            $this->fila(['nombre' => 'Producto C', 'categoria' => 'Categoría Nueva Uno']),
+        ]);
+        $this->postJson('/api/product/import/commit', ['file' => $file], $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertSame($maxOrden + 1, CategoryModel::where(CategoryModel::NOMBRE, 'Categoría Nueva Uno')->firstOrFail()->orden);
+        $this->assertSame($maxOrden + 2, CategoryModel::where(CategoryModel::NOMBRE, 'Otra Sección Distinta')->firstOrFail()->orden);
+    }
+
     public function test_commit_aplica_stock_inicial_como_movimiento_auditado(): void
     {
         $this->marcarComoRetailConStock();

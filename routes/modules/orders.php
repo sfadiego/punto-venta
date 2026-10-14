@@ -32,6 +32,10 @@ Route::prefix('order')->group(function () {
 
         Route::middleware('permission:printTicket')->get('/print/test-bytes', [PrintController::class, 'testBytes']);
 
+        // Apertura del cajón de dinero al cobrar en efectivo (independiente de imprimir el ticket).
+        // Antes del grupo {order} para que "cash-drawer" no se resuelva como un id de orden.
+        Route::middleware('permission:payOrder')->post('/cash-drawer', [PrintController::class, 'openCashDrawer']);
+
         // Combobox de órdenes cerradas para el modal de Devolución (Inventario) — debe ir
         // antes del grupo {order} para que Laravel no intente resolverlo como un id de orden.
         Route::middleware(['permission:manageStock', 'retail.stock'])->get('/closed-list', 'listClosed');

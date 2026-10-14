@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import { useModal } from "@/hooks/useModal";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
+import { useCashDrawer } from "@/components/orders/PrintTicket/useCashDrawer";
 import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
@@ -36,6 +37,7 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
 
     const { mutateAsync: updateOrder, isPending } = useUpdateOrder(orderId);
     const { print, canPrint } = usePrintTicket();
+    const { openCashDrawer } = useCashDrawer();
 
     const canPay = canPayOrder({
         isCreditMode: creditSelection.isCreditMode,
@@ -108,6 +110,7 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
                 queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
             }
             toast.success(creditSelection.isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
+            if (paymentSelection.isCash && !creditSelection.isCreditMode) void openCashDrawer();
             closeModal();
 
             if (canPrint) {

@@ -10,12 +10,12 @@ export const ProductAddonsBadges = ({ addons, isReady }: ProductAddonsBadgesProp
     if (addons.length === 0) return null;
 
     return (
-        <ul className="flex flex-wrap gap-1 mt-1.5" aria-label="Toppings">
+        <ul className="flex flex-wrap gap-1 mt-1" aria-label="Toppings">
             {addons.map((addon) => (
                 <li
                     key={addon.id}
-                    className={`text-xs font-semibold rounded-full px-2 py-0.5 ${
-                        isReady ? "bg-emerald-100 text-emerald-700 line-through decoration-emerald-400/60" : "bg-amber-100 text-amber-800"
+                    className={`text-[11px] font-medium leading-snug rounded-[3px] px-1.5 py-px ${
+                        isReady ? "bg-emerald-50 text-emerald-700 line-through decoration-emerald-400/60" : "bg-amber-100 text-amber-800"
                     }`}
                 >
                     + {addon.name}

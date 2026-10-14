@@ -166,6 +166,37 @@ class BusinessConfigTest extends TestCase
         ]);
     }
 
+    private function configBase(array $extra = []): array
+    {
+        return array_merge([
+            'business_name' => 'Cafe Test',
+            'primary_color' => '#F59E0B',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#1C1917',
+        ], $extra);
+    }
+
+    public function test_activa_y_desactiva_la_apertura_de_caja(): void
+    {
+        $this->putJson('/api/admin/config', $this->configBase([BusinessConfigModel::OPEN_CASH_DRAWER => true]), $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.open_cash_drawer', true);
+
+        $this->putJson('/api/admin/config', $this->configBase([BusinessConfigModel::OPEN_CASH_DRAWER => false]), $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.open_cash_drawer', false);
+    }
+
+    public function test_guardar_otra_seccion_no_pisa_la_apertura_de_caja(): void
+    {
+        BusinessConfigModel::first()->update([BusinessConfigModel::OPEN_CASH_DRAWER => true]);
+
+        $this->putJson('/api/admin/config', $this->configBase(), $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.open_cash_drawer', true);
+    }
+
     public function test_paper_width_default_es_58mm_si_no_se_envia(): void
     {
         $this->putJson('/api/admin/config', [
