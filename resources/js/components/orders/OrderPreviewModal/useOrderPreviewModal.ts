@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
@@ -17,6 +17,8 @@ import { groupOrderProducts } from "@/utils/groupOrderProducts";
 
 export const useOrderPreviewModal = (orderId: number) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isTogglingAll, setIsTogglingAll] = useState(false);
+    const togglingAllRef = useRef(false);
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
         new Set(),
     );
@@ -145,6 +147,24 @@ export const useOrderPreviewModal = (orderId: number) => {
         }
     };
 
+    // Si ya están todos listos los desmarca; si no, marca solo los pendientes.
+    const toggleAllReady = async () => {
+        if (togglingAllRef.current) return;
+        togglingAllRef.current = true;
+        setIsTogglingAll(true);
+        try {
+            const idsToToggle = products
+                .filter((p) => p.id !== undefined && (allReady ? p.is_ready : !p.is_ready))
+                .map((p) => p.id!);
+            for (const id of idsToToggle) {
+                await toggleProductReady(id);
+            }
+        } finally {
+            togglingAllRef.current = false;
+            setIsTogglingAll(false);
+        }
+    };
+
     return {
         isOpen,
         open: () => setIsOpen(true),
@@ -164,5 +184,7 @@ export const useOrderPreviewModal = (orderId: number) => {
         toggleProductReady,
         toggleGroupExpand,
         toggleGroupReady,
+        toggleAllReady,
+        isTogglingAll,
     };
 };

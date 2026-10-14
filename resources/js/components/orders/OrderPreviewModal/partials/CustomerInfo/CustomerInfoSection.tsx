@@ -19,7 +19,7 @@ export const CustomerInfoSection = ({ order }: CustomerInfoSectionProps) => {
             <button
                 type="button"
                 onClick={toggle}
-                className="w-full flex items-center justify-between px-5 py-2.5 text-xs font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 transition-colors"
+                className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 transition-colors"
             >
                 <span className="flex items-center gap-1.5">
                     <User size={12} className="text-orange-600" />
@@ -43,7 +43,7 @@ export const CustomerInfoSection = ({ order }: CustomerInfoSectionProps) => {
                 )}
             </button>
             {showCustomerInfo && (
-                <div className="px-5 pb-3 space-y-2">
+                <div className="px-4 pb-3 space-y-2">
                     {order.customer?.phone && (
                         <a
                             href={`tel:${order.customer.phone}`}
@@ -54,7 +54,7 @@ export const CustomerInfoSection = ({ order }: CustomerInfoSectionProps) => {
                         </a>
                     )}
                     {isDelivery && (order.delivery_address || order.delivery_reference) && (
-                        <div className="flex items-start gap-1.5 text-xs text-stone-500 bg-stone-50 rounded-xl px-3 py-2">
+                        <div className="flex items-start gap-1.5 text-xs text-stone-500 bg-stone-50 rounded px-3 py-2">
                             <MapPin size={12} className="mt-0.5 shrink-0 text-stone-400" />
                             <div>
                                 {order.delivery_address && <p>{order.delivery_address}</p>}

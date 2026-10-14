@@ -21,7 +21,7 @@ export const ProductList = ({
     onToggleGroupReady,
     onToggleProductReady,
 }: ProductListProps) => (
-    <div className="overflow-y-auto flex-1 px-5 py-4 space-y-3">
+    <div className="overflow-y-auto flex-1 min-h-0">
         {isLoading ? (
             <div className="flex justify-center py-8">
                 <Loader size={20} className="animate-spin text-stone-400" />

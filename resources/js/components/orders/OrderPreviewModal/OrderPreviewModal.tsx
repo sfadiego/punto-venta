@@ -5,6 +5,7 @@ import { useOrderPreviewModal } from "./useOrderPreviewModal";
 import { useAxios } from "@/hooks/useAxios";
 import { DetailHeader } from "./partials/DetailHeader";
 import { CustomerInfoSection } from "./partials/CustomerInfo/CustomerInfoSection";
+import { ReadyProgress } from "./partials/ReadyProgress";
 import { MarkServedAction } from "./partials/MarkServedAction";
 import { ProductList } from "./partials/Products/ProductList";
 
@@ -31,6 +32,8 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
         toggleProductReady,
         toggleGroupExpand,
         toggleGroupReady,
+        toggleAllReady,
+        isTogglingAll,
     } = useOrderPreviewModal(order.id);
     const { features } = useAxios();
     const showOrderServed = features?.order_served !== false;
@@ -55,7 +58,7 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                     onClick={close}
                 >
                     <div
-                        className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col"
+                        className="bg-white rounded-sm shadow-xl overflow-hidden w-full max-w-sm max-h-[80vh] flex flex-col"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <DetailHeader nombrePedido={order.nombre_pedido} onClose={close} />
@@ -63,19 +66,18 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                         <CustomerInfoSection order={order} />
 
                         {showOrderServed && (
-                            <MarkServedAction
-                                isServed={isServed}
-                                allReady={allReady}
-                                isUpdatingStatus={isUpdatingStatus}
-                                isEmpty={isEmpty}
+                            <ReadyProgress
                                 readyCount={readyCount}
                                 totalCount={totalCount}
-                                onMarkServed={markServed}
+                                allReady={allReady}
+                                isToggling={isTogglingAll}
+                                disabled={isServed || isEmpty || isLoading}
+                                onToggleAll={toggleAllReady}
                             />
                         )}
 
                         {Number(order.costo_domicilio) !== 0 && (
-                            <div className="px-5 py-2.5 border-b border-stone-100 shrink-0">
+                            <div className="px-4 py-2 border-b border-stone-100 shrink-0">
                                 <OrderDeliveryBadge costoDomicilio={order.costo_domicilio} />
                             </div>
                         )}
@@ -89,6 +91,18 @@ export const OrderPreviewModal = ({ order }: OrderPreviewModalProps) => {
                             onToggleGroupReady={toggleGroupReady}
                             onToggleProductReady={toggleProductReady}
                         />
+
+                        {showOrderServed && (
+                            <MarkServedAction
+                                isServed={isServed}
+                                allReady={allReady}
+                                isUpdatingStatus={isUpdatingStatus}
+                                isEmpty={isEmpty}
+                                readyCount={readyCount}
+                                totalCount={totalCount}
+                                onMarkServed={markServed}
+                            />
+                        )}
                     </div>
                 </div>
             )}
