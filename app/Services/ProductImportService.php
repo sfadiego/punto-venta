@@ -64,6 +64,10 @@ class ProductImportService
      *  para que dos filas que comparten una categoría nueva no la creen dos veces. */
     private array $createdCategoriesInRun = [];
 
+    /** Siguiente valor de `orden` para una categoría nueva — se lee una vez por commit (en
+     *  preloadCategories()) y se incrementa en memoria, sin consultas por categoría creada. */
+    private int $nextCategoryOrder = 1;
+
     public function preview(UploadedFile $file): array
     {
         return $this->run($file, dryRun: true);
@@ -178,7 +182,9 @@ class ProductImportService
 
     private function preloadCategories(): void
     {
-        $categories = CategoryModel::all([CategoryModel::NOMBRE, 'id']);
+        $categories = CategoryModel::all([CategoryModel::NOMBRE, 'id', CategoryModel::ORDEN]);
+
+        $this->nextCategoryOrder = ((int) $categories->max(CategoryModel::ORDEN)) + 1;
 
         $this->existingCategoriesByName = $categories
             ->mapWithKeys(fn (CategoryModel $c) => [mb_strtolower($c->nombre) => $c->id])
@@ -458,7 +464,10 @@ class ProductImportService
             return $this->createdCategoriesInRun[$key];
         }
 
-        $category = CategoryModel::create([CategoryModel::NOMBRE => $nombre]);
+        $category = CategoryModel::create([
+            CategoryModel::NOMBRE => $nombre,
+            CategoryModel::ORDEN => $this->nextCategoryOrder++,
+        ]);
         $this->createdCategoriesInRun[$key] = $category->id;
 
         return $category->id;
