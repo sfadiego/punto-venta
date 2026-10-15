@@ -50,7 +50,7 @@ const renderersMap: DataTableRenderersMap = {
 const actionsColumn: DataTableColumn<IOrder> = {
     accessor: "_acciones" as keyof IOrder,
     title: "Acciones",
-    width: 120,
+    width: 190,
     render: (order: IOrder) => <OrderActionButtons order={order} />,
 };
 
