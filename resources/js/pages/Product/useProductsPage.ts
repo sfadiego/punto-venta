@@ -14,7 +14,7 @@ export const useProductsPage = () => {
     const filters = useProductFilters();
     const modalState = useProductModalState();
 
-    const { data, isLoading, refetch } = useIndexProducts({
+    const { data, isFetching, refetch } = useIndexProducts({
         page: filters.page,
         limit: filters.limit,
         categoria_id: filters.categoryId,
@@ -37,7 +37,7 @@ export const useProductsPage = () => {
         page: filters.page,
         limit: filters.limit,
         pageSize: PAGE_SIZE_OPTIONS,
-        isLoading,
+        isFetching,
         categories: categories ?? [],
         categoryId: filters.categoryId,
         search: filters.search,
