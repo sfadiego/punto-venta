@@ -325,6 +325,43 @@ class AuthTest extends TestCase
             ->assertJsonPath('data.payment_info.account', '1234567890');
     }
 
+    public function test_login_bloquea_cliente_demo_vencido_sin_dias_de_gracia(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $tenant->update([
+            BusinessConfigModel::IS_DEMO => true,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Weekly->value,
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => now()->subDay(),
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJsonPath('data.code', 'SUBSCRIPTION_EXPIRED');
+    }
+
+    public function test_login_cliente_no_demo_vencido_hace_un_dia_entra_en_gracia(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $tenant->update([
+            BusinessConfigModel::IS_DEMO => false,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Weekly->value,
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => now()->subDay(),
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ])->assertOk();
+    }
+
     public function test_login_bloqueado_por_suscripcion_no_deja_token_valido(): void
     {
         $tenant = BusinessConfigModel::first();

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { DataTable, DataTableColumn } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
+import { DataTableColumn } from "mantine-datatable";
 import { Plus, RefreshCw, Store } from "lucide-react";
 import { IBranch } from "@/models/IBranch";
 import { useBranchesPage } from "./useBranchesPage";
@@ -16,7 +17,7 @@ export default function BranchesPage() {
         page,
         limit,
         pageSize,
-        isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,
@@ -123,10 +124,11 @@ export default function BranchesPage() {
                     <BranchSearch value={search} onChange={handleSearchChange} />
                 </div>
                 <div className="p-4">
-                    <DataTable<IBranch>
+                    <CustomDataTable<IBranch>
                         columns={columns}
                         records={branches}
-                        fetching={isLoading}
+                        isFetching={isFetching}
+                        fetchingText="Cargando sucursales..."
                         page={page}
                         recordsPerPage={limit}
                         totalRecords={total}
@@ -135,16 +137,6 @@ export default function BranchesPage() {
                         onRecordsPerPageChange={setLimit}
                         noRecordsText="No hay sucursales registradas"
                         rowClassName={(branch) => (!branch.active ? "!bg-red-50" : undefined)}
-                        highlightOnHover
-                        withTableBorder
-                        withColumnBorders
-                        striped
-                        minHeight={200}
-                        className="whitespace-nowrap"
-                        classNames={{ header: "pos-datatable-header" }}
-                        paginationText={({ from, to, totalRecords }) =>
-                            `Mostrando del ${from} al ${to} de ${totalRecords} registros`
-                        }
                     />
                 </div>
             </div>

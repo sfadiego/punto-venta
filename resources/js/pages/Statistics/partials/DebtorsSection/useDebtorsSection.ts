@@ -11,7 +11,7 @@ export const CUSTOMERS_WITH_DEBT_PARAM = "con_adeudo";
 export const useDebtorsSection = () => {
     const navigate = useNavigate();
     const { features } = useAxios();
-    const { data, isLoading } = useTopDebtors();
+    const { data, isFetching } = useTopDebtors();
     // Los apartados son exclusivos de retail.
     const columns = useMemo(() => buildDebtorsColumns(features?.is_retail === true), [features?.is_retail]);
 
@@ -19,7 +19,7 @@ export const useDebtorsSection = () => {
         summary: data?.summary,
         rows: data?.rows ?? [],
         columns,
-        isLoading,
+        isFetching,
         goToCustomer: (id: number) => navigate(AdminRoutes.CustomerDetail.replace(":id", String(id))),
         goToAllDebtors: () => navigate(`${AdminRoutes.CustomerList}?${CUSTOMERS_WITH_DEBT_PARAM}=1`),
     };

@@ -21,7 +21,7 @@ export const useInventoryPage = () => {
 
     const productFilter = useKardexProductFilter(() => setPage(1));
 
-    const { data, isLoading, refetch } = useIndexKardex({
+    const { data, isLoading, isFetching, refetch } = useIndexKardex({
         page,
         limit,
         productId: productFilter.productId,
@@ -68,6 +68,7 @@ export const useInventoryPage = () => {
         limit,
         pageSize: PAGE_SIZE_OPTIONS,
         isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { DataTable, DataTableColumn } from "mantine-datatable";
+import { DataTableColumn } from "mantine-datatable";
 import { Plus, RefreshCw, Upload } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
@@ -21,6 +21,7 @@ import { StockMovementsModal } from "./partials/StockMovementsModal/StockMovemen
 import { useStockMovementsModal } from "./partials/StockMovementsModal/useStockMovementsModal";
 import { ProductTableActions } from "./partials/ProductTableActions";
 import { ProductSearch } from "./partials/ProductSearch";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { AddonsButton } from "./partials/Addons/AddonsButton";
 import { ExportProductsButton } from "./partials/ExportProducts/ExportProductsButton";
 import { formatMoney } from "@/utils/formatCurrency";
@@ -337,35 +338,26 @@ export default function ProductsPage() {
 
                 {/* Tabla */}
                 <div className="p-4">
-                    <DataTable<IProduct>
+                    <CustomDataTable<IProduct>
                         columns={columns}
                         records={products}
-                        fetching={isFetching}
+                        isFetching={isFetching}
+                        fetchingText="Cargando productos..."
                         page={page}
                         recordsPerPage={limit}
                         totalRecords={total}
                         onPageChange={setPage}
                         recordsPerPageOptions={pageSize}
                         onRecordsPerPageChange={setLimit}
-                        noRecordsText="No se encontraron productos"
-                        highlightOnHover
-                        withTableBorder
-                        withColumnBorders
-                        striped
                         rowClassName={(p) => (isProductRowLowStock(p) ? "!bg-red-100" : undefined)}
                         rowExpansion={{
                             allowMultiple: true,
                             expandable: ({ record }) => hasActiveVariants(record),
                             content: ({ record }) => (
-                            <VariantStockExpansion product={record} showProductCode={features?.is_retail === true} />
-                        ),
+                                <VariantStockExpansion product={record} showProductCode={features?.is_retail === true} />
+                            ),
                         }}
                         minHeight={300}
-                        className="whitespace-nowrap"
-                        classNames={{ header: "pos-datatable-header" }}
-                        paginationText={({ from, to, totalRecords }) =>
-                            `Mostrando del ${from} al ${to} de ${totalRecords} registros`
-                        }
                     />
                 </div>
             </div>

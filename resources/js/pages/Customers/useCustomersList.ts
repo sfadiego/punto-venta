@@ -11,7 +11,7 @@ export const useCustomersList = (filters: CustomersFilters) => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(PAGE_SIZES[0]);
 
-    const { data, isLoading, refetch } = useIndexCustomersPaginated({
+    const { data, isLoading, isFetching, refetch } = useIndexCustomersPaginated({
         page, limit, search, withDebt, withLayaway, layawayOverdue, orderParam: "balance", order: "desc",
     });
 
@@ -32,6 +32,7 @@ export const useCustomersList = (filters: CustomersFilters) => {
         limit,
         pageSizes: PAGE_SIZES,
         isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,

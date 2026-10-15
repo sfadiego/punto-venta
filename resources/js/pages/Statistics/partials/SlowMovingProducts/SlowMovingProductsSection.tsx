@@ -44,7 +44,7 @@ export const SlowMovingProductsSection = () => {
                 limit={section.limit}
                 pageSizes={section.pageSizes}
                 sortStatus={section.sortStatus}
-                isLoading={section.isLoading}
+                isFetching={section.isFetching}
                 days={section.days}
                 onPageChange={section.setPage}
                 onLimitChange={section.setLimit}

@@ -18,7 +18,7 @@ export const useCategoriesPage = () => {
         return () => clearTimeout(timer);
     }, [search]);
 
-    const { data, isLoading, refetch } = useIndexCategoriesPaginated({
+    const { data, isLoading, isFetching, refetch } = useIndexCategoriesPaginated({
         page,
         limit,
         search: debouncedSearch || undefined,
@@ -63,6 +63,7 @@ export const useCategoriesPage = () => {
         limit,
         pageSize,
         isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,

@@ -28,7 +28,7 @@ export default function ClientLeadsPage() {
         handleStatusFilterChange,
         search,
         handleSearchChange,
-        isLoading,
+        isFetching,
         refetch,
         selected,
         isSaving,
@@ -113,7 +113,7 @@ export default function ClientLeadsPage() {
                     onPageChange={setPage}
                     onLimitChange={setLimit}
                     onSelect={openDetail}
-                    isLoading={isLoading}
+                    isFetching={isFetching}
                 />
             </div>
 

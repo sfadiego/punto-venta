@@ -3,7 +3,7 @@ import { IUser } from "@/models/IUser";
 import { useListSuperAdmins } from "@/services/useSuperAdminUserService";
 
 export const useSuperAdminUsersSection = () => {
-    const { data: superAdmins = [], isLoading } = useListSuperAdmins();
+    const { data: superAdmins = [], isLoading, isFetching } = useListSuperAdmins();
     const [modalUser, setModalUser] = useState<IUser | null | undefined>(undefined);
 
     const openCreate = () => setModalUser(null);
@@ -13,6 +13,7 @@ export const useSuperAdminUsersSection = () => {
     return {
         superAdmins,
         isLoading,
+        isFetching,
         modalUser,
         isModalOpen: modalUser !== undefined,
         openCreate,

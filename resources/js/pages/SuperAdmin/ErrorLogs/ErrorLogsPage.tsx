@@ -21,7 +21,7 @@ export default function ErrorLogsPage() {
         setLimit,
         source,
         handleSourceChange,
-        isLoading,
+        isFetching,
         refetch,
         selectedLog,
         openDetail,
@@ -90,7 +90,7 @@ export default function ErrorLogsPage() {
                     onPageChange={setPage}
                     onLimitChange={setLimit}
                     onViewDetail={openDetail}
-                    isLoading={isLoading}
+                    isFetching={isFetching}
                 />
             </div>
 

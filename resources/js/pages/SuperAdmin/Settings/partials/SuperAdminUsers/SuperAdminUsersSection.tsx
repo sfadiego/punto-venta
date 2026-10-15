@@ -4,7 +4,7 @@ import { SuperAdminUserTable } from "./SuperAdminUserTable";
 import { SuperAdminUserModal } from "./SuperAdminUserModal";
 
 export const SuperAdminUsersSection = () => {
-    const { superAdmins, isLoading, modalUser, isModalOpen, openCreate, openEdit, closeModal } =
+    const { superAdmins, isFetching, modalUser, isModalOpen, openCreate, openEdit, closeModal } =
         useSuperAdminUsersSection();
 
     return (
@@ -26,7 +26,7 @@ export const SuperAdminUsersSection = () => {
                 </button>
             </div>
 
-            <SuperAdminUserTable users={superAdmins} isLoading={isLoading} onEdit={openEdit} />
+            <SuperAdminUserTable users={superAdmins} isFetching={isFetching} onEdit={openEdit} />
 
             {isModalOpen && <SuperAdminUserModal user={modalUser ?? null} onClose={closeModal} />}
         </section>

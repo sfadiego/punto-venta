@@ -25,7 +25,7 @@ export default function CustomersPage() {
                 page={list.page}
                 limit={list.limit}
                 pageSizes={list.pageSizes}
-                isLoading={list.isLoading}
+                isFetching={list.isFetching}
                 showLayaways={showLayaways}
                 onPageChange={list.setPage}
                 onLimitChange={list.setLimit}

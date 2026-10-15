@@ -1,4 +1,4 @@
-import { DataTable } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { ChevronRight, HandCoins } from "lucide-react";
 import { ITopDebtor } from "@/models/ITopDebtors";
 import { DebtSummaryCards } from "@/components/customers/DebtSummaryCards";
@@ -8,7 +8,7 @@ import { useDebtorsSection } from "./useDebtorsSection";
 // Clientes con más adeudo (retail y venta por peso): a quién cobrar primero. Complementa el widget
 // "Top 5" de venta por peso, que se conserva tal cual.
 export const DebtorsSection = () => {
-    const { summary, rows, columns, isLoading, goToCustomer, goToAllDebtors } = useDebtorsSection();
+    const { summary, rows, columns, isFetching, goToCustomer, goToAllDebtors } = useDebtorsSection();
 
     return (
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-6 space-y-5">
@@ -37,18 +37,14 @@ export const DebtorsSection = () => {
 
             <DebtSummaryCards summary={summary} />
 
-            <DataTable<ITopDebtor>
+            <CustomDataTable<ITopDebtor>
                 columns={columns}
                 records={rows}
-                fetching={isLoading}
+                isFetching={isFetching}
+                fetchingText="Cargando clientes con adeudo..."
                 onRowClick={({ record }) => goToCustomer(record.id)}
                 noRecordsText="Ningún cliente tiene adeudo"
-                highlightOnHover
-                withTableBorder
-                withColumnBorders
-                striped
                 minHeight={160}
-                classNames={{ header: "pos-datatable-header" }}
             />
         </div>
     );

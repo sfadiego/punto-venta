@@ -10,7 +10,7 @@ export const useProvidersPage = () => {
     const [search, setSearch] = useState("");
     const [active, setActive] = useState("");
 
-    const { data, isLoading, refetch } = useIndexProvidersPaginated({
+    const { data, isLoading, isFetching, refetch } = useIndexProvidersPaginated({
         page, limit, search, active,
     });
 
@@ -39,6 +39,7 @@ export const useProvidersPage = () => {
         limit,
         pageSize,
         isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,

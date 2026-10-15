@@ -18,7 +18,7 @@ export default function UsersPage() {
         limit,
         pageSize,
         search,
-        isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,
@@ -81,7 +81,7 @@ export default function UsersPage() {
                         page={page}
                         limit={limit}
                         pageSize={pageSize}
-                        isLoading={isLoading}
+                        isFetching={isFetching}
                         onEdit={setEditingUser}
                         onPageChange={setPage}
                         onLimitChange={setLimit}

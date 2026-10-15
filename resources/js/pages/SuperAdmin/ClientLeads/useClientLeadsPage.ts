@@ -13,7 +13,7 @@ export const useClientLeadsPage = () => {
     const [search, setSearch] = useState("");
     const [selected, setSelected] = useState<IClientLead | null>(null);
 
-    const { data, isLoading, refetch } = useIndexClientLeads({ page, limit, status, search });
+    const { data, isLoading, isFetching, refetch } = useIndexClientLeads({ page, limit, status, search });
     const { mutateAsync: updateClientLead, isPending: isSaving } = useUpdateClientLead();
 
     const records = data?.data ?? [];
@@ -55,6 +55,7 @@ export const useClientLeadsPage = () => {
         search,
         handleSearchChange,
         isLoading,
+        isFetching,
         refetch,
         selected,
         isSaving,

@@ -1,4 +1,4 @@
-import { DataTable } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { ShoppingBag, RefreshCw } from "lucide-react";
 import { useSalesPage } from "./useSalesPage";
 import { SalesFilters } from "./partials/SalesFilters/SalesFilters";
@@ -12,6 +12,7 @@ export default function SalesPage() {
     const {
         dataTableProps,
         isLoading,
+        isFetching,
         refetch,
         reportMode,
         fecha,
@@ -82,7 +83,7 @@ export default function SalesPage() {
                         <p className="text-stone-400 text-sm">No hay ventas registradas</p>
                     </div>
                 ) : (
-                    <DataTable fetching={isLoading} {...dataTableProps} />
+                    <CustomDataTable isFetching={isFetching} fetchingText="Cargando ventas..." {...dataTableProps} />
                 )}
             </div>
 

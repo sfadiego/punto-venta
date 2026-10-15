@@ -15,7 +15,7 @@ export const useUsersPage = () => {
     const [editingUser, setEditingUser] = useState<IUser | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-    const { data, isLoading, refetch } = useIndexUsers({ page, limit, search });
+    const { data, isLoading, isFetching, refetch } = useIndexUsers({ page, limit, search });
 
     useEffect(() => {
         if (!isLoading && (data?.data?.length ?? 0) === 0 && page > 1) {
@@ -41,6 +41,7 @@ export const useUsersPage = () => {
         pageSize,
         search,
         isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,

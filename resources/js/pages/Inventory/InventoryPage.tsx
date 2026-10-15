@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { DataTable, DataTableColumn } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
+import { DataTableColumn } from "mantine-datatable";
 import { RefreshCw, Settings2, X } from "lucide-react";
 import { IStockMovement } from "@/models/IStockMovement";
 import { Input } from "@/components/ui/form/Input";
@@ -21,7 +22,7 @@ export default function InventoryPage() {
         page,
         limit,
         pageSize,
-        isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,
@@ -188,10 +189,11 @@ export default function InventoryPage() {
                 </div>
 
                 <div className="p-4">
-                    <DataTable<IStockMovement>
+                    <CustomDataTable<IStockMovement>
                         columns={columns}
                         records={movements}
-                        fetching={isLoading}
+                        isFetching={isFetching}
+                        fetchingText="Cargando inventario..."
                         page={page}
                         recordsPerPage={limit}
                         totalRecords={total}
@@ -199,16 +201,7 @@ export default function InventoryPage() {
                         recordsPerPageOptions={pageSize}
                         onRecordsPerPageChange={setLimit}
                         noRecordsText="No hay movimientos de inventario registrados"
-                        highlightOnHover
-                        withTableBorder
-                        withColumnBorders
-                        striped
                         minHeight={300}
-                        className="whitespace-nowrap"
-                        classNames={{ header: "pos-datatable-header" }}
-                        paginationText={({ from, to, totalRecords }) =>
-                            `Mostrando del ${from} al ${to} de ${totalRecords} registros`
-                        }
                     />
                 </div>
             </div>

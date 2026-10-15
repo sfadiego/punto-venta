@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { DataTable, DataTableColumn } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
+import { DataTableColumn } from "mantine-datatable";
 import { Pencil } from "lucide-react";
 import { IUser } from "@/models/IUser";
 import RoleBadge from "@/components/Role/RoleBadge";
@@ -13,7 +14,7 @@ interface UsersTableProps {
     page: number;
     limit: number;
     pageSize: number[];
-    isLoading: boolean;
+    isFetching: boolean;
     onEdit: (user: IUser) => void;
     onPageChange: (page: number) => void;
     onLimitChange: (limit: number) => void;
@@ -27,7 +28,7 @@ export const UsersTable = ({
     page,
     limit,
     pageSize,
-    isLoading,
+    isFetching,
     onEdit,
     onPageChange,
     onLimitChange,
@@ -73,10 +74,11 @@ export const UsersTable = ({
     }, [baseColumns, onEdit, isAdmin]);
 
     return (
-        <DataTable<IUser>
+        <CustomDataTable<IUser>
             columns={columns}
             records={users}
-            fetching={isLoading}
+            isFetching={isFetching}
+            fetchingText="Cargando usuarios..."
             page={page}
             recordsPerPage={limit}
             totalRecords={total}
@@ -84,16 +86,6 @@ export const UsersTable = ({
             recordsPerPageOptions={pageSize}
             onRecordsPerPageChange={onLimitChange}
             noRecordsText="No hay usuarios registrados"
-            highlightOnHover
-            withTableBorder
-            withColumnBorders
-            striped
-            minHeight={200}
-            className="whitespace-nowrap"
-            classNames={{ header: "pos-datatable-header" }}
-            paginationText={({ from, to, totalRecords }) =>
-                `Mostrando del ${from} al ${to} de ${totalRecords} registros`
-            }
         />
     );
 };

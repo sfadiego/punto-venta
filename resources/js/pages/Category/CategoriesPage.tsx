@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { DataTable, DataTableColumn } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
+import { DataTableColumn } from "mantine-datatable";
 import { Plus, RefreshCw } from "lucide-react";
 import { ICategory } from "@/models/ICategory";
 import { CatalogIcon } from "@/components/ui/CatalogIcon";
@@ -20,7 +21,7 @@ export default function CategoriesPage() {
         page,
         limit,
         pageSize,
-        isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,
@@ -118,10 +119,11 @@ export default function CategoriesPage() {
                     <CategorySearch value={search} onChange={handleSearchChange} />
                 </div>
                 <div className="p-4">
-                    <DataTable<ICategory>
+                    <CustomDataTable<ICategory>
                         columns={columns}
                         records={categories}
-                        fetching={isLoading}
+                        isFetching={isFetching}
+                        fetchingText="Cargando categorías..."
                         page={page}
                         recordsPerPage={limit}
                         totalRecords={total}
@@ -129,16 +131,6 @@ export default function CategoriesPage() {
                         recordsPerPageOptions={pageSize}
                         onRecordsPerPageChange={setLimit}
                         noRecordsText="No hay categorías registradas"
-                        highlightOnHover
-                        withTableBorder
-                        withColumnBorders
-                        striped
-                        minHeight={200}
-                        className="whitespace-nowrap"
-                        classNames={{ header: "pos-datatable-header" }}
-                        paginationText={({ from, to, totalRecords }) =>
-                            `Mostrando del ${from} al ${to} de ${totalRecords} registros`
-                        }
                     />
                 </div>
             </div>

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { DataTable, DataTableColumn } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
+import { DataTableColumn } from "mantine-datatable";
 import { Plus, RefreshCw, Search } from "lucide-react";
 import { IProvider } from "@/models/IProvider";
 import { Input } from "@/components/ui/form/Input";
@@ -16,7 +17,7 @@ export default function ProvidersPage() {
         page,
         limit,
         pageSize,
-        isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,
@@ -129,10 +130,11 @@ export default function ProvidersPage() {
 
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
                 <div className="p-4">
-                    <DataTable<IProvider>
+                    <CustomDataTable<IProvider>
                         columns={columns}
                         records={providers}
-                        fetching={isLoading}
+                        isFetching={isFetching}
+                        fetchingText="Cargando proveedores..."
                         page={page}
                         recordsPerPage={limit}
                         totalRecords={total}
@@ -140,16 +142,6 @@ export default function ProvidersPage() {
                         recordsPerPageOptions={pageSize}
                         onRecordsPerPageChange={setLimit}
                         noRecordsText="No hay proveedores registrados"
-                        highlightOnHover
-                        withTableBorder
-                        withColumnBorders
-                        striped
-                        minHeight={200}
-                        className="whitespace-nowrap"
-                        classNames={{ header: "pos-datatable-header" }}
-                        paginationText={({ from, to, totalRecords }) =>
-                            `Mostrando del ${from} al ${to} de ${totalRecords} registros`
-                        }
                     />
                 </div>
             </div>

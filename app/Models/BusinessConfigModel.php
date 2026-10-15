@@ -203,7 +203,8 @@ class BusinessConfigModel extends Model
             return SubscriptionStatusEnum::Active->value;
         }
 
-        if ($expires->gte($now->copy()->subDays(self::GRACE_DAYS))) {
+        // Un cliente demo solo tiene acceso durante su periodo de prueba: sin días de gracia.
+        if (! $this->is_demo && $expires->gte($now->copy()->subDays(self::GRACE_DAYS))) {
             return SubscriptionStatusEnum::Grace->value;
         }
 

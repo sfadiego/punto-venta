@@ -9,7 +9,7 @@ import { useListTenants } from "@/services/useSuperAdminService";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 
 export const useTenantUsers = (tenantId: number) => {
-    const { data: users = [], isLoading } = useListTenantUsers(tenantId);
+    const { data: users = [], isLoading, isFetching } = useListTenantUsers(tenantId);
     const { data: tenants = [] } = useListTenants();
     const tenant = tenants.find((t) => t.id === tenantId);
     const tenantSlug = tenant?.slug ?? "";
@@ -45,6 +45,7 @@ export const useTenantUsers = (tenantId: number) => {
     return {
         users,
         isLoading,
+        isFetching,
         tenantSlug,
         tipoNegocio,
         modalUser,
