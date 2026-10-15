@@ -49,16 +49,28 @@ export const SalesFilters = ({
 
     return (
         <div className="flex flex-col gap-3 mb-5">
-            <div className="flex items-center gap-2">
-                <SlidersHorizontal size={14} className="text-stone-400" />
-                <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
-                    Filtros
-                </span>
-                {hasActive && (
-                    <span className="ml-1 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
-                        activos
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                    <SlidersHorizontal size={14} className="text-stone-400" />
+                    <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
+                        Filtros
                     </span>
-                )}
+                    {hasActive && (
+                        <span className="ml-1 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+                            activos
+                        </span>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {hasActive && <ClearFiltersButton onClick={onClear} />}
+
+                    {showCategoryReport && onCategoryReport && (
+                        <div className="flex-1 sm:flex-none">
+                            <SalesByCategoryButton onClick={onCategoryReport} label={categoryReportLabel} />
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="flex flex-wrap gap-3 items-end">
@@ -78,14 +90,6 @@ export const SalesFilters = ({
                         onMesChange={onMesChange}
                     />
                 </div>
-
-                {hasActive && <ClearFiltersButton onClick={onClear} />}
-
-                {showCategoryReport && onCategoryReport && (
-                    <div className="w-full lg:w-auto lg:ml-auto self-end">
-                        <SalesByCategoryButton onClick={onCategoryReport} label={categoryReportLabel} />
-                    </div>
-                )}
             </div>
 
             {isSearching && (

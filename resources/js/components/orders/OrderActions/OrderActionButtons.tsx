@@ -52,7 +52,7 @@ export const OrderActionButtons = ({ order, onSuccess }: OrderActionButtonsProps
 
     return (
         <div
-            className="flex items-center justify-center gap-1"
+            className="flex items-center justify-start gap-1"
             onClick={(e) => e.stopPropagation()}
         >
             {can("takeOrder") && ![OrderStatusEnum.Layaway, OrderStatusEnum.Canceled].includes(order.estatus_pedido_id) && (

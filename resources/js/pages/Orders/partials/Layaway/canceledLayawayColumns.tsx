@@ -10,6 +10,13 @@ const money = (value: number | string | null | undefined): number => Number(valu
 // reembolsó y lo que el negocio retuvo. Los montos salen de las sumas del historial (layaways_only).
 export const canceledLayawayColumns: DataTableColumn<IOrder>[] = [
     {
+        accessor: "_acciones" as keyof IOrder,
+        title: "",
+        width: 90,
+        textAlign: "left",
+        render: (order) => <LayawayRowActions order={order} />,
+    },
+    {
         accessor: "id",
         title: "#",
         width: 130,
@@ -55,12 +62,5 @@ export const canceledLayawayColumns: DataTableColumn<IOrder>[] = [
                 {formatCurrencyTrimmed(money(order.layaway_retained))}
             </span>
         ),
-    },
-    {
-        accessor: "_acciones" as keyof IOrder,
-        title: "",
-        width: 90,
-        textAlign: "right",
-        render: (order) => <LayawayRowActions order={order} />,
     },
 ];
