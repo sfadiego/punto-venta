@@ -95,7 +95,7 @@ export const ProductGrid = ({ cart, isReadOnly = false, isRetail = false, pendin
             {/* Productos — área con scroll */}
             <div className="flex-1 overflow-y-auto p-4">
                 {isLoading ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3">
                         {Array.from({ length: 12 }).map((_, i) => (
                             <div key={i} className="h-28 rounded-2xl bg-stone-200 animate-pulse" />
                         ))}
@@ -107,7 +107,7 @@ export const ProductGrid = ({ cart, isReadOnly = false, isRetail = false, pendin
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3">
                             {products.map((product) => (
                                 <ProductCard
                                     key={product.id}

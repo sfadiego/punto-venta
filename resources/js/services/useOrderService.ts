@@ -211,7 +211,7 @@ export const useToggleOrderProductReady = (orderId: number) => {
     });
 };
 
-export const useIndexPendingOrders = (sistemaId: number | null) =>
+export const useIndexPendingOrders = (sistemaId: number | null, enabled: boolean = true) =>
     useGET<IPaginate<IOrder>>({
         url,
         nameQuery: "pending-orders",
@@ -221,7 +221,7 @@ export const useIndexPendingOrders = (sistemaId: number | null) =>
             limit: 50,
             order: "asc",
         },
-        enable: sistemaId !== null,
+        enable: sistemaId !== null && enabled,
     });
 
 export const useUpdateOrderStatus = () => {

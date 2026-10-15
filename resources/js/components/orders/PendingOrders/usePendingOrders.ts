@@ -7,6 +7,7 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IPaginate } from "@/intefaces/IPaginate";
 import { useIndexPendingOrders, useUpdateOrderStatus } from "@/services/useOrderService";
+import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 
@@ -14,7 +15,9 @@ export const usePendingOrders = () => {
     const { sistemaId } = useAxios();
     const queryClient = useQueryClient();
 
-    const { data, isLoading } = useIndexPendingOrders(sistemaId);
+    const { data: config } = useGetBusinessConfig();
+    // Solo el menú público crea solicitudes pendientes: sin él no hay nada que pedir.
+    const { data, isLoading } = useIndexPendingOrders(sistemaId, config?.menu_enabled === true);
     const { mutateAsync: updateStatus } = useUpdateOrderStatus();
 
     const { pendingIds, isPending, withPending } = useOptimisticPendingSet<number>();

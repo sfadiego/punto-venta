@@ -5,6 +5,8 @@ import { ITopDebtorsSummary } from "@/models/ITopDebtors";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { QueryClient, useQuery } from "@tanstack/react-query";
 import { useAxios } from "@/hooks/useAxios";
+import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
+import { isCustomersModuleEnabled } from "@/utils/customersModule";
 
 const url = ApiRoutes.Customer;
 
@@ -68,11 +70,14 @@ export const useIndexCustomersPaginated = ({
 // 8s cubre aperturas rápidas repetidas sin notarse (nadie fía dos veces en <8s al mismo
 // cliente) y sigue siendo prácticamente "al día" para el caso real.
 export const useCustomerList = () => {
-    const { axiosApi } = useAxios();
+    const { axiosApi, features } = useAxios();
+    const { data: config } = useGetBusinessConfig();
     return useQuery<ICustomer[]>({
         queryKey: [`${url}/list`],
         queryFn: () => axiosGET(axiosApi, { url: `${url}/list` }),
         staleTime: 8_000,
+        // Sin el módulo de clientes no hay venta a crédito: la lista no se usa.
+        enabled: isCustomersModuleEnabled(features, config),
     });
 };
 
