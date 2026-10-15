@@ -1,5 +1,5 @@
-import { DataTable } from "mantine-datatable";
 import type { DataTableColumn } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { PhoneCall } from "lucide-react";
 import { IClientLead } from "@/models/IClientLead";
 import { BUSINESS_NICHE_LABELS } from "@/enums/BusinessNicheEnum";
@@ -22,7 +22,7 @@ interface ClientLeadsTableProps {
     onPageChange: (page: number) => void;
     onLimitChange: (limit: number) => void;
     onSelect: (clientLead: IClientLead) => void;
-    isLoading: boolean;
+    isFetching: boolean;
 }
 
 export const ClientLeadsTable = ({
@@ -34,7 +34,7 @@ export const ClientLeadsTable = ({
     onPageChange,
     onLimitChange,
     onSelect,
-    isLoading,
+    isFetching,
 }: ClientLeadsTableProps) => {
     const columns: DataTableColumn<IClientLead>[] = [
         {
@@ -110,27 +110,23 @@ export const ClientLeadsTable = ({
     ];
 
     return (
-        <DataTable<IClientLead>
+        <CustomDataTable<IClientLead>
             records={records}
             columns={columns}
-            fetching={isLoading}
+            isFetching={isFetching}
+            fetchingText="Cargando clientes potenciales..."
+            className=""
+            classNames={{}}
             page={page}
             recordsPerPage={perPage}
             totalRecords={totalRecords}
             onPageChange={onPageChange}
             recordsPerPageOptions={PAGE_SIZE_OPTIONS}
             onRecordsPerPageChange={onLimitChange}
-            minHeight={200}
             noRecordsText="Sin clientes potenciales registrados"
-            highlightOnHover
             withTableBorder
-            withColumnBorders
-            striped
             borderRadius="md"
             styles={{ header: { background: "#f8fafc" } }}
-            paginationText={({ from, to, totalRecords }) =>
-                `Mostrando del ${from} al ${to} de ${totalRecords} registros`
-            }
         />
     );
 };

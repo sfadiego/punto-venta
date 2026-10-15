@@ -1,5 +1,5 @@
-import { DataTable } from "mantine-datatable";
 import type { DataTableColumn } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { Eye } from "lucide-react";
 import { IErrorLog } from "@/models/IErrorLog";
 
@@ -28,7 +28,7 @@ interface ErrorLogsTableProps {
     onPageChange: (page: number) => void;
     onLimitChange: (limit: number) => void;
     onViewDetail: (log: IErrorLog) => void;
-    isLoading: boolean;
+    isFetching: boolean;
 }
 
 export const ErrorLogsTable = ({
@@ -40,7 +40,7 @@ export const ErrorLogsTable = ({
     onPageChange,
     onLimitChange,
     onViewDetail,
-    isLoading,
+    isFetching,
 }: ErrorLogsTableProps) => {
     const columns: DataTableColumn<IErrorLog>[] = [
         {
@@ -153,27 +153,23 @@ export const ErrorLogsTable = ({
     ];
 
     return (
-        <DataTable<IErrorLog>
+        <CustomDataTable<IErrorLog>
             records={records}
             columns={columns}
-            fetching={isLoading}
+            isFetching={isFetching}
+            fetchingText="Cargando errores..."
+            className=""
+            classNames={{}}
             page={page}
             recordsPerPage={perPage}
             totalRecords={totalRecords}
             onPageChange={onPageChange}
             recordsPerPageOptions={PAGE_SIZE_OPTIONS}
             onRecordsPerPageChange={onLimitChange}
-            minHeight={200}
             noRecordsText="Sin errores registrados"
-            highlightOnHover
             withTableBorder
-            withColumnBorders
-            striped
             borderRadius="md"
             styles={{ header: { background: "#f8fafc" } }}
-            paginationText={({ from, to, totalRecords }) =>
-                `Mostrando del ${from} al ${to} de ${totalRecords} registros`
-            }
         />
     );
 };

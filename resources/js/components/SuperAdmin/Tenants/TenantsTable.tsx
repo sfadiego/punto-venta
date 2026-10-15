@@ -1,5 +1,5 @@
-import { DataTable } from "mantine-datatable";
 import type { DataTableColumn } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { Building2, Pencil, Trash2, PowerOff, Power, RotateCcw, ExternalLink, UtensilsCrossed, Scale, Store, Menu } from "lucide-react";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 import { ITenant } from "@/models/ITenant";
@@ -26,7 +26,7 @@ interface TenantsTableProps {
     page: number;
     perPage: number;
     limit: number;
-    isLoading: boolean;
+    isFetching: boolean;
     onPageChange: (page: number) => void;
     onLimitChange: (limit: number) => void;
     onEdit: (tenant: ITenant) => void;
@@ -41,7 +41,7 @@ export const TenantsTable = ({
     page,
     perPage,
     limit: _limit,
-    isLoading,
+    isFetching,
     onPageChange,
     onLimitChange,
     onEdit,
@@ -193,27 +193,23 @@ export const TenantsTable = ({
     ];
 
     return (
-        <DataTable<ITenant>
+        <CustomDataTable<ITenant>
             records={records}
             columns={columns}
-            fetching={isLoading}
+            isFetching={isFetching}
+            fetchingText="Cargando clientes..."
+            className=""
+            classNames={{}}
             page={page}
             recordsPerPage={perPage}
             totalRecords={totalRecords}
             onPageChange={onPageChange}
             recordsPerPageOptions={PAGE_SIZE_OPTIONS}
             onRecordsPerPageChange={onLimitChange}
-            minHeight={200}
             noRecordsText="No hay clientes en esta categoría"
-            highlightOnHover
             withTableBorder
-            withColumnBorders
-            striped
             borderRadius="md"
             styles={{ header: { background: "#f8fafc" } }}
-            paginationText={({ from, to, totalRecords }) =>
-                `Mostrando del ${from} al ${to} de ${totalRecords} clientes`
-            }
         />
     );
 };
