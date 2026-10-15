@@ -13,9 +13,10 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 
 interface SaleActionsProps {
     order: IOrder;
+    align?: "start" | "center";
 }
 
-export const SaleActions = ({ order }: SaleActionsProps) => {
+export const SaleActions = ({ order, align = "center" }: SaleActionsProps) => {
     const { can } = usePermissions();
     const { features } = useAxios();
     const sellByWeight = features?.sell_by_weight === true;
@@ -36,7 +37,7 @@ export const SaleActions = ({ order }: SaleActionsProps) => {
 
     return (
         <div
-            className="flex items-center justify-center gap-1"
+            className={`flex items-center gap-1 ${align === "start" ? "justify-start" : "justify-center"}`}
             onClick={(e) => e.stopPropagation()}
         >
             {isInProcess && (

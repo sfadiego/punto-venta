@@ -27,7 +27,7 @@ const renderersMap: DataTableRenderersMap = {
         </span>
     ),
     total: (o: IOrder) => formatCurrencyTrimmed(calcOrderDisplayTotal(o)),
-    subtotal: (o: IOrder) => formatCurrencyTrimmed(o.subtotal),
+    // subtotal: (o: IOrder) => formatCurrencyTrimmed(o.subtotal),
     descuento: (o: IOrder) => (o.descuento > 0 ? `${o.descuento}%` : "—"),
     payment_method: (o: IOrder) => <PaymentOrCreditBadge order={o} />,
     created_at: (o: IOrder) =>
@@ -64,8 +64,8 @@ export const useSalesPage = () => {
     const actionsColumn: DataTableColumn<IOrder> = useMemo(
         () => ({
             accessor: "_detalle" as keyof IOrder,
-            title: "",
-            width: 60,
+            title: "Acciones",
+            width: 100,
             render: (order: IOrder) => (
                 <button
                     onClick={(e) => {
@@ -114,6 +114,8 @@ export const useSalesPage = () => {
             columns:
                 dataTableProps.columns.length > 0
                     ? ([
+                        // Acción primero: en móvil la última columna queda fuera de la pantalla y obliga a hacer scroll.
+                        actionsColumn,
                         ...dataTableProps.columns.map((col) =>
                             (col.accessor as string) === "estatus_pedido_id"
                                 ? {
@@ -128,7 +130,6 @@ export const useSalesPage = () => {
                                 }
                                 : col,
                         ),
-                        actionsColumn,
                     ] as DataTableColumn<IOrder>[])
                     : [],
         }),

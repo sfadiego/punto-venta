@@ -14,7 +14,7 @@ export const LayawayRowActions = ({ order }: LayawayRowActionsProps) => {
     const { data: orderDetail, isFetching } = useShowOrder(order.id, detailOpen);
 
     return (
-        <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-start gap-1.5" onClick={(e) => e.stopPropagation()}>
             <button
                 type="button"
                 onClick={() => setDetailOpen(true)}

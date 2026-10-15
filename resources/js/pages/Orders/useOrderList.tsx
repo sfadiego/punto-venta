@@ -50,16 +50,16 @@ const renderersMap: DataTableRenderersMap = {
 const actionsColumn: DataTableColumn<IOrder> = {
     accessor: "_acciones" as keyof IOrder,
     title: "Acciones",
-    width: 200,
+    width: 120,
     render: (order: IOrder) => <OrderActionButtons order={order} />,
 };
 
 const ventaPorPesoActionsColumn: DataTableColumn<IOrder> = {
     accessor: "_acciones" as keyof IOrder,
-    title: "",
-    width: 110,
-    textAlign: "center",
-    render: (order: IOrder) => <SaleActions order={order} />,
+    title: "Acciones",
+    width: 120,
+    textAlign: "left",
+    render: (order: IOrder) => <SaleActions order={order} align="start" />,
 };
 
 export const useOrderList = () => {
@@ -117,13 +117,14 @@ export const useOrderList = () => {
                   ? canceledLayawayColumns
                   : dataTableProps.columns.length > 0
                     ? ([
+                          // Acciones primero: en móvil la última columna queda fuera de la pantalla y obliga a hacer scroll.
+                          sellByWeight ? ventaPorPesoActionsColumn : actionsColumn,
                           ...dataTableProps.columns.filter((col) => {
                               const accessor = col.accessor as string;
                               if (sellByWeight && accessor === "estatus_pedido_id") return false;
                               if (!showingClosed && accessor === "payment_method") return false;
                               return true;
                           }),
-                          sellByWeight ? ventaPorPesoActionsColumn : actionsColumn,
                       ] as DataTableColumn<IOrder>[])
                     : [],
         }),

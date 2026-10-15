@@ -9,6 +9,13 @@ import { LayawayRowActions } from "./LayawayRowActions";
 // genéricas de órdenes (nombre, pago, subtotal...), que no aplican a un apartado.
 export const layawayColumns: DataTableColumn<IOrder>[] = [
     {
+        accessor: "_acciones" as keyof IOrder,
+        title: "",
+        width: 200,
+        textAlign: "left",
+        render: (order) => <LayawayRowActions order={order} />,
+    },
+    {
         accessor: "id",
         title: "#",
         // Ancho para ids largos (ej. #60025743): con menos, el número invade la columna del cliente.
@@ -40,12 +47,5 @@ export const layawayColumns: DataTableColumn<IOrder>[] = [
         accessor: "layaway_due_date",
         title: "Vence",
         render: (order) => <LayawayDueBadge dueDate={order.layaway_due_date} />,
-    },
-    {
-        accessor: "_acciones" as keyof IOrder,
-        title: "",
-        width: 200,
-        textAlign: "right",
-        render: (order) => <LayawayRowActions order={order} />,
     },
 ];
