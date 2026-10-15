@@ -33,7 +33,7 @@ export default function ProductsPage() {
         page,
         limit,
         pageSize,
-        isLoading,
+        isFetching,
         categories,
         categoryId,
         search,
@@ -325,6 +325,7 @@ export default function ProductsPage() {
                                 categories={categories}
                                 selected={categoryId}
                                 onChange={handleCategoryChange}
+                                loading={isFetching}
                             />
                         </>
                     )}
@@ -339,7 +340,7 @@ export default function ProductsPage() {
                     <DataTable<IProduct>
                         columns={columns}
                         records={products}
-                        fetching={isLoading}
+                        fetching={isFetching}
                         page={page}
                         recordsPerPage={limit}
                         totalRecords={total}
