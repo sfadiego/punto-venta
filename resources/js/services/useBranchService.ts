@@ -8,6 +8,7 @@ import {
     IUserBranches,
 } from "@/models/IBranch";
 import { IPaginate } from "@/intefaces/IPaginate";
+import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { QueryClient, useQuery } from "@tanstack/react-query";
 
 const url = ApiRoutes.Branch;
@@ -50,11 +51,13 @@ export const useIndexBranchesPaginated = ({
 // tener sesión (ej. AppLayout, que se monta también en el estado no-autenticado).
 export const useBranchList = (enabled: boolean = true) => {
     const { axiosApi } = useAxios();
+    const { data: config } = useGetBusinessConfig();
     return useQuery<IBranchListItem[]>({
         queryKey: [`${url}/list`],
         queryFn: () => axiosGET(axiosApi, { url: `${url}/list` }),
         staleTime: 0,
-        enabled,
+        // Tenant sin la función de sucursales: la lista siempre sería [], no se pide.
+        enabled: enabled && config?.multi_branch_enabled === true,
     });
 };
 

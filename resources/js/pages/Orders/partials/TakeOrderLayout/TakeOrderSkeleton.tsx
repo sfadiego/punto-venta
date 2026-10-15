@@ -9,7 +9,7 @@ export const TakeOrderSkeleton = () => (
                 <div className="h-4 w-40 rounded-lg bg-stone-100 animate-pulse" />
             </div>
             <div className="flex flex-1 overflow-hidden">
-                <div className="flex-1 bg-stone-50 p-5 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 content-start">
+                <div className="flex-1 bg-stone-50 p-5 grid grid-cols-2 sm:grid-cols-3 gap-3 content-start">
                     {Array.from({ length: 12 }).map((_, i) => (
                         <div key={i} className="h-28 rounded-2xl bg-stone-200 animate-pulse" />
                     ))}
