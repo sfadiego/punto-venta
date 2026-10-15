@@ -31,7 +31,6 @@ class OrderService extends DataTable
             'nombre_pedido' => 'Nombre',
             'estatus_pedido_id' => 'Estatus',
             'payment_method' => 'Pago',
-            // 'subtotal' => 'Subtotal',
             'total' => 'Total',
             'created_at' => 'Fecha',
         ];
