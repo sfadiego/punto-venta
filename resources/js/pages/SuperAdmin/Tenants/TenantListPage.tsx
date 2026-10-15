@@ -20,7 +20,7 @@ export default function TenantListPage() {
         limit,
         setLimit,
         allTenants,
-        isLoading,
+        isFetching,
         isRefetching,
         refetch,
         status,
@@ -85,7 +85,7 @@ export default function TenantListPage() {
                     page={page}
                     perPage={perPage}
                     limit={limit}
-                    isLoading={isLoading}
+                    isFetching={isFetching}
                     onPageChange={setPage}
                     onLimitChange={setLimit}
                     onEdit={(tenant) => navigate(SuperAdminRoutes.EditTenant.replace(":id", String(tenant.id)))}

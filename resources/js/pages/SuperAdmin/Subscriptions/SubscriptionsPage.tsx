@@ -10,7 +10,7 @@ import { SubscriptionSummaryCard } from "./partials/SubscriptionSummaryCard";
 export default function SubscriptionsPage() {
     const {
         filtered,
-        isLoading,
+        isFetching,
         statusFilter,
         setStatusFilter,
         demoFilter,
@@ -76,7 +76,7 @@ export default function SubscriptionsPage() {
 
                 <SubscriptionTable
                     records={filtered}
-                    isLoading={isLoading}
+                    isFetching={isFetching}
                     onRegisterPayment={openModal}
                     onViewHistory={openHistory}
                 />

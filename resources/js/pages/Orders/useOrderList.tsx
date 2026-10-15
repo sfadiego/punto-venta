@@ -149,6 +149,7 @@ export const useOrderList = () => {
     return {
         dataTableProps: enhancedDataTableProps,
         isLoading,
+        isFetching,
         isRefetching: isFetching && !isLoading,
         refetch,
         sistemaId,

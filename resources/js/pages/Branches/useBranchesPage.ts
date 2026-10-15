@@ -19,7 +19,7 @@ export const useBranchesPage = () => {
         return () => clearTimeout(timer);
     }, [search]);
 
-    const { data, isLoading, refetch } = useIndexBranchesPaginated({
+    const { data, isLoading, isFetching, refetch } = useIndexBranchesPaginated({
         page,
         limit,
         search: debouncedSearch || undefined,
@@ -69,6 +69,7 @@ export const useBranchesPage = () => {
         limit,
         pageSize,
         isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,

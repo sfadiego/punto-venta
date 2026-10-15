@@ -14,7 +14,7 @@ export default function TenantUsersPage() {
 
     const {
         users,
-        isLoading,
+        isFetching,
         tenantSlug,
         tipoNegocio,
         modalUser,
@@ -55,7 +55,7 @@ export default function TenantUsersPage() {
 
                 <UserTable
                     users={users}
-                    isLoading={isLoading}
+                    isFetching={isFetching}
                     tenantId={tenantId}
                     onEdit={openEdit}
                     onDelete={handleDelete}

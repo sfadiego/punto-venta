@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { DataTable, DataTableColumn } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
+import { DataTableColumn } from "mantine-datatable";
 import { IUser } from "@/models/IUser";
 import RoleBadge from "@/components/Role/RoleBadge";
 import { UserStatusCell } from "./UserStatusCell";
@@ -7,13 +8,13 @@ import { UserRowActions } from "./UserRowActions";
 
 interface UserTableProps {
     users: IUser[];
-    isLoading: boolean;
+    isFetching: boolean;
     tenantId: number;
     onEdit: (user: IUser) => void;
     onDelete: (user: IUser) => void;
 }
 
-export const UserTable = ({ users, isLoading, tenantId, onEdit, onDelete }: UserTableProps) => {
+export const UserTable = ({ users, isFetching, tenantId, onEdit, onDelete }: UserTableProps) => {
     const columns = useMemo<DataTableColumn<IUser>[]>(
         () => [
             {
@@ -67,17 +68,12 @@ export const UserTable = ({ users, isLoading, tenantId, onEdit, onDelete }: User
 
     return (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <DataTable<IUser>
+            <CustomDataTable<IUser>
                 columns={columns}
                 records={users}
-                fetching={isLoading}
+                isFetching={isFetching}
+                fetchingText="Cargando usuarios..."
                 noRecordsText="Este cliente no tiene usuarios registrados"
-                highlightOnHover
-                withTableBorder
-                withColumnBorders
-                striped
-                minHeight={200}
-                className="whitespace-nowrap"
             />
         </div>
     );

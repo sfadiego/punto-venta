@@ -37,7 +37,7 @@ export const useTenantList = () => {
         return () => clearTimeout(timer);
     }, [search]);
 
-    const { data, isLoading, refetch, isRefetching } = useListTenantsPaginated({
+    const { data, isLoading, isFetching, refetch, isRefetching } = useListTenantsPaginated({
         status,
         isDemo: toIsDemo(demoFilter),
         search: debouncedSearch || undefined,
@@ -140,6 +140,7 @@ export const useTenantList = () => {
         setLimit,
         allTenants,
         isLoading,
+        isFetching,
         isRefetching,
         refetch,
         status,

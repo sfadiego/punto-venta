@@ -1,5 +1,5 @@
-import { DataTable } from "mantine-datatable";
 import type { DataTableColumn } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { Building2, CreditCard, Clock, CheckCircle, XCircle, MinusCircle, Receipt } from "lucide-react";
 import { ITenantWithSubscription } from "@/models/ISubscription";
 import { SubscriptionStatusEnum } from "@/enums/SubscriptionStatusEnum";
@@ -20,12 +20,12 @@ const getExpirationColor = (daysRemaining: number): string => {
 
 interface SubscriptionTableProps {
     records: ITenantWithSubscription[];
-    isLoading: boolean;
+    isFetching: boolean;
     onRegisterPayment: (tenant: ITenantWithSubscription) => void;
     onViewHistory: (tenant: ITenantWithSubscription) => void;
 }
 
-export const SubscriptionTable = ({ records, isLoading, onRegisterPayment, onViewHistory }: SubscriptionTableProps) => {
+export const SubscriptionTable = ({ records, isFetching, onRegisterPayment, onViewHistory }: SubscriptionTableProps) => {
     const columns: DataTableColumn<ITenantWithSubscription>[] = [
         {
             accessor: "business_name",
@@ -117,13 +117,16 @@ export const SubscriptionTable = ({ records, isLoading, onRegisterPayment, onVie
     ];
 
     return (
-        <DataTable
+        <CustomDataTable
             records={records}
             columns={columns}
-            fetching={isLoading}
-            minHeight={200}
+            isFetching={isFetching}
+            fetchingText="Cargando suscripciones..."
+            className=""
+            classNames={{}}
+            withColumnBorders={false}
+            striped={false}
             noRecordsText="No hay clientes"
-            highlightOnHover
             withTableBorder
             borderRadius="md"
             styles={{ header: { background: "#f8fafc" } }}

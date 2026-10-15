@@ -14,7 +14,7 @@ export const useErrorLogsPage = () => {
     const [source, setSource]       = useState<"" | "frontend" | "backend">("");
     const [selectedLog, setSelectedLog] = useState<IErrorLog | null>(null);
 
-    const { data, isLoading, refetch } = useIndexErrorLogs({ page, limit, source });
+    const { data, isLoading, isFetching, refetch } = useIndexErrorLogs({ page, limit, source });
     const { mutateAsync: pruneLogs, isPending: isPruning } = usePruneErrorLogs();
 
     const handlePrune = async () => {
@@ -62,6 +62,7 @@ export const useErrorLogsPage = () => {
         source,
         handleSourceChange,
         isLoading,
+        isFetching,
         refetch,
         selectedLog,
         openDetail:  (log: IErrorLog) => setSelectedLog(log),

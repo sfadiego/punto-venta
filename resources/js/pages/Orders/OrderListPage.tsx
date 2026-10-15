@@ -1,4 +1,4 @@
-import { DataTable } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { ClipboardList, RefreshCw, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IOrder } from "@/models/IOrder";
@@ -24,7 +24,7 @@ export default function OrderListPage() {
     const navigate = useNavigate();
     const {
         dataTableProps,
-        isLoading,
+        isFetching,
         isRefetching,
         refetch,
         sistemaId,
@@ -122,8 +122,9 @@ export default function OrderListPage() {
                             />
                         </div>
                     </div>
-                    <DataTable
-                        fetching={isLoading}
+                    <CustomDataTable
+                        isFetching={isFetching}
+                        fetchingText="Cargando órdenes..."
                         {...dataTableProps}
                         onRowClick={({ record }: { record: IOrder }) => handleRowClick(record)}
                         rowStyle={(record: IOrder) => ({

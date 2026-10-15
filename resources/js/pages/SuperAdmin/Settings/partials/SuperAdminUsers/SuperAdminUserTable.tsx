@@ -1,16 +1,17 @@
 import { useMemo } from "react";
-import { DataTable, DataTableColumn } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
+import { DataTableColumn } from "mantine-datatable";
 import { Pencil } from "lucide-react";
 import { IUser } from "@/models/IUser";
 import { formatOrderDateTime } from "@/utils/dateUtils";
 
 interface SuperAdminUserTableProps {
     users: IUser[];
-    isLoading: boolean;
+    isFetching: boolean;
     onEdit: (user: IUser) => void;
 }
 
-export const SuperAdminUserTable = ({ users, isLoading, onEdit }: SuperAdminUserTableProps) => {
+export const SuperAdminUserTable = ({ users, isFetching, onEdit }: SuperAdminUserTableProps) => {
     const columns = useMemo<DataTableColumn<IUser>[]>(
         () => [
             {
@@ -56,15 +57,17 @@ export const SuperAdminUserTable = ({ users, isLoading, onEdit }: SuperAdminUser
 
     return (
         <div className="rounded-xl border border-slate-100 overflow-hidden">
-            <DataTable<IUser>
+            <CustomDataTable<IUser>
                 columns={columns}
                 records={users}
-                fetching={isLoading}
+                isFetching={isFetching}
+                fetchingText="Cargando usuarios..."
+                classNames={{}}
+                withColumnBorders={false}
+                striped={false}
                 noRecordsText="No hay super administradores registrados"
-                highlightOnHover
                 withTableBorder={false}
                 minHeight={150}
-                className="whitespace-nowrap"
             />
         </div>
     );

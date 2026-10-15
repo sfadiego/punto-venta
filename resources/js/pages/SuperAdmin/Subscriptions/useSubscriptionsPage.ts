@@ -13,7 +13,7 @@ export const useSubscriptionsPage = () => {
     const [selectedTenant, setSelectedTenant] = useState<ITenantWithSubscription | null>(null);
     const [historyTenant, setHistoryTenant] = useState<ITenantWithSubscription | null>(null);
 
-    const { data = [], isLoading } = useListSubscriptions(
+    const { data = [], isLoading, isFetching } = useListSubscriptions(
         statusFilter ? (statusFilter as SubscriptionStatusEnum) : undefined,
         toIsDemo(demoFilter),
     );
@@ -41,7 +41,7 @@ export const useSubscriptionsPage = () => {
     };
 
     return {
-        filtered, isLoading, statusFilter, setStatusFilter,
+        filtered, isLoading, isFetching, statusFilter, setStatusFilter,
         demoFilter, setDemoFilter,
         selectedTenant, openModal, closeModal,
         historyTenant, openHistory, closeHistory,

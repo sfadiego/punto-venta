@@ -15,7 +15,7 @@ export default function EmployeesPage() {
         page,
         limit,
         pageSize,
-        isLoading,
+        isFetching,
         refetch,
         setPage,
         setLimit,
@@ -48,7 +48,7 @@ export default function EmployeesPage() {
 
             <EmployeesTable
                 employees={employees}
-                isLoading={isLoading}
+                isFetching={isFetching}
                 page={page}
                 limit={limit}
                 pageSize={pageSize}

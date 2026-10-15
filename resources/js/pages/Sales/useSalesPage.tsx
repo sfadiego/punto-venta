@@ -87,7 +87,7 @@ export const useSalesPage = () => {
         [],
     );
 
-    const { dataTableProps, isLoading, refetch, setPage } = useDataTable({
+    const { dataTableProps, isLoading, isFetching, refetch, setPage } = useDataTable({
         service: useIndexOrder,
         payload: {
             estatus_pedido_id: OrderStatusEnum.Closed,
@@ -172,6 +172,7 @@ export const useSalesPage = () => {
     return {
         dataTableProps: enhancedDataTableProps,
         isLoading,
+        isFetching,
         refetch,
         reportMode,
         fecha,

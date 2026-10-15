@@ -1,4 +1,5 @@
-import { DataTable, DataTableSortStatus } from "mantine-datatable";
+import { DataTableSortStatus } from "mantine-datatable";
+import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { ISlowMovingProduct } from "@/models/ISlowMovingProduct";
 import { slowMovingColumns } from "./slowMovingColumns";
 
@@ -9,7 +10,7 @@ interface SlowMovingTableProps {
     limit: number;
     pageSizes: number[];
     sortStatus: DataTableSortStatus<ISlowMovingProduct>;
-    isLoading: boolean;
+    isFetching: boolean;
     days: number;
     onPageChange: (page: number) => void;
     onLimitChange: (limit: number) => void;
@@ -17,12 +18,13 @@ interface SlowMovingTableProps {
 }
 
 export const SlowMovingTable = ({
-    records, total, page, limit, pageSizes, sortStatus, isLoading, days, onPageChange, onLimitChange, onSortChange,
+    records, total, page, limit, pageSizes, sortStatus, isFetching, days, onPageChange, onLimitChange, onSortChange,
 }: SlowMovingTableProps) => (
-    <DataTable<ISlowMovingProduct>
+    <CustomDataTable<ISlowMovingProduct>
         columns={slowMovingColumns}
         records={records}
-        fetching={isLoading}
+        isFetching={isFetching}
+        fetchingText="Cargando productos..."
         page={page}
         recordsPerPage={limit}
         totalRecords={total}
@@ -32,12 +34,5 @@ export const SlowMovingTable = ({
         sortStatus={sortStatus}
         onSortStatusChange={onSortChange}
         noRecordsText={`Ningún producto lleva más de ${days} días sin movimiento`}
-        highlightOnHover
-        withTableBorder
-        withColumnBorders
-        striped
-        minHeight={200}
-        classNames={{ header: "pos-datatable-header" }}
-        paginationText={({ from, to, totalRecords }) => `Mostrando del ${from} al ${to} de ${totalRecords} productos`}
     />
 );
