@@ -24,3 +24,5 @@ pnpm-lock.yaml
 notes.txt
 
 /database/sql/
+# Claude Code local settings (pueden contener credenciales)
+.claude/settings.local.json

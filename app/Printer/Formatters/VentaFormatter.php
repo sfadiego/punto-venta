@@ -93,7 +93,7 @@ class VentaFormatter implements TicketFormatterInterface
         if (! empty($business['kitchen_view'])) {
             $propina = round($subtotalConDescuento * 0.10, 2);
             $printer->feed(1);
-            $printer->text($this->totalRow('Propina 10%:', '$'.number_format($propina, 2))."\n");
+            $printer->text($this->totalRow('Propina sugerida 10%:', '$'.number_format($propina, 2))."\n");
         }
 
         $this->afterTotals($printer, $d);
