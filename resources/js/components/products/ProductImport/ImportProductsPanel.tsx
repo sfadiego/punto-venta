@@ -2,6 +2,7 @@ import { RefObject } from "react";
 import { Upload, Download, FileText, RotateCcw, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { IProductImportReport } from "@/services/useProductImportService";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
+import { getImportRowBadgeClass, getImportRowLabel } from "@/utils/productImportRow";
 import { ImportCommitProgress, ImportCompletedSummary } from "./useImportProductsPanel";
 
 interface ImportProductsPanelProps {
@@ -75,6 +76,9 @@ export const ImportProductsPanel = ({
                 <span>
                     Importación completada — <strong>{completedSummary.to_create}</strong> creados,{" "}
                     <strong>{completedSummary.to_update}</strong> actualizados
+                    {completedSummary.skipped > 0 && (
+                        <>, <strong>{completedSummary.skipped}</strong> omitidas (código no permitido)</>
+                    )}
                     {completedSummary.warnings > 0 && (
                         <> ({completedSummary.warnings} con advertencias, revisa el catálogo)</>
                     )}
@@ -89,6 +93,9 @@ export const ImportProductsPanel = ({
                     <span><strong className="text-emerald-600">{report.summary.to_create}</strong> por crear</span>
                     <span><strong className="text-blue-600">{report.summary.to_update}</strong> por actualizar</span>
                     <span><strong className="text-amber-600">{report.summary.warnings}</strong> revisar</span>
+                    {report.summary.skipped > 0 && (
+                        <span><strong className="text-stone-500">{report.summary.skipped}</strong> omitidas</span>
+                    )}
                     <span><strong className="text-red-600">{report.summary.errors}</strong> con error</span>
                 </div>
 
@@ -96,14 +103,9 @@ export const ImportProductsPanel = ({
                     {report.rows.map((row) => (
                         <div key={row.row} className="flex items-start gap-2 px-3 py-2 text-xs">
                             <span
-                                className={`shrink-0 mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${row.action === "error"
-                                        ? "bg-red-100 text-red-700"
-                                        : row.warnings.length > 0
-                                            ? "bg-amber-100 text-amber-700"
-                                            : "bg-emerald-100 text-emerald-700"
-                                    }`}
+                                className={`shrink-0 mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${getImportRowBadgeClass(row.action, row.warnings.length > 0)}`}
                             >
-                                {row.action === "error" ? "ERROR" : row.action === "update" ? "ACTUALIZAR" : "CREAR"}
+                                {getImportRowLabel(row.action)}
                             </span>
                             <span className="text-stone-600">
                                 Fila {row.row}

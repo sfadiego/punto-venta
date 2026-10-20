@@ -12,6 +12,8 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "mike42/escpos-php": "^2.2",
+        "picqer/php-barcode-generator": "^3.3",
+        "setasign/fpdf": "^1.9",
         "tightenco/ziggy": "^2.6"
     },
     "require-dev": {

@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Loader, PackagePlus, History, ArrowUpDown } from "lucide-react";
+import { Pencil, Trash2, Loader, PackagePlus, History, ArrowUpDown, Barcode } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
@@ -6,6 +6,7 @@ import { IProduct } from "@/models/IProduct";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { useDeleteProduct } from "@/services/useProductService";
 import { isProductRowLowStock } from "@/utils/stock";
+import { useProductBarcodeDownload } from "./useProductBarcodeDownload";
 
 interface ProductTableActionsProps {
     product: IProduct;
@@ -16,11 +17,14 @@ interface ProductTableActionsProps {
     /** false en negocios retail — ahí el manejo de stock vive en la página de Inventario,
      * no duplicar el acceso rápido aquí (ver CLAUDE.md, Fase 9 del plan de Inventario). */
     showStockActions: boolean;
+    /** true solo en negocios retail — el backend expone el código de barras únicamente ahí (middleware `retail`). */
+    showBarcodeAction: boolean;
 }
 
-export const ProductTableActions = ({ product, onEdit, onRestock, onAdjust, onViewMovements, showStockActions }: ProductTableActionsProps) => {
+export const ProductTableActions = ({ product, onEdit, onRestock, onAdjust, onViewMovements, showStockActions, showBarcodeAction }: ProductTableActionsProps) => {
     const queryClient = useQueryClient();
     const { mutateAsync: deleteProduct, isPending: isDeleting } = useDeleteProduct(product.id);
+    const { isDownloading: isDownloadingBarcode, handleDownload: handleDownloadBarcode } = useProductBarcodeDownload(product);
 
     const handleDelete = async () => {
         const result = await Swal.fire({
@@ -67,6 +71,19 @@ export const ProductTableActions = ({ product, onEdit, onRestock, onAdjust, onVi
                     className="flex items-center justify-center w-6 h-6 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-all"
                 >
                     <ArrowUpDown size={16} />
+                </button>
+            )}
+            {showBarcodeAction && (
+                <button
+                    onClick={handleDownloadBarcode}
+                    disabled={isDownloadingBarcode}
+                    title="Descargar código de barras"
+                    className="flex items-center justify-center w-6 h-6 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 border border-transparent hover:border-stone-200 transition-all disabled:opacity-50"
+                >
+                    {isDownloadingBarcode
+                        ? <Loader size={16} className="animate-spin text-stone-500" />
+                        : <Barcode size={16} />
+                    }
                 </button>
             )}
             <button

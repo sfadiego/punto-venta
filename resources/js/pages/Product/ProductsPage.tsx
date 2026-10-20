@@ -66,6 +66,8 @@ export default function ProductsPage() {
     // Inventario — el acceso rápido de Productos se oculta ahí para no duplicarlo.
     const { features } = useAxios();
     const showStockActions = stockEnabled && features?.is_retail !== true;
+    // Descarga del código de barras por producto — solo retail (el backend lo restringe igual).
+    const showBarcodeAction = features?.is_retail === true;
 
     // Importación masiva de productos por CSV — exclusiva de cafetería/venta por peso/
     // restaurante (el flujo retail ya tiene su propia importación embebida en
@@ -265,11 +267,12 @@ export default function ProductsPage() {
                         onAdjust={openAdjustModal}
                         onViewMovements={openMovementsModal}
                         showStockActions={showStockActions}
+                        showBarcodeAction={showBarcodeAction}
                     />
                 ),
             },
         ],
-        [openEditModal, openRestockModal, openAdjustModal, openMovementsModal, stockEnabled, showStockActions, features?.is_retail, showBranchSelector],
+        [openEditModal, openRestockModal, openAdjustModal, openMovementsModal, stockEnabled, showStockActions, showBarcodeAction, features?.is_retail, showBranchSelector],
     );
 
     return (

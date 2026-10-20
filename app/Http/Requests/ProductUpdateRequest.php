@@ -7,6 +7,7 @@ use App\Enums\UnidadMedidaEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\ProductModel;
 use App\Rules\AddonsEnabledForTenant;
+use App\Rules\Code128Compatible;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -39,6 +40,32 @@ class ProductUpdateRequest extends FormRequest
     }
 
     /**
+     * ¿El código llega igual al que ya tiene el producto? El formulario de edición reenvía siempre
+     * el código; uno guardado antes de existir la validación (con acento, ñ o espacios) no debe
+     * bloquear editar otro campo ni cambiar de valor sin que nadie lo haya pedido — el código de
+     * una etiqueta ya impresa tiene que seguir coincidiendo.
+     */
+    private function productCodeIsUnchanged(): bool
+    {
+        $storedCode = $this->route('product')?->product_code;
+
+        return $storedCode !== null && $this->input(ProductModel::PRODUCT_CODE) === $storedCode;
+    }
+
+    /**
+     * Un código nuevo o modificado se normaliza antes de validarlo (espacios → guion, ver
+     * ProductModel::normalizeProductCode()); uno que no cambió se deja tal cual.
+     */
+    protected function prepareForValidation(): void
+    {
+        $code = $this->input(ProductModel::PRODUCT_CODE);
+
+        if (is_string($code) && ! $this->productCodeIsUnchanged()) {
+            $this->merge([ProductModel::PRODUCT_CODE => ProductModel::normalizeProductCode($code)]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
@@ -47,6 +74,13 @@ class ProductUpdateRequest extends FormRequest
     {
         $productId = $this->route('product')?->id;
         $tenantId = app()->bound('tenant_id') ? app('tenant_id') : null;
+
+        // Solo un código nuevo o modificado debe poder dibujarse en Code128.
+        $productCodeRules = ['nullable', 'string', 'max:64'];
+        if (! $this->productCodeIsUnchanged()) {
+            $productCodeRules[] = new Code128Compatible;
+        }
+        $productCodeRules[] = Rule::unique('product', 'product_code')->where('tenant_id', $tenantId)->ignore($productId)->whereNull('deleted_at');
 
         return [
             ProductModel::NOMBRE => [
@@ -68,10 +102,7 @@ class ProductUpdateRequest extends FormRequest
             ProductModel::MANAGE_STOCK => 'nullable|boolean',
             ProductModel::STOCK => 'nullable|numeric|min:0',
             ProductModel::MIN_STOCK => 'nullable|numeric|min:0',
-            ProductModel::PRODUCT_CODE => [
-                'nullable', 'string', 'max:64',
-                Rule::unique('product', 'product_code')->where('tenant_id', $tenantId)->ignore($productId)->whereNull('deleted_at'),
-            ],
+            ProductModel::PRODUCT_CODE => $productCodeRules,
             ProductModel::ICON_NAME => 'nullable|string|max:100',
             ProductModel::ICON_SOURCE => ['nullable', Rule::enum(IconSourceEnum::class)],
             // Sin branch_ids (o vacío) = disponible en todas las sucursales (stock

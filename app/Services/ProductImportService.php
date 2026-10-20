@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ProductImportRowActionEnum;
 use App\Enums\StockMovementReasonEnum;
 use App\Enums\UnidadMedidaEnum;
 use App\Exceptions\InsufficientStockException;
@@ -23,7 +24,10 @@ use Throwable;
  */
 class ProductImportService
 {
-    public function __construct(private readonly StockService $stockService) {}
+    public function __construct(
+        private readonly StockService $stockService,
+        private readonly Code128Encoder $codeEncoder,
+    ) {}
 
     // Encabezados esperados del CSV (columna → clave interna). Cualquier columna fuera de
     // este mapa se ignora — así el usuario puede dejar columnas extra sin que truene.
@@ -116,7 +120,7 @@ class ProductImportService
         foreach ($rowsToProcess as $index => $row) {
             $resolved = $this->resolveRow($row, $index + 2, $existingProductsByCode, $existingProductNames);
 
-            if (! $dryRun && $resolved['action'] !== 'error') {
+            if (! $dryRun && in_array($resolved['action'], [ProductImportRowActionEnum::Create->value, ProductImportRowActionEnum::Update->value], true)) {
                 $resolved = $this->applyRow($resolved, $createdBy);
             }
 
@@ -196,7 +200,10 @@ class ProductImportService
 
     private function preloadProductsByCode(array $rows): Collection
     {
-        $codes = collect($rows)->pluck('product_code')->filter()->unique()->values();
+        // Se buscan los códigos tal cual vienen y también normalizados (espacios → guion): ver resolveProductCode().
+        $codes = collect($rows)->pluck('product_code')->filter()
+            ->flatMap(fn (string $code) => [$code, ProductModel::normalizeProductCode($code)])
+            ->unique()->values();
 
         if ($codes->isEmpty()) {
             return collect();
@@ -210,6 +217,30 @@ class ProductImportService
     private function preloadProductNames(): array
     {
         return ProductModel::pluck(ProductModel::NOMBRE)->map(fn ($n) => mb_strtolower($n))->all();
+    }
+
+    /**
+     * Resuelve el código de una fila y el producto existente al que corresponde. Primero se busca
+     * tal cual viene en el CSV: así un producto viejo cuyo código tiene espacios o acentos se sigue
+     * actualizando en vez de duplicarse. Sin coincidencia, se normaliza (espacios → guion) y se busca
+     * de nuevo; ese código normalizado es el que se guardaría al crear un producto.
+     *
+     * @return array{0: ?string, 1: ?ProductModel}
+     */
+    private function resolveProductCode(?string $rawCode, Collection $existingProductsByCode): array
+    {
+        if ($rawCode === null) {
+            return [null, null];
+        }
+
+        $exact = $existingProductsByCode->get(mb_strtolower($rawCode));
+        if ($exact) {
+            return [$rawCode, $exact];
+        }
+
+        $normalized = ProductModel::normalizeProductCode($rawCode);
+
+        return [$normalized, $existingProductsByCode->get(mb_strtolower($normalized))];
     }
 
     private function resolveRow(array $row, int $lineNumber, Collection $existingProductsByCode, array $existingProductNamesLower): array
@@ -229,8 +260,11 @@ class ProductImportService
             $precio = 0.0;
         }
 
-        $productCode = ($row['product_code'] ?? '') !== '' ? $row['product_code'] : null;
-        $existingProduct = $productCode ? $existingProductsByCode->get(mb_strtolower($productCode)) : null;
+        $rawCode = ($row['product_code'] ?? '') !== '' ? $row['product_code'] : null;
+        [$productCode, $existingProduct] = $this->resolveProductCode($rawCode, $existingProductsByCode);
+        // Un código que el generador de Code128 no puede dibujar (acento, ñ, emoji…) omite la fila,
+        // salvo que sea el de un producto que ya existe: ese no cambia, solo se actualiza.
+        $codeNotAllowed = $productCode !== null && ! $existingProduct && ! $this->codeEncoder->isEncodable($productCode);
 
         if (! $existingProduct && in_array(mb_strtolower($nombre), $existingProductNamesLower, true)) {
             $errors[] = 'Ya existe un producto con este nombre. Agrega su código para actualizarlo, o usa un nombre distinto.';
@@ -303,8 +337,15 @@ class ProductImportService
             $warnings[] = $activoWarning;
         }
 
+        if ($codeNotAllowed && ! $errors) {
+            // Solo el aviso de la omisión: los demás (ej. "la categoría se creará") ya no aplican.
+            return $this->buildRowResult($lineNumber, [], [
+                "Fila omitida: el código \"{$rawCode}\" tiene caracteres no permitidos. Usa letras sin acento, números y símbolos comunes.",
+            ], ['action' => ProductImportRowActionEnum::Skip->value, 'nombre' => $nombre]);
+        }
+
         return $this->buildRowResult($lineNumber, $errors, $warnings, [
-            'action' => $existingProduct ? 'update' : 'create',
+            'action' => ($existingProduct ? ProductImportRowActionEnum::Update : ProductImportRowActionEnum::Create)->value,
             'existing_product_id' => $existingProduct?->id,
             'product_code' => $productCode,
             'nombre' => $nombre,
@@ -379,7 +420,7 @@ class ProductImportService
                 ? $this->getOrCreateCategoryId($data['categoria'])
                 : $data['categoria_id'];
 
-            if ($data['action'] === 'create') {
+            if ($data['action'] === ProductImportRowActionEnum::Create->value) {
                 $product = ProductModel::create([
                     ProductModel::NOMBRE => $data['nombre'],
                     ProductModel::PRECIO => $data['precio'],
@@ -445,11 +486,11 @@ class ProductImportService
                 $resolved['data']['product_id'] = $product->id;
             }
         } catch (InsufficientStockException $e) {
-            $resolved['action'] = 'error';
+            $resolved['action'] = ProductImportRowActionEnum::Error->value;
             $resolved['errors'][] = $e->getMessage();
         } catch (Throwable $th) {
             Log::error($th);
-            $resolved['action'] = 'error';
+            $resolved['action'] = ProductImportRowActionEnum::Error->value;
             $resolved['errors'][] = 'No se pudo procesar esta fila. Intenta de nuevo.';
         }
 
@@ -555,7 +596,7 @@ class ProductImportService
     {
         return [
             'row' => $line,
-            'action' => $errors ? 'error' : ($data['action'] ?? 'error'),
+            'action' => $errors ? ProductImportRowActionEnum::Error->value : ($data['action'] ?? ProductImportRowActionEnum::Error->value),
             'errors' => $errors,
             'warnings' => $warnings,
             'data' => $data,
@@ -566,10 +607,12 @@ class ProductImportService
     {
         return [
             'total' => count($report),
-            'to_create' => count(array_filter($report, fn ($r) => $r['action'] === 'create')),
-            'to_update' => count(array_filter($report, fn ($r) => $r['action'] === 'update')),
-            'errors' => count(array_filter($report, fn ($r) => $r['action'] === 'error')),
-            'warnings' => count(array_filter($report, fn ($r) => count($r['warnings']) > 0)),
+            'to_create' => count(array_filter($report, fn ($r) => $r['action'] === ProductImportRowActionEnum::Create->value)),
+            'to_update' => count(array_filter($report, fn ($r) => $r['action'] === ProductImportRowActionEnum::Update->value)),
+            'errors' => count(array_filter($report, fn ($r) => $r['action'] === ProductImportRowActionEnum::Error->value)),
+            'skipped' => count(array_filter($report, fn ($r) => $r['action'] === ProductImportRowActionEnum::Skip->value)),
+            // Una fila omitida ya se cuenta en `skipped`: no se duplica como "revisar".
+            'warnings' => count(array_filter($report, fn ($r) => $r['action'] !== ProductImportRowActionEnum::Skip->value && count($r['warnings']) > 0)),
         ];
     }
 }
