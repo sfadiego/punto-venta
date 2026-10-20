@@ -203,6 +203,31 @@ class ProductModel extends Model
         return $this->refresh();
     }
 
+    /**
+     * Normaliza un código capturado a mano: recorta los extremos y cambia los espacios internos
+     * por un guion ("REG 010" → "REG-010"). Se cambian por guion y no se quitan porque quitarlos
+     * puede unir códigos distintos ("AB 12" y "A B12" darían ambos "AB12"). Solo se aplica a
+     * códigos nuevos o modificados: uno que no cambió se deja tal cual (ver ProductUpdateRequest).
+     */
+    public static function normalizeProductCode(string $code): string
+    {
+        $trimmed = preg_replace('/^\s+|\s+$/u', '', $code);
+
+        // preg_replace devuelve null con UTF-8 inválido: se deja el valor original y lo rechaza
+        // la validación de Code128 (que solo admite ASCII).
+        return preg_replace('/\s+/u', '-', $trimmed ?? $code) ?? $code;
+    }
+
+    /**
+     * Valor que se imprime como código de barras: el product_code o, si el producto no tiene,
+     * su id. El id solo se usa al imprimir, no se guarda en product_code. Requiere que `id` y
+     * `product_code` estén cargados.
+     */
+    public function barcodeValue(): string
+    {
+        return filled($this->product_code) ? (string) $this->product_code : (string) $this->id;
+    }
+
     public function picture(): HasOne
     {
         return $this->hasOne(ProductImageModel::class, 'id', 'foto_id');

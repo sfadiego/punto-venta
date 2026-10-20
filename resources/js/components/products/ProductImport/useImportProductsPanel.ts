@@ -27,6 +27,7 @@ export interface ImportCommitProgress {
 export interface ImportCompletedSummary {
     to_create: number;
     to_update: number;
+    skipped: number;
     warnings: number;
 }
 
@@ -103,7 +104,7 @@ export const useImportProductsPanel = () => {
         setCommitProgress({ processed: 0, total });
         // Cada chunk solo reporta el resumen de SU rango — se acumulan para mostrar el total
         // real de la importación completa en el mensaje final, no solo el del último chunk.
-        const totals: ImportCompletedSummary = { to_create: 0, to_update: 0, warnings: 0 };
+        const totals: ImportCompletedSummary = { to_create: 0, to_update: 0, skipped: 0, warnings: 0 };
 
         try {
             for (let offset = 0; offset < total; offset += IMPORT_CHUNK_SIZE) {
@@ -116,6 +117,7 @@ export const useImportProductsPanel = () => {
                 const chunkReport = (res as { data: { data: IProductImportReport } }).data.data;
                 totals.to_create += chunkReport.summary.to_create;
                 totals.to_update += chunkReport.summary.to_update;
+                totals.skipped += chunkReport.summary.skipped;
                 totals.warnings += chunkReport.summary.warnings;
 
                 setCommitProgress({ processed: Math.min(offset + IMPORT_CHUNK_SIZE, total), total });

@@ -1,11 +1,12 @@
 import { axiosGET, usePOST } from "../hooks/useApi";
 import { useAxios } from "@/hooks/useAxios";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { ProductImportRowActionEnum } from "@/enums/ProductImportRowActionEnum";
 
 const url = `${ApiRoutes.Product}/import`;
 
 export interface IProductImportRowData {
-    action: "create" | "update";
+    action: ProductImportRowActionEnum.Create | ProductImportRowActionEnum.Update;
     existing_product_id: number | null;
     product_code: string | null;
     nombre: string;
@@ -22,12 +23,18 @@ export interface IProductImportRowData {
     product_id?: number;
 }
 
+/** Una fila omitida solo lleva el nombre: no se resuelve más allá de su código no permitido. */
+export interface IProductImportSkippedRowData {
+    action: ProductImportRowActionEnum.Skip;
+    nombre: string;
+}
+
 export interface IProductImportRow {
     row: number;
-    action: "create" | "update" | "error";
+    action: ProductImportRowActionEnum;
     errors: string[];
     warnings: string[];
-    data: IProductImportRowData | Record<string, never>;
+    data: IProductImportRowData | IProductImportSkippedRowData | Record<string, never>;
 }
 
 export interface IProductImportReport {
@@ -36,6 +43,8 @@ export interface IProductImportReport {
         to_create: number;
         to_update: number;
         errors: number;
+        /** Filas que no se importan sin bloquear el resto (ej. código con caracteres no permitidos). */
+        skipped: number;
         warnings: number;
     };
     rows: IProductImportRow[];

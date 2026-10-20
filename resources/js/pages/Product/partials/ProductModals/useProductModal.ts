@@ -20,6 +20,11 @@ import { IProduct } from "@/models/IProduct";
 import { UnidadMedidaEnum } from "@/enums/UnidadMedidaEnum";
 import { IconSourceEnum } from "@/enums/IconSourceEnum";
 import { trimDecimalZeros } from "@/utils/formatDecimal";
+import {
+    PRODUCT_CODE_INVALID_MESSAGE,
+    getProductCodePayload,
+    isProductCodeAllowed,
+} from "@/utils/productCode";
 
 export type ProductVariantFormValue = {
     id?: number;
@@ -99,7 +104,6 @@ const baseSchema = {
             return value === undefined || value === null || unidad_medida !== UnidadMedidaEnum.Unidad || Number.isInteger(value);
         })
         .nullable(),
-    product_code: Yup.string().max(64, "Máximo 64 caracteres"),
     icon_name: Yup.string().max(100, "Máximo 100 caracteres"),
     icon_source: Yup.mixed<IconSourceEnum>().oneOf(Object.values(IconSourceEnum)),
 };
@@ -121,11 +125,16 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
     // — con una sola (o cero, tenant sin la feature), "todas" y "esa sucursal" son
     // equivalentes en la práctica, así que el campo ni se muestra ni se envía.
     const showBranchSelector = (branches?.length ?? 0) > 1;
+    // El código guardado entra al schema: uno viejo que no cambió se deja pasar aunque ya no sea válido.
+    const storedProductCode = product?.product_code ?? null;
     const schema = useMemo(() => Yup.object({
         ...baseSchema,
+        product_code: Yup.string()
+            .max(64, "Máximo 64 caracteres")
+            .test("code128-compatible", PRODUCT_CODE_INVALID_MESSAGE, (value) => isProductCodeAllowed(value, storedProductCode)),
         branch_ids: Yup.array().of(Yup.string()),
         addon_ids: Yup.array().of(Yup.string()),
-    }), []);
+    }), [storedProductCode]);
     const sellByWeight = features?.sell_by_weight === true;
     // Toppings: solo restaurante/cafetería (vista de cocina activa).
     const showAddonsField = features?.kitchen_view === true;
@@ -174,7 +183,7 @@ export const useProductModal = (product: IProduct | null, onSuccess: () => void,
                 unidad_medida: values.unidad_medida,
                 activo: values.activo,
                 manage_stock: values.manage_stock,
-                product_code: values.product_code.trim() || undefined,
+                product_code: getProductCodePayload(values.product_code, storedProductCode),
                 icon_name: values.icon_name.trim(),
                 icon_source: values.icon_source,
                 // Solo se envía si el checklist está visible (2+ sucursales autorizadas) —

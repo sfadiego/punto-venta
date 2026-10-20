@@ -3,6 +3,7 @@
 namespace Tests\Inventory;
 
 use App\Enums\BusinessTypeEnum;
+use App\Enums\ProductImportRowActionEnum;
 use App\Enums\RoleEnum;
 use App\Enums\StockMovementReasonEnum;
 use App\Enums\StockMovementTypeEnum;
@@ -14,6 +15,7 @@ use App\Models\RolePermission;
 use App\Models\StockMovementModel;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
@@ -503,7 +505,7 @@ class ProductImportTest extends TestCase
         $this->postJson('/api/product/import/commit', ['file' => $file], $this->authHeaders())
             ->assertStatus(200)
             ->assertJsonPath('data.summary.errors', 1)
-            ->assertJsonPath('data.rows.0.action', 'error');
+            ->assertJsonPath('data.rows.0.action', ProductImportRowActionEnum::Error->value);
 
         $this->assertSame($categoriasAntes, CategoryModel::count());
         $this->assertSame(0, ProductModel::count());
@@ -812,5 +814,128 @@ class ProductImportTest extends TestCase
         $header = strtok((string) $response->streamedContent(), "\n");
         $this->assertStringNotContainsString('activo', $header);
         $this->assertStringContainsString('codigo', $header);
+    }
+
+    // ── Códigos de barras: caracteres no permitidos y espacios ─────
+
+    private function commit(array $rows): TestResponse
+    {
+        return $this->postJson('/api/product/import/commit', ['file' => $this->csvFile($rows)], $this->authHeaders());
+    }
+
+    public function test_fila_con_codigo_no_permitido_se_omite_con_aviso(): void
+    {
+        $this->marcarComoRetailConStock();
+        $this->crearCategoria('Ropa');
+
+        $this->postJson('/api/product/import/preview', ['file' => $this->csvFile([
+            $this->fila(['codigo' => 'REG010ñń']),
+        ])], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.rows.0.action', ProductImportRowActionEnum::Skip->value)
+            ->assertJsonPath('data.summary.skipped', 1)
+            ->assertJsonPath('data.summary.errors', 0)
+            ->assertJsonPath('data.summary.to_create', 0)
+            // Una fila omitida no se cuenta también como "revisar".
+            ->assertJsonPath('data.summary.warnings', 0)
+            ->assertJsonPath('data.rows.0.warnings.0', 'Fila omitida: el código "REG010ñń" tiene caracteres no permitidos. Usa letras sin acento, números y símbolos comunes.');
+    }
+
+    public function test_fila_omitida_no_bloquea_el_resto_ni_se_importa(): void
+    {
+        $this->marcarComoRetailConStock();
+        $this->crearCategoria('Ropa');
+
+        $this->commit([
+            $this->fila(['codigo' => 'BUENO1', 'nombre' => 'Producto bueno']),
+            $this->fila(['codigo' => 'MALOÑ', 'nombre' => 'Producto omitido']),
+        ])
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_create', 1)
+            ->assertJsonPath('data.summary.skipped', 1)
+            ->assertJsonPath('data.summary.errors', 0);
+
+        $this->assertDatabaseHas('product', ['nombre' => 'Producto bueno', 'product_code' => 'BUENO1']);
+        $this->assertDatabaseMissing('product', ['nombre' => 'Producto omitido']);
+    }
+
+    public function test_fila_omitida_no_crea_su_categoria_nueva(): void
+    {
+        $this->marcarComoRetailConStock();
+        $this->crearCategoria('Ropa');
+        $categoriasAntes = CategoryModel::count();
+
+        $this->commit([$this->fila(['codigo' => 'MALOÑ', 'categoria' => 'Categoría nueva'])])->assertStatus(200);
+
+        $this->assertSame($categoriasAntes, CategoryModel::count());
+    }
+
+    public function test_fila_con_codigo_no_permitido_y_otro_error_es_error_no_omision(): void
+    {
+        $this->marcarComoRetailConStock();
+        $this->crearCategoria('Ropa');
+
+        $this->commit([$this->fila(['codigo' => 'MALOÑ', 'stock' => '10.5'])])
+            ->assertStatus(200)
+            ->assertJsonPath('data.rows.0.action', ProductImportRowActionEnum::Error->value)
+            ->assertJsonPath('data.summary.errors', 1)
+            ->assertJsonPath('data.summary.skipped', 0);
+    }
+
+    public function test_espacios_del_codigo_se_cambian_por_guion_al_crear(): void
+    {
+        $this->marcarComoRetailConStock();
+        $this->crearCategoria('Ropa');
+
+        $this->commit([$this->fila(['codigo' => 'REG   010', 'nombre' => 'Con espacios'])])
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_create', 1)
+            ->assertJsonPath('data.rows.0.data.product_code', 'REG-010');
+
+        $this->assertDatabaseHas('product', ['nombre' => 'Con espacios', 'product_code' => 'REG-010']);
+    }
+
+    public function test_producto_existente_con_codigo_viejo_no_valido_se_actualiza_sin_omitirse(): void
+    {
+        $this->marcarComoRetailConStock();
+        $producto = $this->crearProducto([ProductModel::PRODUCT_CODE => 'REG010ñń', ProductModel::PRECIO => 50]);
+
+        $this->commit([$this->fila(['codigo' => 'REG010ñń', 'nombre' => $producto->nombre, 'precio' => '75.00'])])
+            ->assertStatus(200)
+            ->assertJsonPath('data.rows.0.action', ProductImportRowActionEnum::Update->value)
+            ->assertJsonPath('data.summary.skipped', 0);
+
+        $producto->refresh();
+        $this->assertEquals(75, $producto->precio);
+        $this->assertSame('REG010ñń', $producto->product_code);
+    }
+
+    public function test_codigo_viejo_con_espacios_se_actualiza_sin_duplicar_ni_normalizar(): void
+    {
+        $this->marcarComoRetailConStock();
+        $producto = $this->crearProducto([ProductModel::PRODUCT_CODE => 'REG 010']);
+        $productosAntes = ProductModel::count();
+
+        $this->commit([$this->fila(['codigo' => 'REG 010', 'nombre' => $producto->nombre, 'precio' => '88.00'])])
+            ->assertStatus(200)
+            ->assertJsonPath('data.rows.0.action', ProductImportRowActionEnum::Update->value);
+
+        $this->assertSame($productosAntes, ProductModel::count());
+        $this->assertSame('REG 010', $producto->fresh()->product_code);
+        $this->assertEquals(88, $producto->fresh()->precio);
+    }
+
+    public function test_codigo_con_espacios_actualiza_al_producto_guardado_con_guion(): void
+    {
+        $this->marcarComoRetailConStock();
+        $producto = $this->crearProducto([ProductModel::PRODUCT_CODE => 'REG-010']);
+        $productosAntes = ProductModel::count();
+
+        $this->commit([$this->fila(['codigo' => 'REG 010', 'nombre' => $producto->nombre, 'precio' => '91.00'])])
+            ->assertStatus(200)
+            ->assertJsonPath('data.rows.0.action', ProductImportRowActionEnum::Update->value);
+
+        $this->assertSame($productosAntes, ProductModel::count());
+        $this->assertEquals(91, $producto->fresh()->precio);
     }
 }

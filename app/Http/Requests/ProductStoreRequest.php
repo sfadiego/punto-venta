@@ -7,6 +7,7 @@ use App\Enums\UnidadMedidaEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\ProductModel;
 use App\Rules\AddonsEnabledForTenant;
+use App\Rules\Code128Compatible;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -36,6 +37,19 @@ class ProductStoreRequest extends FormRequest
         }
 
         return true;
+    }
+
+    /**
+     * El código se normaliza antes de validarlo (y de revisar que sea único): los espacios
+     * pasan a guion — ver ProductModel::normalizeProductCode().
+     */
+    protected function prepareForValidation(): void
+    {
+        $code = $this->input(ProductModel::PRODUCT_CODE);
+
+        if (is_string($code)) {
+            $this->merge([ProductModel::PRODUCT_CODE => ProductModel::normalizeProductCode($code)]);
+        }
     }
 
     /**
@@ -69,6 +83,7 @@ class ProductStoreRequest extends FormRequest
             ProductModel::MIN_STOCK => 'nullable|numeric|min:0',
             ProductModel::PRODUCT_CODE => [
                 'nullable', 'string', 'max:64',
+                new Code128Compatible,
                 Rule::unique('product', 'product_code')->where('tenant_id', $tenantId)->whereNull('deleted_at'),
             ],
             ProductModel::ICON_NAME => 'nullable|string|max:100',

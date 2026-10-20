@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ProductBarcodeCatalogController;
+use App\Http\Controllers\ProductBarcodeImageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductExportController;
 use App\Http\Controllers\ProductImageController;
@@ -17,6 +19,16 @@ Route::prefix('product')->group(function () {
     // grupo {product}: "export" no puede resolverse como un id de producto.
     Route::middleware(['permission:viewProducts,manageStock', 'retail'])
         ->get('export', [ProductExportController::class, 'export']);
+
+    // Catálogo de códigos de barras (PDF) — solo retail, mismo patrón OR que la exportación CSV.
+    // throttle:5,1,barcode-catalog — 5 descargas por minuto por usuario: dibuja un PDF de todo el
+    // catálogo (FPDF, liviano pero no gratis), así que solo corta un loop accidental o un abuso
+    // deliberado. El tercer parámetro es el prefijo del contador: sin él, todo `throttle:N,M` sin
+    // nombre comparte UN contador por usuario (la clave no incluye la ruta) y descargar imágenes
+    // de código de barras gastaba el límite de este endpoint.
+    // Debe ir antes del grupo {product}: "barcode-catalog" no puede resolverse como un id de producto.
+    Route::middleware(['permission:viewProducts,manageStock', 'retail', 'throttle:5,1,barcode-catalog'])
+        ->get('barcode-catalog', [ProductBarcodeCatalogController::class, 'download']);
 
     Route::middleware('permission:viewProducts')->group(function () {
         Route::controller(ProductController::class)->group(function () {
@@ -50,6 +62,12 @@ Route::prefix('product')->group(function () {
     // "permission:xxx,yyy": dos flujos de UI legítimos que llegan al mismo endpoint.
     Route::middleware('permission:viewProducts,manageStock')
         ->post('{product}/stock-adjustment', [ProductController::class, 'stockAdjustment']);
+
+    // Imagen del código de barras de un producto — solo retail, mismo patrón OR que el catálogo en PDF.
+    // throttle:30,1,barcode-image — descargar los códigos de varios productos seguidos es normal, esto
+    // solo corta un loop. Prefijo propio por la misma razón que el catálogo en PDF (contador compartido).
+    Route::middleware(['permission:viewProducts,manageStock', 'retail', 'throttle:30,1,barcode-image'])
+        ->get('{product}/barcode', [ProductBarcodeImageController::class, 'download']);
 
     // Importación masiva de productos (CSV) — disponible para cualquier tipo de negocio,
     // independiente de business_config.stock_enabled: un tenant sin manejo de stock puede

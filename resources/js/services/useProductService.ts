@@ -172,3 +172,26 @@ export const useExportProductCatalog = () => {
     return (): Promise<Blob> =>
         axiosGET(axiosApi, { url: `${url}/export`, responseType: "blob" });
 };
+
+// Descarga del catálogo en PDF (solo retail): con el código de barras de cada producto o, con
+// includeBarcode=false, como lista simple. Ver ProductBarcodeCatalogService. El backend espera
+// 1/0 — su regla `boolean` no acepta "true"/"false".
+export const useExportProductBarcodeCatalog = () => {
+    const { axiosApi } = useAxios();
+
+    return (includeBarcode: boolean): Promise<Blob> =>
+        axiosGET(axiosApi, {
+            url: `${url}/barcode-catalog`,
+            params: { include_barcode: includeBarcode ? 1 : 0 },
+            responseType: "blob",
+        });
+};
+
+// Descarga la imagen PNG del código de barras de un producto (solo retail). Ver ProductBarcodeImageService.
+// El id va en la URL y cambia por fila, así que la función lo recibe al llamarla.
+export const useExportProductBarcodeImage = () => {
+    const { axiosApi } = useAxios();
+
+    return (productId: number): Promise<Blob> =>
+        axiosGET(axiosApi, { url: `${url}/${productId}/barcode`, responseType: "blob" });
+};
