@@ -345,7 +345,7 @@ class PrintTest extends TestCase
             array_merge($this->authHeaders(), ['Accept' => '*/*'])
         )->assertStatus(200);
 
-        $this->assertStringContainsString('Propina 10%', $response->getContent());
+        $this->assertStringContainsString('Propina sugerida 10%', $response->getContent());
     }
 
     public function test_bytes_propina_no_aparece_en_venta_por_peso(): void
