@@ -675,6 +675,15 @@ class AuthTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonPath('status', 'error');
+
+        // No debe distinguirse de una contraseña incorrecta: de lo contrario el endpoint
+        // público confirmaría que las credenciales de SuperAdmin son válidas.
+        $wrongPassword = $this->postJson('/api/auth/login', [
+            'email' => $superadmin->email,
+            'password' => 'incorrecta-123',
+        ]);
+
+        $this->assertSame($wrongPassword->json('message'), $response->json('message'));
     }
 
     // ── Rate limiting ─────────────────────────────────────────

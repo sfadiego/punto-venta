@@ -34,7 +34,9 @@ class AuthService
         if ($result['user']->rol_id === RoleEnum::SUPERADMIN->value) {
             $result['user']->tokens()->latest()->first()?->delete();
 
-            return AuthAttemptResult::fail(__('Accede desde el panel de super administrador.'));
+            // Mensaje genérico a propósito: uno distinto confirmaría que las credenciales
+            // de SuperAdmin son correctas y delataría que existe un panel aparte.
+            return AuthAttemptResult::fail(__('Credenciales no válidas.'));
         }
 
         if ($slug) {
