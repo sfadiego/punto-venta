@@ -50,7 +50,7 @@ RUN mkdir -p /app/storage/app/printer-agent \
     && npx pkg index.js --targets node18-win-x64,node18-macos-x64 --output /app/storage/app/printer-agent/print-agent
 
 # ── Stage 3: PHP / Laravel ────────────────────────────────────────────────────
-FROM php:8.4-fpm AS php
+FROM php:8.4.27-fpm AS php
 
 RUN apt-get update && apt-get install -y \
     libzip-dev \
