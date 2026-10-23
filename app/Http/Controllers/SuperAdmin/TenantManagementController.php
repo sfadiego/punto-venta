@@ -153,7 +153,10 @@ class TenantManagementController extends Controller
     {
         $days = (int) ($request->query('days') ?? 30);
 
-        return Response::success($service->report($tenant->id, $days));
+        return Response::success([
+            ...$service->report($tenant->id, $days),
+            'today_sales' => $service->todaySalesReport($tenant->id),
+        ]);
     }
 
     private function subscriptionNotes(bool $isTrial, ?string $notes): string

@@ -2,6 +2,7 @@ import { Activity, Loader } from "lucide-react";
 import { ACTIVITY_RANGE_OPTIONS, useTenantActivitySection } from "./useTenantActivitySection";
 import { TenantActivityLineChart } from "./TenantActivityLineChart";
 import { TenantActivityHourlyChart } from "./TenantActivityHourlyChart";
+import { TenantTodaySalesWidget } from "./TenantTodaySalesWidget";
 import { InactivityBadge } from "./InactivityBadge";
 import { daysSince } from "@/utils/dateUtils";
 
@@ -59,6 +60,7 @@ export const TenantActivitySection = ({ tenantId, lastActivityAt }: TenantActivi
                 </div>
             ) : (
                 <div className="mt-4 space-y-6">
+                    <TenantTodaySalesWidget todaySales={data?.today_sales} />
                     <div>
                         <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">
                             Actividad diaria
