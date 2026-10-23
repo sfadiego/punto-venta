@@ -59,6 +59,32 @@ class TenantActivityService
     }
 
     /**
+     * Ventas cerradas hoy por tenant, contadas desde los eventos SALE_CLOSED del log.
+     *
+     * @return array{total: int, hourly: array<int, array{hour: int, count: int}>}
+     */
+    public function todaySalesReport(int $tenantId): array
+    {
+        $countsByHour = [];
+        TenantActivityLogModel::query()
+            ->where(TenantActivityLogModel::TENANT_ID, $tenantId)
+            ->where(TenantActivityLogModel::TYPE, ActivityTypeEnum::SALE_CLOSED->value)
+            ->where(TenantActivityLogModel::CREATED_AT, '>=', now()->startOfDay())
+            ->pluck(TenantActivityLogModel::CREATED_AT)
+            ->each(function ($createdAt) use (&$countsByHour) {
+                $hour = (int) Carbon::parse($createdAt)->format('G');
+                $countsByHour[$hour] = ($countsByHour[$hour] ?? 0) + 1;
+            });
+
+        $hourly = [];
+        for ($hour = 0; $hour < 24; $hour++) {
+            $hourly[] = ['hour' => $hour, 'count' => $countsByHour[$hour] ?? 0];
+        }
+
+        return ['total' => array_sum($countsByHour), 'hourly' => $hourly];
+    }
+
+    /**
      * Horario de mayor uso a nivel sistema (todos los tenants) — a diferencia de report(), que
      * es por tenant, aquí se agrupa por hora en PHP en vez de una función de fecha específica
      * del motor (HOUR() de MySQL no existe en SQLite, usado por los tests) — solo se trae la

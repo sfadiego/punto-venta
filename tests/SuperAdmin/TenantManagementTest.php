@@ -2,6 +2,7 @@
 
 namespace Tests\SuperAdmin;
 
+use App\Enums\ActivityTypeEnum;
 use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionPlanEnum;
@@ -207,6 +208,39 @@ class TenantManagementTest extends TestCase
             $recent->toDateTimeString(),
             Carbon::parse($response->json('data.last_activity_at'))->toDateTimeString()
         );
+    }
+
+    public function test_actividad_incluye_ventas_de_hoy_solo_sale_closed(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $otherTenant = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'otro-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Otro',
+        ]);
+
+        $log = fn (int $tenantId, ActivityTypeEnum $type, $createdAt) => TenantActivityLogModel::factory()->create([
+            TenantActivityLogModel::TENANT_ID => $tenantId,
+            TenantActivityLogModel::TYPE => $type->value,
+            TenantActivityLogModel::CREATED_AT => $createdAt,
+        ]);
+
+        $log($tenant->id, ActivityTypeEnum::SALE_CLOSED, now()->startOfDay()->addHours(10));
+        $log($tenant->id, ActivityTypeEnum::SALE_CLOSED, now()->startOfDay()->addHours(10)->addMinutes(5));
+        $log($tenant->id, ActivityTypeEnum::SALE_CLOSED, now()->startOfDay()->addHours(15));
+        $log($tenant->id, ActivityTypeEnum::LOGIN, now()->startOfDay()->addHours(9));
+        $log($tenant->id, ActivityTypeEnum::SALE_CLOSED, now()->subDay());
+        $log($otherTenant->id, ActivityTypeEnum::SALE_CLOSED, now()->startOfDay()->addHours(10));
+
+        $response = $this->getJson("/api/super-admin/tenant/{$tenant->id}/activity", $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.today_sales.total', 3);
+
+        $hourly = collect($response->json('data.today_sales.hourly'));
+        $this->assertCount(24, $hourly);
+        $this->assertSame(2, $hourly->firstWhere('hour', 10)['count']);
+        $this->assertSame(1, $hourly->firstWhere('hour', 15)['count']);
+        $this->assertSame(0, $hourly->firstWhere('hour', 9)['count']);
     }
 
     // ── Store ─────────────────────────────────────────────────
