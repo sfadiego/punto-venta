@@ -19,6 +19,7 @@ use App\Services\SubscriptionService;
 use App\Services\TenantActivityService;
 use App\Services\TenantDemoDataService;
 use App\Services\TenantService;
+use App\Services\TenantSessionService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -122,9 +123,13 @@ class TenantManagementController extends Controller
         return Response::success($tenant);
     }
 
-    public function toggle(BusinessConfigModel $tenant): JsonResponse
+    public function toggle(BusinessConfigModel $tenant, TenantSessionService $sessionService): JsonResponse
     {
         $tenant->update([BusinessConfigModel::ACTIVO => ! $tenant->activo]);
+
+        if (! $tenant->activo) {
+            $sessionService->revokeAll($tenant);
+        }
 
         return Response::success($tenant);
     }
@@ -144,8 +149,10 @@ class TenantManagementController extends Controller
         return Response::success(true);
     }
 
-    public function delete(BusinessConfigModel $tenant): JsonResponse
+    public function delete(BusinessConfigModel $tenant, TenantSessionService $sessionService): JsonResponse
     {
+        $sessionService->revokeAll($tenant);
+
         return Response::success($tenant->delete());
     }
 

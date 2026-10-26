@@ -6,6 +6,7 @@ use App\Enums\BusinessTypeEnum;
 use App\Models\BusinessConfigModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class TenantUpdateRequest extends FormRequest
 {
@@ -36,6 +37,22 @@ class TenantUpdateRequest extends FormRequest
             BusinessConfigModel::STOCK_ENABLED => 'boolean',
             BusinessConfigModel::MAX_USERS => 'nullable|integer|min:1|max:999',
             BusinessConfigModel::SUBSCRIPTION_AMOUNT => 'nullable|numeric|min:0',
+        ];
+    }
+
+    /**
+     * Un tenant desactivado no se edita hasta reactivarlo (PATCH tenant/{tenant}/toggle).
+     *
+     * @return array<int, callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator) {
+                if ($this->route('tenant')?->activo === false) {
+                    $validator->errors()->add('tenant', __('Reactiva el negocio para poder editar su información.'));
+                }
+            },
         ];
     }
 }

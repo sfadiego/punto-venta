@@ -7,6 +7,7 @@ import { PrintAgentProvider } from "@/contexts/PrintAgentContext";
 import { BluetoothPrintProvider } from "@/contexts/BluetoothPrintContext";
 import { ScaleProvider } from "@/contexts/ScaleContext";
 import { useOrdersSocket } from "@/hooks/useOrdersSocket";
+import { useTenantSessionSocket } from "@/hooks/useTenantSessionSocket";
 import { useAppLayout } from "./useAppLayout";
 import { useAxios } from "@/hooks/useAxios";
 import { useBranchList } from "@/services/useBranchService";
@@ -29,6 +30,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         showToast: true,
         suppressCreated: features?.sell_by_weight === true,
     });
+    useTenantSessionSocket(user?.tenant_id);
     // enabled=isAuth: no dispararla mientras no hay sesión (este layout también se monta
     // sin autenticar, ver el `if (!isAuth)` de abajo).
     const { data: branches, isLoading: isLoadingBranches } = useBranchList(isAuth);
