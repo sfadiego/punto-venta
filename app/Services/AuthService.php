@@ -82,7 +82,7 @@ class AuthService
                     ...AppSettingModel::paymentInfo(),
                 ];
 
-                return AuthAttemptResult::fail($message, 'SUBSCRIPTION_EXPIRED', Http::Forbidden, $data);
+                return AuthAttemptResult::fail($message, ApiErrorCodeEnum::SubscriptionExpired->value, Http::Forbidden, $data);
             }
         }
 
@@ -98,7 +98,7 @@ class AuthService
 
                 return AuthAttemptResult::fail(
                     'Tu usuario no tiene ninguna sucursal asignada todavía. Contacta al administrador del negocio.',
-                    'NO_BRANCH_ASSIGNED',
+                    ApiErrorCodeEnum::NoBranchAssigned->value,
                     Http::Forbidden,
                 );
             }
@@ -121,7 +121,7 @@ class AuthService
 
                 return AuthAttemptResult::fail(
                     'Se alcanzó el límite de usuarios simultáneos. Intenta más tarde.',
-                    'CONCURRENT_USERS_LIMIT',
+                    ApiErrorCodeEnum::ConcurrentUsersLimit->value,
                     Http::Forbidden,
                 );
             }

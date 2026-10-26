@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ApiErrorCodeEnum;
 use App\Models\BusinessConfigModel;
 use Tests\TestCase;
 
@@ -37,7 +38,7 @@ class TenantPublicTest extends TestCase
         $response = $this->getJson("/api/tenant/{$tenant->slug}")
             ->assertStatus(403);
 
-        $this->assertEquals('TENANT_INACTIVE', $response->json('code'));
+        $this->assertEquals(ApiErrorCodeEnum::TenantInactive->value, $response->json('code'));
     }
 
     public function test_endpoint_es_publico_sin_autenticacion(): void

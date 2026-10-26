@@ -292,7 +292,7 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(403)
-            ->assertJsonPath('data.code', 'CONCURRENT_USERS_LIMIT');
+            ->assertJsonPath('data.code', ApiErrorCodeEnum::ConcurrentUsersLimit->value);
     }
 
     public function test_login_bloquea_suscripcion_vencida(): void
@@ -319,7 +319,7 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(403)
-            ->assertJsonPath('data.code', 'SUBSCRIPTION_EXPIRED')
+            ->assertJsonPath('data.code', ApiErrorCodeEnum::SubscriptionExpired->value)
             ->assertJsonPath('data.business_name', 'Sucursales')
             ->assertJsonPath('data.amount_due', 350)
             ->assertJsonPath('data.payment_info.bank', 'BBVA')
@@ -343,7 +343,7 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(403)
-            ->assertJsonPath('data.code', 'SUBSCRIPTION_EXPIRED');
+            ->assertJsonPath('data.code', ApiErrorCodeEnum::SubscriptionExpired->value);
     }
 
     public function test_login_cliente_no_demo_vencido_hace_un_dia_entra_en_gracia(): void
@@ -468,7 +468,7 @@ class AuthTest extends TestCase
             'email' => $admin->email,
             'password' => env('APP_ADMIN_PASSWORD'),
         ])->assertStatus(403)
-            ->assertJsonPath('data.code', 'CONCURRENT_USERS_LIMIT');
+            ->assertJsonPath('data.code', ApiErrorCodeEnum::ConcurrentUsersLimit->value);
     }
 
     public function test_limite_manual_sobreescribe_limite_del_plan_permitiendo_mas_sesiones(): void
@@ -514,7 +514,7 @@ class AuthTest extends TestCase
             'email' => $admin->email,
             'password' => env('APP_ADMIN_PASSWORD'),
         ])->assertStatus(403)
-            ->assertJsonPath('data.code', 'CONCURRENT_USERS_LIMIT');
+            ->assertJsonPath('data.code', ApiErrorCodeEnum::ConcurrentUsersLimit->value);
     }
 
     // ── Login bloquea usuarios inactivos ─────────────────────
@@ -586,7 +586,7 @@ class AuthTest extends TestCase
             'password' => 'chantico',
         ])->assertStatus(403)
             ->assertJsonPath('status', 'error')
-            ->assertJsonPath('data.code', 'NO_BRANCH_ASSIGNED');
+            ->assertJsonPath('data.code', ApiErrorCodeEnum::NoBranchAssigned->value);
     }
 
     public function test_login_sin_sucursal_asignada_no_crea_token(): void
