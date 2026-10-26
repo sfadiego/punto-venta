@@ -45,6 +45,19 @@ export const formatOrderDateTime = (dateStr: string): string =>
         minute: "2-digit",
     });
 
+/** Fecha + hora local con día de la semana, ej. "lunes, 20 de julio de 2026, 14:35" (es-MX); "—" si viene vacío. */
+export const formatSessionDateTime = (dateStr?: string): string => {
+    if (!dateStr) return "—";
+    return new Date(dateStr).toLocaleString("es-MX", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+};
+
 /** Fecha corta local de un texto "AAAA-MM-DD[ HH:MM:SS]", ej. "28 jun 2026" (es-MX); "—" si viene vacío. */
 export const formatDateShort = (dateStr: string | null | undefined): string => {
     const date = dateStr ? parseDateLocal(dateStr.slice(0, 10)) : null;
