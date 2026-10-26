@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Core\Enums\Http;
 use App\Enums\ActivityTypeEnum;
+use App\Enums\ApiErrorCodeEnum;
 use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionStatusEnum;
@@ -47,6 +48,16 @@ class AuthService
 
                 return AuthAttemptResult::fail(__('Credenciales no válidas.'));
             }
+        }
+
+        if ($this->isTenantUnavailable($result['user'])) {
+            $result['user']->tokens()->latest()->first()?->delete();
+
+            return AuthAttemptResult::fail(
+                __('Este negocio ha sido desactivado temporalmente. Contacta al administrador.'),
+                ApiErrorCodeEnum::TenantInactive->value,
+                Http::Forbidden,
+            );
         }
 
         $tenant = $result['user']->tenant;
@@ -125,5 +136,20 @@ class AuthService
         $result['tenant_slug'] = $tenant?->slug;
 
         return AuthAttemptResult::ok($result);
+    }
+
+    /**
+     * El tenant del usuario está desactivado o borrado. `User::tenant()` no trae tenants con borrado suave
+     * (devolvería null y se saltaría todos los chequeos del login), por eso se busca incluyéndolos.
+     */
+    private function isTenantUnavailable(User $user): bool
+    {
+        if ($user->tenant_id === null) {
+            return false;
+        }
+
+        $tenant = BusinessConfigModel::withTrashed()->find($user->tenant_id);
+
+        return ! $tenant || $tenant->trashed() || ! $tenant->activo;
     }
 }

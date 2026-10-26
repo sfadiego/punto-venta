@@ -3,7 +3,7 @@ import { useFormik, FormikProps } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useCreateTenant, useUpdateTenant, useListTenants } from "@/services/useSuperAdminService";
+import { useCreateTenant, useUpdateTenant, useGetTenant } from "@/services/useSuperAdminService";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 import { SubscriptionPlanEnum } from "@/enums/SubscriptionPlanEnum";
@@ -85,8 +85,7 @@ export const useTenantForm = (tenantId?: number) => {
     const navigate = useNavigate();
     const isEdit = !!tenantId;
 
-    const { data: tenants = [] } = useListTenants();
-    const tenant = tenants.find((t) => t.id === tenantId);
+    const { data: tenant } = useGetTenant(tenantId ?? 0);
 
     const createMutation = useCreateTenant();
     const updateMutation = useUpdateTenant();

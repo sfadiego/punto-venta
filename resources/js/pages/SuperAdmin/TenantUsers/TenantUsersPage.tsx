@@ -1,4 +1,4 @@
-import { ChevronLeft, Plus } from "lucide-react";
+import { ChevronLeft, Lock, Plus } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { SuperAdminRoutes } from "@/enums/RoutesEnum";
@@ -17,6 +17,7 @@ export default function TenantUsersPage() {
         isFetching,
         tenantSlug,
         tipoNegocio,
+        isTenantInactive,
         modalUser,
         isModalOpen,
         openCreate,
@@ -43,15 +44,28 @@ export default function TenantUsersPage() {
                             <p className="text-slate-500 text-sm mt-0.5">Gestión de usuarios del cliente</p>
                         </div>
                     </div>
-                    <SeedUsersButton tenantId={tenantId} />
-                    <button
-                        onClick={openCreate}
-                        className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2.5 rounded-xl text-sm transition-colors"
-                    >
-                        <Plus size={16} />
-                        Nuevo usuario
-                    </button>
+                    {!isTenantInactive && (
+                        <>
+                            <SeedUsersButton tenantId={tenantId} />
+                            <button
+                                onClick={openCreate}
+                                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2.5 rounded-xl text-sm transition-colors"
+                            >
+                                <Plus size={16} />
+                                Nuevo usuario
+                            </button>
+                        </>
+                    )}
                 </div>
+
+                {isTenantInactive && (
+                    <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 mb-4">
+                        <Lock size={18} className="text-amber-600 shrink-0 mt-0.5" />
+                        <p className="text-sm text-amber-800">
+                            Este cliente está desactivado. Solo puedes consultar sus usuarios; reactívalo para crear o modificar.
+                        </p>
+                    </div>
+                )}
 
                 <UserTable
                     users={users}
@@ -59,6 +73,7 @@ export default function TenantUsersPage() {
                     tenantId={tenantId}
                     onEdit={openEdit}
                     onDelete={handleDelete}
+                    readOnly={isTenantInactive}
                 />
             </div>
 

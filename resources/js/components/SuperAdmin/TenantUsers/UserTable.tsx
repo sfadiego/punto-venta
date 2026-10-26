@@ -12,11 +12,13 @@ interface UserTableProps {
     tenantId: number;
     onEdit: (user: IUser) => void;
     onDelete: (user: IUser) => void;
+    /** Sin acciones por fila (cliente desactivado). */
+    readOnly?: boolean;
 }
 
-export const UserTable = ({ users, isFetching, tenantId, onEdit, onDelete }: UserTableProps) => {
-    const columns = useMemo<DataTableColumn<IUser>[]>(
-        () => [
+export const UserTable = ({ users, isFetching, tenantId, onEdit, onDelete, readOnly = false }: UserTableProps) => {
+    const columns = useMemo<DataTableColumn<IUser>[]>(() => {
+        const baseColumns: DataTableColumn<IUser>[] = [
             {
                 accessor: "nombre",
                 title: "Usuario",
@@ -53,6 +55,12 @@ export const UserTable = ({ users, isFetching, tenantId, onEdit, onDelete }: Use
                 width: 140,
                 render: (user) => <UserStatusCell user={user} tenantId={tenantId} />,
             },
+        ];
+
+        if (readOnly) return baseColumns;
+
+        return [
+            ...baseColumns,
             {
                 accessor: "_acciones" as keyof IUser,
                 title: "",
@@ -62,9 +70,8 @@ export const UserTable = ({ users, isFetching, tenantId, onEdit, onDelete }: Use
                     <UserRowActions user={user} tenantId={tenantId} onEdit={onEdit} onDelete={onDelete} />
                 ),
             },
-        ],
-        [tenantId, onEdit, onDelete],
-    );
+        ];
+    }, [tenantId, onEdit, onDelete, readOnly]);
 
     return (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">

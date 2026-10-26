@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Core\Enums\Http;
+use App\Enums\ApiErrorCodeEnum;
 use App\Models\BusinessConfigModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Response;
@@ -23,7 +24,7 @@ class TenantController extends Controller
                 'Este negocio ha sido desactivado temporalmente. Contacta al administrador.',
                 null,
                 Http::Forbidden,
-                'TENANT_INACTIVE',
+                ApiErrorCodeEnum::TenantInactive->value,
             );
         }
 

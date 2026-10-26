@@ -1,8 +1,7 @@
-import { ChevronLeft, Loader, Users } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Loader } from "lucide-react";
+import { useParams } from "react-router-dom";
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { useTenantForm } from "./useTenantForm";
-import { SuperAdminRoutes } from "@/enums/RoutesEnum";
 import { UserLimitSection } from "@/components/SuperAdmin/Tenants/Users/UserLimitSection";
 import { SubscriptionAmountSection } from "@/components/SuperAdmin/Tenants/Sections/SubscriptionAmountSection";
 import { ActiveUsersDetail } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersBadge";
@@ -18,47 +17,39 @@ import { TenantFeatureSpotlightsSection } from "@/components/SuperAdmin/Tenants/
 import { TenantRolePermissionsSection } from "@/components/SuperAdmin/Tenants/TenantRolePermissionsSection/TenantRolePermissionsSection";
 import { TenantBranchesSection } from "@/components/SuperAdmin/Tenants/TenantBranchesSection/TenantBranchesSection";
 import { TenantActivitySection } from "@/components/SuperAdmin/Tenants/Activity/TenantActivitySection";
+import { TenantInactiveSummary } from "@/components/SuperAdmin/Tenants/Sections/TenantInactiveSummary";
+import { TenantFormHeader } from "./partials/TenantFormHeader";
 import { TenantFormNav } from "./partials/TenantFormNav";
 import { useGetTenant } from "@/services/useSuperAdminService";
 
 export default function TenantFormPage() {
-    const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const tenantId = id ? Number(id) : undefined;
     const { formik, isEdit, handleResetColors, handleSyncAdminEmail } = useTenantForm(tenantId);
-    const { data: tenantDetail, refetch: refetchDetail, isRefetching: isRefetchingDetail } = useGetTenant(tenantId ?? 0);
+    const { data: tenantDetail, isLoading: isLoadingDetail, refetch: refetchDetail, isRefetching: isRefetchingDetail } = useGetTenant(tenantId ?? 0);
+
+    // Un cliente desactivado solo se consulta: se edita únicamente después de reactivarlo.
+    if (isEdit && (isLoadingDetail || tenantDetail?.activo === false)) {
+        return (
+            <SuperAdminLayout>
+                <div className="px-6 py-6 max-w-4xl mx-auto">
+                    <TenantFormHeader isEdit={isEdit} tenantId={tenantId} />
+                    {tenantDetail ? (
+                        <TenantInactiveSummary tenant={tenantDetail} />
+                    ) : (
+                        <div className="flex justify-center py-16">
+                            <Loader size={24} className="animate-spin text-slate-400" />
+                        </div>
+                    )}
+                </div>
+            </SuperAdminLayout>
+        );
+    }
 
     return (
         <SuperAdminLayout>
             <div className="px-6 py-6 max-w-4xl mx-auto">
-                <div className="flex items-center justify-between gap-3 mb-6">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => navigate(SuperAdminRoutes.Tenants)}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
-                        >
-                            <ChevronLeft size={20} />
-                        </button>
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900">
-                                {isEdit ? "Editar cliente" : "Nuevo cliente"}
-                            </h1>
-                            <p className="text-slate-500 text-sm mt-0.5">
-                                {isEdit ? "Modifica la configuración del tenant" : "Registra un nuevo tenant en el sistema"}
-                            </p>
-                        </div>
-                    </div>
-                    {isEdit && (
-                        <button
-                            type="button"
-                            onClick={() => navigate(SuperAdminRoutes.TenantUsers.replace(":id", String(tenantId)))}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-                        >
-                            <Users size={15} />
-                            Usuarios
-                        </button>
-                    )}
-                </div>
+                <TenantFormHeader isEdit={isEdit} tenantId={tenantId} />
 
                 {isEdit && tenantDetail && (
                     <div className="mb-4">

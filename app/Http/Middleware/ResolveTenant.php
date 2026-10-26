@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\ApiErrorCodeEnum;
 use App\Models\BusinessConfigModel;
 use Closure;
 use Illuminate\Http\Request;
@@ -15,14 +16,11 @@ class ResolveTenant
         if ($user = $request->user()) {
             $tenant = BusinessConfigModel::find($user->tenant_id);
 
-            if (! $tenant) {
-                return Response::json(['message' => 'Tenant no encontrado.'], 403);
-            }
-
-            if (! $tenant->activo) {
+            // Un tenant borrado se trata como inactivo: el frontend solo cierra sesión con este código.
+            if (! $tenant || ! $tenant->activo) {
                 return Response::json([
                     'message' => 'La suscripción está desactivada. Contacta al administrador.',
-                    'code' => 'TENANT_INACTIVE',
+                    'code' => ApiErrorCodeEnum::TenantInactive->value,
                 ], 403);
             }
 

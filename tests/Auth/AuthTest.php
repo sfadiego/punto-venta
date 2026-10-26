@@ -2,6 +2,7 @@
 
 namespace Tests\Auth;
 
+use App\Enums\ApiErrorCodeEnum;
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionPlanEnum;
 use App\Models\AppSettingModel;
@@ -748,5 +749,79 @@ class AuthTest extends TestCase
             'password' => 'Test1234',
             'password_confirmation' => 'Test1234',
         ])->assertStatus(429);
+    }
+
+    // ── Tenant desactivado o borrado ──────────────────────────
+
+    private function loginAdmin(array $extra = [])
+    {
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        return $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+            ...$extra,
+        ]);
+    }
+
+    public function test_login_bloquea_tenant_inactivo(): void
+    {
+        BusinessConfigModel::first()->update([BusinessConfigModel::ACTIVO => false]);
+
+        $this->loginAdmin()
+            ->assertStatus(403)
+            ->assertJsonPath('data.code', ApiErrorCodeEnum::TenantInactive->value)
+            ->assertJsonPath('message', 'Este negocio ha sido desactivado temporalmente. Contacta al administrador.');
+    }
+
+    public function test_login_bloquea_tenant_borrado(): void
+    {
+        BusinessConfigModel::first()->delete();
+
+        $this->loginAdmin()
+            ->assertStatus(403)
+            ->assertJsonPath('data.code', ApiErrorCodeEnum::TenantInactive->value);
+    }
+
+    public function test_login_bloqueado_por_tenant_inactivo_no_deja_token_valido(): void
+    {
+        BusinessConfigModel::first()->update([BusinessConfigModel::ACTIVO => false]);
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $this->loginAdmin()
+            ->assertStatus(403)
+            ->assertJsonMissingPath('data.access_token');
+
+        $this->assertSame(0, PersonalAccessToken::where('tokenable_id', $admin->id)->count());
+    }
+
+    public function test_tenant_inactivo_gana_a_suscripcion_vencida_en_el_login(): void
+    {
+        BusinessConfigModel::first()->update([
+            BusinessConfigModel::ACTIVO => false,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Monthly->value,
+            'subscription_expires_at' => now()->subDays(10),
+        ]);
+
+        $this->loginAdmin()
+            ->assertStatus(403)
+            ->assertJsonPath('data.code', ApiErrorCodeEnum::TenantInactive->value);
+    }
+
+    public function test_login_con_slug_de_tenant_inactivo_se_bloquea(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::ACTIVO => false]);
+
+        $this->loginAdmin(['slug' => $tenant->slug])
+            ->assertStatus(403)
+            ->assertJsonPath('data.code', ApiErrorCodeEnum::TenantInactive->value);
+    }
+
+    public function test_login_con_tenant_activo_sigue_funcionando(): void
+    {
+        $this->loginAdmin()
+            ->assertStatus(200)
+            ->assertJsonStructure(['data' => ['access_token']]);
     }
 }

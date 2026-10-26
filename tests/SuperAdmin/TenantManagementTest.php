@@ -537,6 +537,43 @@ class TenantManagementTest extends TestCase
         $this->assertDatabaseHas('business_config', ['id' => $tenant->id, 'business_name' => 'Nombre Actualizado']);
     }
 
+    private function updatePayload(BusinessConfigModel $tenant, array $overrides = []): array
+    {
+        return array_merge([
+            'slug' => $tenant->slug,
+            'business_name' => 'Nombre Actualizado',
+            'primary_color' => '#FF5733',
+            'sidebar_color' => '#1C1917',
+            'font_color' => '#FFFFFF',
+            'label_color' => '#000000',
+        ], $overrides);
+    }
+
+    public function test_no_actualiza_tenant_desactivado(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $originalName = $tenant->business_name;
+        $tenant->update([BusinessConfigModel::ACTIVO => false]);
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant), $this->superAdminHeaders())
+            ->assertStatus(400)
+            ->assertJsonPath('data.tenant.0', 'Reactiva el negocio para poder editar su información.');
+
+        $this->assertDatabaseHas('business_config', ['id' => $tenant->id, 'business_name' => $originalName]);
+    }
+
+    public function test_actualiza_tenant_una_vez_reactivado(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::ACTIVO => false]);
+        $this->patchJson("/api/super-admin/tenant/{$tenant->id}/toggle", [], $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant), $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.business_name', 'Nombre Actualizado');
+    }
+
     public function test_activa_impresion_bluetooth_del_tenant(): void
     {
         $tenant = BusinessConfigModel::first();
