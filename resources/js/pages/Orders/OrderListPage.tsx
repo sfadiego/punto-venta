@@ -5,7 +5,7 @@ import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { useOrderList } from "./useOrderList";
 import { OrderFilters } from "./partials/OrderFilters";
 import { OrderSearch } from "./partials/OrderSearch";
-import { LayawaySummaryCards } from "./partials/Layaway/LayawaySummaryCards";
+import { LayawayOverdueNotice } from "./partials/Layaway/LayawayOverdueNotice";
 import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
 import { ExpensesButton } from "@/components/orders/ExpensesButton";
@@ -86,7 +86,12 @@ export default function OrderListPage() {
                 </div>
             ) : (
                 <>
-                    {showingLayaways && <LayawaySummaryCards summary={layawaySummary} />}
+                    {showLayaways && !showingLayaways && layawaySummary && layawaySummary.overdue_count > 0 && (
+                        <LayawayOverdueNotice
+                            summary={layawaySummary}
+                            onView={() => handleEstatusChange(String(OrderStatusEnum.Layaway))}
+                        />
+                    )}
                     <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
                         <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
                             <div className="flex-1 min-w-[220px] lg:max-w-sm">
@@ -101,6 +106,8 @@ export default function OrderListPage() {
                                     estatusId={estatusId}
                                     showOrderServed={showOrderServed}
                                     showLayaways={showLayaways}
+                                    layawayActiveCount={layawaySummary?.active_count}
+                                    layawayOverdueCount={layawaySummary?.overdue_count}
                                     onEstatusChange={handleEstatusChange}
                                     onClear={handleClearFilters}
                                 />

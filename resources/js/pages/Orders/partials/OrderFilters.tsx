@@ -1,6 +1,7 @@
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { X } from "lucide-react";
 import { getActiveStatuses } from "@/utils/orderStatus";
+import { LayawayTabBadge } from "./Layaway/LayawayTabBadge";
 
 const BASE_STATUS_OPTIONS = [
     { value: String(OrderStatusEnum.InProcess), label: "En proceso", dot: "bg-amber-400", orderServedOnly: false, hideWhenNoServed: true },
@@ -19,6 +20,9 @@ interface OrderFiltersProps {
     showOrderServed?: boolean;
     /** Apartados (solo retail con permiso `layaway`): agrega los filtros "Apartados" y "Cancelados". */
     showLayaways?: boolean;
+    /** Apartados activos y vencidos: se muestran como contador en la pestaña "Apartados". */
+    layawayActiveCount?: number;
+    layawayOverdueCount?: number;
     onEstatusChange: (value: string) => void;
     onClear: () => void;
 }
@@ -29,6 +33,8 @@ export const OrderFilters = ({
     estatusId,
     showOrderServed = true,
     showLayaways = false,
+    layawayActiveCount = 0,
+    layawayOverdueCount = 0,
     onEstatusChange,
     onClear,
 }: OrderFiltersProps) => {
@@ -67,6 +73,9 @@ export const OrderFilters = ({
                         >
                             <span className={`w-2 h-2 rounded-full ${opt.dot}`} />
                             {opt.label}
+                            {opt.value === String(OrderStatusEnum.Layaway) && layawayActiveCount > 0 && (
+                                <LayawayTabBadge count={layawayActiveCount} overdueCount={layawayOverdueCount} />
+                            )}
                         </button>
                     );
                 })}

@@ -1,7 +1,8 @@
+import { ChevronDown } from "lucide-react";
 import { ILayawaySummary, IReturnsSummary } from "@/services/useOpenSalesService";
-import { formatCurrency } from "@/utils/formatCurrency";
-import { CloseSalesReceiptGroup } from "./CloseSalesReceiptGroup";
-import { CloseSalesReceiptRow } from "./CloseSalesReceiptRow";
+import { buildIncludedSummary } from "@/utils/closeSalesReceipt";
+import { CloseSalesReceiptIncludedGroup } from "./CloseSalesReceiptIncludedGroup";
+import { CloseSalesReceiptIncludedRow } from "./CloseSalesReceiptIncludedRow";
 
 interface CloseSalesReceiptIncludedProps {
     layawaySummary: ILayawaySummary;
@@ -11,38 +12,41 @@ interface CloseSalesReceiptIncludedProps {
 }
 
 // Desglose de apartados y devoluciones de la sesión. Ya están dentro de las ventas por método de pago,
-// por eso va aparte de la cuenta del efectivo: solo explica, no suma ni resta otra vez.
+// por eso va plegado y sin signos ni rojo: solo explica, no se suma ni se resta otra vez.
 export const CloseSalesReceiptIncluded = ({
     layawaySummary,
     returnsSummary,
     hasLayaway,
     hasReturns,
 }: CloseSalesReceiptIncludedProps) => (
-    <div className="mt-5 rounded-xl border border-dashed border-stone-300 px-4 pb-2 pt-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-stone-500">Ya incluido en las ventas</h2>
-        <p className="text-xs text-stone-500 mt-0.5">Estos movimientos no se suman ni se restan otra vez.</p>
+    <details className="group mt-5 rounded-xl border border-stone-200 text-sm text-stone-500">
+        <summary className="flex min-h-11 cursor-pointer list-none flex-wrap items-center justify-between gap-x-3 gap-y-0.5 px-4 py-2.5 [&::-webkit-details-marker]:hidden">
+            <span>
+                <span className="font-semibold text-stone-800">Apartados y devoluciones</span> · desglose
+            </span>
+            <span className="flex items-center gap-1.5">
+                <span className="font-mono tabular-nums">{buildIncludedSummary(layawaySummary, returnsSummary, { hasLayaway, hasReturns })}</span>
+                <ChevronDown size={16} className="shrink-0 text-stone-400 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
+            </span>
+        </summary>
 
-        <ul className="[&>li:last-child]:border-b-0">
+        <ul className="space-y-1 px-4 pb-3">
             {hasLayaway && (
                 <>
-                    <CloseSalesReceiptGroup title={`Apartados · neto ${formatCurrency(layawaySummary.neto)}`} />
-                    <CloseSalesReceiptRow label="Abonos recibidos" amount={layawaySummary.abonos} sign="plus" />
-                    <CloseSalesReceiptRow label="Reembolsos" amount={layawaySummary.reembolsos} sign="minus" />
+                    <CloseSalesReceiptIncludedGroup title="Apartados · neto" amount={layawaySummary.neto} />
+                    <CloseSalesReceiptIncludedRow label="Abonos recibidos" amount={layawaySummary.abonos} />
+                    <CloseSalesReceiptIncludedRow label="Reembolsos" amount={layawaySummary.reembolsos} />
                 </>
             )}
             {hasReturns && (
                 <>
-                    <CloseSalesReceiptGroup title={`Devoluciones · ${returnsSummary.count}`} />
-                    <CloseSalesReceiptRow label="Devuelto al cliente" amount={returnsSummary.cash_out} sign="minus" />
+                    <CloseSalesReceiptIncludedGroup title={`Devoluciones · ${returnsSummary.count}`} amount={returnsSummary.total} />
+                    <CloseSalesReceiptIncludedRow label="Devuelto al cliente" amount={returnsSummary.cash_out} />
                     {returnsSummary.balance_applied > 0 && (
-                        <CloseSalesReceiptRow
-                            label="Saldo de clientes a crédito"
-                            amount={returnsSummary.balance_applied}
-                            sign="minus"
-                        />
+                        <CloseSalesReceiptIncludedRow label="Saldo de clientes a crédito" amount={returnsSummary.balance_applied} />
                     )}
                 </>
             )}
         </ul>
-    </div>
+    </details>
 );

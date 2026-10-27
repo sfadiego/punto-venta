@@ -89,7 +89,7 @@ export const useOrderList = () => {
     const showingCanceledLayaways = showLayaways && estatusId === String(OrderStatusEnum.Canceled);
     // Apartados activos y cancelados duran más que una sesión de caja: se listan de todas las sesiones.
     const spansSessions = showingLayaways || showingCanceledLayaways;
-    const { data: layawaySummary } = useLayawaySummary(branchId, showingLayaways);
+    const { data: layawaySummary } = useLayawaySummary(branchId, showLayaways);
 
     const { dataTableProps, isLoading, isFetching, refetch, setPage } = useDataTable({
         service: useIndexOrder,

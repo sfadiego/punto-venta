@@ -1,4 +1,5 @@
 import { ILayawaySummary, IReturnsSummary } from "@/services/useOpenSalesService";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 export type ReceiptRowSign = "plus" | "minus" | "none";
 
@@ -104,3 +105,16 @@ export const getRetailMovements = (
     hasLayaway: isRetail && (layawaySummary.abonos > 0 || layawaySummary.reembolsos > 0),
     hasReturns: isRetail && returnsSummary.count > 0,
 });
+
+/** Resumen de una línea del bloque plegado de apartados y devoluciones, ej. "apartados $454.80 · 4 devoluciones". */
+export const buildIncludedSummary = (
+    layawaySummary: ILayawaySummary,
+    returnsSummary: IReturnsSummary,
+    flags: RetailMovementsFlags,
+): string =>
+    [
+        flags.hasLayaway ? `apartados ${formatCurrency(layawaySummary.neto)}` : null,
+        flags.hasReturns ? `${returnsSummary.count} ${returnsSummary.count === 1 ? "devolución" : "devoluciones"}` : null,
+    ]
+        .filter(Boolean)
+        .join(" · ");

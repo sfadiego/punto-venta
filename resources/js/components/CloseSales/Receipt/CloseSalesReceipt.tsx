@@ -49,7 +49,7 @@ export const CloseSalesReceipt = ({
     const cashRows = buildCashLedgerRows({
         efectivoInicio,
         totalEfectivoPagado,
-        salesNote: hasLayaway || hasReturns ? "Ya con apartados y devoluciones" : undefined,
+        salesNote: hasLayaway || hasReturns ? "Apartados y devoluciones" : undefined,
         totalPropinaEfectivo,
         totalDomicilios,
         totalGastos,

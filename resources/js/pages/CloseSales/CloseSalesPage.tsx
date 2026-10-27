@@ -1,26 +1,15 @@
-import { usePermissions } from "@/hooks/usePermissions";
-import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
-import { isCustomersModuleEnabled } from "@/utils/customersModule";
-import { useAxios } from "@/hooks/useAxios";
 import { useCloseSalesPage } from "./useCloseSalesPage";
-import BestSellerWidget from "./partials/BestSellerWidget";
-import CreditCustomersWidget from "./partials/CreditCustomersWidget";
-import CloseSalesCategoryReportWidget from "./partials/CloseSalesCategoryReportWidget";
 import { CloseSalesLoader } from "./partials/CloseSalesLoader";
 import { CloseSalesNoOpenSale } from "./partials/CloseSalesNoOpenSale";
-import { SalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/SalesByCategoryModal";
-import { useSalesByCategoryModal } from "@/pages/Sales/partials/SalesByCategoryModal/useSalesByCategoryModal";
 import { CloseSalesReceipt } from "@/components/CloseSales/Receipt/CloseSalesReceipt";
 import { CloseSalesExpensesModal } from "@/components/CloseSales/CashSummary/CloseSalesExpensesModal";
 import { CloseSalesActiveOrdersAlert } from "@/components/CloseSales/CloseSalesActiveOrdersAlert";
-import { CloseSalesSectionHeading } from "@/components/CloseSales/CloseSalesSectionHeading";
 import { CloseSalesCloseButton } from "@/components/CloseSales/CloseSalesCloseButton";
 import { CloseSalesEmptySessionNotice } from "@/components/CloseSales/CloseSalesEmptySessionNotice";
 
 export default function CloseSalesPage() {
     const {
         activeSale,
-        sistemaId,
         efectivoInicio,
         totalDomicilios,
         totalNeto,
@@ -48,12 +37,6 @@ export default function CloseSalesPage() {
         isClosing,
         handleClose,
     } = useCloseSalesPage();
-
-    const { can } = usePermissions();
-    const { features } = useAxios();
-    const categoryModal = useSalesByCategoryModal();
-    const { data: config } = useGetBusinessConfig();
-    const customersEnabled = isCustomersModuleEnabled(features, config);
 
     if (isLoading) return <CloseSalesLoader />;
 
@@ -93,28 +76,6 @@ export default function CloseSalesPage() {
                     onClick={handleClose}
                 />
             </div>
-
-            <section>
-                <CloseSalesSectionHeading title="Más datos de la sesión" />
-
-                {sellByWeight && can("viewSales") && (
-                    <CloseSalesCategoryReportWidget onOpen={categoryModal.open} />
-                )}
-
-                <BestSellerWidget sistemaId={sistemaId} />
-                {customersEnabled && <CreditCustomersWidget sistemaId={sistemaId} />}
-            </section>
-
-            <SalesByCategoryModal
-                isOpen={categoryModal.isOpen}
-                onClose={categoryModal.close}
-                data={categoryModal.data}
-                isLoading={categoryModal.isLoading}
-                totalBruto={categoryModal.totalBruto}
-                totalDomicilios={categoryModal.totalDomicilios}
-                totalNeto={categoryModal.totalNeto}
-                sistemaId={categoryModal.sistemaId}
-            />
 
             <CloseSalesExpensesModal
                 isOpen={isExpensesModalOpen}
