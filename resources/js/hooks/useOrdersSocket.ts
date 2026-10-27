@@ -59,10 +59,9 @@ interface UseOrdersSocketOptions {
      * canal privado suscribirse, así que el hook no hace nada. */
     tenantId?: number | null;
     showToast?: boolean;
-    suppressCreated?: boolean;
 }
 
-export const useOrdersSocket = ({ tenantId, showToast = false, suppressCreated = false }: UseOrdersSocketOptions = {}) => {
+export const useOrdersSocket = ({ tenantId, showToast = false }: UseOrdersSocketOptions = {}) => {
     const queryClient = useQueryClient();
 
     useEffect(() => {
@@ -70,7 +69,6 @@ export const useOrdersSocket = ({ tenantId, showToast = false, suppressCreated =
 
         const toastHandlers: Record<string, ToastHandler | undefined> = {
             new_public_order: () => toast.info("📋 Nueva solicitud de pedido recibida", { ...TOAST_BASE, autoClose: 6000 }),
-            created:          suppressCreated ? undefined : () => toast.info("Nuevo pedido recibido", TOAST_BASE),
             served:           () => toast.success("Orden servida", TOAST_BASE),
             restored_served:  () => toast.info("Orden actualizada", TOAST_BASE),
         };
@@ -99,5 +97,5 @@ export const useOrdersSocket = ({ tenantId, showToast = false, suppressCreated =
         return () => {
             channel.stopListening(EVENT, handler);
         };
-    }, [queryClient, tenantId, showToast, suppressCreated]);
+    }, [queryClient, tenantId, showToast]);
 };

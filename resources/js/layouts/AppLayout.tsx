@@ -28,7 +28,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
     useOrdersSocket({
         tenantId: user?.tenant_id,
         showToast: true,
-        suppressCreated: features?.sell_by_weight === true,
     });
     useTenantSessionSocket(user?.tenant_id);
     // enabled=isAuth: no dispararla mientras no hay sesión (este layout también se monta

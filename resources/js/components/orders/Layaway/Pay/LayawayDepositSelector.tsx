@@ -36,7 +36,7 @@ export const LayawayDepositSelector = ({ layaway }: LayawayDepositSelectorProps)
             </div>
             <Input<LayawayForm>
                 name="amount"
-                label="Monto fijo"
+                label="Monto de apartado"
                 inputType="number"
                 inputMode="decimal"
                 placeholder="0.00"

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\ApiErrorCodeEnum;
 use App\Enums\SubscriptionStatusEnum;
 use Closure;
 use Illuminate\Http\Request;
@@ -33,7 +34,7 @@ class CheckSubscription
             return response()->json([
                 'success' => false,
                 'message' => 'Tu suscripción no está activa. Revisa el estado de tu plan o contacta al administrador.',
-                'code' => 'SUBSCRIPTION_EXPIRED',
+                'code' => ApiErrorCodeEnum::SubscriptionExpired->value,
             ], 403);
         }
 

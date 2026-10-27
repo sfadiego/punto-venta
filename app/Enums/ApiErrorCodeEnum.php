@@ -8,4 +8,5 @@ enum ApiErrorCodeEnum: string
     case TenantInactive = 'TENANT_INACTIVE';
     case SubscriptionExpired = 'SUBSCRIPTION_EXPIRED';
     case NoBranchAssigned = 'NO_BRANCH_ASSIGNED';
+    case ConcurrentUsersLimit = 'CONCURRENT_USERS_LIMIT';
 }
