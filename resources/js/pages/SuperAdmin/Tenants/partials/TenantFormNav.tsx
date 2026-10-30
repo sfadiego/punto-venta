@@ -26,10 +26,15 @@ const DANGER_SECTION = { id: "peligro", label: "Zona de peligro", icon: <AlertTr
 interface TenantFormNavProps {
     isEdit: boolean;
     showDangerZone?: boolean;
+    // Un negocio de pruebas no lleva suscripción: se ocultan sus secciones.
+    isTest?: boolean;
 }
 
-export const TenantFormNav = ({ isEdit, showDangerZone = false }: TenantFormNavProps) => {
+const SUBSCRIPTION_SECTION_IDS = ["plan-inicial", "suscripcion"];
+
+export const TenantFormNav = ({ isEdit, showDangerZone = false, isTest = false }: TenantFormNavProps) => {
     let sections = isEdit ? [...BASE_SECTIONS, ...EDIT_SECTIONS] : [...BASE_SECTIONS, ...CREATE_SECTIONS];
+    if (isTest) sections = sections.filter((s) => !SUBSCRIPTION_SECTION_IDS.includes(s.id));
     if (isEdit && showDangerZone) sections = [...sections, DANGER_SECTION];
 
     const scrollTo = (id: string) => {

@@ -24,6 +24,9 @@ const SEARCH_DEBOUNCE_MS = 400;
 const toIsDemo = (filter: TenantDemoFilterEnum): boolean | undefined =>
     filter === TenantDemoFilterEnum.Demo ? true : undefined;
 
+const toIsTest = (filter: TenantDemoFilterEnum): boolean | undefined =>
+    filter === TenantDemoFilterEnum.Test ? true : undefined;
+
 export const useTenantList = () => {
     const [status, setStatus] = useState<TenantStatusEnum>(TenantStatusEnum.All);
     const [demoFilter, setDemoFilter] = useState<TenantDemoFilterEnum>(TenantDemoFilterEnum.All);
@@ -40,6 +43,7 @@ export const useTenantList = () => {
     const { data, isLoading, isFetching, refetch, isRefetching } = useListTenantsPaginated({
         status,
         isDemo: toIsDemo(demoFilter),
+        isTest: toIsTest(demoFilter),
         search: debouncedSearch || undefined,
         page,
         limit,

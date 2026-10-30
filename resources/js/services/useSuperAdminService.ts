@@ -34,6 +34,7 @@ export const useListTenants = (
 interface IListTenantsPaginatedParams {
     status: TenantStatusEnum;
     isDemo?: boolean;
+    isTest?: boolean;
     search?: string;
     page: number;
     limit: number;
@@ -41,12 +42,13 @@ interface IListTenantsPaginatedParams {
 
 // Versión paginada — usada por la tabla de TenantListPage (a diferencia de useListTenants,
 // que descarta la metadata de paginación y solo devuelve el array `data`).
-export const useListTenantsPaginated = ({ status, isDemo, search, page, limit }: IListTenantsPaginatedParams) =>
+export const useListTenantsPaginated = ({ status, isDemo, isTest, search, page, limit }: IListTenantsPaginatedParams) =>
     useQuery<IPaginate<ITenant>>({
-        queryKey: [QUERY_KEY, "paginated", status, isDemo, search, page, limit],
+        queryKey: [QUERY_KEY, "paginated", status, isDemo, isTest, search, page, limit],
         queryFn: async () => {
             const params: Record<string, string | number | boolean> = { status, page, limit };
             if (isDemo !== undefined) params.is_demo = isDemo;
+            if (isTest !== undefined) params.is_test = isTest;
             if (search) params.search = search;
             const res = await superAdminAxios.get(url, { params });
             return res.data as IPaginate<ITenant>;
