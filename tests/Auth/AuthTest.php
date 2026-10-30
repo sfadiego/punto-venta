@@ -346,6 +346,30 @@ class AuthTest extends TestCase
             ->assertJsonPath('data.code', ApiErrorCodeEnum::SubscriptionExpired->value);
     }
 
+    public function test_login_cliente_de_pruebas_vencido_o_sin_suscripcion_no_se_bloquea(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $admin = User::where('rol_id', RoleEnum::ADMIN->value)->first();
+
+        $tenant->update([
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Weekly->value,
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => now()->subMonths(2),
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ])->assertStatus(200);
+
+        $tenant->update([BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => null]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => $admin->email,
+            'password' => env('APP_ADMIN_PASSWORD'),
+        ])->assertStatus(200);
+    }
+
     public function test_login_cliente_no_demo_vencido_hace_un_dia_entra_en_gracia(): void
     {
         $tenant = BusinessConfigModel::first();

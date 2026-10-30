@@ -6,6 +6,7 @@ use App\Enums\ActivityTypeEnum;
 use App\Enums\BusinessTypeEnum;
 use App\Enums\RoleEnum;
 use App\Enums\SubscriptionPlanEnum;
+use App\Enums\SubscriptionStatusEnum;
 use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
 use App\Models\SubscriptionModel;
@@ -88,6 +89,24 @@ class TenantManagementTest extends TestCase
         $this->assertTrue($ids->contains($activo->id));
         $this->assertFalse($ids->contains($inactivo->id));
         $this->assertFalse($ids->contains($demo->id));
+    }
+
+    public function test_lista_tenants_oculta_de_pruebas_salvo_que_se_filtren(): void
+    {
+        $test = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'pruebas-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Pruebas',
+        ]);
+
+        foreach (['status=active', 'status=all', ''] as $query) {
+            $ids = collect($this->getJson("/api/super-admin/tenant?{$query}&limit=100", $this->superAdminHeaders())->json('data'))->pluck('id');
+            $this->assertFalse($ids->contains($test->id), "visible con '{$query}'");
+        }
+
+        $ids = collect($this->getJson('/api/super-admin/tenant?is_test=1&limit=100', $this->superAdminHeaders())->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($test->id));
     }
 
     public function test_lista_tenants_status_todos_excluye_inactivos(): void
@@ -547,6 +566,65 @@ class TenantManagementTest extends TestCase
             'font_color' => '#FFFFFF',
             'label_color' => '#000000',
         ], $overrides);
+    }
+
+    public function test_crea_tenant_de_pruebas_sin_suscripcion(): void
+    {
+        $response = $this->postJson('/api/super-admin/tenant', $this->tenantPayload([
+            BusinessConfigModel::IS_TEST => true,
+        ]), $this->superAdminHeaders())->assertStatus(200);
+
+        $tenantId = $response->json('data.id');
+        $this->assertDatabaseHas('business_config', ['id' => $tenantId, BusinessConfigModel::IS_TEST => true]);
+        $this->assertDatabaseMissing('subscriptions', ['tenant_id' => $tenantId]);
+        $this->assertSame(
+            SubscriptionStatusEnum::Active->value,
+            BusinessConfigModel::find($tenantId)->subscription_status,
+        );
+    }
+
+    public function test_crea_tenant_no_puede_ser_de_pruebas_y_demo_a_la_vez(): void
+    {
+        $this->postJson('/api/super-admin/tenant', $this->tenantPayload([
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::IS_DEMO => true,
+        ]), $this->superAdminHeaders())
+            ->assertStatus(400)
+            ->assertJsonPath('data.is_test.0', 'Un negocio de pruebas no puede ser también un cliente demo.');
+    }
+
+    public function test_actualiza_tenant_marcandolo_de_pruebas(): void
+    {
+        $tenant = BusinessConfigModel::first();
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant, [
+            BusinessConfigModel::IS_TEST => true,
+        ]), $this->superAdminHeaders())->assertStatus(200);
+
+        $this->assertDatabaseHas('business_config', ['id' => $tenant->id, BusinessConfigModel::IS_TEST => true]);
+    }
+
+    public function test_actualiza_tenant_sin_enviar_is_test_conserva_el_valor(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::IS_TEST => true]);
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant), $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertDatabaseHas('business_config', ['id' => $tenant->id, BusinessConfigModel::IS_TEST => true]);
+    }
+
+    public function test_actualiza_tenant_no_puede_ser_de_pruebas_y_demo_a_la_vez(): void
+    {
+        $tenant = BusinessConfigModel::first();
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant, [
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::IS_DEMO => true,
+        ]), $this->superAdminHeaders())
+            ->assertStatus(400)
+            ->assertJsonPath('data.is_test.0', 'Un negocio de pruebas no puede ser también un cliente demo.');
     }
 
     public function test_no_actualiza_tenant_desactivado(): void

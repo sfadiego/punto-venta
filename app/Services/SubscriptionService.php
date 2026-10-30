@@ -31,4 +31,19 @@ class SubscriptionService
 
         return $log;
     }
+
+    /**
+     * Pago registrado por el SuperAdmin. Un pago real (monto > 0) convierte al prospecto demo en cliente:
+     * se desmarca is_demo para que cuente en "Activos" e ingresos y recupere los días de gracia.
+     */
+    public function registerPayment(BusinessConfigModel $tenant, SubscriptionPlanEnum $plan, Carbon $startsAt, ?float $amount, ?string $notes): SubscriptionModel
+    {
+        $log = $this->start($tenant, $plan, $startsAt, $amount, $notes);
+
+        if ($tenant->is_demo && $amount > 0) {
+            $tenant->update([BusinessConfigModel::IS_DEMO => false]);
+        }
+
+        return $log;
+    }
 }

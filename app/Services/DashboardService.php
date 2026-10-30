@@ -46,8 +46,9 @@ class DashboardService
         $base = BusinessConfigModel::withoutTrashed();
 
         return [
-            'active' => (clone $base)->where(BusinessConfigModel::ACTIVO, true)->where(BusinessConfigModel::IS_DEMO, false)->count(),
+            'active' => (clone $base)->where(BusinessConfigModel::ACTIVO, true)->where(BusinessConfigModel::IS_DEMO, false)->where(BusinessConfigModel::IS_TEST, false)->count(),
             'demo' => (clone $base)->where(BusinessConfigModel::IS_DEMO, true)->count(),
+            'test' => (clone $base)->where(BusinessConfigModel::IS_TEST, true)->count(),
             'inactive' => (clone $base)->where(BusinessConfigModel::ACTIVO, false)->count(),
         ];
     }
@@ -87,13 +88,14 @@ class DashboardService
             ->toArray();
     }
 
-    /** Tenants activos o demo con suscripción venciendo en los próximos EXPIRING_SOON_DAYS días. */
+    /** Tenants activos o demo (no de pruebas) con suscripción venciendo en los próximos EXPIRING_SOON_DAYS días. */
     private function expiringSubscriptions(): array
     {
         return BusinessConfigModel::withoutTrashed()
             ->where(function ($q) {
                 $q->where(BusinessConfigModel::ACTIVO, true)->orWhere(BusinessConfigModel::IS_DEMO, true);
             })
+            ->where(BusinessConfigModel::IS_TEST, false)
             ->whereBetween(BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT, [
                 Carbon::today(),
                 Carbon::today()->addDays(self::EXPIRING_SOON_DAYS),
@@ -113,7 +115,7 @@ class DashboardService
             ->toArray();
     }
 
-    /** Tenants activos/demo sin actividad (login/venta/sesión) en los últimos STALE_DAYS días. */
+    /** Tenants activos/demo (no de pruebas) sin actividad (login/venta/sesión) en los últimos STALE_DAYS días. */
     private function staleTenants(): array
     {
         $cutoff = Carbon::today()->subDays(self::STALE_DAYS);
@@ -122,6 +124,7 @@ class DashboardService
             ->where(function ($q) {
                 $q->where(BusinessConfigModel::ACTIVO, true)->orWhere(BusinessConfigModel::IS_DEMO, true);
             })
+            ->where(BusinessConfigModel::IS_TEST, false)
             ->select(['id', 'business_name', 'slug'])
             ->addSelect(BusinessConfigModel::lastActivitySelects())
             ->get()

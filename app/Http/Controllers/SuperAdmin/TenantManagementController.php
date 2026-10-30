@@ -38,6 +38,7 @@ class TenantManagementController extends Controller
             BusinessConfigModel::SLUG => $param->slug,
             BusinessConfigModel::ACTIVO => true,
             BusinessConfigModel::IS_DEMO => (bool) ($param->is_demo ?? false),
+            BusinessConfigModel::IS_TEST => (bool) ($param->is_test ?? false),
             BusinessConfigModel::BUSINESS_NAME => $param->business_name,
             BusinessConfigModel::PRIMARY_COLOR => $param->primary_color,
             BusinessConfigModel::SIDEBAR_COLOR => $param->sidebar_color,
@@ -58,14 +59,17 @@ class TenantManagementController extends Controller
             User::TENANT_ID => $tenant->id,
         ]);
 
-        $isTrial = (bool) ($param->is_trial ?? true);
-        $subscriptionService->start(
-            tenant: $tenant,
-            plan: SubscriptionPlanEnum::tryFrom((string) $param->plan) ?? SubscriptionPlanEnum::Monthly,
-            startsAt: Carbon::parse($param->starts_at ?? Carbon::today()),
-            amount: $isTrial ? 0 : (float) $param->amount,
-            notes: $this->subscriptionNotes($isTrial, $param->notes),
-        );
+        // Un tenant de pruebas no lleva suscripción: su estado siempre es activo (ver BusinessConfigModel).
+        if (! $tenant->is_test) {
+            $isTrial = (bool) ($param->is_trial ?? true);
+            $subscriptionService->start(
+                tenant: $tenant,
+                plan: SubscriptionPlanEnum::tryFrom((string) $param->plan) ?? SubscriptionPlanEnum::Monthly,
+                startsAt: Carbon::parse($param->starts_at ?? Carbon::today()),
+                amount: $isTrial ? 0 : (float) $param->amount,
+                notes: $this->subscriptionNotes($isTrial, $param->notes),
+            );
+        }
 
         return Response::success($tenant);
     }
@@ -103,6 +107,7 @@ class TenantManagementController extends Controller
         $tenant->update([
             BusinessConfigModel::SLUG => $param->slug,
             BusinessConfigModel::IS_DEMO => (bool) $param->is_demo,
+            BusinessConfigModel::IS_TEST => $param->has(BusinessConfigModel::IS_TEST) ? (bool) $param->is_test : $tenant->is_test,
             BusinessConfigModel::BUSINESS_NAME => $param->business_name,
             BusinessConfigModel::PRIMARY_COLOR => $param->primary_color,
             BusinessConfigModel::SIDEBAR_COLOR => $param->sidebar_color,

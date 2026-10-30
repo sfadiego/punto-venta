@@ -28,6 +28,8 @@ export default function TenantFormPage() {
     const { formik, isEdit, handleResetColors, handleSyncAdminEmail } = useTenantForm(tenantId);
     const { data: tenantDetail, isLoading: isLoadingDetail, refetch: refetchDetail, isRefetching: isRefetchingDetail } = useGetTenant(tenantId ?? 0);
 
+    const showDangerZone = !!tenantDetail?.is_demo || !!tenantDetail?.is_test;
+
     // Un cliente desactivado solo se consulta: se edita únicamente después de reactivarlo.
     if (isEdit && (isLoadingDetail || tenantDetail?.activo === false)) {
         return (
@@ -63,7 +65,7 @@ export default function TenantFormPage() {
                 )}
 
                 <div className="flex gap-8 items-start">
-                    <TenantFormNav isEdit={isEdit} showDangerZone={!!tenantDetail?.is_demo} />
+                    <TenantFormNav isEdit={isEdit} showDangerZone={showDangerZone} isTest={formik.values.is_test} />
 
                     <form onSubmit={formik.handleSubmit} noValidate className="flex-1 min-w-0 space-y-6">
                         <div id="negocio">
@@ -80,7 +82,7 @@ export default function TenantFormPage() {
                             </div>
                         )}
 
-                        {!isEdit && (
+                        {!isEdit && !formik.values.is_test && (
                             <div id="plan-inicial">
                                 <TenantSubscriptionStartSection formik={formik} />
                             </div>
@@ -100,7 +102,7 @@ export default function TenantFormPage() {
                             </div>
                         )}
 
-                        {isEdit && tenantDetail && (
+                        {isEdit && tenantDetail && !formik.values.is_test && (
                             <div id="suscripcion">
                                 <SubscriptionAmountSection
                                     amount={formik.values.subscription_amount}
@@ -179,7 +181,7 @@ export default function TenantFormPage() {
                             </div>
                         )}
 
-                        {isEdit && tenantId && tenantDetail?.is_demo && (
+                        {isEdit && tenantId && showDangerZone && tenantDetail && (
                             <div id="peligro">
                                 <TenantDangerZone tenantId={tenantId} tenantName={tenantDetail.business_name} />
                             </div>

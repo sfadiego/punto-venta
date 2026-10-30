@@ -30,6 +30,8 @@ class SubscriptionController extends Controller
                 $q->where(BusinessConfigModel::ACTIVO, true)
                     ->orWhere(BusinessConfigModel::IS_DEMO, true);
             })
+            // Los tenants de pruebas no llevan suscripción: nunca aparecen en este panel.
+            ->where(BusinessConfigModel::IS_TEST, false)
             ->withCount('users')
             ->orderBy(BusinessConfigModel::BUSINESS_NAME);
 
@@ -52,7 +54,7 @@ class SubscriptionController extends Controller
         $plan = SubscriptionPlanEnum::from($request->plan);
         $startsAt = Carbon::parse($request->starts_at);
 
-        $subscriptionService->start($tenant, $plan, $startsAt, $request->amount, $request->notes);
+        $subscriptionService->registerPayment($tenant, $plan, $startsAt, $request->amount, $request->notes);
 
         return Response::success($this->formatTenant($tenant->fresh()));
     }

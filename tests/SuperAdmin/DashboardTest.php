@@ -31,7 +31,7 @@ class DashboardTest extends TestCase
             ->assertJsonPath('status', 'OK')
             ->assertJsonStructure([
                 'data' => [
-                    'tenants' => ['active', 'demo', 'inactive'],
+                    'tenants' => ['active', 'demo', 'test', 'inactive'],
                     'active_users_now',
                     'mrr',
                     'errors_last_24h' => ['total', 'backend', 'frontend'],
@@ -151,6 +151,41 @@ class DashboardTest extends TestCase
 
         $ids = collect($response->json('data.expiring_subscriptions'))->pluck('id');
         $this->assertTrue($ids->contains($tenant->id));
+    }
+
+    public function test_cuenta_tenants_de_pruebas_aparte_de_los_activos(): void
+    {
+        $before = $this->getJson('/api/super-admin/dashboard', $this->superAdminHeaders())->json('data.tenants');
+
+        BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'pruebas-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Pruebas',
+        ]);
+
+        $after = $this->getJson('/api/super-admin/dashboard', $this->superAdminHeaders())->json('data.tenants');
+
+        $this->assertSame($before['test'] + 1, $after['test']);
+        $this->assertSame($before['active'], $after['active']);
+    }
+
+    public function test_excluye_tenant_de_pruebas_de_vencimientos_y_sin_actividad(): void
+    {
+        $tenant = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'pruebas-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Pruebas',
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => Carbon::today()->addDays(3),
+        ]);
+
+        $data = $this->getJson('/api/super-admin/dashboard', $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->json('data');
+
+        $this->assertFalse(collect($data['expiring_subscriptions'])->pluck('id')->contains($tenant->id));
+        $this->assertFalse(collect($data['stale_tenants'])->pluck('id')->contains($tenant->id));
     }
 
     public function test_excluye_suscripcion_fuera_de_la_ventana(): void

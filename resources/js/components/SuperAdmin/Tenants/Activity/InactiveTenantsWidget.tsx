@@ -12,7 +12,7 @@ interface InactiveTenantsWidgetProps {
 // Fila compacta — mismo criterio que ActiveUsersWidget. El desglose de "críticos" se
 // resume en el color del ícono/valor en vez de una línea de texto aparte.
 export const InactiveTenantsWidget = ({ tenants }: InactiveTenantsWidgetProps) => {
-    const eligibleTenants = tenants.filter((t) => t.activo && !t.is_demo && !t.deleted_at);
+    const eligibleTenants = tenants.filter((t) => t.activo && !t.is_demo && !t.is_test && !t.deleted_at);
     const daysList = eligibleTenants.map((t) => daysSince(t.last_activity_at));
     const atRisk = daysList.filter((d) => d !== null && d >= WARNING_DAYS).length;
     const critical = daysList.filter((d) => d !== null && d >= CRITICAL_DAYS).length;

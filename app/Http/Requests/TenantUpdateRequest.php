@@ -23,6 +23,7 @@ class TenantUpdateRequest extends FormRequest
             BusinessConfigModel::SLUG => ['required', 'string', 'alpha_dash', Rule::unique('business_config', 'slug')->ignore($tenantId)],
             BusinessConfigModel::ACTIVO => 'boolean',
             BusinessConfigModel::IS_DEMO => 'boolean',
+            BusinessConfigModel::IS_TEST => 'boolean',
             BusinessConfigModel::BUSINESS_NAME => 'required|string|max:100',
             BusinessConfigModel::PRIMARY_COLOR => 'required|string|max:20',
             BusinessConfigModel::SIDEBAR_COLOR => 'required|string|max:20',
@@ -42,6 +43,7 @@ class TenantUpdateRequest extends FormRequest
 
     /**
      * Un tenant desactivado no se edita hasta reactivarlo (PATCH tenant/{tenant}/toggle).
+     * Un tenant es de prueba interna o prospecto demo, no ambos.
      *
      * @return array<int, callable(Validator): void>
      */
@@ -51,6 +53,11 @@ class TenantUpdateRequest extends FormRequest
             function (Validator $validator) {
                 if ($this->route('tenant')?->activo === false) {
                     $validator->errors()->add('tenant', __('Reactiva el negocio para poder editar su información.'));
+                }
+            },
+            function (Validator $validator) {
+                if ($this->boolean(BusinessConfigModel::IS_TEST) && $this->boolean(BusinessConfigModel::IS_DEMO)) {
+                    $validator->errors()->add(BusinessConfigModel::IS_TEST, __('Un negocio de pruebas no puede ser también un cliente demo.'));
                 }
             },
         ];
