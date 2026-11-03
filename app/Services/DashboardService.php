@@ -88,13 +88,11 @@ class DashboardService
             ->toArray();
     }
 
-    /** Tenants activos o demo (no de pruebas) con suscripción venciendo en los próximos EXPIRING_SOON_DAYS días. */
+    /** Tenants activos (demo incluidos, no de pruebas) con suscripción venciendo en los próximos EXPIRING_SOON_DAYS días. */
     private function expiringSubscriptions(): array
     {
         return BusinessConfigModel::withoutTrashed()
-            ->where(function ($q) {
-                $q->where(BusinessConfigModel::ACTIVO, true)->orWhere(BusinessConfigModel::IS_DEMO, true);
-            })
+            ->where(BusinessConfigModel::ACTIVO, true)
             ->where(BusinessConfigModel::IS_TEST, false)
             ->whereBetween(BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT, [
                 Carbon::today(),
@@ -115,15 +113,13 @@ class DashboardService
             ->toArray();
     }
 
-    /** Tenants activos/demo (no de pruebas) sin actividad (login/venta/sesión) en los últimos STALE_DAYS días. */
+    /** Tenants activos (demo incluidos, no de pruebas) sin actividad (login/venta/sesión) en los últimos STALE_DAYS días. */
     private function staleTenants(): array
     {
         $cutoff = Carbon::today()->subDays(self::STALE_DAYS);
 
         return BusinessConfigModel::withoutTrashed()
-            ->where(function ($q) {
-                $q->where(BusinessConfigModel::ACTIVO, true)->orWhere(BusinessConfigModel::IS_DEMO, true);
-            })
+            ->where(BusinessConfigModel::ACTIVO, true)
             ->where(BusinessConfigModel::IS_TEST, false)
             ->select(['id', 'business_name', 'slug'])
             ->addSelect(BusinessConfigModel::lastActivitySelects())

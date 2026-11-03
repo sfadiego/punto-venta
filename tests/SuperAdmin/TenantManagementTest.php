@@ -604,6 +604,69 @@ class TenantManagementTest extends TestCase
         $this->assertDatabaseHas('business_config', ['id' => $tenant->id, BusinessConfigModel::IS_TEST => true]);
     }
 
+    public function test_convertir_tenant_de_pruebas_en_cliente_exige_suscripcion(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::IS_TEST => true]);
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant, [
+            BusinessConfigModel::IS_TEST => false,
+        ]), $this->superAdminHeaders())
+            ->assertStatus(400)
+            ->assertJsonValidationErrors(['plan', 'is_trial', 'starts_at'], 'data');
+
+        $this->assertDatabaseHas('business_config', ['id' => $tenant->id, BusinessConfigModel::IS_TEST => true]);
+    }
+
+    public function test_convertir_tenant_de_pruebas_en_cliente_con_pago_exige_monto(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::IS_TEST => true]);
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant, [
+            BusinessConfigModel::IS_TEST => false,
+            'plan' => SubscriptionPlanEnum::Monthly->value,
+            'is_trial' => false,
+            'starts_at' => Carbon::today()->toDateString(),
+        ]), $this->superAdminHeaders())
+            ->assertStatus(400);
+    }
+
+    public function test_convertir_tenant_de_pruebas_en_cliente_registra_su_suscripcion(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::IS_TEST => true]);
+        $startsAt = Carbon::today();
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant, [
+            BusinessConfigModel::IS_TEST => false,
+            'plan' => SubscriptionPlanEnum::Weekly->value,
+            'is_trial' => true,
+            'starts_at' => $startsAt->toDateString(),
+        ]), $this->superAdminHeaders())->assertStatus(200);
+
+        $tenant->refresh();
+        $this->assertFalse($tenant->is_test);
+        $this->assertSame(SubscriptionPlanEnum::Weekly->value, $tenant->subscription_plan);
+        $this->assertSame(SubscriptionStatusEnum::Active->value, $tenant->subscription_status);
+        $this->assertDatabaseHas('subscriptions', [
+            'tenant_id' => $tenant->id,
+            'plan' => SubscriptionPlanEnum::Weekly->value,
+            'amount' => 0,
+        ]);
+    }
+
+    public function test_actualizar_tenant_normal_no_exige_ni_crea_suscripcion(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $before = SubscriptionModel::where('tenant_id', $tenant->id)->count();
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant), $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertSame($before, SubscriptionModel::where('tenant_id', $tenant->id)->count());
+    }
+
     public function test_actualiza_tenant_sin_enviar_is_test_conserva_el_valor(): void
     {
         $tenant = BusinessConfigModel::first();

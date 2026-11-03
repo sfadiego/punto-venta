@@ -57,7 +57,7 @@ class SubscriptionTest extends TestCase
         $this->assertFalse($ids->contains($eliminado->id));
     }
 
-    public function test_lista_demo_incluye_tenant_demo_inactivo(): void
+    public function test_lista_demo_excluye_tenant_demo_inactivo(): void
     {
         $demoInactivo = BusinessConfigModel::create([
             BusinessConfigModel::SLUG => 'demo-inactivo-'.uniqid(),
@@ -70,7 +70,7 @@ class SubscriptionTest extends TestCase
             ->assertStatus(200);
 
         $ids = collect($response->json('data'))->pluck('id');
-        $this->assertTrue($ids->contains($demoInactivo->id));
+        $this->assertFalse($ids->contains($demoInactivo->id));
     }
 
     public function test_lista_por_defecto_excluye_demo(): void

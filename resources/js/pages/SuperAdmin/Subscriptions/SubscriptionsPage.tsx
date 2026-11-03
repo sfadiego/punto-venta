@@ -1,4 +1,4 @@
-import { CreditCard, CheckCircle, XCircle, Clock, MinusCircle } from "lucide-react";
+import { CreditCard, CheckCircle, XCircle, Clock } from "lucide-react";
 import { SuperAdminLayout } from "@/layouts/SuperAdminLayout";
 import { SubscriptionTable } from "@/components/SuperAdmin/Subscriptions/SubscriptionTable";
 import { RegisterPaymentModal } from "@/components/SuperAdmin/Subscriptions/RegisterPaymentModal";
@@ -33,7 +33,7 @@ export default function SubscriptionsPage() {
                 </div>
 
                 {/* Tarjetas resumen */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
                     <SubscriptionSummaryCard
                         label="Activos"
                         value={summary.active}
@@ -51,12 +51,6 @@ export default function SubscriptionsPage() {
                         value={summary.grace}
                         icon={<Clock size={18} />}
                         color="text-amber-600 bg-amber-50"
-                    />
-                    <SubscriptionSummaryCard
-                        label="Sin suscripción"
-                        value={summary.pending}
-                        icon={<MinusCircle size={18} />}
-                        color="text-slate-400 bg-slate-100"
                     />
                 </div>
 

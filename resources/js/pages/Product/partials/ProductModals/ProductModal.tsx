@@ -90,7 +90,7 @@ export const ProductModal = ({
                         rows={2}
                     />
 
-                    <div className="grid grid-cols-[1fr_1.4fr] gap-3 items-start">
+                    <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-3 items-start">
                         <ProductIconField formik={formik} />
                         <ProductAvailabilityToggle formik={formik} />
                     </div>

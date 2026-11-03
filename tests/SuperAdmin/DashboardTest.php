@@ -188,6 +188,24 @@ class DashboardTest extends TestCase
         $this->assertFalse(collect($data['stale_tenants'])->pluck('id')->contains($tenant->id));
     }
 
+    public function test_excluye_demo_desactivado_de_vencimientos_y_sin_actividad(): void
+    {
+        $tenant = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'demo-inactivo-'.uniqid(),
+            BusinessConfigModel::ACTIVO => false,
+            BusinessConfigModel::IS_DEMO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Demo Inactivo',
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => Carbon::today()->addDays(3),
+        ]);
+
+        $data = $this->getJson('/api/super-admin/dashboard', $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->json('data');
+
+        $this->assertFalse(collect($data['expiring_subscriptions'])->pluck('id')->contains($tenant->id));
+        $this->assertFalse(collect($data['stale_tenants'])->pluck('id')->contains($tenant->id));
+    }
+
     public function test_excluye_suscripcion_fuera_de_la_ventana(): void
     {
         $tenant = BusinessConfigModel::create([

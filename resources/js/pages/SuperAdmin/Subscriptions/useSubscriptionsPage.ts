@@ -36,7 +36,6 @@ export const useSubscriptionsPage = () => {
         total:   realTenants.length,
         active:  realTenants.filter((t) => t.subscription_status === SubscriptionStatusEnum.Active).length,
         expired: realTenants.filter((t) => t.subscription_status === SubscriptionStatusEnum.Expired).length,
-        pending: realTenants.filter((t) => t.subscription_status === SubscriptionStatusEnum.Pending).length,
         grace:   realTenants.filter((t) => t.subscription_status === SubscriptionStatusEnum.Grace).length,
     };
 

@@ -61,14 +61,7 @@ class TenantManagementController extends Controller
 
         // Un tenant de pruebas no lleva suscripción: su estado siempre es activo (ver BusinessConfigModel).
         if (! $tenant->is_test) {
-            $isTrial = (bool) ($param->is_trial ?? true);
-            $subscriptionService->start(
-                tenant: $tenant,
-                plan: SubscriptionPlanEnum::tryFrom((string) $param->plan) ?? SubscriptionPlanEnum::Monthly,
-                startsAt: Carbon::parse($param->starts_at ?? Carbon::today()),
-                amount: $isTrial ? 0 : (float) $param->amount,
-                notes: $this->subscriptionNotes($isTrial, $param->notes),
-            );
+            $this->startInitialSubscription($tenant, $param, $subscriptionService);
         }
 
         return Response::success($tenant);
@@ -102,8 +95,10 @@ class TenantManagementController extends Controller
         return Response::success($tenant);
     }
 
-    public function update(BusinessConfigModel $tenant, TenantUpdateRequest $param): JsonResponse
+    public function update(BusinessConfigModel $tenant, TenantUpdateRequest $param, SubscriptionService $subscriptionService): JsonResponse
     {
+        $convertingFromTest = $param->isConvertingFromTest();
+
         $tenant->update([
             BusinessConfigModel::SLUG => $param->slug,
             BusinessConfigModel::IS_DEMO => (bool) $param->is_demo,
@@ -124,6 +119,11 @@ class TenantManagementController extends Controller
             BusinessConfigModel::MAX_USERS => $param->max_users !== null ? (int) $param->max_users : $tenant->max_users,
             BusinessConfigModel::SUBSCRIPTION_AMOUNT => $param->has('subscription_amount') ? $param->subscription_amount : $tenant->subscription_amount,
         ]);
+
+        // Un cliente real nunca queda sin suscripción: al dejar de ser de pruebas se registra la inicial.
+        if ($convertingFromTest) {
+            $this->startInitialSubscription($tenant, $param, $subscriptionService);
+        }
 
         return Response::success($tenant);
     }
@@ -169,6 +169,18 @@ class TenantManagementController extends Controller
             ...$service->report($tenant->id, $days),
             'today_sales' => $service->todaySalesReport($tenant->id),
         ]);
+    }
+
+    private function startInitialSubscription(BusinessConfigModel $tenant, Request $param, SubscriptionService $subscriptionService): void
+    {
+        $isTrial = (bool) ($param->is_trial ?? true);
+        $subscriptionService->start(
+            tenant: $tenant,
+            plan: SubscriptionPlanEnum::tryFrom((string) $param->plan) ?? SubscriptionPlanEnum::Monthly,
+            startsAt: Carbon::parse($param->starts_at ?? Carbon::today()),
+            amount: $isTrial ? 0 : (float) $param->amount,
+            notes: $this->subscriptionNotes($isTrial, $param->notes),
+        );
     }
 
     private function subscriptionNotes(bool $isTrial, ?string $notes): string
