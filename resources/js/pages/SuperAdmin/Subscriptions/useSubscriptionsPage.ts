@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { SubscriptionStatusEnum } from "@/enums/SubscriptionStatusEnum";
 import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
+import { filterToFlags } from "@/utils/tenantFilters";
 import { ITenantWithSubscription } from "@/models/ISubscription";
 import { useListSubscriptions } from "@/services/useSubscriptionService";
-
-const toIsDemo = (filter: TenantDemoFilterEnum): boolean | undefined =>
-    filter === TenantDemoFilterEnum.Demo ? true : undefined;
 
 export const useSubscriptionsPage = () => {
     const [statusFilter, setStatusFilter] = useState<SubscriptionStatusEnum | "">("");
@@ -15,7 +13,7 @@ export const useSubscriptionsPage = () => {
 
     const { data = [], isLoading, isFetching } = useListSubscriptions(
         statusFilter ? (statusFilter as SubscriptionStatusEnum) : undefined,
-        toIsDemo(demoFilter),
+        filterToFlags(demoFilter).isDemo,
     );
 
     // Dataset fijo de clientes reales, independiente del filtro de listado activo —

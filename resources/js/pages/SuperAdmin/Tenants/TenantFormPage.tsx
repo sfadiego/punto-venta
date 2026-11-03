@@ -25,12 +25,8 @@ import { useGetTenant } from "@/services/useSuperAdminService";
 export default function TenantFormPage() {
     const { id } = useParams<{ id: string }>();
     const tenantId = id ? Number(id) : undefined;
-    const { formik, isEdit, handleResetColors, handleSyncAdminEmail } = useTenantForm(tenantId);
+    const { formik, isEdit, needsInitialSubscription, showDangerZone, handleResetColors, handleSyncAdminEmail } = useTenantForm(tenantId);
     const { data: tenantDetail, isLoading: isLoadingDetail, refetch: refetchDetail, isRefetching: isRefetchingDetail } = useGetTenant(tenantId ?? 0);
-
-    // Un negocio de pruebas no tiene suscripción: al dejar de serlo hay que registrar la inicial.
-    const isConvertingFromTest = isEdit && !!tenantDetail?.is_test && !formik.values.is_test;
-    const showDangerZone = !!tenantDetail?.is_demo || !!tenantDetail?.is_test;
 
     // Un cliente desactivado solo se consulta: se edita únicamente después de reactivarlo.
     if (isEdit && (isLoadingDetail || tenantDetail?.activo === false)) {
@@ -67,7 +63,7 @@ export default function TenantFormPage() {
                 )}
 
                 <div className="flex gap-8 items-start">
-                    <TenantFormNav isEdit={isEdit} showDangerZone={showDangerZone} isTest={formik.values.is_test} isConvertingFromTest={isConvertingFromTest} />
+                    <TenantFormNav isEdit={isEdit} showDangerZone={showDangerZone} isTest={formik.values.is_test} needsInitialSubscription={needsInitialSubscription} />
 
                     <form onSubmit={formik.handleSubmit} noValidate className="flex-1 min-w-0 space-y-6">
                         <div id="negocio">
@@ -84,7 +80,7 @@ export default function TenantFormPage() {
                             </div>
                         )}
 
-                        {(isConvertingFromTest || (!isEdit && !formik.values.is_test)) && (
+                        {(needsInitialSubscription || (!isEdit && !formik.values.is_test)) && (
                             <div id="plan-inicial">
                                 <TenantSubscriptionStartSection formik={formik} />
                             </div>
@@ -104,7 +100,7 @@ export default function TenantFormPage() {
                             </div>
                         )}
 
-                        {isEdit && tenantDetail && !formik.values.is_test && !isConvertingFromTest && (
+                        {isEdit && tenantDetail && !formik.values.is_test && !needsInitialSubscription && (
                             <div id="suscripcion">
                                 <SubscriptionAmountSection
                                     amount={formik.values.subscription_amount}

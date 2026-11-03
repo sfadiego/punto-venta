@@ -12,7 +12,6 @@ use App\Http\Requests\TenantStoreRequest;
 use App\Http\Requests\TenantUpdateRequest;
 use App\Models\BusinessConfigModel;
 use App\Models\PersonalAccessToken;
-use App\Models\SubscriptionModel;
 use App\Models\TenantActivityLogModel;
 use App\Models\User;
 use App\Services\SubscriptionService;
@@ -88,6 +87,7 @@ class TenantManagementController extends Controller
         $tenant->last_activity_at = collect([$lastLoginActivity, $lastSessionActivity])->filter()->max();
         $tenant->features = $tenant->tipo_negocio->features();
         $tenant->effective_max_users = $tenant->effectiveMaxUsers();
+        $tenant->has_current_subscription = $tenant->hasCurrentSubscription();
         $tenant->plan_default_max_users = $tenant->subscription_plan
             ? (SubscriptionPlanEnum::tryFrom($tenant->subscription_plan)?->maxUsers() ?? null)
             : null;
@@ -97,7 +97,7 @@ class TenantManagementController extends Controller
 
     public function update(BusinessConfigModel $tenant, TenantUpdateRequest $param, SubscriptionService $subscriptionService): JsonResponse
     {
-        $convertingFromTest = $param->isConvertingFromTest();
+        $needsInitialSubscription = $param->needsInitialSubscription();
 
         $tenant->update([
             BusinessConfigModel::SLUG => $param->slug,
@@ -120,8 +120,9 @@ class TenantManagementController extends Controller
             BusinessConfigModel::SUBSCRIPTION_AMOUNT => $param->has('subscription_amount') ? $param->subscription_amount : $tenant->subscription_amount,
         ]);
 
-        // Un cliente real nunca queda sin suscripción: al dejar de ser de pruebas se registra la inicial.
-        if ($convertingFromTest) {
+        // Un cliente real nunca queda sin suscripción: al dejar de ser de pruebas se registra la inicial
+        // salvo que ya tenga una vigente.
+        if ($needsInitialSubscription) {
             $this->startInitialSubscription($tenant, $param, $subscriptionService);
         }
 
@@ -173,21 +174,13 @@ class TenantManagementController extends Controller
 
     private function startInitialSubscription(BusinessConfigModel $tenant, Request $param, SubscriptionService $subscriptionService): void
     {
-        $isTrial = (bool) ($param->is_trial ?? true);
-        $subscriptionService->start(
+        $subscriptionService->startInitial(
             tenant: $tenant,
             plan: SubscriptionPlanEnum::tryFrom((string) $param->plan) ?? SubscriptionPlanEnum::Monthly,
             startsAt: Carbon::parse($param->starts_at ?? Carbon::today()),
-            amount: $isTrial ? 0 : (float) $param->amount,
-            notes: $this->subscriptionNotes($isTrial, $param->notes),
+            isTrial: (bool) ($param->is_trial ?? true),
+            amount: $param->amount !== null ? (float) $param->amount : null,
+            notes: $param->notes,
         );
-    }
-
-    private function subscriptionNotes(bool $isTrial, ?string $notes): string
-    {
-        $base = $isTrial ? SubscriptionModel::TRIAL_NOTES : SubscriptionModel::INITIAL_NOTES;
-        $notes = trim((string) $notes);
-
-        return $notes === '' ? $base : "{$base} — {$notes}";
     }
 }

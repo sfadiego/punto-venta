@@ -46,7 +46,7 @@ class DashboardService
         $base = BusinessConfigModel::withoutTrashed();
 
         return [
-            'active' => (clone $base)->where(BusinessConfigModel::ACTIVO, true)->where(BusinessConfigModel::IS_DEMO, false)->where(BusinessConfigModel::IS_TEST, false)->count(),
+            'active' => (clone $base)->where(BusinessConfigModel::ACTIVO, true)->where(BusinessConfigModel::IS_DEMO, false)->withoutTest()->count(),
             'demo' => (clone $base)->where(BusinessConfigModel::IS_DEMO, true)->count(),
             'test' => (clone $base)->where(BusinessConfigModel::IS_TEST, true)->count(),
             'inactive' => (clone $base)->where(BusinessConfigModel::ACTIVO, false)->count(),
@@ -93,7 +93,7 @@ class DashboardService
     {
         return BusinessConfigModel::withoutTrashed()
             ->where(BusinessConfigModel::ACTIVO, true)
-            ->where(BusinessConfigModel::IS_TEST, false)
+            ->withoutTest()
             ->whereBetween(BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT, [
                 Carbon::today(),
                 Carbon::today()->addDays(self::EXPIRING_SOON_DAYS),
@@ -120,7 +120,7 @@ class DashboardService
 
         return BusinessConfigModel::withoutTrashed()
             ->where(BusinessConfigModel::ACTIVO, true)
-            ->where(BusinessConfigModel::IS_TEST, false)
+            ->withoutTest()
             ->select(['id', 'business_name', 'slug'])
             ->addSelect(BusinessConfigModel::lastActivitySelects())
             ->get()

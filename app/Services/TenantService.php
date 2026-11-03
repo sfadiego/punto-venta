@@ -72,7 +72,7 @@ class TenantService extends DataTable
         if ($isTest !== null) {
             $query->where(BusinessConfigModel::IS_TEST, filter_var($isTest, FILTER_VALIDATE_BOOLEAN));
         } elseif ($status !== TenantStatusEnum::Inactive && $status !== TenantStatusEnum::Deleted) {
-            $query->where(BusinessConfigModel::IS_TEST, false);
+            $query->withoutTest();
         }
 
         if ($search) {

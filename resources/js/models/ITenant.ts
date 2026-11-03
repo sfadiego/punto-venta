@@ -31,6 +31,9 @@ export interface ITenant {
     active_users_count?: number;
     last_activity_at?: string | null;
     subscription_plan?: string | null;
+    subscription_expires_at?: string | null;
+    // Solo en el detalle (GET tenant/{id}): la regla vive en BusinessConfigModel::hasCurrentSubscription().
+    has_current_subscription?: boolean;
     subscription_amount?: number | null;
     max_users?: number | null;
     effective_max_users?: number;

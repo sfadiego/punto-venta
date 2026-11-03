@@ -7,6 +7,7 @@ use App\Enums\IconSourceEnum;
 use App\Enums\SubscriptionPlanEnum;
 use App\Enums\SubscriptionStatusEnum;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -180,6 +181,22 @@ class BusinessConfigModel extends Model
         });
     }
 
+    /** Excluye los negocios de pruebas internas: no son clientes ni llevan suscripción. */
+    public function scopeWithoutTest(Builder $query): Builder
+    {
+        return $query->where(self::IS_TEST, false);
+    }
+
+    /** La suscripción cacheada sigue vigente hoy (lifetime o sin vencer), sin considerar is_test. */
+    public function hasCurrentSubscription(): bool
+    {
+        if ($this->subscription_plan === SubscriptionPlanEnum::Lifetime->value) {
+            return true;
+        }
+
+        return $this->subscription_expires_at !== null && Carbon::parse($this->subscription_expires_at)->gte(Carbon::today());
+    }
+
     /** Días restantes de la suscripción cacheada del tenant (negativo si ya venció, null sin fecha). */
     public function getDaysRemainingAttribute(): ?int
     {
@@ -193,7 +210,7 @@ class BusinessConfigModel extends Model
     public function getSubscriptionStatusAttribute(): string
     {
         // Un tenant de pruebas internas nunca vence ni requiere suscripción.
-        if ($this->is_test || $this->subscription_plan === 'lifetime') {
+        if ($this->is_test || $this->hasCurrentSubscription()) {
             return SubscriptionStatusEnum::Active->value;
         }
 
@@ -203,10 +220,6 @@ class BusinessConfigModel extends Model
 
         $now = Carbon::today();
         $expires = Carbon::parse($this->subscription_expires_at);
-
-        if ($expires->gte($now)) {
-            return SubscriptionStatusEnum::Active->value;
-        }
 
         // Un cliente demo solo tiene acceso durante su periodo de prueba: sin días de gracia.
         if (! $this->is_demo && $expires->gte($now->copy()->subDays(self::GRACE_DAYS))) {
