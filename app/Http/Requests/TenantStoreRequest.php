@@ -7,6 +7,7 @@ use App\Enums\SubscriptionPlanEnum;
 use App\Models\BusinessConfigModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class TenantStoreRequest extends FormRequest
 {
@@ -36,6 +37,7 @@ class TenantStoreRequest extends FormRequest
             'admin_password' => 'required|string|min:6',
             BusinessConfigModel::TIPO_NEGOCIO => ['nullable', Rule::enum(BusinessTypeEnum::class)],
             BusinessConfigModel::IS_DEMO => 'nullable|boolean',
+            BusinessConfigModel::IS_TEST => 'nullable|boolean',
             // Suscripción inicial: sin estos campos se conserva el comportamiento previo (mensual de prueba).
             'plan' => ['nullable', Rule::enum(SubscriptionPlanEnum::class)],
             'is_trial' => 'nullable|boolean',
@@ -43,6 +45,22 @@ class TenantStoreRequest extends FormRequest
             // 250 para dejar margen al prefijo «Periodo de prueba — » dentro de subscriptions.notes (300).
             'notes' => 'nullable|string|max:250',
             'amount' => [Rule::requiredIf(fn () => $this->has('is_trial') && ! $this->boolean('is_trial')), 'nullable', 'numeric', 'min:0'],
+        ];
+    }
+
+    /**
+     * Un tenant es de prueba interna o prospecto demo, no ambos.
+     *
+     * @return array<int, callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator) {
+                if ($this->boolean(BusinessConfigModel::IS_TEST) && $this->boolean(BusinessConfigModel::IS_DEMO)) {
+                    $validator->errors()->add(BusinessConfigModel::IS_TEST, __('Un negocio de pruebas no puede ser también un cliente demo.'));
+                }
+            },
         ];
     }
 }

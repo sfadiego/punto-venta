@@ -24,6 +24,8 @@ class BusinessConfigModel extends Model
 
     const IS_DEMO = 'is_demo';
 
+    const IS_TEST = 'is_test';
+
     const BUSINESS_NAME = 'business_name';
 
     const PRIMARY_COLOR = 'primary_color';
@@ -103,6 +105,7 @@ class BusinessConfigModel extends Model
     protected $casts = [
         self::ACTIVO => 'boolean',
         self::IS_DEMO => 'boolean',
+        self::IS_TEST => 'boolean',
         self::OPEN_CASH_DRAWER => 'boolean',
         self::PRINTER_ENABLED => 'boolean',
         self::BLUETOOTH_PRINTING_ENABLED => 'boolean',
@@ -126,6 +129,7 @@ class BusinessConfigModel extends Model
         self::SLUG,
         self::ACTIVO,
         self::IS_DEMO,
+        self::IS_TEST,
         self::BUSINESS_NAME,
         self::PRIMARY_COLOR,
         self::SIDEBAR_COLOR,
@@ -179,7 +183,7 @@ class BusinessConfigModel extends Model
     /** Días restantes de la suscripción cacheada del tenant (negativo si ya venció, null sin fecha). */
     public function getDaysRemainingAttribute(): ?int
     {
-        if (! $this->subscription_expires_at) {
+        if ($this->is_test || ! $this->subscription_expires_at) {
             return null;
         }
 
@@ -188,7 +192,8 @@ class BusinessConfigModel extends Model
 
     public function getSubscriptionStatusAttribute(): string
     {
-        if ($this->subscription_plan === 'lifetime') {
+        // Un tenant de pruebas internas nunca vence ni requiere suscripción.
+        if ($this->is_test || $this->subscription_plan === 'lifetime') {
             return SubscriptionStatusEnum::Active->value;
         }
 

@@ -118,6 +118,11 @@ export const TenantsTable = ({
                                 Demo
                             </span>
                         )}
+                        {row.is_test && (
+                            <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                                Pruebas
+                            </span>
+                        )}
                         <span className="flex items-center gap-1 text-xs font-medium px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
                             <BusinessTypeIcon size={11} />
                             {BUSINESS_TYPE_SHORT_LABELS[row.tipo_negocio]}

@@ -66,6 +66,15 @@ class TenantService extends DataTable
             $query->where(BusinessConfigModel::IS_DEMO, filter_var($isDemo, FILTER_VALIDATE_BOOLEAN));
         }
 
+        // Los tenants de pruebas internas solo aparecen al filtrarlos (is_test) o en "Inactivos":
+        // en "Todos" y "Activos" (o sin estatus) se ocultan para no mezclarlos con clientes reales.
+        $isTest = request()->query('is_test');
+        if ($isTest !== null) {
+            $query->where(BusinessConfigModel::IS_TEST, filter_var($isTest, FILTER_VALIDATE_BOOLEAN));
+        } elseif ($status !== TenantStatusEnum::Inactive && $status !== TenantStatusEnum::Deleted) {
+            $query->where(BusinessConfigModel::IS_TEST, false);
+        }
+
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where(BusinessConfigModel::BUSINESS_NAME, 'like', "%{$search}%")

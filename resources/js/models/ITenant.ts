@@ -7,6 +7,7 @@ export interface ITenant {
     slug: string;
     activo: boolean;
     is_demo: boolean;
+    is_test: boolean;
     business_name: string;
     primary_color: string;
     sidebar_color: string;
@@ -42,6 +43,7 @@ export interface ITenant {
 export interface ICreateTenantPayload {
     slug: string;
     is_demo?: boolean;
+    is_test?: boolean;
     business_name: string;
     primary_color: string;
     sidebar_color: string;
@@ -64,6 +66,7 @@ export interface IUpdateTenantPayload {
     slug: string;
     activo?: boolean;
     is_demo?: boolean;
+    is_test?: boolean;
     business_name: string;
     primary_color: string;
     sidebar_color: string;
@@ -79,5 +82,11 @@ export interface IUpdateTenantPayload {
     customers_enabled: boolean;
     max_users?: number | null;
     subscription_amount?: number | null;
+    // Solo al convertir un negocio de pruebas en cliente: su suscripción inicial.
+    plan?: SubscriptionPlanEnum;
+    is_trial?: boolean;
+    starts_at?: string;
+    amount?: number | null;
+    notes?: string;
 }
 

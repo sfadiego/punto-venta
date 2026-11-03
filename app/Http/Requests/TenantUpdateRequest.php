@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\BusinessTypeEnum;
+use App\Enums\SubscriptionPlanEnum;
 use App\Models\BusinessConfigModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,6 +24,7 @@ class TenantUpdateRequest extends FormRequest
             BusinessConfigModel::SLUG => ['required', 'string', 'alpha_dash', Rule::unique('business_config', 'slug')->ignore($tenantId)],
             BusinessConfigModel::ACTIVO => 'boolean',
             BusinessConfigModel::IS_DEMO => 'boolean',
+            BusinessConfigModel::IS_TEST => 'boolean',
             BusinessConfigModel::BUSINESS_NAME => 'required|string|max:100',
             BusinessConfigModel::PRIMARY_COLOR => 'required|string|max:20',
             BusinessConfigModel::SIDEBAR_COLOR => 'required|string|max:20',
@@ -37,11 +39,26 @@ class TenantUpdateRequest extends FormRequest
             BusinessConfigModel::STOCK_ENABLED => 'boolean',
             BusinessConfigModel::MAX_USERS => 'nullable|integer|min:1|max:999',
             BusinessConfigModel::SUBSCRIPTION_AMOUNT => 'nullable|numeric|min:0',
+            // Al convertir un negocio de pruebas en cliente se registra su suscripción inicial (mismas reglas del alta).
+            'plan' => [Rule::requiredIf($this->isConvertingFromTest(...)), 'nullable', Rule::enum(SubscriptionPlanEnum::class)],
+            'is_trial' => [Rule::requiredIf($this->isConvertingFromTest(...)), 'nullable', 'boolean'],
+            'starts_at' => [Rule::requiredIf($this->isConvertingFromTest(...)), 'nullable', 'date'],
+            'notes' => 'nullable|string|max:250',
+            'amount' => [Rule::requiredIf(fn () => $this->isConvertingFromTest() && ! $this->boolean('is_trial')), 'nullable', 'numeric', 'min:0'],
         ];
+    }
+
+    /** Un negocio de pruebas (sin suscripción) que este request deja de serlo. */
+    public function isConvertingFromTest(): bool
+    {
+        return $this->route('tenant')?->is_test === true
+            && $this->has(BusinessConfigModel::IS_TEST)
+            && ! $this->boolean(BusinessConfigModel::IS_TEST);
     }
 
     /**
      * Un tenant desactivado no se edita hasta reactivarlo (PATCH tenant/{tenant}/toggle).
+     * Un tenant es de prueba interna o prospecto demo, no ambos.
      *
      * @return array<int, callable(Validator): void>
      */
@@ -51,6 +68,11 @@ class TenantUpdateRequest extends FormRequest
             function (Validator $validator) {
                 if ($this->route('tenant')?->activo === false) {
                     $validator->errors()->add('tenant', __('Reactiva el negocio para poder editar su información.'));
+                }
+            },
+            function (Validator $validator) {
+                if ($this->boolean(BusinessConfigModel::IS_TEST) && $this->boolean(BusinessConfigModel::IS_DEMO)) {
+                    $validator->errors()->add(BusinessConfigModel::IS_TEST, __('Un negocio de pruebas no puede ser también un cliente demo.'));
                 }
             },
         ];

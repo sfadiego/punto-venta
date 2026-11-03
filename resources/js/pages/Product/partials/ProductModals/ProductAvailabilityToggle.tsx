@@ -14,7 +14,7 @@ export const ProductAvailabilityToggle = ({ formik }: ProductAvailabilityToggleP
             <span className="w-9 h-9 shrink-0 rounded-lg border border-stone-200 bg-white flex items-center justify-center">
                 <Eye size={16} className="text-stone-500" />
             </span>
-            <span className="text-sm text-stone-600 whitespace-nowrap flex-1">El producto aparece en el menú</span>
+            <span className="text-sm text-stone-600 min-w-0 flex-1">El producto aparece en el menú</span>
             <ToggleSwitch checked={formik.values.activo} onChange={(v) => formik.setFieldValue("activo", v)} />
         </div>
     </div>

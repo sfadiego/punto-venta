@@ -15,6 +15,7 @@ import { localDateString } from "@/utils/dateUtils";
 export interface TenantFormValues {
     slug: string;
     is_demo: boolean;
+    is_test: boolean;
     business_name: string;
     primary_color: string;
     sidebar_color: string;
@@ -63,13 +64,8 @@ const baseSchema = {
     subscription_amount: Yup.number().nullable().min(0, "No puede ser negativo"),
 };
 
-const createSchema = Yup.object({
-    ...baseSchema,
-    admin_nombre:   Yup.string().required("Requerido").max(100, "Máximo 100 caracteres"),
-    admin_apellido: Yup.string().required("Requerido").max(100, "Máximo 100 caracteres"),
-    admin_email:    Yup.string().email("Email inválido").required("Requerido"),
-    admin_usuario:  Yup.string().required("Requerido").max(255, "Máximo 255 caracteres"),
-    admin_password: Yup.string().min(6, "Mínimo 6 caracteres").required("Requerido"),
+// Datos de la suscripción inicial: se piden al crear un cliente y al convertir un negocio de pruebas en cliente.
+const subscriptionStartSchema = {
     plan:           Yup.string().oneOf(Object.values(SubscriptionPlanEnum)).required("Requerido"),
     starts_at:      Yup.string().required("Requerido"),
     notes:          Yup.string().max(250, "Máximo 250 caracteres"),
@@ -77,9 +73,19 @@ const createSchema = Yup.object({
         is: false,
         then: (schema) => schema.required("Requerido").min(0, "No puede ser negativo"),
     }),
+};
+
+const createSchema = Yup.object({
+    ...baseSchema,
+    admin_nombre:   Yup.string().required("Requerido").max(100, "Máximo 100 caracteres"),
+    admin_apellido: Yup.string().required("Requerido").max(100, "Máximo 100 caracteres"),
+    admin_email:    Yup.string().email("Email inválido").required("Requerido"),
+    admin_usuario:  Yup.string().required("Requerido").max(255, "Máximo 255 caracteres"),
+    admin_password: Yup.string().min(6, "Mínimo 6 caracteres").required("Requerido"),
+    ...subscriptionStartSchema,
 });
 
-const editSchema = Yup.object(baseSchema);
+const editSchema = Yup.object({ ...baseSchema, ...subscriptionStartSchema });
 
 export const useTenantForm = (tenantId?: number) => {
     const navigate = useNavigate();
@@ -95,6 +101,7 @@ export const useTenantForm = (tenantId?: number) => {
         initialValues: {
             slug:             tenant?.slug ?? "",
             is_demo:          tenant?.is_demo ?? false,
+            is_test:          tenant?.is_test ?? false,
             business_name:    tenant?.business_name ?? "",
             primary_color:    tenant?.primary_color ?? COLOR_DEFAULTS.primary_color,
             sidebar_color:    tenant?.sidebar_color ?? COLOR_DEFAULTS.sidebar_color,
@@ -133,6 +140,7 @@ export const useTenantForm = (tenantId?: number) => {
                             printer_enabled: values.printer_enabled,
                             max_users:       values.max_users ? Number(values.max_users) : null,
                             subscription_amount: values.subscription_amount !== null ? Number(values.subscription_amount) : null,
+                            amount:          values.is_trial || values.amount === null ? null : Number(values.amount),
                         },
                     });
                     toast.success("Cliente actualizado.");

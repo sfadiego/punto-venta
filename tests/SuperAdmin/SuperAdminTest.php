@@ -183,6 +183,34 @@ class SuperAdminTest extends TestCase
             ->assertJsonPath('data.id', $tenant->id);
     }
 
+    public function test_pago_real_desmarca_cliente_demo(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::IS_DEMO => true]);
+
+        $this->postJson("/api/super-admin/subscription/{$tenant->id}", [
+            'plan' => 'monthly',
+            'starts_at' => now()->toDateString(),
+            'amount' => 150.00,
+        ], $this->superAdminHeaders())->assertStatus(200);
+
+        $this->assertDatabaseHas('business_config', ['id' => $tenant->id, BusinessConfigModel::IS_DEMO => false]);
+    }
+
+    public function test_pago_en_cero_conserva_cliente_demo(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([BusinessConfigModel::IS_DEMO => true]);
+
+        $this->postJson("/api/super-admin/subscription/{$tenant->id}", [
+            'plan' => 'weekly',
+            'starts_at' => now()->toDateString(),
+            'amount' => 0,
+        ], $this->superAdminHeaders())->assertStatus(200);
+
+        $this->assertDatabaseHas('business_config', ['id' => $tenant->id, BusinessConfigModel::IS_DEMO => true]);
+    }
+
     public function test_crea_suscripcion_sin_campos_requeridos(): void
     {
         $tenant = BusinessConfigModel::first();
@@ -469,6 +497,22 @@ class SuperAdminTest extends TestCase
             BusinessConfigModel::BUSINESS_NAME => 'Negocio Demo',
             BusinessConfigModel::ACTIVO => true,
             BusinessConfigModel::IS_DEMO => true,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => 'monthly',
+            BusinessConfigModel::SUBSCRIPTION_AMOUNT => 200.00,
+        ]);
+
+        $this->getJson('/api/super-admin/subscription/mrr', $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.total_monthly_revenue', 0);
+    }
+
+    public function test_mrr_excluye_tenants_de_pruebas(): void
+    {
+        BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'mrr-pruebas-'.uniqid(),
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Pruebas',
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_TEST => true,
             BusinessConfigModel::SUBSCRIPTION_PLAN => 'monthly',
             BusinessConfigModel::SUBSCRIPTION_AMOUNT => 200.00,
         ]);

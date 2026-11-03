@@ -3,6 +3,7 @@ import { IHourlyActivityPoint } from "@/models/ITenantActivity";
 export interface IDashboardTenantCounts {
     active: number;
     demo: number;
+    test: number;
     inactive: number;
 }
 

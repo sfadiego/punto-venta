@@ -22,6 +22,7 @@ export const useTenantInactiveSummary = (tenant: ITenant) => {
         { label: "Acceso del cliente", value: `/${tenant.slug}/auth` },
         { label: "Tipo de negocio", value: BUSINESS_TYPE_LABELS[tenant.tipo_negocio] },
         { label: "Cliente demo", value: tenant.is_demo ? "Sí" : "No" },
+        { label: "Negocio de pruebas", value: tenant.is_test ? "Sí" : "No" },
         { label: "Plan de suscripción", value: plan ?? "Sin plan" },
         { label: "Usuarios registrados", value: String(tenant.users_count ?? 0) },
         { label: "Última actividad", value: tenant.last_activity_at ? formatOrderDateTime(tenant.last_activity_at) : "Sin actividad" },

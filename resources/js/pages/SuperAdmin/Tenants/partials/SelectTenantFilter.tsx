@@ -11,6 +11,7 @@ const STATUS_FILTERS: { label: string; value: TenantStatusEnum }[] = [
 
 const DEMO_FILTERS: { label: string; value: TenantDemoFilterEnum }[] = [
     { label: "Demo", value: TenantDemoFilterEnum.Demo },
+    { label: "Pruebas", value: TenantDemoFilterEnum.Test },
 ];
 
 const STATUS_PREFIX = "status:";

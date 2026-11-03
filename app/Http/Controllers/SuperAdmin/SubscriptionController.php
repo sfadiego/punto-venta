@@ -23,13 +23,11 @@ class SubscriptionController extends Controller
     public function index(): JsonResponse
     {
         $query = BusinessConfigModel::withoutTrashed()
-            // Solo clientes activos o demo — un cliente inactivo (activo=false, dado de baja
-            // pero no eliminado) no debe aparecer en el panel de suscripciones salvo que sea
-            // demo (los demo se muestran/ocultan aparte, vía el filtro is_demo de abajo).
-            ->where(function ($q) {
-                $q->where(BusinessConfigModel::ACTIVO, true)
-                    ->orWhere(BusinessConfigModel::IS_DEMO, true);
-            })
+            // Solo clientes activos (demo incluidos, ver filtro is_demo de abajo): un cliente
+            // desactivado no puede entrar al sistema, así que su suscripción no es accionable.
+            ->where(BusinessConfigModel::ACTIVO, true)
+            // Los tenants de pruebas no llevan suscripción: nunca aparecen en este panel.
+            ->where(BusinessConfigModel::IS_TEST, false)
             ->withCount('users')
             ->orderBy(BusinessConfigModel::BUSINESS_NAME);
 
@@ -52,7 +50,7 @@ class SubscriptionController extends Controller
         $plan = SubscriptionPlanEnum::from($request->plan);
         $startsAt = Carbon::parse($request->starts_at);
 
-        $subscriptionService->start($tenant, $plan, $startsAt, $request->amount, $request->notes);
+        $subscriptionService->registerPayment($tenant, $plan, $startsAt, $request->amount, $request->notes);
 
         return Response::success($this->formatTenant($tenant->fresh()));
     }

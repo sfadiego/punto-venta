@@ -57,7 +57,7 @@ class SubscriptionTest extends TestCase
         $this->assertFalse($ids->contains($eliminado->id));
     }
 
-    public function test_lista_demo_incluye_tenant_demo_inactivo(): void
+    public function test_lista_demo_excluye_tenant_demo_inactivo(): void
     {
         $demoInactivo = BusinessConfigModel::create([
             BusinessConfigModel::SLUG => 'demo-inactivo-'.uniqid(),
@@ -70,7 +70,7 @@ class SubscriptionTest extends TestCase
             ->assertStatus(200);
 
         $ids = collect($response->json('data'))->pluck('id');
-        $this->assertTrue($ids->contains($demoInactivo->id));
+        $this->assertFalse($ids->contains($demoInactivo->id));
     }
 
     public function test_lista_por_defecto_excluye_demo(): void
@@ -87,6 +87,21 @@ class SubscriptionTest extends TestCase
 
         $ids = collect($response->json('data'))->pluck('id');
         $this->assertFalse($ids->contains($demo->id));
+    }
+
+    public function test_lista_excluye_tenant_de_pruebas(): void
+    {
+        $test = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'pruebas-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Negocio Pruebas',
+        ]);
+
+        $response = $this->getJson('/api/super-admin/subscription', $this->superAdminHeaders())
+            ->assertStatus(200);
+
+        $this->assertFalse(collect($response->json('data'))->pluck('id')->contains($test->id));
     }
 
     public function test_sin_autenticacion_no_accede(): void

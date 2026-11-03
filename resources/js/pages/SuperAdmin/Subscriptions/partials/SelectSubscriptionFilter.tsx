@@ -7,7 +7,6 @@ const STATUS_FILTERS = [
     { label: "Activos",           value: SubscriptionStatusEnum.Active },
     { label: "Vencidos",          value: SubscriptionStatusEnum.Expired },
     { label: "Período de gracia", value: SubscriptionStatusEnum.Grace },
-    { label: "Sin suscripción",   value: SubscriptionStatusEnum.Pending },
 ];
 
 const DEMO_FILTERS: { label: string; value: TenantDemoFilterEnum }[] = [
