@@ -194,5 +194,16 @@ export const useTenantForm = (tenantId?: number) => {
         formik.setFieldValue("label_color",   COLOR_DEFAULTS.label_color);
     };
 
-    return { formik, isEdit, tenant, handleResetColors, handleSyncAdminEmail };
+    // Un negocio de pruebas no tiene suscripción: al dejar de serlo hay que registrar la inicial,
+    // salvo que ya conserve una vigente (misma regla que TenantUpdateRequest::needsInitialSubscription).
+    const needsInitialSubscription =
+        isEdit &&
+        !!tenant?.is_test &&
+        !formik.values.is_test &&
+        !tenant.has_current_subscription;
+
+    // "Limpiar datos demo" aplica a los clientes demo y a los negocios de pruebas.
+    const showDangerZone = !!tenant?.is_demo || !!tenant?.is_test;
+
+    return { formik, isEdit, tenant, needsInitialSubscription, showDangerZone, handleResetColors, handleSyncAdminEmail };
 };

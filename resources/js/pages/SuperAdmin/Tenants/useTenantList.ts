@@ -10,6 +10,7 @@ import {
 } from "@/services/useSuperAdminService";
 import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
 import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
+import { filterToFlags } from "@/utils/tenantFilters";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { ITenant } from "@/models/ITenant";
@@ -20,12 +21,6 @@ import { ITenant } from "@/models/ITenant";
 const WIDGETS_LIMIT = 200;
 const DEFAULT_LIMIT = 10;
 const SEARCH_DEBOUNCE_MS = 400;
-
-const toIsDemo = (filter: TenantDemoFilterEnum): boolean | undefined =>
-    filter === TenantDemoFilterEnum.Demo ? true : undefined;
-
-const toIsTest = (filter: TenantDemoFilterEnum): boolean | undefined =>
-    filter === TenantDemoFilterEnum.Test ? true : undefined;
 
 export const useTenantList = () => {
     const [status, setStatus] = useState<TenantStatusEnum>(TenantStatusEnum.All);
@@ -42,8 +37,7 @@ export const useTenantList = () => {
 
     const { data, isLoading, isFetching, refetch, isRefetching } = useListTenantsPaginated({
         status,
-        isDemo: toIsDemo(demoFilter),
-        isTest: toIsTest(demoFilter),
+        ...filterToFlags(demoFilter),
         search: debouncedSearch || undefined,
         page,
         limit,

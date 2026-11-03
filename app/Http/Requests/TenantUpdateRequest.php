@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\BusinessTypeEnum;
-use App\Enums\SubscriptionPlanEnum;
+use App\Http\Requests\Concerns\ValidatesTenantSubscription;
 use App\Models\BusinessConfigModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -11,6 +11,8 @@ use Illuminate\Validation\Validator;
 
 class TenantUpdateRequest extends FormRequest
 {
+    use ValidatesTenantSubscription;
+
     public function authorize(): bool
     {
         return true;
@@ -40,20 +42,25 @@ class TenantUpdateRequest extends FormRequest
             BusinessConfigModel::MAX_USERS => 'nullable|integer|min:1|max:999',
             BusinessConfigModel::SUBSCRIPTION_AMOUNT => 'nullable|numeric|min:0',
             // Al convertir un negocio de pruebas en cliente se registra su suscripción inicial (mismas reglas del alta).
-            'plan' => [Rule::requiredIf($this->isConvertingFromTest(...)), 'nullable', Rule::enum(SubscriptionPlanEnum::class)],
-            'is_trial' => [Rule::requiredIf($this->isConvertingFromTest(...)), 'nullable', 'boolean'],
-            'starts_at' => [Rule::requiredIf($this->isConvertingFromTest(...)), 'nullable', 'date'],
-            'notes' => 'nullable|string|max:250',
-            'amount' => [Rule::requiredIf(fn () => $this->isConvertingFromTest() && ! $this->boolean('is_trial')), 'nullable', 'numeric', 'min:0'],
+            ...$this->subscriptionStartRules(
+                $this->needsInitialSubscription(...),
+                fn () => $this->needsInitialSubscription() && ! $this->boolean('is_trial'),
+            ),
         ];
     }
 
-    /** Un negocio de pruebas (sin suscripción) que este request deja de serlo. */
-    public function isConvertingFromTest(): bool
+    /**
+     * Un negocio de pruebas que este request convierte en cliente y que no tiene una suscripción vigente:
+     * un cliente real nunca queda sin ella. Si ya tiene una vigente se conserva, sin registrar otra.
+     */
+    public function needsInitialSubscription(): bool
     {
-        return $this->route('tenant')?->is_test === true
+        $tenant = $this->route('tenant');
+
+        return $tenant?->is_test === true
             && $this->has(BusinessConfigModel::IS_TEST)
-            && ! $this->boolean(BusinessConfigModel::IS_TEST);
+            && ! $this->boolean(BusinessConfigModel::IS_TEST)
+            && ! $tenant->hasCurrentSubscription();
     }
 
     /**
@@ -70,11 +77,7 @@ class TenantUpdateRequest extends FormRequest
                     $validator->errors()->add('tenant', __('Reactiva el negocio para poder editar su información.'));
                 }
             },
-            function (Validator $validator) {
-                if ($this->boolean(BusinessConfigModel::IS_TEST) && $this->boolean(BusinessConfigModel::IS_DEMO)) {
-                    $validator->errors()->add(BusinessConfigModel::IS_TEST, __('Un negocio de pruebas no puede ser también un cliente demo.'));
-                }
-            },
+            fn (Validator $validator) => $this->assertNotTestAndDemo($validator),
         ];
     }
 }

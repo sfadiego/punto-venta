@@ -607,7 +607,11 @@ class TenantManagementTest extends TestCase
     public function test_convertir_tenant_de_pruebas_en_cliente_exige_suscripcion(): void
     {
         $tenant = BusinessConfigModel::first();
-        $tenant->update([BusinessConfigModel::IS_TEST => true]);
+        $tenant->update([
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => null,
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => null,
+        ]);
 
         $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant, [
             BusinessConfigModel::IS_TEST => false,
@@ -621,7 +625,11 @@ class TenantManagementTest extends TestCase
     public function test_convertir_tenant_de_pruebas_en_cliente_con_pago_exige_monto(): void
     {
         $tenant = BusinessConfigModel::first();
-        $tenant->update([BusinessConfigModel::IS_TEST => true]);
+        $tenant->update([
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => null,
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => null,
+        ]);
 
         $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant, [
             BusinessConfigModel::IS_TEST => false,
@@ -635,7 +643,11 @@ class TenantManagementTest extends TestCase
     public function test_convertir_tenant_de_pruebas_en_cliente_registra_su_suscripcion(): void
     {
         $tenant = BusinessConfigModel::first();
-        $tenant->update([BusinessConfigModel::IS_TEST => true]);
+        $tenant->update([
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => null,
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => null,
+        ]);
         $startsAt = Carbon::today();
 
         $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant, [
@@ -654,6 +666,55 @@ class TenantManagementTest extends TestCase
             'plan' => SubscriptionPlanEnum::Weekly->value,
             'amount' => 0,
         ]);
+    }
+
+    public function test_convertir_tenant_de_pruebas_con_suscripcion_vigente_no_registra_otra(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Monthly->value,
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => Carbon::today()->addDays(10),
+        ]);
+        $before = SubscriptionModel::where('tenant_id', $tenant->id)->count();
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant, [
+            BusinessConfigModel::IS_TEST => false,
+        ]), $this->superAdminHeaders())->assertStatus(200);
+
+        $this->assertFalse($tenant->fresh()->is_test);
+        $this->assertSame($before, SubscriptionModel::where('tenant_id', $tenant->id)->count());
+    }
+
+    public function test_convertir_tenant_de_pruebas_con_suscripcion_vencida_exige_una_nueva(): void
+    {
+        $tenant = BusinessConfigModel::first();
+        $tenant->update([
+            BusinessConfigModel::IS_TEST => true,
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Monthly->value,
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => Carbon::today()->subDay(),
+        ]);
+
+        $this->putJson("/api/super-admin/tenant/{$tenant->id}", $this->updatePayload($tenant, [
+            BusinessConfigModel::IS_TEST => false,
+        ]), $this->superAdminHeaders())->assertStatus(400);
+    }
+
+    public function test_muestra_tenant_indica_si_tiene_suscripcion_vigente(): void
+    {
+        $tenant = BusinessConfigModel::first();
+
+        $this->getJson("/api/super-admin/tenant/{$tenant->id}", $this->superAdminHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.has_current_subscription', true);
+
+        $tenant->update([
+            BusinessConfigModel::SUBSCRIPTION_PLAN => SubscriptionPlanEnum::Monthly->value,
+            BusinessConfigModel::SUBSCRIPTION_EXPIRES_AT => Carbon::today()->subDay(),
+        ]);
+
+        $this->getJson("/api/super-admin/tenant/{$tenant->id}", $this->superAdminHeaders())
+            ->assertJsonPath('data.has_current_subscription', false);
     }
 
     public function test_actualizar_tenant_normal_no_exige_ni_crea_suscripcion(): void

@@ -27,7 +27,7 @@ class SubscriptionController extends Controller
             // desactivado no puede entrar al sistema, así que su suscripción no es accionable.
             ->where(BusinessConfigModel::ACTIVO, true)
             // Los tenants de pruebas no llevan suscripción: nunca aparecen en este panel.
-            ->where(BusinessConfigModel::IS_TEST, false)
+            ->withoutTest()
             ->withCount('users')
             ->orderBy(BusinessConfigModel::BUSINESS_NAME);
 

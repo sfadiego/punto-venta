@@ -16,7 +16,7 @@ class SubscriptionStatisticsService
         return (float) BusinessConfigModel::withoutTrashed()
             ->where(BusinessConfigModel::ACTIVO, true)
             ->where(BusinessConfigModel::IS_DEMO, false)
-            ->where(BusinessConfigModel::IS_TEST, false)
+            ->withoutTest()
             ->where(BusinessConfigModel::SUBSCRIPTION_AMOUNT, '>', 0)
             ->where(BusinessConfigModel::SUBSCRIPTION_PLAN, '!=', SubscriptionPlanEnum::Lifetime->value)
             ->sum(BusinessConfigModel::SUBSCRIPTION_AMOUNT);

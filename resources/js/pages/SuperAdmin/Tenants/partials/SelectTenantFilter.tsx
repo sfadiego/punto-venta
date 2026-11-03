@@ -1,4 +1,4 @@
-import { Select } from "@/components/ui/form/Select";
+import { SelectStatusKindFilter } from "@/components/SuperAdmin/SelectStatusKindFilter";
 import { TenantStatusEnum } from "@/enums/TenantStatusEnum";
 import { TenantDemoFilterEnum } from "@/enums/TenantDemoFilterEnum";
 
@@ -9,17 +9,9 @@ const STATUS_FILTERS: { label: string; value: TenantStatusEnum }[] = [
     { label: "Eliminados", value: TenantStatusEnum.Deleted },
 ];
 
-const DEMO_FILTERS: { label: string; value: TenantDemoFilterEnum }[] = [
+const KIND_FILTERS: { label: string; value: TenantDemoFilterEnum }[] = [
     { label: "Demo", value: TenantDemoFilterEnum.Demo },
     { label: "Pruebas", value: TenantDemoFilterEnum.Test },
-];
-
-const STATUS_PREFIX = "status:";
-const DEMO_PREFIX = "demo:";
-
-const FILTER_OPTIONS = [
-    ...STATUS_FILTERS.map((f) => ({ value: `${STATUS_PREFIX}${f.value}`, label: f.label })),
-    ...DEMO_FILTERS.map((f) => ({ value: `${DEMO_PREFIX}${f.value}`, label: f.label })),
 ];
 
 interface SelectTenantFilterProps {
@@ -36,29 +28,15 @@ export const SelectTenantFilter = ({
     onStatusChange,
     onDemoFilterChange,
     className,
-}: SelectTenantFilterProps) => {
-    const value =
-        demoFilter !== TenantDemoFilterEnum.All
-            ? `${DEMO_PREFIX}${demoFilter}`
-            : `${STATUS_PREFIX}${status}`;
-
-    const handleChange = (raw: string) => {
-        if (raw.startsWith(DEMO_PREFIX)) {
-            onDemoFilterChange(raw.slice(DEMO_PREFIX.length) as TenantDemoFilterEnum);
-            onStatusChange(TenantStatusEnum.All);
-        } else {
-            onStatusChange(raw.slice(STATUS_PREFIX.length) as TenantStatusEnum);
-            onDemoFilterChange(TenantDemoFilterEnum.All);
-        }
-    };
-
-    return (
-        <Select<{ filter: string }>
-            name="filter"
-            options={FILTER_OPTIONS}
-            value={value}
-            onChange={handleChange}
-            className={className}
-        />
-    );
-};
+}: SelectTenantFilterProps) => (
+    <SelectStatusKindFilter
+        statusOptions={STATUS_FILTERS}
+        kindOptions={KIND_FILTERS}
+        status={status}
+        kind={demoFilter}
+        resetStatus={TenantStatusEnum.All}
+        onStatusChange={onStatusChange}
+        onKindChange={onDemoFilterChange}
+        className={className}
+    />
+);

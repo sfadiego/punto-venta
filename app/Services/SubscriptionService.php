@@ -33,6 +33,24 @@ class SubscriptionService
     }
 
     /**
+     * Suscripción inicial de un tenant (alta, o conversión de un negocio de pruebas en cliente).
+     * Una prueba se registra con monto 0 y la nota «Periodo de prueba»; si no, con el monto cobrado.
+     */
+    public function startInitial(BusinessConfigModel $tenant, SubscriptionPlanEnum $plan, Carbon $startsAt, bool $isTrial, ?float $amount, ?string $notes): SubscriptionModel
+    {
+        $base = $isTrial ? SubscriptionModel::TRIAL_NOTES : SubscriptionModel::INITIAL_NOTES;
+        $notes = trim((string) $notes);
+
+        return $this->start(
+            tenant: $tenant,
+            plan: $plan,
+            startsAt: $startsAt,
+            amount: $isTrial ? 0 : $amount,
+            notes: $notes === '' ? $base : "{$base} — {$notes}",
+        );
+    }
+
+    /**
      * Pago registrado por el SuperAdmin. Un pago real (monto > 0) convierte al prospecto demo en cliente:
      * se desmarca is_demo para que cuente en "Activos" e ingresos y recupere los días de gracia.
      */
