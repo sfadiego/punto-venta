@@ -120,7 +120,7 @@ const sellByWeight = features?.sell_by_weight === true;
 - **Dashboard**: `RecentSales` muestra órdenes InProcess + Closed. Las InProcess son clickeables y abren `NewSaleModal` para continuar la venta.
 - **Órdenes**: listado con status InProcess por defecto. Click en fila InProcess abre `NewSaleModal` (modo resume). Fila Closed muestra `SaleActions`.
 - **Sidebar**: la página de Órdenes es visible para todos los tipos de negocio.
-- **NewSaleModal**: flujo de venta directa con creación lazy de orden, cobro inline, y confirmación de impresión con Swal.
+- **NewSaleModal**: flujo de venta directa con creación lazy de orden, y cobro inline (al cobrar no se pregunta por imprimir: el ticket sale del botón Imprimir).
 - **`SaleActions`** (`components/orders/SaleActions.tsx`): componente reutilizable para acciones de sell_by_weight — botón Eye (solo órdenes Closed) + `PrintTicketButton`. Usado en DataTable de Órdenes y en `RecentSales`.
 
 ---

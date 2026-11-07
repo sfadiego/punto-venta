@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import Swal from "sweetalert2";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
 import { useCustomerList } from "@/services/useCustomerService";
-import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { useCashDrawer } from "@/components/orders/PrintTicket/useCashDrawer";
 import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
@@ -29,7 +27,6 @@ export const useSaleQuickPay = (order: IOrder) => {
     const { mutateAsync: updateOrder, isPending: isPaying } = useUpdateOrder(order.id);
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
     const { data: customers = [] } = useCustomerList();
-    const { print, canPrint } = usePrintTicket();
     const { openCashDrawer } = useCashDrawer();
 
     const totalFinal = order.total;
@@ -80,20 +77,6 @@ export const useSaleQuickPay = (order: IOrder) => {
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             if (isCashMethod && !isCreditMode) void openCashDrawer();
             closePayModal();
-
-            if (canPrint) {
-                const result = await Swal.fire({
-                    title: "¿Imprimir ticket?",
-                    icon: "question",
-                    showCancelButton: true,
-                    confirmButtonColor: "#f59e0b",
-                    cancelButtonColor: "#78716c",
-                    confirmButtonText: "Sí, imprimir",
-                    cancelButtonText: "No",
-                    reverseButtons: true,
-                });
-                if (result.isConfirmed) print(order.id);
-            }
         } catch (error) {
             logUnexpectedError(error, "useSaleQuickPay.handlePay");
             toast.error(getUserFacingErrorMessage(error, "Error al cerrar la orden"));
