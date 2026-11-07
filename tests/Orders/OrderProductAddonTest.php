@@ -426,7 +426,7 @@ class OrderProductAddonTest extends TestCase
         $this->agregar($orden, $cafe)->assertStatus(200);
         $this->assertEquals(160, $orden->refresh()->total);
 
-        $this->deleteJson("/api/order/{$orden->id}/product/{$lineaId}", [], $this->authHeaders())->assertStatus(200);
+        $this->deleteJson("/api/order/{$orden->id}/product/{$waffle->id}", [], $this->authHeaders())->assertStatus(200);
 
         $this->assertEquals(30, $orden->refresh()->total);
         $this->assertDatabaseCount('order_product_addons', 0);

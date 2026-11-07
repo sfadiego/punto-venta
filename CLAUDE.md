@@ -92,6 +92,7 @@ Patrón de contexto de página:
 | `/sales` | Lista de ventas | Admin |
 | `/orders` | Lista de órdenes | Todos |
 | `/take-order/:id` | Tomar pedido | Admin |
+| `/quick-sale`, `/quick-sale/:id` | Venta rápida (venta por peso) | Permiso `viewOrders` o `viewProducts` |
 | `/products` | Productos | Todos |
 | `/product/:id` | Editar producto | Admin |
 | `/categories` | Categorías | Admin |
@@ -109,6 +110,9 @@ El sistema soporta múltiples tipos de negocio. El tipo activo se determina por 
 |---|---|---|
 | Restaurante / cafetería | `restaurante` | `kitchen_view`, `order_served` |
 | Venta por peso (carnicería) | `venta_por_peso` | `sell_by_weight: true`, sin kitchen_view ni order_served |
+| Tienda / mostrador | `retail` | `is_retail: true`, sin kitchen_view, order_served, domicilio ni extras |
+
+Pantalla de venta por tipo: `restaurante` y `retail` toman pedidos en TakeOrder (`/take-order/:id`); `venta_por_peso` vende en QuickSale (`/quick-sale`).
 
 ```ts
 const { features } = useAxios();
@@ -117,10 +121,10 @@ const sellByWeight = features?.sell_by_weight === true;
 
 ### Comportamiento diferenciado `sell_by_weight`
 
-- **Dashboard**: `RecentSales` muestra órdenes InProcess + Closed. Las InProcess son clickeables y abren `NewSaleModal` para continuar la venta.
-- **Órdenes**: listado con status InProcess por defecto. Click en fila InProcess abre `NewSaleModal` (modo resume). Fila Closed muestra `SaleActions`.
+- **Dashboard**: `RecentSales` muestra órdenes InProcess + Closed. Las InProcess son clickeables y navegan a `/quick-sale/:id` para continuar la venta.
+- **Órdenes**: listado con status InProcess por defecto. Fila Closed muestra `SaleActions`.
 - **Sidebar**: la página de Órdenes es visible para todos los tipos de negocio.
-- **NewSaleModal**: flujo de venta directa con creación lazy de orden, cobro inline, y confirmación de impresión con Swal.
+- **QuickSale** (`/quick-sale`, `/quick-sale/:id`): flujo de venta directa con el carrito 100 % local y cobro inline. Solo viaja al servidor con `persistCart()` (ver "Carrito: peticiones agrupadas"). Al cobrar no se pregunta por imprimir: el ticket sale del botón Imprimir.
 - **`SaleActions`** (`components/orders/SaleActions.tsx`): componente reutilizable para acciones de sell_by_weight — botón Eye (solo órdenes Closed) + `PrintTicketButton`. Usado en DataTable de Órdenes y en `RecentSales`.
 
 ---
@@ -133,7 +137,7 @@ const sellByWeight = features?.sell_by_weight === true;
 | Categorías | `GET/POST /category`, `GET/PUT/DELETE /category/{id}`, `GET /category/{id}/product` |
 | Productos | `GET/POST /product`, `GET/PUT/DELETE /product/{id}`, `POST /product/{id}/image` |
 | Órdenes | `GET/POST /order`, `GET/PUT/DELETE /order/{id}`, `GET /order/{id}/total` |
-| Productos en orden | `GET/POST /order/{id}/product`, `PUT/DELETE /order/{id}/product/{pid}` |
+| Productos en orden | `GET/POST /order/{id}/product`, `PUT/DELETE /order/{id}/product/{pid}`, `POST /order/{id}/products` (alta en lote), `PUT /order/{id}/products/sync` (deja las líneas de catálogo iguales al carrito final; QuickSale retomada) |
 | Devoluciones (retail) | `POST /order/{id}/return` (permiso `processReturns` + `retail.stock`), `POST /order/{id}/return/{orderReturn}/print` y `GET .../print/bytes` (permiso `printTicket`) — ver "Devoluciones de venta" |
 | Cajón de dinero | `POST /order/cash-drawer` (permiso `payOrder`; solo impresora de servidor) — ver "Cajón de dinero" |
 | Estado de orden | `GET/POST /order-status`, `GET/PUT /order-status/{id}` |
@@ -233,7 +237,7 @@ routes/
 ## Decisiones de arquitectura relevantes
 
 ### `delivery_paid_by` eliminado
-El campo `delivery_paid_by` fue removido de `business_config` (migración `2026_07_07_151043_drop_delivery_paid_by_from_business_config_table`). El modo de pago del domicilio ahora lo selecciona el usuario en cada venta dentro de `NewSaleModal` — no es una configuración global del negocio. El backend defaultea internamente a `"customer"`.
+El campo `delivery_paid_by` fue removido de `business_config` (migración `2026_07_07_151043_drop_delivery_paid_by_from_business_config_table`). El modo de pago del domicilio ahora lo selecciona el usuario en cada venta dentro de QuickSale — no es una configuración global del negocio. El backend defaultea internamente a `"customer"`.
 
 ### Página de Ventas — solo órdenes Closed (status 3)
 `SalesPage` filtra exclusivamente `estatus_pedido_id: Closed`. Las órdenes InProcess viven en `OrderListPage`. No se envía `sistema_id` porque es una vista histórica que puede consultar fechas de sesiones anteriores.
@@ -241,9 +245,18 @@ El campo `delivery_paid_by` fue removido de `business_config` (migración `2026_
 ### `OrderPreviewModal` — botón disparador deshabilitado
 El botón Eye que abre el modal se deshabilita cuando `order.total === 0`. Aplica en Dashboard (`RecentSales`), Órdenes (`OrderActionGroup`) y Ventas (`actionsColumn` de `useSalesPage`).
 
+### Carrito: peticiones agrupadas
+- **TakeOrder** (restaurante y retail): `hooks/useCartLineSync.ts` agrupa los toques por línea — UI optimista, debounce de 600 ms, cantidad absoluta, un envío por línea y un solo refetch. Antes de una acción que no se deshace (pagar, imprimir, vaciar carrito, salir) se hace `await flushAll()` y se aborta si devuelve `false`.
+- **QuickSale** (venta por peso): el carrito es local; `persistCart()` (`useResumeOrder`) crea la orden o llama a `PUT /order/{id}/products/sync` al guardar, imprimir o cobrar.
+- Sin conexión, TanStack pausa las mutaciones y las reanuda solo al volver la red. Riesgo conocido: las acciones que esperan `flushAll()` quedan esperando sin aviso. Detalle y riesgos en la skill `optimizacion-peticiones`.
+
+### Importación CSV y stock
+`ProductImportService` ignora las columnas de stock (con aviso en la vista previa) si el tenant no tiene `stock_enabled`; un producto que ya manejaba stock no se modifica.
+
 ### Testing
 - Los test se van a crear para probar las apis existentes en `php artisan route:list`
 - no crear funciones nuevas para crear archivos, utiza factory en los metodos que lo requieran
+- `php artisan test` corre contra MySQL local (`punto_venta_testing`, usuario `punto_venta_test` en `.env.testing`); `tests/TestCase.php` solo lo permite si la base termina en `_testing` y el host es local, si no fuerza SQLite. Para replicar el pipeline de GitHub (SQLite en memoria): `DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan test`. Los tests deben pasar en ambos motores.
 
 ### PHP — imports y referencias de clases
 - Nunca referenciar clases con el namespace completo inline (ej. `\App\Models\ErrorReporting::where(...)`). Siempre declarar el `use` al inicio del archivo y usar solo el nombre corto (ej. `use App\Models\ErrorReporting;` → `ErrorReporting::where(...)`).
@@ -261,3 +274,4 @@ Se cargan solas según la tarea, o a mano con `/nombre`.
 - [multi-sucursal](.claude/skills/multi-sucursal/SKILL.md) — feature `multi_branch_enabled`, `branch_id`, `user_branch`.
 - [devoluciones-venta](.claude/skills/devoluciones-venta/SKILL.md) — devoluciones retail, reembolsos, caja y reportes netos.
 - [impresion-cajon](.claude/skills/impresion-cajon/SKILL.md) — agente de impresión, tickets ESC/POS y cajón de dinero.
+- [optimizacion-peticiones](.claude/skills/optimizacion-peticiones/SKILL.md) — carrito de TakeOrder/QuickSale, UI optimista, debounce, sync y riesgos de peticiones.

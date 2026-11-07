@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ApiRoutes } from "@/enums/ApiRoutesEnum";
-import { useIndexCategoriesPaginated } from "@/services/useCategoriesService";
+import { invalidateCategoryQueries, useIndexCategoriesPaginated } from "@/services/useCategoriesService";
 import { ICategory } from "@/models/ICategory";
 
 export const useCategoriesPage = () => {
@@ -37,9 +36,7 @@ export const useCategoriesPage = () => {
     }, [data, isLoading, page]);
 
     const invalidateCategories = () => {
-        queryClient.invalidateQueries({
-            predicate: (query) => typeof query.queryKey[0] === "string" && query.queryKey[0].startsWith(ApiRoutes.Category),
-        });
+        void invalidateCategoryQueries(queryClient);
     };
 
     const pageSize = [10, 20, 50];

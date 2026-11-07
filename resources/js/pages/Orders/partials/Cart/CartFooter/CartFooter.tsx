@@ -25,6 +25,7 @@ interface CartFooterProps {
     orderId: number;
     canPay: boolean;
     onPay: () => void;
+    onBeforePrint: () => Promise<boolean>;
     onUpdateDiscount: (descuento: number) => Promise<void>;
 }
 
@@ -47,6 +48,7 @@ export const CartFooter = ({
     orderId,
     canPay,
     onPay,
+    onBeforePrint,
     onUpdateDiscount,
 }: CartFooterProps) => {
     const domicilioExcedeTotal = domicilioActivo && !customerPays && domicilio > total && total > 0;
@@ -93,6 +95,7 @@ export const CartFooter = ({
                 disablePay={domicilioExcedeTotal}
                 orderId={orderId}
                 onPay={onPay}
+                onBeforePrint={onBeforePrint}
             />
         </div>
     );

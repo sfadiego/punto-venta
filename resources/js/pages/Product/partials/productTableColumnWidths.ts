@@ -11,5 +11,7 @@ export const PRODUCT_TABLE_COLUMN_WIDTHS = {
     precio: 140,
     estado: 120,
     stock: 100,
-    acciones: 150,
+    acciones: 110,
+    // Con acciones de stock (historial, reabastecer, ajustar) caben hasta 5 iconos.
+    accionesConStock: 150,
 } as const;

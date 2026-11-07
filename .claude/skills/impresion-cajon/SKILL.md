@@ -37,7 +37,7 @@ Solo al cobrar: imprimir o reimprimir un ticket **nunca** abre el cajón (hay un
 
 - **Interruptor por negocio**: `business_config.open_cash_drawer` (boolean, apagado por defecto), Admin → Impresora.
   Es un campo opcional en `PUT /admin/config` (el backend solo lo toca si viene, como `return_days`).
-- **Quién lo dispara**: el frontend, tras cerrar la orden y antes de "¿Imprimir ticket?", solo si el método es efectivo
+- **Quién lo dispara**: el frontend, tras cerrar la orden, solo si el método es efectivo
   y no es crédito. Lo llaman los 4 flujos de cobro: `usePayOrder`, `useSaleQuickPay`, `usePayModal` (Orders) y
   `useQuickSalePayment` (QuickSale). Un flujo de cobro nuevo debe llamar `useCashDrawer().openCashDrawer()` también.
 - **Cómo sale la señal** (`components/orders/PrintTicket/useCashDrawer.ts`, misma ruta que el ticket vía `resolvePrintRoute`):

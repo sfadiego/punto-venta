@@ -656,6 +656,32 @@ class OrderTest extends TestCase
             ->assertJsonStructure(['status', 'data' => ['categories', 'domicilios']]);
     }
 
+    public function test_ventas_por_categoria_incluye_lineas_extra_sin_producto(): void
+    {
+        $report = $this->crearReporte();
+        $order = OrderModel::create([
+            OrderModel::TOTAL => 277,
+            OrderModel::SUBTOTAL => 277,
+            OrderModel::DESCUENTO => 0,
+            OrderModel::NOMBRE_PEDIDO => 'Venta con extra',
+            OrderModel::ESTATUS_PEDIDO_ID => OrderStatusEnum::CLOSED->value,
+            OrderModel::SISTEMA_ID => $report->id,
+            OrderModel::TENANT_ID => BusinessConfigModel::first()->id,
+        ]);
+        OrderProductModel::create([
+            OrderProductModel::PEDIDO_ID => $order->id,
+            OrderProductModel::NOMBRE_EXTRA => 'Extra',
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 277,
+            OrderProductModel::DESCUENTO => 0,
+        ]);
+
+        $response = $this->getJson("/api/order/sales-by-category?sistema_id={$report->id}", $this->authHeaders())
+            ->assertStatus(200);
+
+        $this->assertEquals(277, collect($response->json('data.categories'))->sum('total_revenue'));
+    }
+
     public function test_ventas_por_categoria_con_fecha(): void
     {
         $report = $this->crearReporte();

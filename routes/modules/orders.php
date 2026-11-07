@@ -80,6 +80,11 @@ Route::prefix('order')->group(function () {
             Route::middleware('permission:takeOrder,viewOrders')
                 ->post('products', [OrderProductController::class, 'storeBatch']);
 
+            // Mismo permiso: reemplaza las líneas de catálogo por el carrito final (QuickSale
+            // retomando una venta, un request en vez de uno por cambio).
+            Route::middleware('permission:takeOrder,viewOrders')
+                ->put('products/sync', [OrderProductController::class, 'syncProducts']);
+
             Route::prefix('product')->group(function () {
                 Route::controller(OrderProductController::class)->group(function () {
                     Route::get('', 'index');

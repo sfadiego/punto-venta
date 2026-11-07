@@ -269,6 +269,26 @@ class OrderProductAuthorizationTest extends TestCase
         ], $this->authHeaders($caja))->assertStatus(200);
     }
 
+    public function test_caja_con_view_orders_puede_sincronizar_el_carrito_al_retomar_una_venta(): void
+    {
+        $this->otorgarPermiso(RoleEnum::CAJA->value, 'viewOrders');
+        $caja = $this->crearUsuario(RoleEnum::CAJA);
+        $orden = $this->crearOrden();
+
+        $this->putJson("/api/order/{$orden->id}/products/sync", ['items' => []], $this->authHeaders($caja))
+            ->assertStatus(200);
+    }
+
+    public function test_caja_configurada_explicitamente_sin_permisos_no_puede_sincronizar_el_carrito(): void
+    {
+        $this->otorgarPermiso(RoleEnum::CAJA->value, 'printTicket');
+        $caja = $this->crearUsuario(RoleEnum::CAJA);
+        $orden = $this->crearOrden();
+
+        $this->putJson("/api/order/{$orden->id}/products/sync", ['items' => []], $this->authHeaders($caja))
+            ->assertStatus(403);
+    }
+
     public function test_caja_configurada_explicitamente_sin_permisos_no_puede_vaciar_el_carrito(): void
     {
         $this->otorgarPermiso(RoleEnum::CAJA->value, 'printTicket');

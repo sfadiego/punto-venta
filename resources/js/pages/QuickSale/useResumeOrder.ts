@@ -2,16 +2,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { NavigateFunction } from "react-router-dom";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import { useShowOrder, useStoreOrder, useCreateOrderProducts, useUpdateOrderData } from "@/services/useOrderService";
+import { useShowOrder, useStoreOrder, useCreateOrderProducts, useSyncOrderProducts, useUpdateOrderData } from "@/services/useOrderService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { resolveSaleName } from "@/utils/resolveSaleName";
 import { calcCostoDomicilio } from "@/utils/deliveryCalc";
-import { buildModalCartItems } from "@/utils/sellByWeightCartCalc";
+import { buildModalCartItems, buildOrderItems, hasCartChanges } from "@/utils/sellByWeightCartCalc";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
+import { IOrderProduct } from "@/models/IOrderProduct";
 import { IModalCartItem } from "@/models/IModalCartItem";
+import { useWarnBeforeUnload } from "@/hooks/useWarnBeforeUnload";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
 
 interface UseResumeOrderParams {
@@ -48,7 +50,12 @@ export const useResumeOrder = ({
 
     const { mutateAsync: storeOrder } = useStoreOrder();
     const { mutateAsync: createOrderProducts } = useCreateOrderProducts();
+    const { mutateAsync: syncOrderProducts } = useSyncOrderProducts();
     const { mutateAsync: updateOrderData } = useUpdateOrderData();
+
+    // En una venta retomada los cambios del carrito solo viven en memoria hasta guardar, imprimir o
+    // cobrar: avisar antes de cerrar o recargar la pestaña con cambios sin guardar.
+    useWarnBeforeUnload(!!resumeOrder && hasCartChanges(cart, buildModalCartItems(resumeOrder.order_products)));
 
     const [nombrePedido, setNombrePedido] = useState("");
     const [isSavingOrder, setIsSavingOrder] = useState(false);
@@ -102,7 +109,7 @@ export const useResumeOrder = ({
         if (cart.length > 0) {
             await createOrderProducts({
                 orderId: order.id,
-                items: cart.map((item) => ({ producto_id: item.productId, cantidad: item.cantidad })),
+                items: buildOrderItems(cart),
             });
         }
 
@@ -119,12 +126,29 @@ export const useResumeOrder = ({
         return order.id;
     };
 
+    // Deja la orden en el servidor igual al carrito local y devuelve su id: la crea si todavía no
+    // existe, o sincroniza sus líneas si ya estaba guardada (retomada). El carrito solo viaja al
+    // servidor aquí (guardar, imprimir, cobrar), no en cada toque. Al terminar el carrito local
+    // toma los ids que asignó el servidor, para que el siguiente sync reconozca esas líneas.
+    const persistCart = async (): Promise<number> => {
+        if (!resumeOrderId) return createOrderFromCart();
+
+        const response = await syncOrderProducts({
+            orderId: resumeOrderId,
+            items: buildOrderItems(cart).map((item, index) => ({ ...item, order_product_id: cart[index].orderProductId })),
+        });
+        setCart(buildModalCartItems((response as { data: { data: IOrderProduct[] } }).data.data));
+        invalidateResumeOrderQueries();
+        return resumeOrderId;
+    };
+
     // Guardar y continuar después.
     const saveCartAsInProcess = async () => {
+        await persistCart();
+
+        // Una orden nueva ya salió con nombre y domicilio (createOrderFromCart); en una retomada
+        // hay que fijarlos por si quedó algo sin blur (ej. el input de costo a medio escribir).
         if (resumeOrderId) {
-            // El carrito y el domicilio ya se sincronizaron acción por acción mientras se editaba
-            // (addToCart/removeFromCart/clearCart/toggleDelivery/etc.) — aquí solo queda fijar
-            // nombre/domicilio por si quedó algo sin blur (ej. el input de costo a medio escribir).
             await updateOrderData({
                 orderId: resumeOrderId,
                 data: {
@@ -134,10 +158,7 @@ export const useResumeOrder = ({
                 },
             });
             invalidateResumeOrderQueries();
-            return;
         }
-
-        await createOrderFromCart();
     };
 
     const handleBack = async () => {
@@ -179,9 +200,8 @@ export const useResumeOrder = ({
                 setIsSavingOrder(false);
             }
         } else if (result.isDenied) {
-            // Descartar cancela la salida: se queda en la pantalla, revirtiendo el estado local
-            // sin tocar lo que ya se sincronizó en el servidor. Al retomar, vuelve a lo último
-            // realmente guardado (no a vacío) — en venta nueva, sí arranca de cero.
+            // Descartar cancela la salida: se queda en la pantalla y revierte el carrito a lo último
+            // realmente guardado en el servidor (no a vacío) — en venta nueva, sí arranca de cero.
             if (resumeOrderId && resumeOrder) {
                 applyOrderState(resumeOrder);
             } else {
@@ -199,6 +219,6 @@ export const useResumeOrder = ({
         handleNombrePedidoBlur,
         isSavingOrder,
         handleBack,
-        createOrderFromCart,
+        persistCart,
     };
 };

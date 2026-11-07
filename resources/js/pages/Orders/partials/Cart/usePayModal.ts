@@ -1,10 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import Swal from "sweetalert2";
 import { useModal } from "@/hooks/useModal";
 import { useUpdateOrder } from "@/services/useOrderService";
-import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { useCashDrawer } from "@/components/orders/PrintTicket/useCashDrawer";
 import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
@@ -27,7 +25,15 @@ interface DeliveryInfo {
 // Orquesta el modal de cobro: compone usePaymentSelection (efectivo/propina/método) y
 // useCreditSelection (venta a crédito), y agrega la lógica que cruza ambos dominios
 // (mutua exclusión método-vs-crédito, canPay, reset al abrir) más el cobro en sí.
-export const usePayModal = (orderId: number, total: number, delivery: DeliveryInfo) => {
+// flushPending: envía los toques del carrito que aún no llegan al servidor. Se espera antes de
+// abrir el cobro: cerrar la orden sin esos productos los perdería (el backend rechaza agregar
+// a una orden cerrada). Devuelve false si algún envío falló.
+export const usePayModal = (
+    orderId: number,
+    total: number,
+    delivery: DeliveryInfo,
+    flushPending: () => Promise<boolean>,
+) => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { sistemaId } = useAxios();
@@ -36,7 +42,6 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
     const creditSelection = useCreditSelection();
 
     const { mutateAsync: updateOrder, isPending } = useUpdateOrder(orderId);
-    const { print, canPrint } = usePrintTicket();
     const { openCashDrawer } = useCashDrawer();
 
     const canPay = canPayOrder({
@@ -47,7 +52,8 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
         selectedCustomer: creditSelection.selectedCustomer,
     });
 
-    const handleOpen = () => {
+    const handleOpen = async () => {
+        if (!(await flushPending())) return;
         paymentSelection.setCash("");
         paymentSelection.setPropina("");
         paymentSelection.setPaymentMethodId(resolveDefaultPaymentMethodId(paymentSelection.paymentMethods));
@@ -112,21 +118,6 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
             toast.success(creditSelection.isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             if (paymentSelection.isCash && !creditSelection.isCreditMode) void openCashDrawer();
             closeModal();
-
-            if (canPrint) {
-                const result = await Swal.fire({
-                    title: "¿Imprimir ticket?",
-                    icon: "question",
-                    showCancelButton: true,
-                    confirmButtonColor: "#f59e0b",
-                    cancelButtonColor: "#78716c",
-                    confirmButtonText: "Sí, imprimir",
-                    cancelButtonText: "No",
-                    reverseButtons: true,
-                });
-                if (result.isConfirmed) print(orderId);
-            }
-
             navigate("/");
         } catch (error) {
             logUnexpectedError(error, "usePayModal.handlePay");

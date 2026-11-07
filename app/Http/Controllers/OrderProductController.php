@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\MainOrderStatusEnum;
-use App\Enums\OrderStatusEnum;
 use App\Http\Requests\OrderProductBatchStoreRequest;
 use App\Http\Requests\OrderProductStoreRequest;
+use App\Http\Requests\OrderProductSyncRequest;
 use App\Http\Requests\OrderProductUpdateRequest;
 use App\Models\OrderModel;
 use App\Models\OrderProductModel;
@@ -24,11 +23,7 @@ class OrderProductController extends Controller
      */
     public function index(OrderModel $order): JsonResponse
     {
-        return Response::success(
-            OrderProductModel::with(['product.addons', 'variant', 'addons'])
-                ->where('pedido_id', $order->id)
-                ->get()
-        );
+        return Response::success($this->service->lines($order));
     }
 
     /**
@@ -36,11 +31,7 @@ class OrderProductController extends Controller
      */
     public function show(OrderModel $order, string $productId): JsonResponse
     {
-        return Response::success(
-            OrderProductModel::with(['product.addons', 'variant', 'addons'])->where('pedido_id', $order->id)
-                ->where('producto_id', $productId)
-                ->get()
-        );
+        return Response::success($this->service->lines($order, $productId));
     }
 
     /**
@@ -48,9 +39,9 @@ class OrderProductController extends Controller
      */
     public function store(string $orderId, OrderProductStoreRequest $params): JsonResponse
     {
-        $order = OrderModel::with('sistema')->find($orderId);
-        if ($error = $this->assertOrderEditable($order)) {
-            return $error;
+        $order = $this->editableOrder($orderId);
+        if ($order instanceof JsonResponse) {
+            return $order;
         }
 
         return Response::success($this->service->addProduct($order, $params));
@@ -63,12 +54,26 @@ class OrderProductController extends Controller
      */
     public function storeBatch(string $orderId, OrderProductBatchStoreRequest $params): JsonResponse
     {
-        $order = OrderModel::with('sistema')->find($orderId);
-        if ($error = $this->assertOrderEditable($order)) {
-            return $error;
+        $order = $this->editableOrder($orderId);
+        if ($order instanceof JsonResponse) {
+            return $order;
         }
 
         return Response::success($this->service->addProducts($order, $params->input('items')));
+    }
+
+    /**
+     * syncProducts — deja las líneas de catálogo de la orden iguales al carrito recibido, en un
+     * solo request (QuickSale retomando una venta — ver OrderProductService::syncProducts).
+     */
+    public function syncProducts(string $orderId, OrderProductSyncRequest $params): JsonResponse
+    {
+        $order = $this->editableOrder($orderId);
+        if ($order instanceof JsonResponse) {
+            return $order;
+        }
+
+        return Response::success($this->service->syncProducts($order, $params->input('items')));
     }
 
     /**
@@ -76,17 +81,14 @@ class OrderProductController extends Controller
      */
     public function update(string $orderId, string $productId, OrderProductUpdateRequest $params): JsonResponse
     {
-        $orderProduct = OrderProductModel::where('pedido_id', $orderId)
-            ->where('id', $productId)
-            ->first();
-
+        $orderProduct = $this->service->findLine($orderId, $productId);
         if (! $orderProduct) {
             return Response::error('La orden no contiene este producto');
         }
 
-        $order = OrderModel::with('sistema')->find($orderId);
-        if ($error = $this->assertOrderEditable($order)) {
-            return $error;
+        $order = $this->editableOrder($orderId);
+        if ($order instanceof JsonResponse) {
+            return $order;
         }
 
         return Response::success($this->service->updateProduct($order, $orderProduct, $params));
@@ -97,20 +99,17 @@ class OrderProductController extends Controller
      */
     public function toggleReady(int $orderId, int $item): JsonResponse
     {
-        $orderProduct = OrderProductModel::where('pedido_id', $orderId)
-            ->where('id', $item)
-            ->first();
-
+        $orderProduct = $this->service->findLine($orderId, $item);
         if (! $orderProduct) {
             return Response::error('elemento no encontrado');
         }
 
-        // lockForUpdate() aquí, no en assertOrderEditable(): OrderProductService::toggleReady()
-        // decide bajo este lock si el cambio completa/rompe "todos listos" y promueve/revierte
-        // el estatus de la orden — necesita la fila bloqueada durante ese cálculo.
-        $order = OrderModel::with('sistema')->lockForUpdate()->find($orderId);
-        if ($error = $this->assertOrderEditable($order)) {
-            return $error;
+        // lock: OrderProductService::toggleReady() decide bajo este lock si el cambio
+        // completa/rompe "todos listos" y promueve/revierte el estatus de la orden — necesita
+        // la fila bloqueada durante ese cálculo.
+        $order = $this->editableOrder($orderId, lock: true);
+        if ($order instanceof JsonResponse) {
+            return $order;
         }
 
         return Response::success($this->service->toggleReady($order, $orderProduct));
@@ -121,26 +120,19 @@ class OrderProductController extends Controller
      */
     public function updateNote(int $orderId, int $item, Request $request): JsonResponse
     {
-        $orderProduct = OrderProductModel::where('pedido_id', $orderId)
-            ->where('id', $item)
-            ->first();
-
+        $orderProduct = $this->service->findLine($orderId, $item);
         if (! $orderProduct) {
             return Response::error('elemento no encontrado');
         }
 
-        $order = OrderModel::with('sistema')->find($orderId);
-        if ($order && ! $order->isAccessibleByUser(auth()->user())) {
-            return Response::unauthorized();
+        // Solo acceso, no estatus: la observación se puede corregir aunque la orden ya no admita
+        // cambios de productos.
+        $order = $this->service->findOrder($orderId);
+        if ($denied = $this->denial($order, requireEditable: false)) {
+            return $denied;
         }
 
-        $orderProduct->update([
-            OrderProductModel::OBSERVACION => $request->input('observacion') ?: null,
-        ]);
-
-        $this->service->resetStatusIfReady($order);
-
-        return Response::success($orderProduct->refresh());
+        return Response::success($this->service->updateNote($order, $orderProduct, $request->input('observacion')));
     }
 
     /**
@@ -148,15 +140,12 @@ class OrderProductController extends Controller
      */
     public function deleteExtra(int $orderId, int $extra): JsonResponse
     {
-        $order = OrderModel::with('sistema')->lockForUpdate()->find($orderId);
-        if ($error = $this->assertOrderEditable($order)) {
-            return $error;
+        $order = $this->editableOrder($orderId, lock: true);
+        if ($order instanceof JsonResponse) {
+            return $order;
         }
 
-        $item = OrderProductModel::where('pedido_id', $orderId)
-            ->where('id', $extra)
-            ->first();
-
+        $item = $this->service->findLine($orderId, $extra);
         if (! $item) {
             return Response::error('elemento no encontrado');
         }
@@ -171,9 +160,9 @@ class OrderProductController extends Controller
      */
     public function clearCart(int $orderId): JsonResponse
     {
-        $order = OrderModel::with('sistema')->lockForUpdate()->find($orderId);
-        if ($error = $this->assertOrderEditable($order)) {
-            return $error;
+        $order = $this->editableOrder($orderId, lock: true);
+        if ($order instanceof JsonResponse) {
+            return $order;
         }
 
         $this->service->clearCart($order);
@@ -186,15 +175,12 @@ class OrderProductController extends Controller
      */
     public function delete(int $orderId, int $product): JsonResponse
     {
-        $order = OrderModel::with('sistema')->lockForUpdate()->find($orderId);
-        if ($error = $this->assertOrderEditable($order)) {
-            return $error;
+        $order = $this->editableOrder($orderId, lock: true);
+        if ($order instanceof JsonResponse) {
+            return $order;
         }
 
-        $item = OrderProductModel::where('pedido_id', $orderId)
-            ->where('producto_id', $product)
-            ->first();
-
+        $item = $this->service->findLine($orderId, $product, OrderProductModel::PRODUCTO_ID);
         if (! $item) {
             Log::error('producto no encontrado', [$product]);
 
@@ -207,29 +193,25 @@ class OrderProductController extends Controller
     }
 
     /**
-     * assertOrderEditable — solo InProcess/Served aceptan modificaciones de productos.
-     * Bloquea agregar/editar/borrar productos en órdenes ya cerradas, aunque el
-     * cliente envíe la petición (ej. UI desincronizada por caché stale en red lenta).
+     * La orden si existe, el usuario accede a ella y admite cambios de productos; si no, la
+     * respuesta de error que corresponde.
      */
-    private function assertOrderEditable(?OrderModel $order): ?JsonResponse
+    private function editableOrder(int|string $orderId, bool $lock = false): OrderModel|JsonResponse
     {
-        if (! $order) {
-            return Response::error('no existe la orden');
-        }
+        $order = $this->service->findOrder($orderId, $lock);
 
-        if (! $order->isAccessibleByUser(auth()->user())) {
-            return Response::unauthorized();
-        }
+        return $this->denial($order) ?? $order;
+    }
 
-        $editableStatuses = [OrderStatusEnum::IN_PROCESS->value, OrderStatusEnum::SERVED->value];
-        if (! in_array($order->estatus_pedido_id, $editableStatuses, true)) {
-            return Response::error('La orden ya fue cerrada y no se puede modificar');
-        }
+    /** Traduce el motivo de OrderProductService::orderDenial() a su respuesta HTTP. */
+    private function denial(?OrderModel $order, bool $requireEditable = true): ?JsonResponse
+    {
+        $reason = $this->service->orderDenial($order, auth()->user(), $requireEditable);
 
-        if ($order->sistema && $order->sistema->estatus_caja !== MainOrderStatusEnum::OPEN->value) {
-            return Response::error('La caja de esta venta ya está cerrada.');
-        }
-
-        return null;
+        return match ($reason) {
+            null => null,
+            OrderProductService::DENIED_ACCESS => Response::unauthorized(),
+            default => Response::error($reason),
+        };
     }
 }

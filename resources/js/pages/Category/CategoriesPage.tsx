@@ -40,6 +40,23 @@ export default function CategoriesPage() {
     const columns = useMemo<DataTableColumn<ICategory>[]>(
         () => [
             {
+                accessor: "_acciones" as keyof ICategory,
+                title: "Acciones",
+                width: 90,
+                textAlign: "center",
+                render: (cat: ICategory) => (
+                    <CategoryTableActions category={cat} onEdit={openEditModal} />
+                ),
+            },
+
+            {
+                accessor: "nombre",
+                title: "Nombre",
+                render: (cat: ICategory) => (
+                    <span className="font-medium text-stone-900 text-sm">{cat.nombre}</span>
+                ),
+            },
+            {
                 accessor: "icon_name",
                 title: "Ícono",
                 width: 68,
@@ -55,13 +72,6 @@ export default function CategoriesPage() {
                 ),
             },
             {
-                accessor: "nombre",
-                title: "Nombre",
-                render: (cat: ICategory) => (
-                    <span className="font-medium text-stone-900 text-sm">{cat.nombre}</span>
-                ),
-            },
-            {
                 accessor: "orden",
                 title: "Orden",
                 width: 90,
@@ -71,15 +81,7 @@ export default function CategoriesPage() {
                     </span>
                 ),
             },
-            {
-                accessor: "_acciones" as keyof ICategory,
-                title: "Acciones",
-                width: 90,
-                textAlign: "center",
-                render: (cat: ICategory) => (
-                    <CategoryTableActions category={cat} onEdit={openEditModal} />
-                ),
-            },
+
         ],
         [openEditModal],
     );

@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Loader, Plus, Search } from "lucide-react";
 import { FormikProps } from "formik";
 import { ICategory } from "@/models/ICategory";
 
@@ -9,11 +9,14 @@ interface CategorySelectProps<T> {
     categories: ICategory[];
     label?: string;
     placeholder?: string;
+    /** Si se pasa, al buscar un nombre que no existe se ofrece crearlo. Devuelve el id creado o null si falló. */
+    onCreate?: (nombre: string) => Promise<number | null>;
 }
 
-export const CategorySelect = <T,>({ name, formik, categories, label = "", placeholder = "Seleccionar..." }: CategorySelectProps<T>) => {
+export const CategorySelect = <T,>({ name, formik, categories, label = "", placeholder = "Seleccionar...", onCreate }: CategorySelectProps<T>) => {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
+    const [isCreating, setIsCreating] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const touched = Boolean(formik.touched[name as keyof T]);
@@ -23,9 +26,14 @@ export const CategorySelect = <T,>({ name, formik, categories, label = "", place
     const selectedId = formik.values[name as keyof T] as unknown as string;
     const selected = categories.find((cat) => String(cat.id) === selectedId);
 
-    const filtered = search.trim()
-        ? categories.filter((cat) => cat.nombre.toLowerCase().includes(search.trim().toLowerCase()))
+    const trimmedSearch = search.trim();
+    const filtered = trimmedSearch
+        ? categories.filter((cat) => cat.nombre.toLowerCase().includes(trimmedSearch.toLowerCase()))
         : categories;
+    const canCreate =
+        Boolean(onCreate) &&
+        trimmedSearch !== "" &&
+        !categories.some((cat) => cat.nombre.trim().toLowerCase() === trimmedSearch.toLowerCase());
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -46,15 +54,28 @@ export const CategorySelect = <T,>({ name, formik, categories, label = "", place
         setSearch("");
     };
 
-    const handleSelect = (cat: ICategory) => {
+    const selectValue = (value: string) => {
         // setFieldValue ya dispara su propia validación con el valor nuevo — si
         // setFieldTouched también valida (su default), ambas validaciones corren async y la
         // de setFieldTouched puede resolver con el valor viejo (vacío) y pisar el resultado
         // correcto, dejando el error de "requerido" pegado aunque ya haya selección.
-        formik.setFieldValue(name, String(cat.id));
+        formik.setFieldValue(name, value);
         formik.setFieldTouched(name, true, false);
         setOpen(false);
         setSearch("");
+    };
+
+    const handleSelect = (cat: ICategory) => selectValue(String(cat.id));
+
+    const handleCreate = async () => {
+        if (!onCreate || isCreating) return;
+        setIsCreating(true);
+        try {
+            const createdId = await onCreate(trimmedSearch);
+            if (createdId !== null) selectValue(String(createdId));
+        } finally {
+            setIsCreating(false);
+        }
     };
 
     return (
@@ -113,6 +134,20 @@ export const CategorySelect = <T,>({ name, formik, categories, label = "", place
                                 );
                             })}
                         </div>
+
+                        {canCreate && (
+                            <div className="border-t border-stone-100 p-1.5">
+                                <button
+                                    type="button"
+                                    onClick={handleCreate}
+                                    disabled={isCreating}
+                                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-amber-600 hover:bg-amber-50 disabled:opacity-60 transition-colors"
+                                >
+                                    {isCreating ? <Loader size={14} className="animate-spin shrink-0" /> : <Plus size={14} className="shrink-0" />}
+                                    <span className="truncate">Crear categoría «{trimmedSearch}»</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

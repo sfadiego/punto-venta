@@ -82,7 +82,7 @@ export const usePrintTicket = () => {
     // El botón se muestra mientras la config carga o haya algún medio de impresión configurado/conectado.
     const isVisible = route === PrintRouteEnum.Loading || canOfferPrint(route);
 
-    // Criterio para ofrecer "¿Imprimir ticket?" tras cobrar, abonar o devolver (config ya cargada).
+    // Criterio para ofrecer "¿Imprimir ticket?" tras abonar o devolver (config ya cargada).
     const canPrint = canOfferPrint(route);
 
     return { print, isPending: isPendingAgent || isPendingBluetooth || isPendingServer, isVisible, canPrint };

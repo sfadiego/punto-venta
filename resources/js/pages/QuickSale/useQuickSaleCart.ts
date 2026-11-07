@@ -1,48 +1,23 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
-import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { getUserFacingErrorMessage } from "@/utils/axiosError";
-import { useCreateOrderProduct, useUpdateOrderProduct, useDeleteOrderItem, useClearOrderCart, useShowOrder } from "@/services/useOrderService";
 import { IProduct } from "@/models/IProduct";
 import { IProductVariant } from "@/models/IProductVariant";
-import { IOrderProduct } from "@/models/IOrderProduct";
 import { UNIDAD_LABELS } from "@/enums/UnidadMedidaEnum";
 import { IModalCartItem } from "@/models/IModalCartItem";
 import { getAvailableStockFor } from "@/utils/stock";
 import { isWeightUnit } from "@/utils/weightUnits";
-import { buildModalCartItems } from "@/utils/sellByWeightCartCalc";
-import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
 import { useTicketDrawer } from "./useTicketDrawer";
 import { useLastAddedFlash } from "./useLastAddedFlash";
 import { MAX_CANTIDAD_KG } from "./quickSaleConstants";
 
-// Estado del carrito y su sincronización con el backend. Cuando se está retomando una orden
-// (resumeOrderId), cada add/remove/clear pega al servidor de inmediato en vez de esperar a
-// guardar/cobrar — en una venta nueva es puro estado local hasta el checkout. El stock del
+// Estado del carrito: puro estado local, sea una venta nueva o una retomada. Solo viaja al
+// servidor al guardar, imprimir o cobrar (ver persistCart en useResumeOrder.ts). El stock del
 // catálogo no cambia con estos movimientos (solo se descuenta al cerrar la orden — ver
 // useQuickSalePayment.ts), así que aquí no hace falta invalidar la query de productos.
-export const useQuickSaleCart = (resumeOrderId: number | null) => {
-    const invalidateResumeOrderQueries = useInvalidateResumeOrderQueries(resumeOrderId);
-    // enabled: false — useResumeOrder ya hace el fetch inicial con esta misma query key; aquí
-    // solo se usa refetch() bajo demanda para resincronizar el carrito cuando un 422 revela que
-    // quedó desactualizado (ver resyncCartFromServer).
-    const { refetch: refetchResumeOrder } = useShowOrder(resumeOrderId ?? 0, false);
+export const useQuickSaleCart = () => {
     const [cart, setCart] = useState<IModalCartItem[]>([]);
     const { lastAddedOrderProductId, flashLastAdded } = useLastAddedFlash();
     const { isDrawerOpen, toggleDrawer } = useTicketDrawer(cart.length);
-
-    const { mutateAsync: createOrderProduct } = useCreateOrderProduct();
-    const { mutateAsync: updateOrderProduct } = useUpdateOrderProduct();
-    const { mutateAsync: deleteOrderItem } = useDeleteOrderItem();
-    const { mutateAsync: clearOrderCart } = useClearOrderCart();
-
-    // Evita la carrera de doble-tap: dos toques casi simultáneos sobre el mismo producto
-    // leerían el mismo `cart` desde el closure y el segundo request pisaría al primero en
-    // vez de sumarse (así apareció el precio desincronizado al retomar una orden editada
-    // a toques rápidos).
-    const { isPending: isAdding, withPending: withAdding } = useOptimisticPendingSet<number>();
-    const { isPending: isRemoving, withPending: withRemoving } = useOptimisticPendingSet<number>();
 
     // Encuentra la línea del carrito de un producto, distinguiendo la línea del precio base
     // (variant = null/undefined) de la de una variante puntual (ej. "Pieza") — dos líneas del
@@ -50,17 +25,7 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
     const findCartItem = (productId: number, variantId?: number | null) =>
         cart.find((item) => item.productId === productId && (item.variantId ?? null) === (variantId ?? null));
 
-    // Un 422 en cualquier mutación de carrito (agregar/quitar/actualizar cantidad) casi siempre
-    // significa que el carrito local quedó desactualizado respecto al servidor — la orden o la
-    // caja se cerró desde otro dispositivo, o el item ya no existe (doble click, ya se había
-    // quitado). En vez de dejar el error mostrado y que el usuario reintente el mismo click que
-    // va a seguir fallando, se trae el estado real de la orden y se reemplaza el carrito local.
-    const resyncCartFromServer = async () => {
-        const { data: freshOrder } = await refetchResumeOrder();
-        if (freshOrder) setCart(buildModalCartItems(freshOrder.order_products));
-    };
-
-    const addToCart = async (product: IProduct, cantidadKg: number, variant: IProductVariant | null = null) => {
+    const addToCart = (product: IProduct, cantidadKg: number, variant: IProductVariant | null = null) => {
         if (cantidadKg <= 0) return;
 
         const existing = findCartItem(product.id, variant?.id);
@@ -80,59 +45,6 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
 
         if (currentQty + cantidadKg > MAX_CANTIDAD_KG) {
             toast.error(`No puedes agregar más de ${MAX_CANTIDAD_KG} ${unitLabel} de ${product.nombre}.`);
-            return;
-        }
-
-        if (resumeOrderId) {
-            if (isAdding(product.id)) return;
-            try {
-                await withAdding([product.id], async () => {
-                    const existing = findCartItem(product.id, variant?.id);
-                    if (existing) {
-                        const newQty = existing.cantidad + cantidadKg;
-                        await updateOrderProduct({
-                            orderId: resumeOrderId,
-                            orderProductId: existing.orderProductId,
-                            data: { cantidad: newQty, precio: existing.precioEfectivo },
-                        });
-                        setCart((prev) =>
-                            prev.map((item) =>
-                                item.orderProductId === existing.orderProductId ? { ...item, cantidad: newQty } : item,
-                            ),
-                        );
-                        flashLastAdded(existing.orderProductId);
-                    } else {
-                        const res = await createOrderProduct({
-                            orderId: resumeOrderId,
-                            data: {
-                                producto_id: product.id,
-                                variant_id: variant?.id ?? null,
-                                cantidad: cantidadKg,
-                                precio: precioEfectivo,
-                            },
-                        });
-                        const orderProduct = (res as { data: { data: IOrderProduct } }).data.data;
-                        setCart((prev) => [
-                            ...prev,
-                            {
-                                orderProductId: orderProduct.id!,
-                                productId: product.id,
-                                product,
-                                cantidad: cantidadKg,
-                                precioEfectivo,
-                                variantId: variant?.id ?? null,
-                                variantName: variant?.nombre ?? null,
-                            },
-                        ]);
-                        flashLastAdded(orderProduct.id!);
-                    }
-                });
-                invalidateResumeOrderQueries();
-            } catch (error) {
-                logUnexpectedError(error, "useQuickSaleCart.addToCart");
-                toast.error(getUserFacingErrorMessage(error, "Error al agregar el producto."));
-                await resyncCartFromServer();
-            }
             return;
         }
 
@@ -165,39 +77,9 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
 
     // Quita una unidad del producto (botón "-" de UnitControls, solo productos por unidad).
     // Si la cantidad llega a 0 elimina la línea, igual que removeFromCart.
-    const decrementFromCart = async (product: IProduct, variant: IProductVariant | null = null) => {
+    const decrementFromCart = (product: IProduct, variant: IProductVariant | null = null) => {
         const existing = findCartItem(product.id, variant?.id);
         if (!existing) return;
-
-        if (resumeOrderId) {
-            if (isRemoving(existing.orderProductId) || isAdding(product.id)) return;
-            try {
-                await withRemoving([existing.orderProductId], async () => {
-                    if (existing.cantidad <= 1) {
-                        await deleteOrderItem({ orderId: resumeOrderId, orderProductId: existing.orderProductId });
-                        setCart((prev) => prev.filter((item) => item.orderProductId !== existing.orderProductId));
-                    } else {
-                        const newQty = existing.cantidad - 1;
-                        await updateOrderProduct({
-                            orderId: resumeOrderId,
-                            orderProductId: existing.orderProductId,
-                            data: { cantidad: newQty, precio: existing.precioEfectivo },
-                        });
-                        setCart((prev) =>
-                            prev.map((item) =>
-                                item.orderProductId === existing.orderProductId ? { ...item, cantidad: newQty } : item,
-                            ),
-                        );
-                    }
-                });
-                invalidateResumeOrderQueries();
-            } catch (error) {
-                logUnexpectedError(error, "useQuickSaleCart.decrementFromCart");
-                toast.error(getUserFacingErrorMessage(error, "Error al quitar el producto."));
-                await resyncCartFromServer();
-            }
-            return;
-        }
 
         setCart((prev) => {
             if (existing.cantidad <= 1) {
@@ -213,8 +95,8 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
     // inline en TicketRow (peso o cantidad por unidad, según el producto) para corregir un
     // valor mal leído/agregado sin borrar y volver a agregar el producto desde cero. Las
     // líneas por unidad solo aceptan enteros — la UI ya valida esto, pero se repite aquí como
-    // última barrera antes de mutar el carrito/pegarle al backend.
-    const setLineQuantity = async (orderProductId: number, cantidad: number) => {
+    // última barrera antes de mutar el carrito.
+    const setLineQuantity = (orderProductId: number, cantidad: number) => {
         const existing = cart.find((item) => item.orderProductId === orderProductId);
         if (!existing) return;
         if (cantidad <= 0) return;
@@ -233,28 +115,6 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
             return;
         }
 
-        if (resumeOrderId) {
-            if (isRemoving(orderProductId) || isAdding(existing.productId)) return;
-            try {
-                await withRemoving([orderProductId], async () => {
-                    await updateOrderProduct({
-                        orderId: resumeOrderId,
-                        orderProductId,
-                        data: { cantidad, precio: existing.precioEfectivo },
-                    });
-                    setCart((prev) =>
-                        prev.map((item) => (item.orderProductId === orderProductId ? { ...item, cantidad } : item)),
-                    );
-                });
-                invalidateResumeOrderQueries();
-            } catch (error) {
-                logUnexpectedError(error, "useQuickSaleCart.setLineQuantity");
-                toast.error(getUserFacingErrorMessage(error, "Error al actualizar la cantidad."));
-                await resyncCartFromServer();
-            }
-            return;
-        }
-
         setCart((prev) =>
             prev.map((item) => (item.orderProductId === orderProductId ? { ...item, cantidad } : item)),
         );
@@ -265,43 +125,11 @@ export const useQuickSaleCart = (resumeOrderId: number | null) => {
     const quantityOf = (product: IProduct, variant: IProductVariant | null = null) =>
         findCartItem(product.id, variant?.id)?.cantidad ?? 0;
 
-    const removeFromCart = async (orderProductId: number) => {
-        if (resumeOrderId) {
-            if (isRemoving(orderProductId)) return;
-            try {
-                await withRemoving([orderProductId], async () => {
-                    await deleteOrderItem({ orderId: resumeOrderId, orderProductId });
-                    setCart((prev) => prev.filter((item) => item.orderProductId !== orderProductId));
-                });
-                invalidateResumeOrderQueries();
-            } catch (error) {
-                logUnexpectedError(error, "useQuickSaleCart.removeFromCart");
-                toast.error(getUserFacingErrorMessage(error, "Error al quitar el producto."));
-                await resyncCartFromServer();
-            }
-            return;
-        }
+    const removeFromCart = (orderProductId: number) =>
         setCart((prev) => prev.filter((item) => item.orderProductId !== orderProductId));
-    };
 
-    // Vacía el ticket — usada por el botón "Vaciar ticket". Sincroniza contra el servidor solo
-    // cuando se está retomando una orden; en una venta nueva es puro estado local, como antes.
-    const clearCart = async () => {
-        if (resumeOrderId) {
-            if (cart.length === 0) return;
-            try {
-                await clearOrderCart(resumeOrderId);
-                setCart([]);
-                invalidateResumeOrderQueries();
-            } catch (error) {
-                logUnexpectedError(error, "useQuickSaleCart.clearCart");
-                toast.error(getUserFacingErrorMessage(error, "Error al vaciar el ticket."));
-                await resyncCartFromServer();
-            }
-            return;
-        }
-        setCart([]);
-    };
+    // Vacía el ticket — usada por el botón "Vaciar ticket".
+    const clearCart = () => setCart([]);
 
     return {
         cart,

@@ -23,7 +23,7 @@ export const useQuickSalePage = () => {
 
     const catalog = useQuickSaleCatalog();
     const scale = useQuickSaleScale();
-    const cart = useQuickSaleCart(resumeOrderId);
+    const cart = useQuickSaleCart();
     const delivery = useQuickSaleDelivery(resumeOrderId);
 
     const productsTotal = useMemo(() => calcModalCartTotal(cart.cart), [cart.cart]);
@@ -79,6 +79,7 @@ export const useQuickSalePage = () => {
         domicilioNum: delivery.domicilioNum,
         customerPays: delivery.customerPays,
         nombrePedido: order.nombrePedido,
+        persistCart: order.persistCart,
         resetAfterSuccess: () => {
             cart.setCart([]);
             order.setNombrePedido("");

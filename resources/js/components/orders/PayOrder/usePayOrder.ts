@@ -3,12 +3,10 @@ import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import Swal from "sweetalert2";
 import { useModal } from "@/hooks/useModal";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
 import { useCustomerList } from "@/services/useCustomerService";
-import { usePrintTicket } from "../PrintTicket/usePrintTicket";
 import { useCashDrawer } from "../PrintTicket/useCashDrawer";
 import { useAxios } from "@/hooks/useAxios";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
@@ -31,7 +29,6 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
     const { mutateAsync: updateOrder, isPending } = useUpdateOrder(order.id);
     const { data: paymentMethods = [] } = useIndexPaymentMethods();
     const { data: customers = [] } = useCustomerList();
-    const { print, canPrint } = usePrintTicket();
     const { openCashDrawer } = useCashDrawer();
 
     const selectedMethod = paymentMethods.find((m) => m.id === paymentMethodId) ?? null;
@@ -92,20 +89,6 @@ export const usePayOrder = (order: IOrder, onSuccess?: () => void) => {
             if (isCash && !isCreditMode) void openCashDrawer();
             closeModal();
             onSuccess?.();
-
-            if (canPrint) {
-                const result = await Swal.fire({
-                    title: "¿Imprimir ticket?",
-                    icon: "question",
-                    showCancelButton: true,
-                    confirmButtonColor: "#f59e0b",
-                    cancelButtonColor: "#78716c",
-                    confirmButtonText: "Sí, imprimir",
-                    cancelButtonText: "No",
-                    reverseButtons: true,
-                });
-                if (result.isConfirmed) print(order.id);
-            }
         } catch (error) {
             logUnexpectedError(error, "usePayOrder.handlePay");
             toast.error(getUserFacingErrorMessage(error, "Error al cerrar la orden"));

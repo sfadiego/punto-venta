@@ -6,6 +6,7 @@ use App\Enums\ProductImportRowActionEnum;
 use App\Enums\StockMovementReasonEnum;
 use App\Enums\UnidadMedidaEnum;
 use App\Exceptions\InsufficientStockException;
+use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use App\Models\ProductModel;
 use Illuminate\Http\UploadedFile;
@@ -16,9 +17,9 @@ use Throwable;
 /**
  * Importación masiva de productos desde CSV — compartida entre el módulo de Inventario
  * (retail, ver RetailStockMiddleware para el flujo de kardex/reajuste) y el botón de
- * ProductsPage (resto de tipos de negocio). No depende de business_config.stock_enabled: un
- * tenant sin manejo de stock puede importar su catálogo igual, dejando las columnas de stock
- * vacías (ver resolveRow()). Flujo de dos pasos: preview() (Fase 1, no escribe nada) →
+ * ProductsPage (resto de tipos de negocio). No exige business_config.stock_enabled: un tenant
+ * sin manejo de stock puede importar su catálogo igual, pero se ignoran las columnas de stock
+ * (ver resolveRow()). Flujo de dos pasos: preview() (Fase 1, no escribe nada) →
  * commit() (Fase 2, aplica lo que preview() ya reportó). Ambos comparten resolveRow(), así
  * que lo que el usuario ve en la vista previa es exactamente lo que se aplicaría al confirmar.
  */
@@ -72,6 +73,9 @@ class ProductImportService
      *  preloadCategories()) y se incrementa en memoria, sin consultas por categoría creada. */
     private int $nextCategoryOrder = 1;
 
+    /** business_config.stock_enabled del tenant — se lee una vez por importación (run()). */
+    private bool $stockEnabled = false;
+
     public function preview(UploadedFile $file): array
     {
         return $this->run($file, dryRun: true);
@@ -112,6 +116,7 @@ class ProductImportService
             ? array_slice($rows, $offset ?? 0, $limit, preserve_keys: true)
             : $rows;
 
+        $this->stockEnabled = BusinessConfigModel::find(app('tenant_id'))?->stock_enabled ?? false;
         $this->preloadCategories();
         $existingProductsByCode = $this->preloadProductsByCode($rowsToProcess);
         $existingProductNames = $this->preloadProductNames();
@@ -316,6 +321,14 @@ class ProductImportService
         [$minStock, $minStockWarning] = $this->resolveNumericField($row['min_stock'] ?? '', label: 'Stock mínimo');
         if ($minStockWarning !== null) {
             $warnings[] = $minStockWarning;
+        }
+
+        // Sin stock_enabled no se puede activar el control de stock por CSV (mismo criterio que
+        // ProductStoreRequest/ProductUpdateRequest); un producto que ya lo tenía no se toca.
+        if (! $this->stockEnabled && $manageStock && ! ($existingProduct?->manage_stock ?? false)) {
+            $manageStock = false;
+            $stock = $minStock = null;
+            $warnings[] = 'El negocio no tiene stock habilitado: se ignoran las columnas de stock.';
         }
 
         // Un producto "por unidad" (no peso/volumen) se cuenta en piezas enteras — un stock o

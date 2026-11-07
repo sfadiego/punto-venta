@@ -54,14 +54,14 @@ class OrderTotalsTest extends TestCase
     }
 
     /** Añade un producto a la orden vía API y devuelve el item creado. */
-    private function agregarProducto(int $ordenId, int $productoId, int $cantidad, float $precio, int $descuento = 0): void
+    private function agregarProducto(int $ordenId, int $productoId, int $cantidad, float $precio, int $descuento = 0): int
     {
-        $this->postJson("/api/order/{$ordenId}/product", [
+        return $this->postJson("/api/order/{$ordenId}/product", [
             'producto_id' => $productoId,
             'cantidad' => $cantidad,
             'precio' => $precio,
             'descuento' => $descuento,
-        ], $this->authHeaders())->assertStatus(200);
+        ], $this->authHeaders())->assertStatus(200)->json('data.id');
     }
 
     /** Obtiene el total y subtotal de la orden recalculados por el backend. */
@@ -215,14 +215,14 @@ class OrderTotalsTest extends TestCase
         $orden = $this->crearOrden();
         $producto = $this->crearProducto(precio: 100);
 
-        $this->agregarProducto($orden->id, $producto->id, 1, 100);
+        $lineaId = $this->agregarProducto($orden->id, $producto->id, 1, 100);
 
         // Antes: 100×1 = 100
         $antes = $this->totalOrden($orden->id);
         $this->assertEquals(100.0, $antes['total']);
 
         // Actualizar cantidad a 4 → 100×4 = 400
-        $this->putJson("/api/order/{$orden->id}/product/{$producto->id}", [
+        $this->putJson("/api/order/{$orden->id}/product/{$lineaId}", [
             'cantidad' => 4,
         ], $this->authHeaders())->assertStatus(200);
 
@@ -237,13 +237,13 @@ class OrderTotalsTest extends TestCase
         $producto = $this->crearProducto(precio: 100);
 
         // Añadir sin descuento: 100×2 = 200
-        $this->agregarProducto($orden->id, $producto->id, 2, 100, 0);
+        $lineaId = $this->agregarProducto($orden->id, $producto->id, 2, 100, 0);
 
         $antes = $this->totalOrden($orden->id);
         $this->assertEquals(200.0, $antes['total']);
 
         // Aplicar 50% de descuento al item → 100×2×0.5 = 100
-        $this->putJson("/api/order/{$orden->id}/product/{$producto->id}", [
+        $this->putJson("/api/order/{$orden->id}/product/{$lineaId}", [
             'descuento' => 50,
         ], $this->authHeaders())->assertStatus(200);
 

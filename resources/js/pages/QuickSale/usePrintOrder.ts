@@ -4,24 +4,22 @@ import { AdminRoutes } from "@/enums/RoutesEnum";
 
 interface UsePrintOrderParams {
     resumeOrderId: number | null;
-    createOrderFromCart: () => Promise<number>;
+    persistCart: () => Promise<number>;
     navigate: NavigateFunction;
 }
 
-// Imprimir sin haber guardado aún: crea la orden como InProcess (igual que "Guardar y
-// continuar después") para tener un id que imprimir, y pasa la página a modo retomar esa
-// orden — desde ahí en adelante el carrito sincroniza acción por acción como cualquier venta
-// retomada.
-export const usePrintOrder = ({ resumeOrderId, createOrderFromCart, navigate }: UsePrintOrderParams) => {
+// Imprimir: deja la orden guardada con el carrito actual (persistCart) para que el ticket salga
+// completo. Si la venta era nueva, la orden se crea como InProcess (igual que "Guardar y
+// continuar después") y la página pasa a modo retomar esa orden.
+export const usePrintOrder = ({ resumeOrderId, persistCart, navigate }: UsePrintOrderParams) => {
     const [isPreparingPrint, setIsPreparingPrint] = useState(false);
 
     const ensureOrderForPrint = async (): Promise<number> => {
-        if (resumeOrderId) return resumeOrderId;
         setIsPreparingPrint(true);
         try {
-            const newOrderId = await createOrderFromCart();
-            navigate(`${AdminRoutes.QuickSale}/${newOrderId}`, { replace: true });
-            return newOrderId;
+            const orderId = await persistCart();
+            if (!resumeOrderId) navigate(`${AdminRoutes.QuickSale}/${orderId}`, { replace: true });
+            return orderId;
         } finally {
             setIsPreparingPrint(false);
         }

@@ -2,11 +2,8 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { NavigateFunction } from "react-router-dom";
 import { toast } from "react-toastify";
-import Swal from "sweetalert2";
-import { usePrintAgent } from "@/hooks/usePrintAgent";
 import { useCashDrawer } from "@/components/orders/PrintTicket/useCashDrawer";
-import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
-import { useStoreOrderSale, useUpdateOrderData, usePrintOrder, useFetchPrintBytes } from "@/services/useOrderService";
+import { useStoreOrderSale, useUpdateOrderData } from "@/services/useOrderService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { resolveSaleName } from "@/utils/resolveSaleName";
@@ -17,6 +14,7 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
 import { IModalCartItem } from "@/models/IModalCartItem";
+import { buildOrderItems } from "@/utils/sellByWeightCartCalc";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
 import { usePaymentMethod } from "./usePaymentMethod";
 import { useCreditPayment } from "./useCreditPayment";
@@ -34,14 +32,14 @@ interface UseQuickSalePaymentParams {
     domicilioNum: number;
     customerPays: boolean;
     nombrePedido: string;
+    persistCart: () => Promise<number>;
     resetAfterSuccess: () => void;
     navigate: NavigateFunction;
 }
 
-// Cobro: efectivo / transferencia / crédito, más la impresión de ticket al cerrar la venta
-// (se pregunta solo si hay una impresora ya configurada). El método de pago/efectivo y el
-// modo de crédito viven en sus propios sub-hooks (usePaymentMethod, useCreditPayment); este
-// hook orquesta el modal, el pago en sí y la impresión.
+// Cobro: efectivo / transferencia / crédito. El método de pago/efectivo y el modo de crédito
+// viven en sus propios sub-hooks (usePaymentMethod, useCreditPayment); este hook orquesta el
+// modal y el pago en sí.
 export const useQuickSalePayment = ({
     resumeOrderId,
     sistemaId,
@@ -53,15 +51,12 @@ export const useQuickSalePayment = ({
     domicilioNum,
     customerPays,
     nombrePedido,
+    persistCart,
     resetAfterSuccess,
     navigate,
 }: UseQuickSalePaymentParams) => {
     const invalidateResumeOrderQueries = useInvalidateResumeOrderQueries(resumeOrderId);
     const queryClient = useQueryClient();
-    const { data: businessConfig } = useGetBusinessConfig();
-    const { isConnected: agentConnected, print: agentPrint } = usePrintAgent();
-    const { mutateAsync: printOrder } = usePrintOrder();
-    const fetchPrintBytes = useFetchPrintBytes();
     const { mutateAsync: updateOrderData } = useUpdateOrderData();
     const { mutateAsync: storeOrderSale } = useStoreOrderSale();
     const { openCashDrawer } = useCashDrawer();
@@ -92,21 +87,6 @@ export const useQuickSalePayment = ({
         setShowPayModal(true);
     };
 
-    const printTicket = async (oid: number) => {
-        try {
-            if (agentConnected) {
-                const bytes = await fetchPrintBytes({ orderId: oid });
-                await agentPrint(new Uint8Array(bytes as ArrayBuffer));
-            } else {
-                await printOrder({ orderId: oid });
-            }
-            toast.success("Ticket impreso");
-        } catch (error) {
-            logUnexpectedError(error, "useQuickSalePayment.printTicket");
-            toast.error(getUserFacingErrorMessage(error, "Error al imprimir ticket"));
-        }
-    };
-
     const handlePay = async () => {
         if (!sistemaId || !canPay) return;
         setIsPaying(true);
@@ -114,19 +94,15 @@ export const useQuickSalePayment = ({
             let orderId: number;
 
             if (resumeOrderId) {
-                // El carrito ya está sincronizado (cada add/remove/clear pegó al backend al
-                // momento) — solo falta cerrar la orden con los datos de pago.
-                orderId = resumeOrderId;
+                // Los cambios del carrito solo viven en memoria hasta aquí: se guardan antes de
+                // cerrar la orden con los datos de pago.
+                orderId = await persistCart();
             } else {
                 const res = await storeOrderSale({
                     sistema_id: sistemaId,
                     nombre_pedido: resolveSaleName(nombrePedido),
                     costo_domicilio: calcCostoDomicilio(domicilioNum, domicilioActivo, customerPays),
-                    items: cart.map((item) => ({
-                        producto_id: item.productId,
-                        variant_id: item.variantId ?? null,
-                        cantidad: item.cantidad,
-                    })),
+                    items: buildOrderItems(cart),
                 });
                 orderId = (res as { data: { data: IOrder } }).data.data.id;
             }
@@ -151,7 +127,7 @@ export const useQuickSalePayment = ({
                     ...paymentData,
                 },
             });
-            if (resumeOrderId) invalidateResumeOrderQueries();
+            invalidateResumeOrderQueries();
             // La venta descontó stock en el backend — sin esto, el catálogo en caché
             // (staleTime de 2 min) sigue mostrando la existencia previa y tanto la UI como
             // la validación de "no exceder el stock disponible" quedan trabajando con datos
@@ -185,22 +161,6 @@ export const useQuickSalePayment = ({
             paymentMethod.setPaymentMethodId(null);
             creditPayment.setIsCreditMode(false);
             creditPayment.setSelectedCustomerId(null);
-
-            // Solo se pregunta si hay con qué imprimir: agente local conectado (su impresora se define en el
-            // config.json del agente, no en el negocio) o impresora de servidor/red configurada.
-            if (agentConnected || businessConfig?.printer_name?.trim()) {
-                const { isConfirmed } = await Swal.fire({
-                    title: "¿Imprimir ticket?",
-                    icon: "question",
-                    showCancelButton: true,
-                    confirmButtonColor: "#f59e0b",
-                    cancelButtonColor: "#78716c",
-                    confirmButtonText: "Imprimir",
-                    cancelButtonText: "No, gracias",
-                    reverseButtons: true,
-                });
-                if (isConfirmed) await printTicket(orderId);
-            }
 
             if (resumeOrderId) navigate(AdminRoutes.Dashboard);
         } catch (error) {

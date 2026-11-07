@@ -137,8 +137,9 @@ class OrderSaleService
     {
         $query = OrderProductModel::query()
             ->join('order as o', 'o.id', '=', 'order_product.pedido_id')
-            ->join('product', 'product.id', '=', 'order_product.producto_id')
-            ->join('categories', 'categories.id', '=', 'product.categoria_id')
+            // leftJoin: las líneas "extra" (producto_id NULL) también son ingreso de la orden.
+            ->leftJoin('product', 'product.id', '=', 'order_product.producto_id')
+            ->leftJoin('categories', 'categories.id', '=', 'product.categoria_id')
             ->where('o.tenant_id', app('tenant_id'))
             ->where('o.estatus_pedido_id', OrderStatusEnum::CLOSED->value);
 
@@ -164,7 +165,7 @@ class OrderSaleService
         // la misma sería incorrecto — cada unidad se totaliza por separado y se muestra desglosada.
         $rows = $query
             ->groupBy('categories.id', 'categories.nombre', 'product.unidad_medida')
-            ->selectRaw("categories.id, categories.nombre, product.unidad_medida, SUM(order_product.cantidad - {$refundedQuantity}) as total_cantidad, ROUND(SUM({$lineRevenue} - {$refundedAmount}), 2) as total_revenue, ROUND(SUM({$refundedAmount}), 2) as returns_total")
+            ->selectRaw("COALESCE(categories.id, 0) as id, COALESCE(categories.nombre, 'Sin categoría') as nombre, product.unidad_medida, SUM(order_product.cantidad - {$refundedQuantity}) as total_cantidad, ROUND(SUM({$lineRevenue} - {$refundedAmount}), 2) as total_revenue, ROUND(SUM({$refundedAmount}), 2) as returns_total")
             ->get();
 
         $categories = $rows

@@ -21,7 +21,7 @@ export const useQuickSaleOrderLifecycle = (params: UseQuickSaleOrderLifecyclePar
     const resumeOrder = useResumeOrder(params);
     const print = usePrintOrder({
         resumeOrderId: params.resumeOrderId,
-        createOrderFromCart: resumeOrder.createOrderFromCart,
+        persistCart: resumeOrder.persistCart,
         navigate: params.navigate,
     });
 
