@@ -135,6 +135,23 @@ export default function ProductsPage() {
     const columns = useMemo<DataTableColumn<IProduct>[]>(
         () => [
             {
+                accessor: "_acciones" as keyof IProduct,
+                title: "Acciones",
+                width: showStockActions ? PRODUCT_TABLE_COLUMN_WIDTHS.accionesConStock : PRODUCT_TABLE_COLUMN_WIDTHS.acciones,
+                textAlign: "center",
+                render: (p: IProduct) => (
+                    <ProductTableActions
+                        product={p}
+                        onEdit={openEditModal}
+                        onRestock={openRestockModal}
+                        onAdjust={openAdjustModal}
+                        onViewMovements={openMovementsModal}
+                        showStockActions={showStockActions}
+                        showBarcodeAction={showBarcodeAction}
+                    />
+                ),
+            },
+            {
                 accessor: "icon_name",
                 title: "",
                 width: PRODUCT_TABLE_COLUMN_WIDTHS.icon,
@@ -165,15 +182,15 @@ export default function ProductsPage() {
             // cuál es cuál.
             ...(features?.is_retail === true
                 ? [
-                      {
-                          accessor: "product_code" as keyof IProduct,
-                          title: "Código",
-                          width: PRODUCT_TABLE_COLUMN_WIDTHS.codigo,
-                          render: (p: IProduct) => (
-                              <span className="text-sm text-stone-500 font-mono">{p.product_code || "—"}</span>
-                          ),
-                      } as DataTableColumn<IProduct>,
-                  ]
+                    {
+                        accessor: "product_code" as keyof IProduct,
+                        title: "Código",
+                        width: PRODUCT_TABLE_COLUMN_WIDTHS.codigo,
+                        render: (p: IProduct) => (
+                            <span className="text-sm text-stone-500 font-mono">{p.product_code || "—"}</span>
+                        ),
+                    } as DataTableColumn<IProduct>,
+                ]
                 : []),
             {
                 accessor: "category",
@@ -187,19 +204,19 @@ export default function ProductsPage() {
             // del formulario) — con 0-1, "todas" y "esa sucursal" son indistinguibles.
             ...(showBranchSelector
                 ? [
-                      {
-                          accessor: "branches" as keyof IProduct,
-                          title: "Sucursales",
-                          width: PRODUCT_TABLE_COLUMN_WIDTHS.sucursales,
-                          render: (p: IProduct) => (
-                              <span className="text-stone-600 text-sm truncate block">
-                                  {p.branches && p.branches.length > 0
-                                      ? p.branches.map((b) => b.name).join(", ")
-                                      : "Todas"}
-                              </span>
-                          ),
-                      } as DataTableColumn<IProduct>,
-                  ]
+                    {
+                        accessor: "branches" as keyof IProduct,
+                        title: "Sucursales",
+                        width: PRODUCT_TABLE_COLUMN_WIDTHS.sucursales,
+                        render: (p: IProduct) => (
+                            <span className="text-stone-600 text-sm truncate block">
+                                {p.branches && p.branches.length > 0
+                                    ? p.branches.map((b) => b.name).join(", ")
+                                    : "Todas"}
+                            </span>
+                        ),
+                    } as DataTableColumn<IProduct>,
+                ]
                 : []),
             {
                 accessor: "precio",
@@ -220,11 +237,10 @@ export default function ProductsPage() {
                 width: PRODUCT_TABLE_COLUMN_WIDTHS.estado,
                 render: (p: IProduct) => (
                     <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            p.activo
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-stone-100 text-stone-500"
-                        }`}
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${p.activo
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-stone-100 text-stone-500"
+                            }`}
                     >
                         {p.activo ? "Activo" : "Inactivo"}
                     </span>
@@ -234,43 +250,27 @@ export default function ProductsPage() {
             // (business_config.stock_enabled, gestionado desde SuperAdmin).
             ...(stockEnabled
                 ? [
-                      {
-                          accessor: "stock" as keyof IProduct,
-                          title: "Stock",
-                          width: PRODUCT_TABLE_COLUMN_WIDTHS.stock,
-                          render: (p: IProduct) => {
-                              const aggregateStock = getAggregateVariantStock(p);
+                    {
+                        accessor: "stock" as keyof IProduct,
+                        title: "Stock",
+                        width: PRODUCT_TABLE_COLUMN_WIDTHS.stock,
+                        render: (p: IProduct) => {
+                            const aggregateStock = getAggregateVariantStock(p);
 
-                              if (aggregateStock !== null) {
-                                  return <span className="text-sm tabular-nums text-stone-700">{trimDecimalZeros(aggregateStock)}</span>;
-                              }
+                            if (aggregateStock !== null) {
+                                return <span className="text-sm tabular-nums text-stone-700">{trimDecimalZeros(aggregateStock)}</span>;
+                            }
 
-                              return (
-                                  <span className="text-sm tabular-nums text-stone-700">
-                                      {p.manage_stock ? trimDecimalZeros(p.stock ?? 0) : <span className="text-stone-400">N/A</span>}
-                                  </span>
-                              );
-                          },
-                      } as DataTableColumn<IProduct>,
-                  ]
+                            return (
+                                <span className="text-sm tabular-nums text-stone-700">
+                                    {p.manage_stock ? trimDecimalZeros(p.stock ?? 0) : <span className="text-stone-400">N/A</span>}
+                                </span>
+                            );
+                        },
+                    } as DataTableColumn<IProduct>,
+                ]
                 : []),
-            {
-                accessor: "_acciones" as keyof IProduct,
-                title: "Acciones",
-                width: PRODUCT_TABLE_COLUMN_WIDTHS.acciones,
-                textAlign: "center",
-                render: (p: IProduct) => (
-                    <ProductTableActions
-                        product={p}
-                        onEdit={openEditModal}
-                        onRestock={openRestockModal}
-                        onAdjust={openAdjustModal}
-                        onViewMovements={openMovementsModal}
-                        showStockActions={showStockActions}
-                        showBarcodeAction={showBarcodeAction}
-                    />
-                ),
-            },
+
         ],
         [openEditModal, openRestockModal, openAdjustModal, openMovementsModal, stockEnabled, showStockActions, showBarcodeAction, features?.is_retail, showBranchSelector],
     );
