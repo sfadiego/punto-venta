@@ -1,3 +1,4 @@
+import { IAddonSelection } from "@/models/IAddon";
 import { ICartAddon, ICartItem } from "@/models/ICartItem";
 import { IOrderProduct } from "@/models/IOrderProduct";
 import { IOrderProductAddon } from "@/models/IOrderProductAddon";
@@ -17,6 +18,12 @@ export const getAddonsSignature = (entries: { id: number | null; quantity: numbe
         .map((entry) => `${entry.id ?? "x"}:${entry.quantity}`)
         .sort()
         .join("|");
+
+// Toppings de una línea del carrito en el formato que espera el backend al crear/editar la línea.
+export const toAddonSelections = (addons: ICartAddon[]): IAddonSelection[] =>
+    addons.flatMap((addon) =>
+        addon.addonId === null ? [] : [{ addon_id: addon.addonId, quantity: addon.quantity }],
+    );
 
 // Suma de los toppings por UNA unidad de una línea tal como llega de la API (detalle de orden).
 export const getOrderProductAddonsUnitTotal = (orderProduct: Pick<IOrderProduct, "addons">): number =>

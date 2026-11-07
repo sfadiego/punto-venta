@@ -131,7 +131,7 @@ class OrderSaleStockTest extends TestCase
         DB::disableQueryLog();
 
         $batchedLookup = collect($queries)->first(
-            fn ($q) => str_contains($q['query'], 'from "product"') && preg_match('/\bin\s*\(/i', $q['query']) === 1
+            fn ($q) => preg_match('/from\s+["`]product["`]/i', $q['query']) === 1 && preg_match('/\bin\s*\(/i', $q['query']) === 1
         );
 
         $this->assertNotNull($batchedLookup, 'Se esperaba una query batched (whereIn) a la tabla product.');

@@ -1,10 +1,10 @@
-import { ChevronRight, Loader } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { ICartItem } from "@/models/ICartItem";
 import { IProduct } from "@/models/IProduct";
 import { CatalogIcon } from "@/components/ui/CatalogIcon";
 import { VariantPickerModal } from "@/components/orders/VariantPickerModal/VariantPickerModal";
 import { AddonPickerModal } from "@/components/orders/AddonPickerModal/AddonPickerModal";
-import { IAddonSelection } from "@/models/IAddon";
+import { TAddToCart } from "@/models/ICartDraft";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 import { useProductCard } from "./useProductCard";
 
@@ -13,20 +13,12 @@ interface ProductCardProps {
     quantityInCart: number;
     cart: ICartItem[];
     isReadOnly?: boolean;
-    isPending?: boolean;
     // "Ver variantes" en vez del precio base aplica a cualquier tipo de negocio cuando el
     // producto tiene variantes. El código de producto ("COD. XXXX") sigue siendo exclusivo de
     // retail. Se recibe como prop en vez de leer useAxios() aquí — TakeOrderPage ya lee
     // `features` una vez y lo pasa hacia abajo (ProductGrid).
     isRetail?: boolean;
-    onAdd: (
-        productId: number,
-        name: string,
-        price: number,
-        variantId?: number | null,
-        variantName?: string | null,
-        addons?: IAddonSelection[],
-    ) => void | Promise<void>;
+    onAdd: TAddToCart;
     onUpdateQuantity: (orderProductId: number, delta: number) => void;
 }
 
@@ -35,7 +27,6 @@ export const ProductCard = ({
     quantityInCart,
     cart,
     isReadOnly = false,
-    isPending = false,
     isRetail = false,
     onAdd,
     onUpdateQuantity,
@@ -55,7 +46,7 @@ export const ProductCard = ({
         addonPickerTitle,
         addonPickerBasePrice,
     } = useProductCard(product, cart, onAdd, onUpdateQuantity);
-    const disabled = isReadOnly || isPending || stockExhausted;
+    const disabled = isReadOnly || stockExhausted;
     const inCart = quantityInCart > 0;
     const hasVariants = (product.variants?.length ?? 0) > 0;
 
@@ -70,11 +61,9 @@ export const ProductCard = ({
                     disabled={disabled}
                     className={`relative overflow-hidden bg-white rounded-2xl border p-4 text-left shadow-sm transition-all w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${isReadOnly || stockExhausted
                         ? "border-stone-100 opacity-70 cursor-not-allowed"
-                        : isPending
-                            ? "border-amber-300 opacity-70 cursor-wait"
-                            : inCart
-                                ? "border-amber-400 hover:shadow-md active:scale-95"
-                                : "border-stone-100 hover:border-amber-200 hover:shadow-md active:scale-95"
+                        : inCart
+                            ? "border-amber-400 hover:shadow-md active:scale-95"
+                            : "border-stone-100 hover:border-amber-200 hover:shadow-md active:scale-95"
                         }`}
                 >
                     <CatalogIcon
@@ -121,14 +110,9 @@ export const ProductCard = ({
                     </div>
                 </button>
 
-                {inCart && !isPending && (
+                {inCart && (
                     <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 bg-amber-500 text-white rounded-full text-xs flex items-center justify-center font-bold leading-none shadow-sm pointer-events-none">
                         {quantityInCart}
-                    </span>
-                )}
-                {isPending && (
-                    <span className="absolute -top-2 -right-2 w-[22px] h-[22px] bg-amber-400 text-white rounded-full flex items-center justify-center shadow-sm pointer-events-none">
-                        <Loader size={12} className="animate-spin" />
                     </span>
                 )}
             </div>

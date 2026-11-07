@@ -133,7 +133,7 @@ const sellByWeight = features?.sell_by_weight === true;
 | Categorías | `GET/POST /category`, `GET/PUT/DELETE /category/{id}`, `GET /category/{id}/product` |
 | Productos | `GET/POST /product`, `GET/PUT/DELETE /product/{id}`, `POST /product/{id}/image` |
 | Órdenes | `GET/POST /order`, `GET/PUT/DELETE /order/{id}`, `GET /order/{id}/total` |
-| Productos en orden | `GET/POST /order/{id}/product`, `PUT/DELETE /order/{id}/product/{pid}` |
+| Productos en orden | `GET/POST /order/{id}/product`, `PUT/DELETE /order/{id}/product/{pid}`, `POST /order/{id}/products` (alta en lote), `PUT /order/{id}/products/sync` (deja las líneas de catálogo iguales al carrito final; QuickSale retomada) |
 | Devoluciones (retail) | `POST /order/{id}/return` (permiso `processReturns` + `retail.stock`), `POST /order/{id}/return/{orderReturn}/print` y `GET .../print/bytes` (permiso `printTicket`) — ver "Devoluciones de venta" |
 | Cajón de dinero | `POST /order/cash-drawer` (permiso `payOrder`; solo impresora de servidor) — ver "Cajón de dinero" |
 | Estado de orden | `GET/POST /order-status`, `GET/PUT /order-status/{id}` |
@@ -244,6 +244,7 @@ El botón Eye que abre el modal se deshabilita cuando `order.total === 0`. Aplic
 ### Testing
 - Los test se van a crear para probar las apis existentes en `php artisan route:list`
 - no crear funciones nuevas para crear archivos, utiza factory en los metodos que lo requieran
+- `php artisan test` corre contra MySQL local (`punto_venta_testing`, usuario `punto_venta_test` en `.env.testing`); `tests/TestCase.php` solo lo permite si la base termina en `_testing` y el host es local, si no fuerza SQLite. Para replicar el pipeline de GitHub (SQLite en memoria): `DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan test`. Los tests deben pasar en ambos motores.
 
 ### PHP — imports y referencias de clases
 - Nunca referenciar clases con el namespace completo inline (ej. `\App\Models\ErrorReporting::where(...)`). Siempre declarar el `use` al inicio del archivo y usar solo el nombre corto (ej. `use App\Models\ErrorReporting;` → `ErrorReporting::where(...)`).

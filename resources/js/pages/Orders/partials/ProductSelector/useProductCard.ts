@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useModal } from "@/hooks/useModal";
 import { IAddonSelection } from "@/models/IAddon";
+import { TAddToCart } from "@/models/ICartDraft";
 import { ICartItem } from "@/models/ICartItem";
 import { IProduct } from "@/models/IProduct";
 import { IProductVariant } from "@/models/IProductVariant";
@@ -8,19 +9,10 @@ import { VariantOption } from "@/components/orders/VariantPickerModal/VariantPic
 import { getCartQuantityFor } from "@/utils/cartCalc";
 import { getAvailableStockFor } from "@/utils/stock";
 
-type OnAdd = (
-    productId: number,
-    name: string,
-    price: number,
-    variantId?: number | null,
-    variantName?: string | null,
-    addons?: IAddonSelection[],
-) => void | Promise<void>;
-
 export const useProductCard = (
     product: IProduct,
     cart: ICartItem[],
-    onAdd: OnAdd,
+    onAdd: TAddToCart,
     onUpdateQuantity: (orderProductId: number, delta: number) => void,
 ) => {
     const { isOpen, openModal, closeModal } = useModal();
@@ -61,7 +53,7 @@ export const useProductCard = (
             addonPicker.openModal();
             return;
         }
-        onAdd(product.id, product.nombre, product.precio);
+        onAdd(product, null);
     };
 
     const handleAddVariant = (variant: IProductVariant) => {
@@ -72,7 +64,7 @@ export const useProductCard = (
             addonPicker.openModal();
             return;
         }
-        onAdd(product.id, product.nombre, variant.precio, variant.id, variant.nombre);
+        onAdd(product, variant);
     };
 
     const closeAddonPicker = () => {
@@ -81,8 +73,7 @@ export const useProductCard = (
     };
 
     const handleConfirmAddons = (selection: IAddonSelection[]) => {
-        const price = pendingVariant?.precio ?? product.precio;
-        onAdd(product.id, product.nombre, price, pendingVariant?.id ?? null, pendingVariant?.nombre ?? null, selection);
+        onAdd(product, pendingVariant, selection);
         closeAddonPicker();
     };
 

@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import { Search, Package, Loader, X } from "lucide-react";
 import { ICartItem } from "@/models/ICartItem";
-import { IAddonSelection } from "@/models/IAddon";
+import { TAddToCart } from "@/models/ICartDraft";
 import { getCartQuantityForProduct } from "@/utils/cartCalc";
 import { useProductGrid } from "./useProductGrid";
 import { CategoryTabs } from "./CategoryTabs";
@@ -11,19 +11,11 @@ interface ProductGridProps {
     cart: ICartItem[];
     isReadOnly?: boolean;
     isRetail?: boolean;
-    pendingProductIds?: Set<number>;
-    onAdd: (
-        productId: number,
-        name: string,
-        price: number,
-        variantId?: number | null,
-        variantName?: string | null,
-        addons?: IAddonSelection[],
-    ) => void;
+    onAdd: TAddToCart;
     onUpdateQuantity: (orderProductId: number, delta: number) => void;
 }
 
-export const ProductGrid = ({ cart, isReadOnly = false, isRetail = false, pendingProductIds, onAdd, onUpdateQuantity }: ProductGridProps) => {
+export const ProductGrid = ({ cart, isReadOnly = false, isRetail = false, onAdd, onUpdateQuantity }: ProductGridProps) => {
     const {
         search,
         setSearch,
@@ -116,7 +108,6 @@ export const ProductGrid = ({ cart, isReadOnly = false, isRetail = false, pendin
                                     cart={cart}
                                     isReadOnly={isReadOnly}
                                     isRetail={isRetail}
-                                    isPending={pendingProductIds?.has(product.id)}
                                     onAdd={onAdd}
                                     onUpdateQuantity={onUpdateQuantity}
                                 />

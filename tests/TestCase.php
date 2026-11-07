@@ -20,13 +20,29 @@ abstract class TestCase extends BaseTestCase
     {
         parent::refreshApplication();
 
-        // Fuerza SQLite en memoria después de que .env carga pero antes de que
-        // RefreshDatabase corra las migraciones. Esto evita que los tests toquen
-        // la base de datos MySQL de desarrollo/producción sin importar la configuración.
-        config([
-            'database.default' => 'sqlite',
-            'database.connections.sqlite.database' => ':memory:',
-        ]);
+        // Antes de que RefreshDatabase corra las migraciones se fuerza SQLite en memoria, salvo que se
+        // pida MySQL local de forma explícita (ver usesLocalMysqlTestingDatabase). Esto evita que los
+        // tests toquen la base de datos MySQL de desarrollo/producción sin importar la configuración.
+        if (! $this->usesLocalMysqlTestingDatabase()) {
+            config([
+                'database.default' => 'sqlite',
+                'database.connections.sqlite.database' => ':memory:',
+            ]);
+        }
+    }
+
+    /**
+     * MySQL solo se acepta si es la conexión por defecto, la base termina en "_testing" (nunca la de
+     * desarrollo/producción) y el host es local. RefreshDatabase borra y recrea todas sus tablas.
+     * El pipeline de GitHub fija SQLite, así que nunca cumple esto.
+     */
+    private function usesLocalMysqlTestingDatabase(): bool
+    {
+        $mysql = config('database.connections.mysql');
+
+        return config('database.default') === 'mysql'
+            && str_ends_with((string) $mysql['database'], '_testing')
+            && in_array($mysql['host'], ['localhost', '127.0.0.1'], true);
     }
 
     protected function setUp(): void

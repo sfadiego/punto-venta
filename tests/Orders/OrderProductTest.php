@@ -244,6 +244,188 @@ class OrderProductTest extends TestCase
         ])->assertStatus(401);
     }
 
+    // ── Sync — retomar una venta en QuickSale ─────────────────
+
+    /** Siembra líneas con el batch (total consistente) y devuelve sus filas por producto. */
+    private function sembrarLineas(OrderModel $orden, array $cantidadesPorProducto): array
+    {
+        $items = [];
+        foreach ($cantidadesPorProducto as $productoId => $cantidad) {
+            $items[] = [OrderProductModel::PRODUCTO_ID => $productoId, OrderProductModel::CANTIDAD => $cantidad];
+        }
+
+        $this->postJson("/api/order/{$orden->id}/products", ['items' => $items], $this->authHeaders())->assertStatus(200);
+
+        return OrderProductModel::where(OrderProductModel::PEDIDO_ID, $orden->id)->get()->keyBy(OrderProductModel::PRODUCTO_ID)->all();
+    }
+
+    private function sincronizar(OrderModel $orden, array $items)
+    {
+        return $this->putJson("/api/order/{$orden->id}/products/sync", ['items' => $items], $this->authHeaders());
+    }
+
+    public function test_sync_actualiza_crea_y_borra_en_una_sola_request(): void
+    {
+        $orden = $this->crearOrden();
+        $productoA = $this->crearProducto();
+        $productoB = $this->crearProducto();
+        $productoC = $this->crearProducto();
+        $lineas = $this->sembrarLineas($orden, [$productoA->id => 2, $productoB->id => 1]);
+
+        $this->sincronizar($orden, [
+            ['order_product_id' => $lineas[$productoA->id]->id, OrderProductModel::PRODUCTO_ID => $productoA->id, OrderProductModel::CANTIDAD => 3],
+            [OrderProductModel::PRODUCTO_ID => $productoC->id, OrderProductModel::CANTIDAD => 1],
+        ])->assertStatus(200)->assertJsonCount(2, 'data');
+
+        $this->assertEquals(3, $lineas[$productoA->id]->fresh()->cantidad);
+        $this->assertDatabaseMissing('order_product', [OrderProductModel::PEDIDO_ID => $orden->id, OrderProductModel::PRODUCTO_ID => $productoB->id]);
+        $this->assertDatabaseHas('order_product', [OrderProductModel::PEDIDO_ID => $orden->id, OrderProductModel::PRODUCTO_ID => $productoC->id]);
+        // 3 * 45 + 1 * 45 — el precio sale del catálogo.
+        $this->assertEquals(180, OrderModel::find($orden->id)->total);
+    }
+
+    public function test_sync_acepta_id_temporal_decimal_como_linea_nueva(): void
+    {
+        // QuickSale asigna a las líneas nuevas un id temporal decimal (Date.now() + Math.random()).
+        $orden = $this->crearOrden();
+        $productoA = $this->crearProducto();
+        $productoB = $this->crearProducto();
+        $lineas = $this->sembrarLineas($orden, [$productoA->id => 1]);
+
+        $this->sincronizar($orden, [
+            ['order_product_id' => $lineas[$productoA->id]->id, OrderProductModel::PRODUCTO_ID => $productoA->id, OrderProductModel::CANTIDAD => 2],
+            ['order_product_id' => 1762300000000.4521, OrderProductModel::PRODUCTO_ID => $productoB->id, OrderProductModel::CANTIDAD => 1],
+        ])->assertStatus(200)->assertJsonCount(2, 'data');
+
+        $this->assertEquals(2, $lineas[$productoA->id]->fresh()->cantidad);
+        $this->assertDatabaseHas('order_product', [OrderProductModel::PEDIDO_ID => $orden->id, OrderProductModel::PRODUCTO_ID => $productoB->id]);
+        $this->assertEquals(135, OrderModel::find($orden->id)->total);
+    }
+
+    public function test_sync_repetido_deja_el_mismo_resultado(): void
+    {
+        $orden = $this->crearOrden();
+        $productoA = $this->crearProducto();
+        $productoB = $this->crearProducto();
+        $lineas = $this->sembrarLineas($orden, [$productoA->id => 1]);
+
+        $items = [
+            ['order_product_id' => $lineas[$productoA->id]->id, OrderProductModel::PRODUCTO_ID => $productoA->id, OrderProductModel::CANTIDAD => 2],
+            [OrderProductModel::PRODUCTO_ID => $productoB->id, OrderProductModel::CANTIDAD => 1],
+        ];
+
+        $primera = $this->sincronizar($orden, $items)->assertStatus(200);
+        // Reintento con los ids que devolvió el servidor, como haría el cliente tras guardar.
+        $items[1]['order_product_id'] = collect($primera->json('data'))->firstWhere('producto_id', $productoB->id)['id'];
+        $this->sincronizar($orden, $items)->assertStatus(200);
+
+        $this->assertSame(2, OrderProductModel::where(OrderProductModel::PEDIDO_ID, $orden->id)->count());
+        $this->assertEquals(135, OrderModel::find($orden->id)->total);
+    }
+
+    public function test_sync_con_carrito_vacio_borra_el_catalogo_pero_conserva_los_extras(): void
+    {
+        $orden = $this->crearOrden();
+        $producto = $this->crearProducto();
+        $this->sembrarLineas($orden, [$producto->id => 2]);
+        $this->postJson("/api/order/{$orden->id}/product", [
+            OrderProductModel::NOMBRE_EXTRA => 'Bolsa',
+            OrderProductModel::CANTIDAD => 1,
+            OrderProductModel::PRECIO => 5,
+        ], $this->authHeaders())->assertStatus(200);
+
+        $this->sincronizar($orden, [])->assertStatus(200)->assertJsonCount(1, 'data');
+
+        $this->assertDatabaseMissing('order_product', [OrderProductModel::PEDIDO_ID => $orden->id, OrderProductModel::PRODUCTO_ID => $producto->id]);
+        $this->assertDatabaseHas('order_product', [OrderProductModel::PEDIDO_ID => $orden->id, OrderProductModel::NOMBRE_EXTRA => 'Bolsa']);
+        $this->assertEquals(5, OrderModel::find($orden->id)->total);
+    }
+
+    public function test_sync_no_toca_lineas_de_otra_orden(): void
+    {
+        $orden = $this->crearOrden();
+        $otraOrden = $this->crearOrden();
+        $producto = $this->crearProducto();
+        $lineaAjena = $this->sembrarLineas($otraOrden, [$producto->id => 2])[$producto->id];
+
+        $this->sincronizar($orden, [
+            ['order_product_id' => $lineaAjena->id, OrderProductModel::PRODUCTO_ID => $producto->id, OrderProductModel::CANTIDAD => 9],
+        ])->assertStatus(200);
+
+        $this->assertEquals(2, $lineaAjena->fresh()->cantidad);
+        $this->assertSame(1, OrderProductModel::where(OrderProductModel::PEDIDO_ID, $orden->id)->count());
+    }
+
+    public function test_sync_con_otro_producto_en_el_id_reemplaza_la_linea(): void
+    {
+        $orden = $this->crearOrden();
+        $productoA = $this->crearProducto();
+        $productoB = $this->crearProducto();
+        $lineas = $this->sembrarLineas($orden, [$productoA->id => 1]);
+
+        $this->sincronizar($orden, [
+            ['order_product_id' => $lineas[$productoA->id]->id, OrderProductModel::PRODUCTO_ID => $productoB->id, OrderProductModel::CANTIDAD => 1],
+        ])->assertStatus(200);
+
+        $this->assertDatabaseMissing('order_product', ['id' => $lineas[$productoA->id]->id]);
+        $this->assertDatabaseHas('order_product', [OrderProductModel::PEDIDO_ID => $orden->id, OrderProductModel::PRODUCTO_ID => $productoB->id]);
+    }
+
+    public function test_sync_valida_el_stock_contra_la_cantidad_final(): void
+    {
+        $orden = $this->crearOrden();
+        $producto = $this->crearProductoConStock(5);
+        $lineas = $this->sembrarLineas($orden, [$producto->id => 4]);
+        $item = ['order_product_id' => $lineas[$producto->id]->id, OrderProductModel::PRODUCTO_ID => $producto->id];
+
+        // 5 cabe aunque la orden ya tenga 4: el sync reemplaza, no suma.
+        $this->sincronizar($orden, [$item + [OrderProductModel::CANTIDAD => 5]])->assertStatus(200);
+        $this->sincronizar($orden, [$item + [OrderProductModel::CANTIDAD => 6]])->assertStatus(400);
+
+        $this->assertEquals(5, $lineas[$producto->id]->fresh()->cantidad);
+    }
+
+    public function test_sync_dispara_un_solo_evento_orders_updated(): void
+    {
+        $orden = $this->crearOrden();
+        $productoA = $this->crearProducto();
+        $productoB = $this->crearProducto();
+        $lineas = $this->sembrarLineas($orden, [$productoA->id => 1]);
+
+        Event::fake([OrdersUpdated::class]);
+        $this->sincronizar($orden, [
+            ['order_product_id' => $lineas[$productoA->id]->id, OrderProductModel::PRODUCTO_ID => $productoA->id, OrderProductModel::CANTIDAD => 2],
+            [OrderProductModel::PRODUCTO_ID => $productoB->id, OrderProductModel::CANTIDAD => 1],
+        ])->assertStatus(200);
+
+        Event::assertDispatchedTimes(OrdersUpdated::class, 1);
+    }
+
+    public function test_sync_en_orden_cerrada_falla(): void
+    {
+        $orden = $this->crearOrden(OrderStatusEnum::CLOSED->value);
+        $producto = $this->crearProducto();
+
+        $this->sincronizar($orden, [[OrderProductModel::PRODUCTO_ID => $producto->id, OrderProductModel::CANTIDAD => 1]])
+            ->assertStatus(422);
+
+        $this->assertDatabaseCount('order_product', 0);
+    }
+
+    public function test_sync_sin_items_falla(): void
+    {
+        $orden = $this->crearOrden();
+
+        $this->putJson("/api/order/{$orden->id}/products/sync", [], $this->authHeaders())->assertStatus(400);
+    }
+
+    public function test_sync_sin_autenticacion_no_accede(): void
+    {
+        $orden = $this->crearOrden();
+
+        $this->putJson("/api/order/{$orden->id}/products/sync", ['items' => []])->assertStatus(401);
+    }
+
     // ── Totales de orden ─────────────────────────────────────
 
     public function test_agrega_producto_actualiza_total_de_orden(): void
@@ -355,13 +537,14 @@ class OrderProductTest extends TestCase
             OrderProductModel::DESCUENTO => 0,
         ]);
 
-        $this->putJson("/api/order/{$orden->id}/product/{$item->id}", [
+        $response = $this->putJson("/api/order/{$orden->id}/product/{$item->id}", [
             OrderProductModel::CANTIDAD => 3,
             OrderProductModel::DESCUENTO => 5,
         ], $this->authHeaders())
             ->assertStatus(200)
-            ->assertJsonPath('status', 'OK')
-            ->assertJsonPath('data.cantidad', 3);
+            ->assertJsonPath('status', 'OK');
+
+        $this->assertEquals(3, $response->json('data.cantidad'));
     }
 
     // ── UpdateNote ───────────────────────────────────────────

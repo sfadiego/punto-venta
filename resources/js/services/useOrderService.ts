@@ -131,9 +131,6 @@ export const useUpdateOrder = (orderId: number) =>
         url: `${url}/${orderId}`,
     });
 
-export const useAddProductToOrder = (orderId: number) =>
-    usePOST({ url: `${url}/${orderId}/product` });
-
 export const useDeleteOrder = (orderId: number) =>
     useDELETE({ url: `${url}/${orderId}` });
 
@@ -280,30 +277,13 @@ export const useCreateOrderProducts = () => {
     });
 };
 
-export const useUpdateOrderProduct = () => {
+// Deja las líneas de catálogo de la orden iguales al carrito — un solo request al guardar, imprimir o
+// cobrar una venta retomada en QuickSale (ver OrderProductService::syncProducts).
+export const useSyncOrderProducts = () => {
     const { axiosApi } = useAxios();
     return useMutation({
-        mutationFn: ({
-            orderId,
-            orderProductId,
-            data,
-        }: {
-            orderId: number;
-            orderProductId: number;
-            data: Record<string, unknown>;
-        }) =>
-            axiosPUT(axiosApi, {
-                url: `${url}/${orderId}/product/${orderProductId}`,
-                data,
-            }),
-    });
-};
-
-export const useDeleteOrderItem = () => {
-    const { axiosApi } = useAxios();
-    return useMutation({
-        mutationFn: ({ orderId, orderProductId }: { orderId: number; orderProductId: number }) =>
-            axiosDELETE(axiosApi, { url: `${url}/${orderId}/extra/${orderProductId}` }),
+        mutationFn: ({ orderId, items }: { orderId: number; items: Record<string, unknown>[] }) =>
+            axiosPUT(axiosApi, { url: `${url}/${orderId}/products/sync`, data: { items } }),
     });
 };
 
@@ -342,13 +322,6 @@ export const useCreateOrderReturn = () => {
     return useMutation({
         mutationFn: ({ orderId, data }: { orderId: number; data: IOrderReturnPayload }) =>
             axiosPOST(axiosApi, { url: `${url}/${orderId}/return`, data }),
-    });
-};
-
-export const useClearOrderCart = () => {
-    const { axiosApi } = useAxios();
-    return useMutation({
-        mutationFn: (orderId: number) => axiosDELETE(axiosApi, { url: `${url}/${orderId}/clear-cart` }),
     });
 };
 

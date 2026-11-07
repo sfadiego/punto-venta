@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
-import { buildCartItems, calcCartTotals } from "@/utils/cartCalc";
+import { buildCartItems } from "@/utils/cartCalc";
 import { ICartItem } from "@/models/ICartItem";
 import { useShowOrder } from "@/services/useOrderService";
 import { getEcho } from "@/hooks/useOrdersSocket";
@@ -57,9 +57,10 @@ export const useTakeOrderData = () => {
     const isReadOnly =
         !order || !EDITABLE_STATUSES.includes(order.estatus_pedido_id);
 
-    const cart: ICartItem[] = buildCartItems(order?.order_products);
+    // Carrito tal como lo tiene el servidor; useTakeOrder le aplica encima los cambios locales
+    // pendientes y calcula los totales sobre el resultado.
+    const serverCart: ICartItem[] = buildCartItems(order?.order_products);
     const orderDiscount = order?.descuento ?? 0;
-    const { cartCount, subtotal, total } = calcCartTotals(cart, orderDiscount);
 
     return {
         orderId,
@@ -67,10 +68,7 @@ export const useTakeOrderData = () => {
         loadingOrder,
         isError,
         isReadOnly,
-        cart,
-        cartCount,
-        subtotal,
+        serverCart,
         orderDiscount,
-        total,
     };
 };

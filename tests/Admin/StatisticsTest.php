@@ -2,6 +2,7 @@
 
 namespace Tests\Admin;
 
+use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
 use App\Enums\UnidadMedidaEnum;
 use App\Models\BusinessConfigModel;
@@ -38,7 +39,7 @@ class StatisticsTest extends TestCase
     public function test_retorna_top3_con_sistema_id(): void
     {
         $caja = MainOrderReportModel::create([
-            MainOrderReportModel::ESTATUS_CAJA => 'open',
+            MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN->value,
             MainOrderReportModel::EFECTIVO_CAJA_INICIO => 0,
             MainOrderReportModel::USER_ID => 1,
         ]);
@@ -76,7 +77,7 @@ class StatisticsTest extends TestCase
     {
         $tenant = BusinessConfigModel::first();
         $caja = MainOrderReportModel::create([
-            MainOrderReportModel::ESTATUS_CAJA => 'open',
+            MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN->value,
             MainOrderReportModel::EFECTIVO_CAJA_INICIO => 0,
             MainOrderReportModel::USER_ID => 1,
             MainOrderReportModel::TENANT_ID => $tenant->id,
@@ -136,7 +137,7 @@ class StatisticsTest extends TestCase
     {
         $tenant = BusinessConfigModel::first();
         $caja = MainOrderReportModel::create([
-            MainOrderReportModel::ESTATUS_CAJA => 'open',
+            MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN->value,
             MainOrderReportModel::EFECTIVO_CAJA_INICIO => 0,
             MainOrderReportModel::USER_ID => 1,
             MainOrderReportModel::TENANT_ID => $tenant->id,
@@ -176,7 +177,7 @@ class StatisticsTest extends TestCase
     {
         $tenant = BusinessConfigModel::first();
         $caja = MainOrderReportModel::create([
-            MainOrderReportModel::ESTATUS_CAJA => 'open',
+            MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN->value,
             MainOrderReportModel::EFECTIVO_CAJA_INICIO => 0,
             MainOrderReportModel::USER_ID => 1,
             MainOrderReportModel::TENANT_ID => $tenant->id,
@@ -215,7 +216,7 @@ class StatisticsTest extends TestCase
         // del día 1 quedaba fuera del rango porque el inicio de mes se corría a las 6am.
         $tenant = BusinessConfigModel::first();
         $caja = MainOrderReportModel::create([
-            MainOrderReportModel::ESTATUS_CAJA => 'open',
+            MainOrderReportModel::ESTATUS_CAJA => MainOrderStatusEnum::OPEN->value,
             MainOrderReportModel::EFECTIVO_CAJA_INICIO => 0,
             MainOrderReportModel::USER_ID => 1,
             MainOrderReportModel::TENANT_ID => $tenant->id,

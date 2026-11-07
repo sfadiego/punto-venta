@@ -17,6 +17,7 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
 import { IModalCartItem } from "@/models/IModalCartItem";
+import { buildOrderItems } from "@/utils/sellByWeightCartCalc";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
 import { usePaymentMethod } from "./usePaymentMethod";
 import { useCreditPayment } from "./useCreditPayment";
@@ -34,6 +35,7 @@ interface UseQuickSalePaymentParams {
     domicilioNum: number;
     customerPays: boolean;
     nombrePedido: string;
+    persistCart: () => Promise<number>;
     resetAfterSuccess: () => void;
     navigate: NavigateFunction;
 }
@@ -53,6 +55,7 @@ export const useQuickSalePayment = ({
     domicilioNum,
     customerPays,
     nombrePedido,
+    persistCart,
     resetAfterSuccess,
     navigate,
 }: UseQuickSalePaymentParams) => {
@@ -114,19 +117,15 @@ export const useQuickSalePayment = ({
             let orderId: number;
 
             if (resumeOrderId) {
-                // El carrito ya está sincronizado (cada add/remove/clear pegó al backend al
-                // momento) — solo falta cerrar la orden con los datos de pago.
-                orderId = resumeOrderId;
+                // Los cambios del carrito solo viven en memoria hasta aquí: se guardan antes de
+                // cerrar la orden con los datos de pago.
+                orderId = await persistCart();
             } else {
                 const res = await storeOrderSale({
                     sistema_id: sistemaId,
                     nombre_pedido: resolveSaleName(nombrePedido),
                     costo_domicilio: calcCostoDomicilio(domicilioNum, domicilioActivo, customerPays),
-                    items: cart.map((item) => ({
-                        producto_id: item.productId,
-                        variant_id: item.variantId ?? null,
-                        cantidad: item.cantidad,
-                    })),
+                    items: buildOrderItems(cart),
                 });
                 orderId = (res as { data: { data: IOrder } }).data.data.id;
             }
@@ -151,7 +150,7 @@ export const useQuickSalePayment = ({
                     ...paymentData,
                 },
             });
-            if (resumeOrderId) invalidateResumeOrderQueries();
+            invalidateResumeOrderQueries();
             // La venta descontó stock en el backend — sin esto, el catálogo en caché
             // (staleTime de 2 min) sigue mostrando la existencia previa y tanto la UI como
             // la validación de "no exceder el stock disponible" quedan trabajando con datos

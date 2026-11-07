@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\MainOrderStatusEnum;
 use App\Enums\OrderStatusEnum;
 use App\Events\OrdersUpdated;
 use App\Http\Requests\OrderProductStoreRequest;
@@ -10,18 +11,75 @@ use App\Models\OrderModel;
 use App\Models\OrderProductModel;
 use App\Models\ProductModel;
 use App\Models\ProductVariantModel;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Mutaciones de productos/extras dentro de una orden en proceso: agregar, actualizar,
- * marcar listo, borrar y vaciar el carrito. El controller (OrderProductController) se
- * limita a validar que la orden exista/sea editable y a delegar aquí — este service
- * asume que esa validación ya pasó.
+ * Consultas y mutaciones de productos/extras dentro de una orden: buscar la orden y sus
+ * líneas, decidir si admite cambios (orderDenial), agregar, actualizar, marcar listo, borrar y
+ * vaciar el carrito. El controller (OrderProductController) solo orquesta: llama aquí y
+ * traduce el resultado a la respuesta. Las mutaciones asumen que orderDenial ya dio null.
  */
 class OrderProductService
 {
+    /** Valor de orderDenial cuando el usuario no puede acceder a la sucursal de la orden. */
+    public const DENIED_ACCESS = 'Unauthorized';
+
     public function __construct(private readonly OrderProductAddonService $addonService) {}
+
+    public function findOrder(int|string $orderId, bool $lock = false): ?OrderModel
+    {
+        return OrderModel::with('sistema')->when($lock, fn ($query) => $query->lockForUpdate())->find($orderId);
+    }
+
+    /** Línea de la orden por su id (o por otra columna, ej. producto_id). */
+    public function findLine(int|string $orderId, int|string $value, string $column = 'id'): ?OrderProductModel
+    {
+        return OrderProductModel::where(OrderProductModel::PEDIDO_ID, $orderId)->where($column, $value)->first();
+    }
+
+    /** Líneas de la orden con sus relaciones; con $productId, solo las de ese producto. */
+    public function lines(OrderModel $order, int|string|null $productId = null): Collection
+    {
+        return OrderProductModel::with(['product.addons', 'variant', 'addons'])
+            ->where(OrderProductModel::PEDIDO_ID, $order->id)
+            ->when($productId !== null, fn ($query) => $query->where(OrderProductModel::PRODUCTO_ID, $productId))
+            ->get();
+    }
+
+    /**
+     * Motivo por el que no se puede operar sobre los productos de la orden, o null si se puede:
+     * la orden no existe, el usuario no accede a su sucursal (DENIED_ACCESS) o — con
+     * $requireEditable — no está InProcess/Served o su caja ya cerró. Bloquea agregar/editar/
+     * borrar en órdenes cerradas aunque el cliente envíe la petición (ej. UI desincronizada
+     * por caché stale en red lenta).
+     */
+    public function orderDenial(?OrderModel $order, User $user, bool $requireEditable = true): ?string
+    {
+        if (! $order) {
+            return 'no existe la orden';
+        }
+
+        if (! $order->isAccessibleByUser($user)) {
+            return self::DENIED_ACCESS;
+        }
+
+        if (! $requireEditable) {
+            return null;
+        }
+
+        $editableStatuses = [OrderStatusEnum::IN_PROCESS->value, OrderStatusEnum::SERVED->value];
+        if (! in_array($order->estatus_pedido_id, $editableStatuses, true)) {
+            return 'La orden ya fue cerrada y no se puede modificar';
+        }
+
+        if ($order->sistema && $order->sistema->estatus_caja !== MainOrderStatusEnum::OPEN->value) {
+            return 'La caja de esta venta ya está cerrada.';
+        }
+
+        return null;
+    }
 
     /**
      * store — el stock no se toca aquí, se descuenta recién al cerrar la orden
@@ -88,6 +146,86 @@ class OrderProductService
 
         OrderModel::lockForUpdate()->find($order->id);
 
+        [$orderProducts, $deltaSubtotal] = $this->createLines($order, $items);
+
+        $this->applyOrderDeltaIncrement($order->id, $deltaSubtotal, $orderDiscount);
+
+        $this->resetStatusIfReady($order->fresh());
+        OrdersUpdated::dispatchAfterCommit('product_updated', (int) $order->id);
+
+        return $orderProducts->load('addons');
+    }
+
+    /**
+     * syncProducts — deja las líneas de catálogo de la orden iguales al carrito recibido
+     * (checkout de QuickSale al retomar una venta): actualiza la cantidad de las líneas que ya
+     * existen (por order_product_id, solo si son de esta orden y del mismo producto/variante),
+     * crea las nuevas y borra las que ya no vienen. Los extras (nombre libre) no se tocan.
+     * Un solo lock, un solo delta al total y un solo evento; repetir la request deja el mismo
+     * resultado. Devuelve todas las líneas de la orden con la misma forma que el index.
+     *
+     * @param  array<array{order_product_id?:?int, producto_id:int, variant_id?:?int, cantidad:float}>  $items
+     */
+    public function syncProducts(OrderModel $order, array $items): Collection
+    {
+        $orderDiscount = $order->descuento ?? 0;
+
+        OrderModel::lockForUpdate()->find($order->id);
+
+        $lines = OrderProductModel::with('addons')
+            ->where(OrderProductModel::PEDIDO_ID, $order->id)
+            ->whereNotNull(OrderProductModel::PRODUCTO_ID)
+            ->get()
+            ->keyBy('id');
+
+        $deltaSubtotal = 0.0;
+        $keptIds = [];
+        $newItems = [];
+
+        foreach ($items as $item) {
+            $line = $lines->get((int) ($item['order_product_id'] ?? 0));
+
+            if (! $line || isset($keptIds[$line->id])
+                || (int) $line->producto_id !== (int) $item['producto_id']
+                || (int) $line->variant_id !== (int) ($item['variant_id'] ?? 0)) {
+                $newItems[] = $item;
+
+                continue;
+            }
+
+            $keptIds[$line->id] = true;
+            $oldSubtotal = $this->lineSubtotal($line->unitPriceWithAddons(), $line->cantidad, $line->descuento);
+            $line->update([OrderProductModel::CANTIDAD => $item['cantidad']]);
+            $deltaSubtotal += $this->lineSubtotal($line->unitPriceWithAddons(), $line->cantidad, $line->descuento) - $oldSubtotal;
+        }
+
+        foreach ($lines as $line) {
+            if (! isset($keptIds[$line->id])) {
+                $deltaSubtotal -= $this->lineSubtotal($line->unitPriceWithAddons(), $line->cantidad, $line->descuento);
+                $line->delete();
+            }
+        }
+
+        [, $createdSubtotal] = $this->createLines($order, $newItems);
+
+        $this->applyOrderDeltaIncrement($order->id, round($deltaSubtotal + $createdSubtotal, 2), $orderDiscount);
+
+        $this->resetStatusIfReady($order->fresh());
+        OrdersUpdated::dispatchAfterCommit('product_updated', (int) $order->id);
+
+        return $this->lines($order);
+    }
+
+    /**
+     * Crea las líneas de catálogo de $items y devuelve [líneas creadas, subtotal que suman].
+     * El precio siempre se resuelve del catálogo/variante, nunca del valor que mande el cliente.
+     * No toca el total de la orden ni emite eventos: lo hace quien la llama.
+     *
+     * @param  array<array{producto_id:int, variant_id?:?int, cantidad:float, addons?:array}>  $items
+     * @return array{0: Collection, 1: float}
+     */
+    private function createLines(OrderModel $order, array $items): array
+    {
         $productIds = collect($items)->pluck('producto_id')->filter()->unique();
         $variantIds = collect($items)->pluck('variant_id')->filter()->unique();
         $products = ProductModel::whereIn('id', $productIds)->get()->keyBy('id');
@@ -126,12 +264,7 @@ class OrderProductService
             $totalDeltaSubtotal += $this->lineSubtotal($precio + $this->addonService->unitTotal($addonRows), $cantidad, 0);
         }
 
-        $this->applyOrderDeltaIncrement($order->id, $totalDeltaSubtotal, $orderDiscount);
-
-        $this->resetStatusIfReady($order->fresh());
-        OrdersUpdated::dispatchAfterCommit('product_updated', (int) $order->id);
-
-        return $orderProducts->load('addons');
+        return [$orderProducts, $totalDeltaSubtotal];
     }
 
     /**
@@ -198,6 +331,18 @@ class OrderProductService
         }
 
         OrdersUpdated::dispatchAfterCommit('product_updated', (int) $order->id);
+
+        return $orderProduct->refresh();
+    }
+
+    /**
+     * updateNote — observación de una línea (producto o extra); vacía la deja en null.
+     */
+    public function updateNote(OrderModel $order, OrderProductModel $orderProduct, ?string $note): OrderProductModel
+    {
+        $orderProduct->update([OrderProductModel::OBSERVACION => $note ?: null]);
+
+        $this->resetStatusIfReady($order);
 
         return $orderProduct->refresh();
     }

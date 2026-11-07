@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Printer, Loader } from "lucide-react";
 import { usePrintTicket } from "./usePrintTicket";
 
@@ -7,6 +8,8 @@ interface PrintTicketButtonProps {
     returnId?: number;
     showLabel?: boolean;
     className?: string;
+    /** Se espera antes de imprimir; si devuelve false no se imprime (ej. cambios del carrito sin enviar). */
+    onBeforePrint?: () => Promise<boolean>;
 }
 
 const defaultIconClass =
@@ -24,15 +27,27 @@ export const PrintTicketButton = ({
     returnId,
     showLabel = false,
     className,
+    onBeforePrint,
 }: PrintTicketButtonProps) => {
     const { print, isPending, isVisible } = usePrintTicket();
+    const [isWaiting, setIsWaiting] = useState(false);
 
     if (!isVisible) return null;
 
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = async (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (onBeforePrint) {
+            setIsWaiting(true);
+            try {
+                if (!(await onBeforePrint())) return;
+            } finally {
+                setIsWaiting(false);
+            }
+        }
         print(orderId, returnId);
     };
+
+    const isBusy = isPending || isWaiting;
 
     const resolvedClass = className ?? (showLabel ? defaultLabelClass : defaultIconClass);
     const iconSize = 20;
@@ -40,11 +55,11 @@ export const PrintTicketButton = ({
     return (
         <button
             onClick={handleClick}
-            disabled={isPending}
+            disabled={isBusy}
             title={returnId ? "Imprimir comprobante de devolución" : "Imprimir ticket"}
             className={resolvedClass}
         >
-            {isPending
+            {isBusy
                 ? <Loader size={iconSize} className="animate-spin" />
                 : <Printer size={iconSize} />
             }

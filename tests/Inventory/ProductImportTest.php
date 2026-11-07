@@ -160,6 +160,40 @@ class ProductImportTest extends TestCase
         $this->assertFalse(ProductModel::find($productId)->manage_stock);
     }
 
+    public function test_negocio_sin_stock_enabled_ignora_las_columnas_de_stock_del_csv(): void
+    {
+        // stock_enabled es false por defecto: el CSV no puede activar el control de stock.
+        $this->crearCategoria('Ropa');
+        $fila = $this->fila(['maneja_stock' => 'si', 'stock' => '10', 'stock_minimo' => '3']);
+
+        $this->postJson('/api/product/import/preview', ['file' => $this->csvFile([$fila])], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_create', 1)
+            ->assertJsonPath('data.rows.0.warnings.0', 'El negocio no tiene stock habilitado: se ignoran las columnas de stock.');
+
+        $response = $this->postJson('/api/product/import/commit', ['file' => $this->csvFile([$fila])], $this->authHeaders())
+            ->assertStatus(200);
+
+        $product = ProductModel::find($response->json('data.rows.0.data.product_id'));
+        $this->assertFalse($product->manage_stock);
+        $this->assertDatabaseMissing('stock_movements', [StockMovementModel::PRODUCT_ID => $product->id]);
+    }
+
+    public function test_negocio_sin_stock_enabled_no_toca_un_producto_que_ya_manejaba_stock(): void
+    {
+        // Igual que ProductUpdateRequest: solo se bloquea la transición false→true.
+        $this->crearCategoria('Ropa');
+        $existente = $this->crearProducto([ProductModel::MANAGE_STOCK => true, ProductModel::STOCK => 5]);
+
+        $fila = $this->fila(['codigo' => $existente->product_code, 'nombre' => $existente->nombre, 'maneja_stock' => 'si']);
+        $this->postJson('/api/product/import/commit', ['file' => $this->csvFile([$fila])], $this->authHeaders())
+            ->assertStatus(200)
+            ->assertJsonPath('data.summary.to_update', 1)
+            ->assertJsonPath('data.rows.0.warnings', []);
+
+        $this->assertTrue($existente->refresh()->manage_stock);
+    }
+
     public function test_retail_sin_stock_enabled_puede_importar(): void
     {
         BusinessConfigModel::first()->update([

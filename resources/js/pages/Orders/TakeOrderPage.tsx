@@ -41,7 +41,6 @@ export default function TakeOrderPage() {
         loadingOrder,
         isError,
         isReadOnly,
-        pendingProductIds,
         addToCart,
         addExtra,
         updateQuantity,
@@ -50,11 +49,12 @@ export default function TakeOrderPage() {
         removeFromCart,
         clearCart,
         isClearingCart,
+        flushAll,
         updateOrderDiscount,
         updateProductDiscount,
     } = useTakeOrder();
 
-    const { mobileTab, setMobileTab, handleBack } = useTakeOrderPage(loadingOrder, isError);
+    const { mobileTab, setMobileTab, handleBack } = useTakeOrderPage(loadingOrder, isError, flushAll);
 
     const { isOpen: extraOpen, openModal: openExtra, handleClose: closeExtra, formik: extraFormik } =
         useAddExtraModal(addExtra);
@@ -75,7 +75,6 @@ export default function TakeOrderPage() {
             cart={cart}
             isReadOnly={isReadOnly}
             isRetail={isRetail}
-            pendingProductIds={pendingProductIds}
             onAdd={addToCart}
             onUpdateQuantity={updateQuantity}
         />
@@ -99,6 +98,7 @@ export default function TakeOrderPage() {
             isLoading={loadingCart}
             isReadOnly={isReadOnly}
             showDelivery={showDelivery}
+            onFlushPending={flushAll}
             onUpdate={updateQuantity}
             onRemove={removeFromCart}
             onNote={saveObservacion}

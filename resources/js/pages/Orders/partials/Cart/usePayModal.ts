@@ -27,7 +27,15 @@ interface DeliveryInfo {
 // Orquesta el modal de cobro: compone usePaymentSelection (efectivo/propina/método) y
 // useCreditSelection (venta a crédito), y agrega la lógica que cruza ambos dominios
 // (mutua exclusión método-vs-crédito, canPay, reset al abrir) más el cobro en sí.
-export const usePayModal = (orderId: number, total: number, delivery: DeliveryInfo) => {
+// flushPending: envía los toques del carrito que aún no llegan al servidor. Se espera antes de
+// abrir el cobro: cerrar la orden sin esos productos los perdería (el backend rechaza agregar
+// a una orden cerrada). Devuelve false si algún envío falló.
+export const usePayModal = (
+    orderId: number,
+    total: number,
+    delivery: DeliveryInfo,
+    flushPending: () => Promise<boolean>,
+) => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { sistemaId } = useAxios();
@@ -47,7 +55,8 @@ export const usePayModal = (orderId: number, total: number, delivery: DeliveryIn
         selectedCustomer: creditSelection.selectedCustomer,
     });
 
-    const handleOpen = () => {
+    const handleOpen = async () => {
+        if (!(await flushPending())) return;
         paymentSelection.setCash("");
         paymentSelection.setPropina("");
         paymentSelection.setPaymentMethodId(resolveDefaultPaymentMethodId(paymentSelection.paymentMethods));

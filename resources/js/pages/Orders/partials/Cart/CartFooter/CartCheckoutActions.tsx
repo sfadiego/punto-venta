@@ -8,6 +8,7 @@ interface CartCheckoutActionsProps {
     disablePay: boolean;
     orderId: number;
     onPay: () => void;
+    onBeforePrint: () => Promise<boolean>;
 }
 
 export const CartCheckoutActions = ({
@@ -17,6 +18,7 @@ export const CartCheckoutActions = ({
     disablePay,
     orderId,
     onPay,
+    onBeforePrint,
 }: CartCheckoutActionsProps) => (
     <div className="space-y-2">
         {isReadOnly ? (
@@ -37,6 +39,7 @@ export const CartCheckoutActions = ({
         <PrintTicketButton
             orderId={orderId}
             showLabel
+            onBeforePrint={onBeforePrint}
             className="w-full flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 disabled:opacity-40 disabled:cursor-not-allowed text-stone-700 font-medium py-2.5 rounded-xl transition-colors text-sm"
         />
     </div>

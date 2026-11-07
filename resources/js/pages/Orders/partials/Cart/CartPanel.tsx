@@ -31,6 +31,7 @@ interface CartPanelProps {
     isReadOnly?: boolean;
     showDelivery?: boolean;
     pendingProductIds?: Set<number>;
+    onFlushPending: () => Promise<boolean>;
     onUpdate: (orderProductId: number, delta: number) => void;
     onRemove: (orderProductId: number) => void;
     onNote: (orderProductId: number, note: string) => Promise<void>;
@@ -63,6 +64,7 @@ export const CartPanel = ({
     isReadOnly = false,
     showDelivery = true,
     pendingProductIds,
+    onFlushPending,
     onUpdate,
     onRemove,
     onNote,
@@ -95,7 +97,7 @@ export const CartPanel = ({
         handlePay,
         handleSelectCredit,
         handleSelectMethod,
-    } = usePayModal(order?.id ?? 0, totalFinal, { domicilio, domicilioActivo, customerPays });
+    } = usePayModal(order?.id ?? 0, totalFinal, { domicilio, domicilioActivo, customerPays }, onFlushPending);
     const navigate = useNavigate();
     const layaway = useLayawayPay({
         orderId: order?.id ?? 0,
@@ -185,6 +187,7 @@ export const CartPanel = ({
                     orderId={order?.id ?? 0}
                     canPay={can("payOrder")}
                     onPay={openPay}
+                    onBeforePrint={onFlushPending}
                     onUpdateDiscount={onUpdateDiscount}
                 />
             </div>

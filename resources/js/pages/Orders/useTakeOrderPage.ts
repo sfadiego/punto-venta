@@ -5,12 +5,15 @@ import { toast } from "react-toastify";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { TakeOrderMobileTabEnum } from "@/enums/TakeOrderMobileTabEnum";
 
-export const useTakeOrderPage = (loadingOrder: boolean, isError: boolean) => {
+export const useTakeOrderPage = (loadingOrder: boolean, isError: boolean, flushPending: () => Promise<unknown>) => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [mobileTab, setMobileTab] = useState<TakeOrderMobileTabEnum>(TakeOrderMobileTabEnum.Products);
 
-    const handleBack = () => {
+    // Antes de salir se envían los toques pendientes del carrito: la pantalla a la que se vuelve
+    // (listado de órdenes) lee el total de la orden desde el servidor.
+    const handleBack = async () => {
+        await flushPending();
         queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
         navigate(-1);
     };
