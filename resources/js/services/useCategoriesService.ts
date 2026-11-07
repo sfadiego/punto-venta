@@ -3,10 +3,16 @@ import { axiosGET, useDELETE, useGET, usePOST, usePUT } from "../hooks/useApi";
 import { ICategory } from "../models/ICategory";
 import { IPaginate } from "@/intefaces/IPaginate";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 import { useAxios } from "@/hooks/useAxios";
 
 const url = ApiRoutes.Category;
+
+// Invalida todas las queries de categorías (índice, paginado y lista ligera): comparten el prefijo de la ruta.
+export const invalidateCategoryQueries = (queryClient: QueryClient) =>
+    queryClient.invalidateQueries({
+        predicate: (query) => typeof query.queryKey[0] === "string" && query.queryKey[0].startsWith(url),
+    });
 
 // Full list — used for dropdowns and filters.
 // The backend always returns paginated; request a large limit to get all records.
