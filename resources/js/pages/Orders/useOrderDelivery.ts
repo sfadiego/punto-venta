@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { toast } from "react-toastify";
-import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { reportActionError } from "@/utils/reportActionError";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
-import { calcCostoDomicilio } from "@/utils/deliveryCalc";
+import { calcCostoDomicilio, parseOrderDelivery } from "@/utils/deliveryCalc";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 import { IOrder } from "@/models/IOrder";
 import { useInvalidateOrder } from "./useInvalidateOrder";
+
+export type TOrderDelivery = ReturnType<typeof useOrderDelivery>;
 
 export const useOrderDelivery = (
     orderId: number,
@@ -28,11 +28,10 @@ export const useOrderDelivery = (
     useEffect(() => {
         if (!order || initializedRef.current) return;
         initializedRef.current = true;
-        const raw = Number(order.costo_domicilio ?? 0);
-        const amount = Math.abs(raw);
-        setDomicilioActivo(!!order.is_delivery || amount > 0);
+        const { isActive, amount, customerPays: paidByCustomer } = parseOrderDelivery(order);
+        setDomicilioActivo(isActive);
         setCostoDomicilio(amount > 0 ? String(amount) : "");
-        setOrderDeliveryPaidByState(raw >= 0 ? DeliveryPaidByEnum.Customer : DeliveryPaidByEnum.Business);
+        setOrderDeliveryPaidByState(paidByCustomer ? DeliveryPaidByEnum.Customer : DeliveryPaidByEnum.Business);
     }, [order]);
 
     const domicilio = parseFloat(costoDomicilio) || 0;
@@ -49,8 +48,7 @@ export const useOrderDelivery = (
                 { onSuccess: invalidateOrder },
             );
         } catch (error) {
-            logUnexpectedError(error, "useOrderDelivery.persist");
-            toast.error(getUserFacingErrorMessage(error, "Error al guardar el domicilio"));
+            reportActionError(error, "useOrderDelivery.persist", "Error al guardar el domicilio");
         }
     };
 
@@ -83,7 +81,6 @@ export const useOrderDelivery = (
         costoDomicilio,
         setCostoDomicilio,
         handleCostoDomicilioBlur,
-        orderDeliveryPaidBy,
         setOrderDeliveryPaidBy,
         domicilio,
         customerPays,

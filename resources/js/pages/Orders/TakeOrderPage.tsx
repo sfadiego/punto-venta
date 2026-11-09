@@ -29,15 +29,7 @@ export default function TakeOrderPage() {
         orderDiscount,
         total,
         totalFinal,
-        domicilioActivo,
-        toggleDomicilio,
-        costoDomicilio,
-        setCostoDomicilio,
-        handleCostoDomicilioBlur,
-        setOrderDeliveryPaidBy,
-        domicilio,
-        customerPays,
-        loadingCart,
+        delivery,
         loadingOrder,
         isError,
         isReadOnly,
@@ -87,15 +79,8 @@ export default function TakeOrderPage() {
             orderDiscount={orderDiscount}
             total={total}
             totalFinal={totalFinal}
-            domicilioActivo={domicilioActivo}
-            toggleDomicilio={toggleDomicilio}
-            costoDomicilio={costoDomicilio}
-            setCostoDomicilio={setCostoDomicilio}
-            onCostoDomicilioBlur={handleCostoDomicilioBlur}
-            setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
-            domicilio={domicilio}
-            customerPays={customerPays}
-            isLoading={loadingCart}
+            delivery={delivery}
+            isLoading={loadingOrder}
             isReadOnly={isReadOnly}
             showDelivery={showDelivery}
             onFlushPending={flushAll}
@@ -117,26 +102,14 @@ export default function TakeOrderPage() {
             {/* Layout único y responsivo: overlay de pantalla completa en mobile, en flujo
                 normal desde lg — mismo patrón que QuickSaleContent.tsx. */}
             <div className="fixed inset-0 z-10 flex flex-col h-full overflow-hidden bg-stone-50 lg:static lg:z-auto">
-                <div className="hidden lg:block">
-                    <TakeOrderHeader
-                        title={order?.nombre_pedido ?? "Tomar pedido"}
-                        isReadOnly={isReadOnly}
-                        onBack={handleBack}
-                        onAddExtra={openExtra}
-                        onMenuClick={toggleSidebar}
-                        showAddExtra={showAddExtra}
-                    />
-                </div>
-                <div className="lg:hidden">
-                    <TakeOrderHeader
-                        title={order?.nombre_pedido ?? "Tomar pedido"}
-                        isReadOnly={isReadOnly}
-                        onBack={handleBack}
-                        onAddExtra={openExtra}
-                        showAddExtra={showAddExtra}
-                        compact
-                    />
-                </div>
+                <TakeOrderHeader
+                    title={order?.nombre_pedido ?? "Tomar pedido"}
+                    isReadOnly={isReadOnly}
+                    onBack={handleBack}
+                    onAddExtra={openExtra}
+                    onMenuClick={toggleSidebar}
+                    showAddExtra={showAddExtra}
+                />
 
                 <div className="flex flex-1 overflow-hidden">
                     <div className={`flex-1 overflow-hidden bg-stone-50 lg:border-r lg:border-stone-200 ${showProducts ? "" : "hidden lg:block"}`}>

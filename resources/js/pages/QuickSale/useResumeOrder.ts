@@ -6,7 +6,6 @@ import { useShowOrder, useStoreOrder, useCreateOrderProducts, useSyncOrderProduc
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { resolveSaleName } from "@/utils/resolveSaleName";
-import { calcCostoDomicilio } from "@/utils/deliveryCalc";
 import { buildModalCartItems, buildOrderItems, hasCartChanges } from "@/utils/sellByWeightCartCalc";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
@@ -21,9 +20,7 @@ interface UseResumeOrderParams {
     sistemaId: number | null;
     cart: IModalCartItem[];
     setCart: (cart: IModalCartItem[]) => void;
-    domicilioActivo: boolean;
-    domicilioNum: number;
-    customerPays: boolean;
+    deliveryPayload: { is_delivery: boolean; costo_domicilio: number };
     applyDeliveryFromOrder: (order: IOrder) => void;
     resetDelivery: () => void;
     navigate: NavigateFunction;
@@ -31,15 +28,13 @@ interface UseResumeOrderParams {
 
 // Retomar una venta guardada (InProcess) — /quick-sale/:id — y el flujo de "guardar y continuar
 // después" al presionar volver. El flujo de impresión (que también puede necesitar crear la
-// orden) vive aparte en usePrintOrder.ts — ver createOrderFromCart, expuesto para que lo use.
+// orden) vive aparte en usePrintOrder.ts, que usa persistCart.
 export const useResumeOrder = ({
     resumeOrderId,
     sistemaId,
     cart,
     setCart,
-    domicilioActivo,
-    domicilioNum,
-    customerPays,
+    deliveryPayload,
     applyDeliveryFromOrder,
     resetDelivery,
     navigate,
@@ -113,14 +108,8 @@ export const useResumeOrder = ({
             });
         }
 
-        if (domicilioActivo) {
-            await updateOrderData({
-                orderId: order.id,
-                data: {
-                    is_delivery: true,
-                    costo_domicilio: calcCostoDomicilio(domicilioNum, domicilioActivo, customerPays),
-                },
-            });
+        if (deliveryPayload.is_delivery) {
+            await updateOrderData({ orderId: order.id, data: deliveryPayload });
         }
 
         return order.id;
@@ -153,8 +142,7 @@ export const useResumeOrder = ({
                 orderId: resumeOrderId,
                 data: {
                     nombre_pedido: resolveSaleName(nombrePedido),
-                    is_delivery: domicilioActivo,
-                    costo_domicilio: calcCostoDomicilio(domicilioNum, domicilioActivo, customerPays),
+                    ...deliveryPayload,
                 },
             });
             invalidateResumeOrderQueries();

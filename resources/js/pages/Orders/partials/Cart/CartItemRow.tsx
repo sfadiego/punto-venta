@@ -1,4 +1,4 @@
-import { Plus, Minus, Trash2, Tag, X, Loader } from "lucide-react";
+import { Plus, Minus, Trash2, Tag, X } from "lucide-react";
 import { ICartItem } from "@/models/ICartItem";
 import { getAvailableStock } from "@/utils/stock";
 import { formatMoney } from "@/utils/formatCurrency";
@@ -10,7 +10,6 @@ import { useCartItemRow } from "./useCartItemRow";
 interface CartItemRowProps {
     item: ICartItem;
     isReadOnly?: boolean;
-    isPending?: boolean;
     onUpdate: (orderProductId: number, delta: number) => void;
     onRemove: (orderProductId: number) => void;
     onNote: (orderProductId: number, note: string) => Promise<void>;
@@ -24,7 +23,6 @@ interface CartItemRowProps {
 export const CartItemRow = ({
     item,
     isReadOnly = false,
-    isPending = false,
     onUpdate,
     onRemove,
     onNote,
@@ -76,7 +74,6 @@ export const CartItemRow = ({
                     <CartItemAddons
                         item={item}
                         isReadOnly={isReadOnly}
-                        isPending={isPending}
                         onEdit={onEditAddons}
                     />
                     <div className="flex items-center gap-1.5 mt-0.5">
@@ -154,26 +151,19 @@ export const CartItemRow = ({
                         onClick={() =>
                             !item.isExtra && onUpdate(item.orderProductId, -1)
                         }
-                        disabled={isReadOnly || item.isExtra || isPending}
+                        disabled={isReadOnly || item.isExtra}
                         className="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                     >
                         <Minus size={12} className="text-stone-600" />
                     </button>
                     <span className="w-6 text-center text-sm font-bold text-stone-900 tabular-nums">
-                        {isPending ? (
-                            <Loader
-                                size={12}
-                                className="animate-spin text-amber-500 mx-auto"
-                            />
-                        ) : (
-                            item.quantity
-                        )}
+                        {item.quantity}
                     </span>
                     <button
                         onClick={() =>
                             !item.isExtra && onUpdate(item.orderProductId, 1)
                         }
-                        disabled={isReadOnly || item.isExtra || isPending || stockExhausted}
+                        disabled={isReadOnly || item.isExtra || stockExhausted}
                         title={stockExhausted ? "Ya agregaste todo el stock disponible" : undefined}
                         className="w-7 h-7 rounded-lg bg-amber-100 hover:bg-amber-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                     >
@@ -187,14 +177,9 @@ export const CartItemRow = ({
                     {!isReadOnly && (
                         <button
                             onClick={() => onRemove(item.orderProductId)}
-                            disabled={isPending}
-                            className="text-stone-300 hover:text-red-400 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                            className="text-stone-300 hover:text-red-400 transition-colors"
                         >
-                            {isPending ? (
-                                <Loader size={14} className="animate-spin" />
-                            ) : (
-                                <Trash2 size={14} />
-                            )}
+                            <Trash2 size={14} />
                         </button>
                     )}
                     {isReadOnly && <div className="w-[14px]" />}

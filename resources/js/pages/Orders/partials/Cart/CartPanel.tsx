@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { IOrder } from "@/models/IOrder";
 import { ICartItem } from "@/models/ICartItem";
 import { IAddonSelection } from "@/models/IAddon";
-import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
+import { TOrderDelivery } from "../../useOrderDelivery";
 import { usePayModal } from "./usePayModal";
 import { RestaurantPayModal } from "@/components/orders/PayOrder/RestaurantPayModal";
 import { CartEmptyState } from "./CartEmptyState";
@@ -19,18 +19,10 @@ interface CartPanelProps {
     orderDiscount: number;
     total: number;
     totalFinal: number;
-    domicilioActivo: boolean;
-    toggleDomicilio: (checked: boolean) => void;
-    costoDomicilio: string;
-    setCostoDomicilio: (v: string) => void;
-    onCostoDomicilioBlur: () => void;
-    setOrderDeliveryPaidBy: (v: DeliveryPaidByEnum) => void;
-    domicilio: number;
-    customerPays: boolean;
+    delivery: TOrderDelivery;
     isLoading: boolean;
     isReadOnly?: boolean;
     showDelivery?: boolean;
-    pendingProductIds?: Set<number>;
     onFlushPending: () => Promise<boolean>;
     onUpdate: (orderProductId: number, delta: number) => void;
     onRemove: (orderProductId: number) => void;
@@ -52,18 +44,10 @@ export const CartPanel = ({
     orderDiscount,
     total,
     totalFinal,
-    domicilioActivo,
-    toggleDomicilio,
-    costoDomicilio,
-    setCostoDomicilio,
-    onCostoDomicilioBlur,
-    setOrderDeliveryPaidBy,
-    domicilio,
-    customerPays,
+    delivery,
     isLoading,
     isReadOnly = false,
     showDelivery = true,
-    pendingProductIds,
     onFlushPending,
     onUpdate,
     onRemove,
@@ -97,7 +81,7 @@ export const CartPanel = ({
         handlePay,
         handleSelectCredit,
         handleSelectMethod,
-    } = usePayModal(order?.id ?? 0, totalFinal, { domicilio, domicilioActivo, customerPays }, onFlushPending);
+    } = usePayModal(order?.id ?? 0, totalFinal, delivery, onFlushPending);
     const navigate = useNavigate();
     const layaway = useLayawayPay({
         orderId: order?.id ?? 0,
@@ -150,11 +134,6 @@ export const CartPanel = ({
                                     key={item.orderProductId}
                                     item={item}
                                     isReadOnly={isReadOnly}
-                                    isPending={
-                                        pendingProductIds?.has(
-                                            item.orderProductId,
-                                        ) ?? false
-                                    }
                                     onUpdate={onUpdate}
                                     onRemove={onRemove}
                                     onNote={onNote}
@@ -173,14 +152,7 @@ export const CartPanel = ({
                     orderDiscount={orderDiscount}
                     total={total}
                     totalFinal={totalFinal}
-                    domicilioActivo={domicilioActivo}
-                    toggleDomicilio={toggleDomicilio}
-                    costoDomicilio={costoDomicilio}
-                    setCostoDomicilio={setCostoDomicilio}
-                    onCostoDomicilioBlur={onCostoDomicilioBlur}
-                    setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
-                    domicilio={domicilio}
-                    customerPays={customerPays}
+                    delivery={delivery}
                     hasItems={cart.length > 0}
                     isReadOnly={isReadOnly}
                     showDelivery={showDelivery}
@@ -196,9 +168,9 @@ export const CartPanel = ({
                 isOpen={payOpen}
                 subtotal={total}
                 totalFinal={totalFinal}
-                domicilio={domicilio}
-                domicilioActivo={domicilioActivo}
-                customerPays={customerPays}
+                domicilio={delivery.domicilio}
+                domicilioActivo={delivery.domicilioActivo}
+                customerPays={delivery.customerPays}
                 cash={cash}
                 setCash={setCash}
                 change={change}

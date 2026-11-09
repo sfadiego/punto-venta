@@ -1,4 +1,5 @@
-import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
+import { TOrderDelivery } from "../../../useOrderDelivery";
+import { isDeliveryOverTotal } from "@/utils/deliveryCalc";
 import { CartDeliveryFields } from "@/components/orders/CartDeliveryFields";
 import { CartDiscountRow } from "./CartDiscountRow";
 import { CartTotalRow } from "./CartTotalRow";
@@ -11,14 +12,7 @@ interface CartFooterProps {
     orderDiscount: number;
     total: number;
     totalFinal: number;
-    domicilioActivo: boolean;
-    toggleDomicilio: (checked: boolean) => void;
-    costoDomicilio: string;
-    setCostoDomicilio: (v: string) => void;
-    onCostoDomicilioBlur: () => void;
-    setOrderDeliveryPaidBy: (v: DeliveryPaidByEnum) => void;
-    domicilio: number;
-    customerPays: boolean;
+    delivery: TOrderDelivery;
     hasItems: boolean;
     isReadOnly?: boolean;
     showDelivery?: boolean;
@@ -34,14 +28,7 @@ export const CartFooter = ({
     orderDiscount,
     total,
     totalFinal,
-    domicilioActivo,
-    toggleDomicilio,
-    costoDomicilio,
-    setCostoDomicilio,
-    onCostoDomicilioBlur,
-    setOrderDeliveryPaidBy,
-    domicilio,
-    customerPays,
+    delivery,
     hasItems,
     isReadOnly = false,
     showDelivery = true,
@@ -51,7 +38,12 @@ export const CartFooter = ({
     onBeforePrint,
     onUpdateDiscount,
 }: CartFooterProps) => {
-    const domicilioExcedeTotal = domicilioActivo && !customerPays && domicilio > total && total > 0;
+    const domicilioExcedeTotal = isDeliveryOverTotal(
+        total,
+        delivery.domicilio,
+        delivery.domicilioActivo,
+        delivery.customerPays,
+    );
 
     return (
         <div className="px-5 py-4 border-t border-stone-100 bg-stone-50 flex-shrink-0">
@@ -73,14 +65,7 @@ export const CartFooter = ({
                         placement="top-start"
                     >
                         <CartDeliveryFields
-                            domicilioActivo={domicilioActivo}
-                            toggleDomicilio={toggleDomicilio}
-                            costoDomicilio={costoDomicilio}
-                            setCostoDomicilio={setCostoDomicilio}
-                            onCostoDomicilioBlur={onCostoDomicilioBlur}
-                            setOrderDeliveryPaidBy={setOrderDeliveryPaidBy}
-                            domicilio={domicilio}
-                            customerPays={customerPays}
+                            delivery={delivery}
                             isReadOnly={isReadOnly}
                         />
                     </FeatureSpotlight>

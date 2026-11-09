@@ -29,6 +29,30 @@ export const calcCostoDomicilio = (
 };
 
 /**
+ * El negocio absorbe un domicilio mayor al total de los productos: no hay de dónde descontarlo,
+ * así que la venta no se puede cobrar.
+ */
+export const isDeliveryOverTotal = (
+    total: number,
+    domicilio: number,
+    domicilioActivo: boolean,
+    customerPays: boolean,
+): boolean => domicilioActivo && !customerPays && domicilio > total && total > 0;
+
+/**
+ * Lee el domicilio guardado en una orden (inverso de calcCostoDomicilio): monto en positivo,
+ * quién lo paga según el signo, y si está activo (is_delivery o un costo distinto de 0).
+ */
+export const parseOrderDelivery = (order: {
+    costo_domicilio: number | string;
+    is_delivery: boolean;
+}): { isActive: boolean; amount: number; customerPays: boolean } => {
+    const raw = Number(order.costo_domicilio ?? 0);
+    const amount = Math.abs(raw);
+    return { isActive: !!order.is_delivery || amount > 0, amount, customerPays: raw >= 0 };
+};
+
+/**
  * Total final a cobrar de una orden ya guardada. `order.total` en BD nunca incluye el domicilio
  * (ver OrderController::update / OrderSaleService::createDirectSale, que lo calculan solo desde
  * order_products) — cualquier listado que muestre el total de una orden con envío activo debe
@@ -39,10 +63,8 @@ export const calcOrderDisplayTotal = (order: {
     costo_domicilio: number | string;
     is_delivery: boolean;
 }): number => {
-    const rawDomicilio = Number(order.costo_domicilio ?? 0);
-    const domicilio = Math.abs(rawDomicilio);
-    const customerPays = rawDomicilio >= 0;
-    return calcDeliveryTotal(order.total, domicilio, order.is_delivery, customerPays);
+    const { amount, customerPays } = parseOrderDelivery(order);
+    return calcDeliveryTotal(order.total, amount, order.is_delivery, customerPays);
 };
 
 /**

@@ -5,12 +5,13 @@ import { IProduct } from "@/models/IProduct";
 import { isWeightUnit } from "@/utils/weightUnits";
 import { ScaleReadStatusEnum } from "@/enums/ScaleReadStatusEnum";
 import { calcModalCartTotal } from "@/utils/sellByWeightCartCalc";
-import { calcDeliveryTotal } from "@/utils/deliveryCalc";
+import { calcDeliveryTotal, isDeliveryOverTotal } from "@/utils/deliveryCalc";
 import { useQuickSaleCatalog } from "./useQuickSaleCatalog";
 import { useQuickSaleScale } from "./useQuickSaleScale";
 import { useQuickSaleCart } from "./useQuickSaleCart";
 import { useQuickSaleDelivery } from "./useQuickSaleDelivery";
-import { useQuickSaleOrderLifecycle } from "./useQuickSaleOrderLifecycle";
+import { useResumeOrder } from "./useResumeOrder";
+import { usePrintOrder } from "./usePrintOrder";
 import { useQuickSalePayment } from "./useQuickSalePayment";
 
 const DEFAULT_TAP_KG = 0.5;
@@ -28,8 +29,12 @@ export const useQuickSalePage = () => {
 
     const productsTotal = useMemo(() => calcModalCartTotal(cart.cart), [cart.cart]);
     const total = calcDeliveryTotal(productsTotal, delivery.domicilioNum, delivery.domicilioActivo, delivery.customerPays);
-    const domicilioExcedeTotal =
-        delivery.domicilioActivo && !delivery.customerPays && delivery.domicilioNum > productsTotal && productsTotal > 0;
+    const domicilioExcedeTotal = isDeliveryOverTotal(
+        productsTotal,
+        delivery.domicilioNum,
+        delivery.domicilioActivo,
+        delivery.customerPays,
+    );
     const hasAnything = cart.cart.length > 0 || (delivery.domicilioActivo && delivery.domicilioNum > 0);
 
     // Toque directo sobre una card (fuera de los chips/toggle $): productos por unidad se
@@ -55,18 +60,17 @@ export const useQuickSalePage = () => {
         cart.addToCart(product, DEFAULT_TAP_KG);
     };
 
-    const order = useQuickSaleOrderLifecycle({
+    const order = useResumeOrder({
         resumeOrderId,
         sistemaId,
         cart: cart.cart,
         setCart: cart.setCart,
-        domicilioActivo: delivery.domicilioActivo,
-        domicilioNum: delivery.domicilioNum,
-        customerPays: delivery.customerPays,
+        deliveryPayload: delivery.deliveryPayload,
         applyDeliveryFromOrder: delivery.applyDeliveryFromOrder,
         resetDelivery: delivery.resetDelivery,
         navigate,
     });
+    const print = usePrintOrder({ resumeOrderId, persistCart: order.persistCart, navigate });
 
     const payment = useQuickSalePayment({
         resumeOrderId,
@@ -75,9 +79,7 @@ export const useQuickSalePage = () => {
         total,
         hasAnything,
         domicilioExcedeTotal,
-        domicilioActivo: delivery.domicilioActivo,
-        domicilioNum: delivery.domicilioNum,
-        customerPays: delivery.customerPays,
+        deliveryPayload: delivery.deliveryPayload,
         nombrePedido: order.nombrePedido,
         persistCart: order.persistCart,
         resetAfterSuccess: () => {
@@ -97,7 +99,9 @@ export const useQuickSalePage = () => {
         ...delivery,
         total,
         productsTotal,
+        hasAnything,
         ...order,
+        ...print,
         ...payment,
     };
 };
