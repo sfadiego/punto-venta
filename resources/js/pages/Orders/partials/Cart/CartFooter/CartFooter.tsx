@@ -1,4 +1,5 @@
 import { TOrderDelivery } from "../../../useOrderDelivery";
+import { isDeliveryOverTotal } from "@/utils/deliveryCalc";
 import { CartDeliveryFields } from "@/components/orders/CartDeliveryFields";
 import { CartDiscountRow } from "./CartDiscountRow";
 import { CartTotalRow } from "./CartTotalRow";
@@ -37,8 +38,12 @@ export const CartFooter = ({
     onBeforePrint,
     onUpdateDiscount,
 }: CartFooterProps) => {
-    const domicilioExcedeTotal =
-        delivery.domicilioActivo && !delivery.customerPays && delivery.domicilio > total && total > 0;
+    const domicilioExcedeTotal = isDeliveryOverTotal(
+        total,
+        delivery.domicilio,
+        delivery.domicilioActivo,
+        delivery.customerPays,
+    );
 
     return (
         <div className="px-5 py-4 border-t border-stone-100 bg-stone-50 flex-shrink-0">

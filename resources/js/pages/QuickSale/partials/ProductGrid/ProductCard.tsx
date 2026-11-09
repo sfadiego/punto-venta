@@ -21,7 +21,6 @@ const QUICK_PRICE_OPTIONS = QUICK_PRICE_AMOUNTS.map((amount) => ({
 
 interface ProductCardProps {
     product: IProduct;
-    quantity: number;
     quantityOf: (product: IProduct, variant?: IProductVariant | null) => number;
     onAdd: (
         product: IProduct,
@@ -34,12 +33,12 @@ interface ProductCardProps {
 
 export const ProductCard = ({
     product,
-    quantity,
     quantityOf,
     onAdd,
     onDecrement,
     onTap,
 }: ProductCardProps) => {
+    const quantity = quantityOf(product);
     const {
         mode,
         setMode,
@@ -126,48 +125,25 @@ export const ProductCard = ({
                                 onClick={(e) => e.stopPropagation()}
                                 className="flex gap-0.5 bg-stone-100 border border-stone-200 rounded-full p-0.5 shrink-0"
                             >
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setMode(WeightInputModeEnum.Weight)
-                                    }
-                                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
-                                        isWeightMode
-                                            ? "text-white"
-                                            : "text-stone-500"
-                                    }`}
-                                    style={
-                                        isWeightMode
-                                            ? {
-                                                  backgroundColor:
-                                                      "var(--color-primary)",
-                                              }
-                                            : undefined
-                                    }
-                                >
-                                    {UNIDAD_LABELS[weightUnit]}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setMode(WeightInputModeEnum.Price)
-                                    }
-                                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
-                                        !isWeightMode
-                                            ? "text-white"
-                                            : "text-stone-500"
-                                    }`}
-                                    style={
-                                        !isWeightMode
-                                            ? {
-                                                  backgroundColor:
-                                                      "var(--color-primary)",
-                                              }
-                                            : undefined
-                                    }
-                                >
-                                    $
-                                </button>
+                                {[
+                                    { value: WeightInputModeEnum.Weight, label: UNIDAD_LABELS[weightUnit] },
+                                    { value: WeightInputModeEnum.Price, label: "$" },
+                                ].map((option) => {
+                                    const isActive = mode === option.value;
+                                    return (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            onClick={() => setMode(option.value)}
+                                            className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                                                isActive ? "text-white" : "text-stone-500"
+                                            }`}
+                                            style={isActive ? { backgroundColor: "var(--color-primary)" } : undefined}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

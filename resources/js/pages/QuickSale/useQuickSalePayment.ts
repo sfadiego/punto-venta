@@ -7,7 +7,6 @@ import { useStoreOrderSale, useUpdateOrderData } from "@/services/useOrderServic
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { resolveSaleName } from "@/utils/resolveSaleName";
-import { calcCostoDomicilio } from "@/utils/deliveryCalc";
 import { canPayOrder } from "@/utils/paymentMethods";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -28,9 +27,7 @@ interface UseQuickSalePaymentParams {
     total: number;
     hasAnything: boolean;
     domicilioExcedeTotal: boolean;
-    domicilioActivo: boolean;
-    domicilioNum: number;
-    customerPays: boolean;
+    deliveryPayload: { is_delivery: boolean; costo_domicilio: number };
     nombrePedido: string;
     persistCart: () => Promise<number>;
     resetAfterSuccess: () => void;
@@ -47,9 +44,7 @@ export const useQuickSalePayment = ({
     total,
     hasAnything,
     domicilioExcedeTotal,
-    domicilioActivo,
-    domicilioNum,
-    customerPays,
+    deliveryPayload,
     nombrePedido,
     persistCart,
     resetAfterSuccess,
@@ -101,7 +96,7 @@ export const useQuickSalePayment = ({
                 const res = await storeOrderSale({
                     sistema_id: sistemaId,
                     nombre_pedido: resolveSaleName(nombrePedido),
-                    costo_domicilio: calcCostoDomicilio(domicilioNum, domicilioActivo, customerPays),
+                    costo_domicilio: deliveryPayload.costo_domicilio,
                     items: buildOrderItems(cart),
                 });
                 orderId = (res as { data: { data: IOrder } }).data.data.id;
@@ -114,14 +109,14 @@ export const useQuickSalePayment = ({
             await updateOrderData({
                 orderId,
                 data: {
-                    is_delivery: domicilioActivo,
+                    is_delivery: deliveryPayload.is_delivery,
                     // Al retomar, storeOrderSale no corrió — hay que cerrar la orden y fijar
                     // nombre/costo de envío aquí, ya que pudieron editarse en esta sesión.
                     ...(resumeOrderId
                         ? {
                               nombre_pedido: resolveSaleName(nombrePedido),
                               estatus_pedido_id: OrderStatusEnum.Closed,
-                              costo_domicilio: calcCostoDomicilio(domicilioNum, domicilioActivo, customerPays),
+                              costo_domicilio: deliveryPayload.costo_domicilio,
                           }
                         : {}),
                     ...paymentData,

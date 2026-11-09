@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { reportActionError } from "@/utils/reportActionError";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
-import { calcCostoDomicilio } from "@/utils/deliveryCalc";
+import { calcCostoDomicilio, parseOrderDelivery } from "@/utils/deliveryCalc";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 import { IOrder } from "@/models/IOrder";
 import { useInvalidateOrder } from "./useInvalidateOrder";
@@ -28,11 +28,10 @@ export const useOrderDelivery = (
     useEffect(() => {
         if (!order || initializedRef.current) return;
         initializedRef.current = true;
-        const raw = Number(order.costo_domicilio ?? 0);
-        const amount = Math.abs(raw);
-        setDomicilioActivo(!!order.is_delivery || amount > 0);
+        const { isActive, amount, customerPays: paidByCustomer } = parseOrderDelivery(order);
+        setDomicilioActivo(isActive);
         setCostoDomicilio(amount > 0 ? String(amount) : "");
-        setOrderDeliveryPaidByState(raw >= 0 ? DeliveryPaidByEnum.Customer : DeliveryPaidByEnum.Business);
+        setOrderDeliveryPaidByState(paidByCustomer ? DeliveryPaidByEnum.Customer : DeliveryPaidByEnum.Business);
     }, [order]);
 
     const domicilio = parseFloat(costoDomicilio) || 0;

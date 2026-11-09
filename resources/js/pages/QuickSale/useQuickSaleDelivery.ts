@@ -4,7 +4,7 @@ import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useUpdateOrderData } from "@/services/useOrderService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
-import { calcCostoDomicilio } from "@/utils/deliveryCalc";
+import { calcCostoDomicilio, parseOrderDelivery } from "@/utils/deliveryCalc";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 import { IOrder } from "@/models/IOrder";
 import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
@@ -69,6 +69,11 @@ export const useQuickSaleDelivery = (resumeOrderId: number | null) => {
 
     const customerPays = deliveryPaidBy === DeliveryPaidByEnum.Customer;
     const domicilioNum = parseFloat(costoDomicilio) || 0;
+    // Lo que el backend necesita del domicilio al guardar/cobrar la orden.
+    const deliveryPayload = {
+        is_delivery: domicilioActivo,
+        costo_domicilio: calcCostoDomicilio(domicilioNum, domicilioActivo, customerPays),
+    };
 
     const resetDelivery = () => {
         setDomicilioActivo(false);
@@ -79,11 +84,10 @@ export const useQuickSaleDelivery = (resumeOrderId: number | null) => {
     // Infiere domicilioActivo/customerPays desde costo_domicilio. Se reutiliza tanto al
     // cargar la orden retomada como al "Descartar" (revierte a lo último realmente guardado).
     const applyDeliveryFromOrder = (order: IOrder) => {
-        const rawDomicilio = Number(order.costo_domicilio ?? 0);
-        const amount = Math.abs(rawDomicilio);
-        setDomicilioActivo(!!order.is_delivery || amount > 0);
+        const { isActive, amount, customerPays: paidByCustomer } = parseOrderDelivery(order);
+        setDomicilioActivo(isActive);
         setCostoDomicilio(amount > 0 ? String(amount) : "");
-        setDeliveryPaidBy(rawDomicilio >= 0 ? DeliveryPaidByEnum.Customer : DeliveryPaidByEnum.Business);
+        setDeliveryPaidBy(paidByCustomer ? DeliveryPaidByEnum.Customer : DeliveryPaidByEnum.Business);
     };
 
     return {
@@ -96,6 +100,7 @@ export const useQuickSaleDelivery = (resumeOrderId: number | null) => {
         setDeliveryPaidBy: handleDeliveryPaidByChange,
         domicilioNum,
         customerPays,
+        deliveryPayload,
         resetDelivery,
         applyDeliveryFromOrder,
     };

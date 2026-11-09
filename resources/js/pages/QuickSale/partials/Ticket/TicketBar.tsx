@@ -20,8 +20,7 @@ export const TicketBar = () => {
         nombrePedido,
         setNombrePedido,
         handleNombrePedidoBlur,
-        domicilioActivo,
-        domicilioNum,
+        hasAnything,
         ensureOrderForPrint,
         isPreparingPrint,
         scaleSupported,
@@ -32,7 +31,6 @@ export const TicketBar = () => {
         handlePairScale,
     } = useQuickSaleContext();
     const { print, isPending: isPrinting, isVisible: printVisible } = usePrintTicket();
-    const hasAnything = cart.length > 0 || (domicilioActivo && domicilioNum > 0);
 
     const handlePrint = async () => {
         if (!hasAnything) return;
