@@ -7,12 +7,11 @@ import { useCartItemAddons } from "./useCartItemAddons";
 interface CartItemAddonsProps {
     item: ICartItem;
     isReadOnly: boolean;
-    isPending: boolean;
     onEdit: (orderProductId: number, addons: IAddonSelection[]) => Promise<void>;
 }
 
 /** Toppings de una línea del carrito y el botón para cambiarlos con el mismo selector de la venta. */
-export const CartItemAddons = ({ item, isReadOnly, isPending, onEdit }: CartItemAddonsProps) => {
+export const CartItemAddons = ({ item, isReadOnly, onEdit }: CartItemAddonsProps) => {
     const addons = useCartItemAddons(item, onEdit);
     const showButton = addons.canEdit && !isReadOnly;
 
@@ -40,7 +39,7 @@ export const CartItemAddons = ({ item, isReadOnly, isPending, onEdit }: CartItem
                 <button
                     type="button"
                     onClick={addons.openModal}
-                    disabled={isPending || addons.isLocked}
+                    disabled={addons.isLocked}
                     title={addons.isLocked ? "Ya se preparó; agrega una línea nueva para otros toppings" : undefined}
                     className="mt-0.5 text-xs font-semibold text-amber-600 hover:text-amber-700 disabled:text-stone-300 disabled:cursor-not-allowed transition-colors"
                 >

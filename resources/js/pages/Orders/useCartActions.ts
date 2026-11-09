@@ -1,8 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { isItemAlreadyRemovedError, getUserFacingErrorMessage } from "@/utils/axiosError";
+import { isItemAlreadyRemovedError } from "@/utils/axiosError";
+import { reportActionError } from "@/utils/reportActionError";
 import { useOptimisticPendingSet } from "@/hooks/useOptimisticPendingSet";
 import { useCartLineSync } from "@/hooks/useCartLineSync";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
@@ -65,8 +64,7 @@ export const useCartActions = (
         onError: (error) => {
             // The line was already removed on the server: the refetch below reconciles silently.
             if (!isItemAlreadyRemovedError(error)) {
-                logUnexpectedError(error, "useCartActions.syncLine");
-                toast.error(getUserFacingErrorMessage(error, "Error al actualizar el pedido"));
+                reportActionError(error, "useCartActions.syncLine", "Error al actualizar el pedido");
             }
             void invalidateOrder();
         },
@@ -109,8 +107,7 @@ export const useCartActions = (
                 ),
             );
         } catch (error) {
-            logUnexpectedError(error, "useCartActions.addExtra");
-            toast.error(getUserFacingErrorMessage(error, "Error al agregar extra"));
+            reportActionError(error, "useCartActions.addExtra", "Error al agregar extra");
         }
     };
 
@@ -136,8 +133,7 @@ export const useCartActions = (
                 { onSuccess: invalidateOrder },
             );
         } catch (error) {
-            logUnexpectedError(error, "useCartActions.saveObservacion");
-            toast.error(getUserFacingErrorMessage(error, "Error al guardar la observación"));
+            reportActionError(error, "useCartActions.saveObservacion", "Error al guardar la observación");
         }
     };
 
@@ -155,8 +151,7 @@ export const useCartActions = (
                 );
             });
         } catch (error) {
-            logUnexpectedError(error, "useCartActions.updateLineAddons");
-            toast.error(getUserFacingErrorMessage(error, "Error al actualizar los toppings"));
+            reportActionError(error, "useCartActions.updateLineAddons", "Error al actualizar los toppings");
         }
     };
 
@@ -186,8 +181,7 @@ export const useCartActions = (
             await flushAll();
             await clearOrderCart(undefined, { onSuccess: invalidateOrder });
         } catch (error) {
-            logUnexpectedError(error, "useCartActions.clearCart");
-            toast.error(getUserFacingErrorMessage(error, "Error al limpiar pedido"));
+            reportActionError(error, "useCartActions.clearCart", "Error al limpiar pedido");
         }
     };
 

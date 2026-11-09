@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { toast } from "react-toastify";
-import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { reportActionError } from "@/utils/reportActionError";
 import { useUpdateOrder } from "@/services/useOrderService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { calcCostoDomicilio } from "@/utils/deliveryCalc";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
 import { IOrder } from "@/models/IOrder";
 import { useInvalidateOrder } from "./useInvalidateOrder";
+
+export type TOrderDelivery = ReturnType<typeof useOrderDelivery>;
 
 export const useOrderDelivery = (
     orderId: number,
@@ -49,8 +49,7 @@ export const useOrderDelivery = (
                 { onSuccess: invalidateOrder },
             );
         } catch (error) {
-            logUnexpectedError(error, "useOrderDelivery.persist");
-            toast.error(getUserFacingErrorMessage(error, "Error al guardar el domicilio"));
+            reportActionError(error, "useOrderDelivery.persist", "Error al guardar el domicilio");
         }
     };
 
@@ -83,7 +82,6 @@ export const useOrderDelivery = (
         costoDomicilio,
         setCostoDomicilio,
         handleCostoDomicilioBlur,
-        orderDeliveryPaidBy,
         setOrderDeliveryPaidBy,
         domicilio,
         customerPays,

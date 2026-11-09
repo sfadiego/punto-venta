@@ -1,27 +1,23 @@
 import { Bike } from "lucide-react";
 import { DeliveryPaidByEnum } from "@/enums/DeliveryPaidByEnum";
+import { TOrderDelivery } from "@/pages/Orders/useOrderDelivery";
 
 interface CartDeliveryFieldsProps {
-    domicilioActivo: boolean;
-    toggleDomicilio: (checked: boolean) => void;
-    costoDomicilio: string;
-    setCostoDomicilio: (v: string) => void;
-    onCostoDomicilioBlur?: () => void;
-    setOrderDeliveryPaidBy: (v: DeliveryPaidByEnum) => void;
-    domicilio: number;
-    customerPays: boolean;
+    delivery: TOrderDelivery;
     isReadOnly?: boolean;
 }
 
 export const CartDeliveryFields = ({
-    domicilioActivo,
-    toggleDomicilio,
-    costoDomicilio,
-    setCostoDomicilio,
-    onCostoDomicilioBlur,
-    setOrderDeliveryPaidBy,
-    domicilio,
-    customerPays,
+    delivery: {
+        domicilioActivo,
+        toggleDomicilio,
+        costoDomicilio,
+        setCostoDomicilio,
+        handleCostoDomicilioBlur,
+        setOrderDeliveryPaidBy,
+        domicilio,
+        customerPays,
+    },
     isReadOnly = false,
 }: CartDeliveryFieldsProps) => (
     <div className="space-y-2">
@@ -52,7 +48,7 @@ export const CartDeliveryFields = ({
                                 step={0.5}
                                 value={costoDomicilio}
                                 onChange={(e) => setCostoDomicilio(e.target.value)}
-                                onBlur={onCostoDomicilioBlur}
+                                onBlur={handleCostoDomicilioBlur}
                                 placeholder="0.00"
                                 className="flex-1 px-2 py-1 border border-amber-300 rounded-lg text-xs text-right focus:outline-none focus:ring-2 focus:ring-amber-400"
                             />

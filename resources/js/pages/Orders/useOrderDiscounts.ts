@@ -1,6 +1,4 @@
-import { toast } from "react-toastify";
-import { logUnexpectedError } from "@/plugins/logger.plugin";
-import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { reportActionError } from "@/utils/reportActionError";
 import { useUpdateOrder, useUpdateProductInOrder } from "@/services/useOrderService";
 import { useInvalidateOrder } from "./useInvalidateOrder";
 
@@ -20,8 +18,7 @@ export const useOrderDiscounts = (
         try {
             await updateOrder({ descuento }, { onSuccess: invalidateOrder });
         } catch (error) {
-            logUnexpectedError(error, "useOrderDiscounts.updateOrderDiscount");
-            toast.error(getUserFacingErrorMessage(error, "Error al aplicar descuento"));
+            reportActionError(error, "useOrderDiscounts.updateOrderDiscount", "Error al aplicar descuento");
         }
     };
 
@@ -38,8 +35,7 @@ export const useOrderDiscounts = (
                 { onSuccess: invalidateOrder },
             );
         } catch (error) {
-            logUnexpectedError(error, "useOrderDiscounts.updateProductDiscount");
-            toast.error(getUserFacingErrorMessage(error, "Error al aplicar descuento"));
+            reportActionError(error, "useOrderDiscounts.updateProductDiscount", "Error al aplicar descuento");
         }
     };
 

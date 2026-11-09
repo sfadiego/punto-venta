@@ -24,13 +24,12 @@ export const useTakeOrder = () => {
 
     return {
         ...data,
-        loadingCart: data.loadingOrder,
         ...cartActions,
         cartCount,
         subtotal,
         total,
         ...discounts,
-        ...delivery,
+        delivery,
         totalFinal,
     };
 };
