@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useInfiniteScrollSentinel } from "@/hooks/useInfiniteScrollSentinel";
 import { Search, Package, Loader, X } from "lucide-react";
 import { ICartItem } from "@/models/ICartItem";
 import { TAddToCart } from "@/models/ICartDraft";
@@ -29,22 +29,7 @@ export const ProductGrid = ({ cart, isReadOnly = false, isRetail = false, onAdd,
         fetchNextPage,
     } = useProductGrid();
 
-    const sentinelRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const el = sentinelRef.current;
-        if (!el) return;
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-                    fetchNextPage();
-                }
-            },
-            { threshold: 0.1 },
-        );
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+    const sentinelRef = useInfiniteScrollSentinel({ hasNextPage, isFetchingNextPage, fetchNextPage });
 
     return (
         <div className="flex flex-col h-full overflow-hidden">

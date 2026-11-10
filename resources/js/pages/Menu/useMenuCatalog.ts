@@ -1,6 +1,7 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useGetMenuBusiness, useInfiniteMenuProducts } from "@/services/useMenuService";
+import { useInfiniteScrollSentinel } from "@/hooks/useInfiniteScrollSentinel";
 
 export const useMenuCatalog = () => {
     const { slug = "" } = useParams<{ slug: string }>();
@@ -26,25 +27,7 @@ export const useMenuCatalog = () => {
         [productsPages]
     );
 
-    // Sentinel ref for IntersectionObserver
-    const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-    const handleIntersect = useCallback(
-        (entries: IntersectionObserverEntry[]) => {
-            if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-                fetchNextPage();
-            }
-        },
-        [hasNextPage, isFetchingNextPage, fetchNextPage]
-    );
-
-    useEffect(() => {
-        const el = sentinelRef.current;
-        if (!el) return;
-        const observer = new IntersectionObserver(handleIntersect, { threshold: 0.1 });
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, [handleIntersect]);
+    const sentinelRef = useInfiniteScrollSentinel({ hasNextPage, isFetchingNextPage, fetchNextPage });
 
     const filteredCategories = useMemo(() => {
         const byCategory = activeCategoryId
