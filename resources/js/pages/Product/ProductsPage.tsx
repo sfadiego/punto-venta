@@ -20,7 +20,7 @@ import { useStockAdjustModal } from "./partials/StockAdjustModal/useStockAdjustM
 import { StockMovementsModal } from "./partials/StockMovementsModal/StockMovementsModal";
 import { useStockMovementsModal } from "./partials/StockMovementsModal/useStockMovementsModal";
 import { ProductTableActions } from "./partials/ProductTableActions";
-import { ProductSearch } from "./partials/ProductSearch";
+import { SearchInput } from "@/components/ui/form/SearchInput";
 import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { AddonsButton } from "./partials/Addons/AddonsButton";
 import { ExportProductsButton } from "./partials/ExportProducts/ExportProductsButton";
@@ -311,7 +311,7 @@ export default function ProductsPage() {
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-stone-100 space-y-4">
                     {/* Buscador */}
-                    <ProductSearch value={search} onChange={handleSearchChange} />
+                    <SearchInput value={search} onChange={handleSearchChange} placeholder="Buscar producto..." />
 
                     {/* Filtro de categorías */}
                     {categories.length > 0 && (

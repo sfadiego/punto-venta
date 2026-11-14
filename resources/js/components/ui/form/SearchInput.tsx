@@ -5,12 +5,14 @@ interface SearchInputProps {
     value: string;
     onChange: (value: string) => void;
     placeholder: string;
+    /** Clases del contenedor (ancho, flex) para ubicarlo en la barra de filtros. */
+    className?: string;
 }
 
 // Buscador con icono de lupa y botón para borrar el texto. El botón nativo de `type="search"` se
 // oculta para no mostrar dos "X" en los navegadores que lo dibujan.
-export const SearchInput = ({ value, onChange, placeholder }: SearchInputProps) => (
-    <div className="relative">
+export const SearchInput = ({ value, onChange, placeholder, className = "" }: SearchInputProps) => (
+    <div className={`relative ${className}`}>
         <Search
             size={15}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
