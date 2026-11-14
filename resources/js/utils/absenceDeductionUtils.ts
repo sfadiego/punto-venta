@@ -34,6 +34,19 @@ export const getCurrentPeriodRange = (period: SalaryPeriod, referenceDate: Date 
 
 export const isDateInRange = (date: string, range: DateRange): boolean => date >= range.start && date <= range.end;
 
+/** Pago del periodo actual (el que cubre getCurrentPeriodRange) una vez restado el descuento de sus
+ *  faltas. Periodos por día: tarifa × días de trabajo de la semana. Quincenal/mensual: el monto fijo.
+ *  Nunca baja de cero. `salary` puede llegar como string desde la API. */
+export const calcPeriodNetPay = (
+    salary: number | string,
+    period: SalaryPeriod,
+    workDaysCount: number,
+    deduction: number,
+): number => {
+    const gross = isPerDaySalaryPeriod(period) ? Number(salary) * workDaysCount : Number(salary);
+    return Math.max(0, gross - deduction);
+};
+
 /** Sugerencia de monto a descontar por una falta sin aviso, editable por el jefe antes de
  *  guardar. Periodos por día usan la tarifa diaria tal cual; quincenal/mensual derivan un
  *  equivalente diario con la convención estándar de nómina en México (salario ÷ 15 o ÷ 30).

@@ -82,7 +82,6 @@ class EmployeeAbsenceTest extends TestCase
         $response = $this->postJson("/api/employee/{$employee->id}/absence", [
             'date' => '2026-08-05',
             'notified' => true,
-            'deduction_amount' => 999,
         ], $this->authHeaders());
 
         $response->assertStatus(200)
@@ -94,6 +93,42 @@ class EmployeeAbsenceTest extends TestCase
             'notified' => true,
             'deduction_amount' => null,
         ]);
+    }
+
+    public function test_registra_falta_justificada_con_descuento(): void
+    {
+        $employee = $this->crearEmpleado(['salary' => 200, 'salary_period' => 'weekly']);
+
+        $response = $this->postJson("/api/employee/{$employee->id}/absence", [
+            'date' => '2026-08-05',
+            'notified' => true,
+            'deduction_amount' => 200,
+            'notes' => 'Cita médica',
+        ], $this->authHeaders());
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.notified', true)
+            ->assertJsonPath('data.deduction_amount', '200.00');
+
+        $this->assertDatabaseHas('employee_absences', [
+            'employee_id' => $employee->id,
+            'notified' => true,
+            'deduction_amount' => 200,
+        ]);
+    }
+
+    public function test_no_registra_falta_con_descuento_negativo(): void
+    {
+        $employee = $this->crearEmpleado();
+
+        $this->postJson("/api/employee/{$employee->id}/absence", [
+            'date' => '2026-08-05',
+            'notified' => true,
+            'deduction_amount' => -50,
+        ], $this->authHeaders())
+            ->assertStatus(400);
+
+        $this->assertDatabaseMissing('employee_absences', ['employee_id' => $employee->id]);
     }
 
     public function test_no_registra_falta_sin_fecha(): void

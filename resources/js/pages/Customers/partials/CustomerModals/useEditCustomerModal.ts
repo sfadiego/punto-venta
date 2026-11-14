@@ -6,6 +6,7 @@ import { useUpdateCustomer } from "@/services/useCustomerService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { CustomerForm } from "./useAddCustomerModal";
+import { trimOrNull } from "@/utils/textUtils";
 
 const schema = Yup.object({
     name: Yup.string().trim().required("El nombre es requerido").max(255, "Máximo 255 caracteres"),
@@ -37,10 +38,10 @@ export const useEditCustomerModal = (
             try {
                 await updateCustomer({
                     name: values.name.trim(),
-                    phone: values.phone.trim() || null,
-                    notes: values.notes.trim() || null,
-                    address: values.address.trim() || null,
-                    delivery_reference: values.delivery_reference.trim() || null,
+                    phone: trimOrNull(values.phone),
+                    notes: trimOrNull(values.notes),
+                    address: trimOrNull(values.address),
+                    delivery_reference: trimOrNull(values.delivery_reference),
                 });
                 toast.success("Cliente actualizado");
                 onSuccess();

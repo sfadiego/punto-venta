@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { IEmployee } from "@/models/IEmployee";
 import { useIndexEmployeeAbsences, useDeleteEmployeeAbsence } from "@/services/useEmployeeAbsenceService";
-import { getCurrentPeriodRange, isDateInRange } from "@/utils/absenceDeductionUtils";
+import { calcPeriodNetPay, getCurrentPeriodRange, isDateInRange } from "@/utils/absenceDeductionUtils";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useAbsenceModal } from "./useAbsenceModal";
@@ -17,9 +17,16 @@ export const useAbsencesSection = (employee: IEmployee) => {
 
     const currentPeriodDeduction = useMemo(() => {
         return absences
-            .filter((a) => !a.notified && isDateInRange(a.date, periodRange))
+            .filter((a) => isDateInRange(a.date, periodRange))
             .reduce((sum, a) => sum + Number(a.deduction_amount ?? 0), 0);
     }, [absences, periodRange]);
+
+    const periodNetPay = calcPeriodNetPay(
+        employee.salary,
+        employee.salary_period,
+        employee.work_days.length,
+        currentPeriodDeduction,
+    );
 
     const handleDelete = async (absenceId: number) => {
         const result = await Swal.fire({
@@ -44,5 +51,5 @@ export const useAbsencesSection = (employee: IEmployee) => {
         }
     };
 
-    return { absences, isLoading, currentPeriodDeduction, handleDelete, absenceModal };
+    return { absences, isLoading, currentPeriodDeduction, periodNetPay, handleDelete, absenceModal };
 };

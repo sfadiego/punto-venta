@@ -7,6 +7,8 @@ export type PayrollFilterPeriod = "week" | "month";
 export interface IEmployeePayrollSummary {
     period: PayrollFilterPeriod;
     total: number;
+    /** Lo ya restado de `total` por las faltas con descuento del periodo. */
+    deductions: number;
     employees_count: number;
 }
 

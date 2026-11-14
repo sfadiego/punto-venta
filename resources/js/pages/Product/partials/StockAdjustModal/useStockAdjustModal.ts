@@ -11,6 +11,7 @@ import { IProduct } from "@/models/IProduct";
 import { MAX_STOCK_ADJUSTMENT } from "@/utils/stockLimits";
 import { isWeightUnit } from "@/utils/weightUnits";
 import { integerForUnitTest } from "@/utils/stockAdjustmentValidation";
+import { trimOrUndefined } from "@/utils/textUtils";
 
 export type StockAdjustForm = {
     delta: string;
@@ -87,7 +88,7 @@ export const useStockAdjustModal = (mode: StockAdjustMode) => {
                     productId: product.id,
                     data: {
                         delta: Number(values.delta),
-                        note: values.note.trim() || undefined,
+                        note: trimOrUndefined(values.note),
                         ...(selectedVariant ? { variant_id: selectedVariant.id } : {}),
                     },
                 });

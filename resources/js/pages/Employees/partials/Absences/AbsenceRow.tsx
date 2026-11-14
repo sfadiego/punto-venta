@@ -24,7 +24,7 @@ export const AbsenceRow = ({ absence, onDelete }: AbsenceRowProps) => (
             </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-            {!absence.notified && absence.deduction_amount !== null && (
+            {absence.deduction_amount !== null && (
                 <span className="text-sm font-semibold text-red-600">-{formatCurrency(Number(absence.deduction_amount))}</span>
             )}
             <button

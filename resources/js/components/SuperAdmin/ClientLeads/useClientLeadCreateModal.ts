@@ -4,6 +4,7 @@ import { BusinessNicheEnum } from "@/enums/BusinessNicheEnum";
 import { ClientLeadStatusEnum } from "@/enums/ClientLeadStatusEnum";
 import { IClientLeadCreatePayload } from "@/models/IClientLead";
 import { isValidPhone, phoneValidationMessage } from "@/utils/phoneUtils";
+import { trimOrNull } from "@/utils/textUtils";
 
 export type ClientLeadCreateForm = {
     business_name: string;
@@ -42,7 +43,7 @@ export const useClientLeadCreateModal = (
         onSubmit: async (values, { resetForm }) => {
             await onSave({
                 business_name: values.business_name,
-                email: values.email.trim() || null,
+                email: trimOrNull(values.email),
                 phone: values.phone,
                 business_niche: values.business_niche as BusinessNicheEnum,
                 status: values.status,

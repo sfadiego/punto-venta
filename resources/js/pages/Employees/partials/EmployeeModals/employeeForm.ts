@@ -1,7 +1,9 @@
 import * as Yup from "yup";
-import { SalaryPeriod, WorkDay } from "@/models/IEmployee";
+import { IEmployee, SalaryPeriod, WorkDay } from "@/models/IEmployee";
+import { formatMoney } from "@/utils/formatCurrency";
 import { isValidPhone, phoneValidationMessage } from "@/utils/phoneUtils";
 import { isPerDaySalaryPeriod } from "@/utils/salaryPeriodUtils";
+import { trimOrNull } from "@/utils/textUtils";
 
 export type EmployeeForm = {
     name: string;
@@ -11,13 +13,34 @@ export type EmployeeForm = {
     work_days: WorkDay[];
 };
 
-export const EMPLOYEE_FORM_INITIAL_VALUES: EmployeeForm = {
+const EMPLOYEE_FORM_INITIAL_VALUES: EmployeeForm = {
     name: "",
     phone: "",
     salary: "",
     salary_period: "monthly",
     work_days: [],
 };
+
+// Valores del formulario: los del empleado a editar, o los vacíos si es uno nuevo. La API serializa el
+// salario como "200.00"; se recorta el ".00" para mostrarlo en el campo.
+export const getEmployeeFormValues = (employee?: IEmployee | null): EmployeeForm =>
+    employee
+        ? {
+              name: employee.name,
+              phone: employee.phone ?? "",
+              salary: formatMoney(Number(employee.salary)),
+              salary_period: employee.salary_period,
+              work_days: employee.work_days,
+          }
+        : EMPLOYEE_FORM_INITIAL_VALUES;
+
+export const employeeFormToPayload = (values: EmployeeForm) => ({
+    name: values.name.trim(),
+    phone: trimOrNull(values.phone),
+    salary: Number(values.salary),
+    salary_period: values.salary_period,
+    work_days: values.work_days,
+});
 
 export const employeeSchema = Yup.object({
     name: Yup.string().trim().required("El nombre es requerido").max(255, "Máximo 255 caracteres"),

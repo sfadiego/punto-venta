@@ -5,6 +5,7 @@ import { useStoreBranch, useUpdateBranch } from "@/services/useBranchService";
 import { IBranch } from "@/models/IBranch";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getFieldErrors, getUserFacingErrorMessage } from "@/utils/axiosError";
+import { trimOrNull } from "@/utils/textUtils";
 
 export type BranchForm = {
     name: string;
@@ -34,8 +35,8 @@ export const useBranchFormModal = (branch: IBranch | null, onSuccess: () => void
         onSubmit: async (values, helpers) => {
             const payload = {
                 name: values.name.trim(),
-                address: values.address.trim() || null,
-                phone: values.phone.trim() || null,
+                address: trimOrNull(values.address),
+                phone: trimOrNull(values.phone),
             };
 
             try {

@@ -22,7 +22,7 @@ class EmployeeAbsenceController extends Controller
         $absence = $employee->absences()->create([
             EmployeeAbsenceModel::DATE => $params->date,
             EmployeeAbsenceModel::NOTIFIED => $params->notified,
-            EmployeeAbsenceModel::DEDUCTION_AMOUNT => $params->boolean('notified') ? null : $params->deduction_amount,
+            EmployeeAbsenceModel::DEDUCTION_AMOUNT => $params->deduction_amount,
             EmployeeAbsenceModel::NOTES => $params->notes,
         ]);
 

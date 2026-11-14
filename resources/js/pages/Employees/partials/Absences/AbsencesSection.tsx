@@ -10,7 +10,8 @@ interface AbsencesSectionProps {
 }
 
 export const AbsencesSection = ({ employee }: AbsencesSectionProps) => {
-    const { absences, isLoading, currentPeriodDeduction, handleDelete, absenceModal } = useAbsencesSection(employee);
+    const { absences, isLoading, currentPeriodDeduction, periodNetPay, handleDelete, absenceModal } =
+        useAbsencesSection(employee);
 
     return (
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-4">
@@ -35,6 +36,10 @@ export const AbsencesSection = ({ employee }: AbsencesSectionProps) => {
                 <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3">
                     <p className="text-xs text-red-500 font-medium uppercase tracking-wide">Descuento de este periodo</p>
                     <p className="text-2xl font-bold text-red-600 mt-0.5">-{formatCurrency(currentPeriodDeduction)}</p>
+                    <p className="text-sm text-stone-600 mt-1">
+                        A pagar este periodo:{" "}
+                        <span className="font-semibold text-stone-900">{formatCurrency(periodNetPay)}</span>
+                    </p>
                 </div>
             )}
 
