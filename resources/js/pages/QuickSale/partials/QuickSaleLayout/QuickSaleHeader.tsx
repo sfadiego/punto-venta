@@ -1,4 +1,4 @@
-import { ChevronLeft, Menu, Search } from "lucide-react";
+import { ChevronLeft, Menu, Search, X } from "lucide-react";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { useLayout } from "@/contexts/LayoutContext";
 import { useAxios } from "@/hooks/useAxios";
@@ -52,6 +52,16 @@ export const QuickSaleHeader = () => {
                         inputStyle="none"
                         className="!w-full !p-0 !border-0 !rounded-none !bg-transparent !text-sm !text-stone-900 focus:!ring-0"
                     />
+                    {search && (
+                        <button
+                            type="button"
+                            onClick={() => setSearch("")}
+                            aria-label="Borrar búsqueda"
+                            className="shrink-0 text-stone-400 hover:text-stone-600 transition-colors"
+                        >
+                            <X size={16} />
+                        </button>
+                    )}
                 </label>
                 {sistemaId && can("registerExpense") && <ExpensesButton />}
             </div>
