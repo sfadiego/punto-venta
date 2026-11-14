@@ -4,8 +4,7 @@ import { PhoneCall } from "lucide-react";
 import { IClientLead } from "@/models/IClientLead";
 import { BUSINESS_NICHE_LABELS } from "@/enums/BusinessNicheEnum";
 import { CLIENT_LEAD_STATUS_LABELS, ClientLeadStatusEnum } from "@/enums/ClientLeadStatusEnum";
-
-const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+import { IServerTableProps } from "@/hooks/useServerTable";
 
 const STATUS_COLORS: Record<ClientLeadStatusEnum, string> = {
     [ClientLeadStatusEnum.FollowUp]:  "bg-amber-100 text-amber-700",
@@ -14,28 +13,11 @@ const STATUS_COLORS: Record<ClientLeadStatusEnum, string> = {
 };
 
 interface ClientLeadsTableProps {
-    records: IClientLead[];
-    totalRecords: number;
-    page: number;
-    perPage: number;
-    limit: number;
-    onPageChange: (page: number) => void;
-    onLimitChange: (limit: number) => void;
+    tableProps: IServerTableProps<IClientLead>;
     onSelect: (clientLead: IClientLead) => void;
-    isFetching: boolean;
 }
 
-export const ClientLeadsTable = ({
-    records,
-    totalRecords,
-    page,
-    perPage,
-    limit: _limit,
-    onPageChange,
-    onLimitChange,
-    onSelect,
-    isFetching,
-}: ClientLeadsTableProps) => {
+export const ClientLeadsTable = ({ tableProps, onSelect }: ClientLeadsTableProps) => {
     const columns: DataTableColumn<IClientLead>[] = [
         {
             accessor: "id",
@@ -111,18 +93,11 @@ export const ClientLeadsTable = ({
 
     return (
         <CustomDataTable<IClientLead>
-            records={records}
+            {...tableProps}
             columns={columns}
-            isFetching={isFetching}
             fetchingText="Cargando clientes potenciales..."
             className=""
             classNames={{}}
-            page={page}
-            recordsPerPage={perPage}
-            totalRecords={totalRecords}
-            onPageChange={onPageChange}
-            recordsPerPageOptions={PAGE_SIZE_OPTIONS}
-            onRecordsPerPageChange={onLimitChange}
             noRecordsText="Sin clientes potenciales registrados"
             withTableBorder
             borderRadius="md"

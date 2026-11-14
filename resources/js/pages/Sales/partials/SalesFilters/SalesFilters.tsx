@@ -4,7 +4,7 @@ import { SalesByCategoryButton } from "../SalesByCategoryModal/SalesByCategoryMo
 import { ReportModeToggle } from "./ReportModeToggle";
 import { SalesPeriodInput } from "./SalesPeriodInput";
 import { ClearFiltersButton } from "./ClearFiltersButton";
-import { SalesSearch } from "./SalesSearch";
+import { SearchInput } from "@/components/ui/form/SearchInput";
 
 interface SalesFiltersProps {
     fecha: string | null;
@@ -74,7 +74,12 @@ export const SalesFilters = ({
             </div>
 
             <div className="flex flex-wrap gap-3 items-end">
-                <SalesSearch value={search} onChange={onSearchChange} />
+                <SearchInput
+                    value={search}
+                    onChange={onSearchChange}
+                    placeholder="Buscar por folio o cliente..."
+                    className="flex-1 min-w-[220px] lg:max-w-sm"
+                />
 
                 {/* Al buscar, el periodo no aplica: se atenúa para no sugerir que filtra. */}
                 <div className={`flex flex-wrap gap-3 items-end transition-opacity ${isSearching ? "opacity-40 pointer-events-none" : ""}`}>

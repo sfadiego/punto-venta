@@ -1,48 +1,29 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { useIndexBranchesPaginated } from "@/services/useBranchService";
 import { IBranch } from "@/models/IBranch";
+import { useServerTable } from "@/hooks/useServerTable";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export const useBranchesPage = () => {
     const queryClient = useQueryClient();
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [editingBranch, setEditingBranch] = useState<IBranch | null>(null);
     const [usersModalBranch, setUsersModalBranch] = useState<IBranch | null>(null);
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
     const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const debouncedSearch = useDebouncedValue(search);
 
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(search), 400);
-        return () => clearTimeout(timer);
-    }, [search]);
-
-    const { data, isLoading, isFetching, refetch } = useIndexBranchesPaginated({
-        page,
-        limit,
-        search: debouncedSearch || undefined,
+    const { tableProps, refetch } = useServerTable({
+        service: useIndexBranchesPaginated,
+        params: { search: debouncedSearch || undefined },
     });
-
-    const handleSearchChange = (value: string) => {
-        setSearch(value);
-        setPage(1);
-    };
-
-    useEffect(() => {
-        if (!isLoading && data?.data?.length === 0 && page > 1) {
-            setPage((p) => p - 1);
-        }
-    }, [data, isLoading, page]);
 
     const invalidateBranches = () => {
         queryClient.invalidateQueries({
             predicate: (query) => typeof query.queryKey[0] === "string" && query.queryKey[0].startsWith(ApiRoutes.Branch),
         });
     };
-
-    const pageSize = [10, 20, 50];
 
     const openAddModal = () => {
         setEditingBranch(null);
@@ -63,18 +44,11 @@ export const useBranchesPage = () => {
     };
 
     return {
-        branches: data?.data ?? [],
-        total: data?.total ?? 0,
-        page,
-        limit,
-        pageSize,
-        isLoading,
-        isFetching,
+        tableProps,
+        total: tableProps.totalRecords,
         refetch,
-        setPage,
-        setLimit,
         search,
-        handleSearchChange,
+        handleSearchChange: setSearch,
         isFormModalOpen,
         editingBranch,
         openAddModal,

@@ -6,33 +6,17 @@ import { IUser } from "@/models/IUser";
 import RoleBadge from "@/components/Role/RoleBadge";
 import { RoleEnum } from "@/enums/RoleEnum";
 import { usePermissions } from "@/hooks/usePermissions";
+import { IServerTableProps } from "@/hooks/useServerTable";
 import { useUsersTable } from "./useUsersTable";
 
 interface UsersTableProps {
-    users: IUser[];
-    total: number;
-    page: number;
-    limit: number;
-    pageSize: number[];
-    isFetching: boolean;
+    tableProps: IServerTableProps<IUser>;
     onEdit: (user: IUser) => void;
-    onPageChange: (page: number) => void;
-    onLimitChange: (limit: number) => void;
 }
 
 type UserCellRenderer = (u: IUser) => React.ReactNode;
 
-export const UsersTable = ({
-    users,
-    total,
-    page,
-    limit,
-    pageSize,
-    isFetching,
-    onEdit,
-    onPageChange,
-    onLimitChange,
-}: UsersTableProps) => {
+export const UsersTable = ({ tableProps, onEdit }: UsersTableProps) => {
     const { baseColumns } = useUsersTable(onEdit);
     const { hasRole } = usePermissions();
     const isAdmin = hasRole(RoleEnum.Admin);
@@ -76,15 +60,8 @@ export const UsersTable = ({
     return (
         <CustomDataTable<IUser>
             columns={columns}
-            records={users}
-            isFetching={isFetching}
+            {...tableProps}
             fetchingText="Cargando usuarios..."
-            page={page}
-            recordsPerPage={limit}
-            totalRecords={total}
-            onPageChange={onPageChange}
-            recordsPerPageOptions={pageSize}
-            onRecordsPerPageChange={onLimitChange}
             noRecordsText="No hay usuarios registrados"
         />
     );

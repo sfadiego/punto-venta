@@ -12,16 +12,10 @@ const SOURCE_FILTERS = [
 
 export default function ErrorLogsPage() {
     const {
-        records,
+        tableProps,
         totalRecords,
-        perPage,
-        page,
-        setPage,
-        limit,
-        setLimit,
         source,
         handleSourceChange,
-        isFetching,
         refetch,
         selectedLog,
         openDetail,
@@ -82,15 +76,8 @@ export default function ErrorLogsPage() {
                 </div>
 
                 <ErrorLogsTable
-                    records={records}
-                    totalRecords={totalRecords}
-                    page={page}
-                    perPage={perPage}
-                    limit={limit}
-                    onPageChange={setPage}
-                    onLimitChange={setLimit}
+                    tableProps={tableProps}
                     onViewDetail={openDetail}
-                    isFetching={isFetching}
                 />
             </div>
 

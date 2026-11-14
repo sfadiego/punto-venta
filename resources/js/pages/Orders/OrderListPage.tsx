@@ -4,7 +4,7 @@ import { IOrder } from "@/models/IOrder";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { useOrderList } from "./useOrderList";
 import { OrderFilters } from "./partials/OrderFilters";
-import { OrderSearch } from "./partials/OrderSearch";
+import { SearchInput } from "@/components/ui/form/SearchInput";
 import { LayawayOverdueNotice } from "./partials/Layaway/LayawayOverdueNotice";
 import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
 import { NewSaleButton } from "@/components/orders/NewSaleButton";
@@ -95,7 +95,7 @@ export default function OrderListPage() {
                     <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
                         <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-5">
                             <div className="flex-1 min-w-[220px] lg:max-w-sm">
-                                <OrderSearch value={search} onChange={handleSearchChange} />
+                                <SearchInput value={search} onChange={handleSearchChange} placeholder="Buscar por nombre, # de pedido o cliente..." />
                                 {/* Fuera de Apartados/Cancelados, la búsqueda abarca todas las órdenes y no el filtro activo. */}
                                 {search.trim() !== "" && !showingLayaways && !showingCanceledLayaways && (
                                     <p className="text-xs text-stone-400 mt-1.5">Buscando en todas las órdenes, sin importar el filtro de estatus.</p>

@@ -1,19 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useCategoryList } from "@/services/useCategoriesService";
 import { useInfiniteIndexProducts } from "@/services/useProductService";
 import { useAxios } from "@/hooks/useAxios";
 import { IProduct } from "@/models/IProduct";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 const SEARCH_DEBOUNCE_MS = 350;
 
 export const useQuickSaleCatalog = () => {
     const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
-
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);
-        return () => clearTimeout(timer);
-    }, [search]);
+    const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
 
     const { data: categories = [] } = useCategoryList();
     // null = "Todos" (sin filtrar por categoría) — es el estado inicial, así la búsqueda

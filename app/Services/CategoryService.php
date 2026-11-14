@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Core\Data\IndexData;
 use App\Core\Paginator\DataTable;
 use App\Models\CategoryModel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 
 class CategoryService extends DataTable
@@ -24,21 +25,16 @@ class CategoryService extends DataTable
         ];
     }
 
-    public function makeQuery(): \Illuminate\Database\Eloquent\Builder
+    public function makeQuery(): Builder
     {
-        return $this->model->newQuery();
-    }
-
-    public function runCustomQueryFilters(): \Illuminate\Database\Eloquent\Builder
-    {
-        parent::runCustomQueryFilters();
+        $query = $this->model->newQuery();
 
         $search = request()->query('search');
         if ($search) {
-            $this->queryBuilder->where(CategoryModel::NOMBRE, 'like', "%{$search}%");
+            $query->where(CategoryModel::NOMBRE, 'like', "%{$search}%");
         }
 
-        return $this->queryBuilder;
+        return $query;
     }
 
     public function run(IndexData $data): JsonResponse

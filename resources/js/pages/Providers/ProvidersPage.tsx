@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { DataTableColumn } from "mantine-datatable";
-import { Plus, RefreshCw, Search } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { IProvider } from "@/models/IProvider";
-import { Input } from "@/components/ui/form/Input";
+import { SearchInput } from "@/components/ui/form/SearchInput";
 import { useProvidersPage } from "./useProvidersPage";
 import { SelectProviderActiveFilter } from "./partials/SelectProviderActiveFilter";
 import { ProviderModal } from "./partials/ProviderModals/ProviderModal";
@@ -12,15 +12,9 @@ import { ProviderTableActions } from "./partials/ProviderTableActions";
 
 export default function ProvidersPage() {
     const {
-        providers,
+        tableProps,
         total,
-        page,
-        limit,
-        pageSize,
-        isFetching,
         refetch,
-        setPage,
-        setLimit,
         search,
         setSearch,
         active,
@@ -112,17 +106,12 @@ export default function ProvidersPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3 mb-4">
-                <div className="relative flex-1 min-w-[200px]">
-                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 z-10" />
-                    <Input
-                        name="search"
-                        inputType="search"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Buscar por nombre o teléfono..."
-                        className="pl-9"
-                    />
-                </div>
+                <SearchInput
+                    value={search}
+                    onChange={setSearch}
+                    placeholder="Buscar por nombre o teléfono..."
+                    className="flex-1 min-w-[200px]"
+                />
                 <div className="w-full sm:w-48">
                     <SelectProviderActiveFilter value={active} onChange={setActive} />
                 </div>
@@ -132,15 +121,8 @@ export default function ProvidersPage() {
                 <div className="p-4">
                     <CustomDataTable<IProvider>
                         columns={columns}
-                        records={providers}
-                        isFetching={isFetching}
+                        {...tableProps}
                         fetchingText="Cargando proveedores..."
-                        page={page}
-                        recordsPerPage={limit}
-                        totalRecords={total}
-                        onPageChange={setPage}
-                        recordsPerPageOptions={pageSize}
-                        onRecordsPerPageChange={setLimit}
                         noRecordsText="No hay proveedores registrados"
                     />
                 </div>

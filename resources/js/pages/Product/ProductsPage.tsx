@@ -20,7 +20,7 @@ import { useStockAdjustModal } from "./partials/StockAdjustModal/useStockAdjustM
 import { StockMovementsModal } from "./partials/StockMovementsModal/StockMovementsModal";
 import { useStockMovementsModal } from "./partials/StockMovementsModal/useStockMovementsModal";
 import { ProductTableActions } from "./partials/ProductTableActions";
-import { ProductSearch } from "./partials/ProductSearch";
+import { SearchInput } from "@/components/ui/form/SearchInput";
 import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { AddonsButton } from "./partials/Addons/AddonsButton";
 import { ExportProductsButton } from "./partials/ExportProducts/ExportProductsButton";
@@ -29,18 +29,12 @@ import { useAxios } from "@/hooks/useAxios";
 
 export default function ProductsPage() {
     const {
-        products,
+        tableProps,
         total,
-        page,
-        limit,
-        pageSize,
-        isFetching,
         categories,
         categoryId,
         search,
         lowStockOnly,
-        setPage,
-        setLimit,
         refetch,
         handleCategoryChange,
         handleSearchChange,
@@ -317,7 +311,7 @@ export default function ProductsPage() {
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-stone-100 space-y-4">
                     {/* Buscador */}
-                    <ProductSearch value={search} onChange={handleSearchChange} />
+                    <SearchInput value={search} onChange={handleSearchChange} placeholder="Buscar producto..." />
 
                     {/* Filtro de categorías */}
                     {categories.length > 0 && (
@@ -329,7 +323,7 @@ export default function ProductsPage() {
                                 categories={categories}
                                 selected={categoryId}
                                 onChange={handleCategoryChange}
-                                loading={isFetching}
+                                loading={tableProps.isFetching}
                             />
                         </>
                     )}
@@ -343,15 +337,8 @@ export default function ProductsPage() {
                 <div className="p-4">
                     <CustomDataTable<IProduct>
                         columns={columns}
-                        records={products}
-                        isFetching={isFetching}
+                        {...tableProps}
                         fetchingText="Cargando productos..."
-                        page={page}
-                        recordsPerPage={limit}
-                        totalRecords={total}
-                        onPageChange={setPage}
-                        recordsPerPageOptions={pageSize}
-                        onRecordsPerPageChange={setLimit}
                         rowClassName={(p) => (isProductRowLowStock(p) ? "!bg-red-100" : undefined)}
                         rowExpansion={{
                             allowMultiple: true,

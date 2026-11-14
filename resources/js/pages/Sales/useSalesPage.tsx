@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { DataTableColumn } from "mantine-datatable";
 import { Eye, Undo2 } from "lucide-react";
 import { useDataTable, DataTableRenderersMap } from "@/hooks/useDatatable";
@@ -14,6 +14,7 @@ import { getWeekStart, localDateString, currentMonthString } from "@/utils/dateU
 import { SalesReportModeEnum } from "@/enums/SalesReportModeEnum";
 import { calcOrderDisplayTotal } from "@/utils/deliveryCalc";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 const renderersMap: DataTableRenderersMap = {
     nombre_pedido: (o: IOrder) => (
@@ -52,14 +53,8 @@ export const useSalesPage = () => {
     const [semana, setSemana] = useState<string | null>(getWeekStart());
     const [mes, setMes] = useState<string | null>(currentMonthString());
     const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const debouncedSearch = useDebouncedValue(search);
     const modal = useOrderDetailModal();
-
-    // Debounce de la búsqueda — no pedir al servidor en cada tecla.
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(search), 400);
-        return () => clearTimeout(timer);
-    }, [search]);
 
     const actionsColumn: DataTableColumn<IOrder> = useMemo(
         () => ({

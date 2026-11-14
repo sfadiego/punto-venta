@@ -38,16 +38,9 @@ export const SlowMovingProductsSection = () => {
             />
 
             <SlowMovingTable
-                records={section.records}
-                total={section.total}
-                page={section.page}
-                limit={section.limit}
-                pageSizes={section.pageSizes}
+                tableProps={section.tableProps}
                 sortStatus={section.sortStatus}
-                isFetching={section.isFetching}
                 days={section.days}
-                onPageChange={section.setPage}
-                onLimitChange={section.setLimit}
                 onSortChange={section.handleSortChange}
             />
         </div>

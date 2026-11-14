@@ -10,18 +10,12 @@ export default function UsersPage() {
     const { hasRole } = usePermissions();
     const isAdmin = hasRole(RoleEnum.Admin);
     const {
-        users,
+        tableProps,
         total,
         maxUsers,
         atUserLimit,
-        page,
-        limit,
-        pageSize,
         search,
-        isFetching,
         refetch,
-        setPage,
-        setLimit,
         setSearch,
         editingUser,
         setEditingUser,
@@ -68,7 +62,7 @@ export default function UsersPage() {
                         <input
                             type="search"
                             value={search}
-                            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                            onChange={(e) => setSearch(e.target.value)}
                             placeholder="Buscar usuario..."
                             className="w-full pl-8 pr-3 py-2 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
                         />
@@ -76,15 +70,8 @@ export default function UsersPage() {
                 </div>
                 <div className="p-4">
                     <UsersTable
-                        users={users}
-                        total={total}
-                        page={page}
-                        limit={limit}
-                        pageSize={pageSize}
-                        isFetching={isFetching}
+                        tableProps={tableProps}
                         onEdit={setEditingUser}
-                        onPageChange={setPage}
-                        onLimitChange={setLimit}
                     />
                 </div>
             </div>

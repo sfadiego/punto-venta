@@ -1,5 +1,4 @@
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/form/Input";
+import { SearchInput } from "@/components/ui/form/SearchInput";
 import { CustomersFilters as CustomersFiltersState } from "../../useCustomersFilters";
 import { CustomerFilterCheckbox } from "./CustomerFilterCheckbox";
 
@@ -11,17 +10,12 @@ interface CustomersFiltersProps {
 
 export const CustomersFilters = ({ filters, showLayaways }: CustomersFiltersProps) => (
     <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="relative flex-1 min-w-[200px]">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 z-10" />
-            <Input
-                name="search"
-                inputType="search"
-                value={filters.search}
-                onChange={(e) => filters.setSearch(e.target.value)}
-                placeholder="Buscar por nombre o teléfono..."
-                className="pl-9"
-            />
-        </div>
+        <SearchInput
+            value={filters.search}
+            onChange={filters.setSearch}
+            placeholder="Buscar por nombre o teléfono..."
+            className="flex-1 min-w-[200px]"
+        />
         <CustomerFilterCheckbox label="Solo con adeudo" checked={filters.withDebt} onChange={filters.setWithDebt} />
         {showLayaways && (
             <>

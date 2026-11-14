@@ -17,15 +17,9 @@ import { useInventoryActionsModal } from "./partials/InventoryActionsModal/useIn
 
 export default function InventoryPage() {
     const {
-        movements,
+        tableProps,
         total,
-        page,
-        limit,
-        pageSize,
-        isFetching,
         refetch,
-        setPage,
-        setLimit,
         type,
         setType,
         reason,
@@ -191,15 +185,8 @@ export default function InventoryPage() {
                 <div className="p-4">
                     <CustomDataTable<IStockMovement>
                         columns={columns}
-                        records={movements}
-                        isFetching={isFetching}
+                        {...tableProps}
                         fetchingText="Cargando inventario..."
-                        page={page}
-                        recordsPerPage={limit}
-                        totalRecords={total}
-                        onPageChange={setPage}
-                        recordsPerPageOptions={pageSize}
-                        onRecordsPerPageChange={setLimit}
                         noRecordsText="No hay movimientos de inventario registrados"
                         minHeight={300}
                     />

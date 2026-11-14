@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import {
@@ -14,37 +14,28 @@ import { filterToFlags } from "@/utils/tenantFilters";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { ITenant } from "@/models/ITenant";
-import { useClampPage } from "@/hooks/useClampPage";
+import { useServerTable } from "@/hooks/useServerTable";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 // Límite generoso para los widgets de resumen (usuarios activos / sin actividad reciente) —
 // necesitan ver TODOS los tenants elegibles para sumar bien, no solo la página actual de la
 // tabla. El total real de tenants en este sistema es pequeño (decenas, no miles).
 const WIDGETS_LIMIT = 200;
-const DEFAULT_LIMIT = 10;
-const SEARCH_DEBOUNCE_MS = 400;
 
 export const useTenantList = () => {
     const [status, setStatus] = useState<TenantStatusEnum>(TenantStatusEnum.All);
     const [demoFilter, setDemoFilter] = useState<TenantDemoFilterEnum>(TenantDemoFilterEnum.All);
     const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(DEFAULT_LIMIT);
+    const debouncedSearch = useDebouncedValue(search);
 
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);
-        return () => clearTimeout(timer);
-    }, [search]);
-
-    const { data, isLoading, isFetching, refetch, isRefetching } = useListTenantsPaginated({
-        status,
-        ...filterToFlags(demoFilter),
-        search: debouncedSearch || undefined,
-        page,
-        limit,
+    const { tableProps, refetch, isRefetching } = useServerTable({
+        service: useListTenantsPaginated,
+        params: {
+            status,
+            ...filterToFlags(demoFilter),
+            search: debouncedSearch || undefined,
+        },
     });
-
-    useClampPage({ page, total: data?.total, limit, isFetching, setPage });
 
     // Fuente independiente de la tabla — ver comentario de WIDGETS_LIMIT arriba.
     const { data: allTenants = [] } = useListTenants(TenantStatusEnum.All, 30_000, undefined, WIDGETS_LIMIT);
@@ -52,21 +43,6 @@ export const useTenantList = () => {
     const deleteMutation = useDeleteTenant();
     const toggleMutation = useToggleTenant();
     const restoreMutation = useRestoreTenant();
-
-    const handleSearchChange = (value: string) => {
-        setSearch(value);
-        setPage(1);
-    };
-
-    const handleStatusChange = (value: TenantStatusEnum) => {
-        setStatus(value);
-        setPage(1);
-    };
-
-    const handleDemoFilterChange = (value: TenantDemoFilterEnum) => {
-        setDemoFilter(value);
-        setPage(1);
-    };
 
     const handleToggle = async (tenant: ITenant) => {
         const action = tenant.activo ? "desactivar" : "activar";
@@ -132,24 +108,16 @@ export const useTenantList = () => {
     };
 
     return {
-        records: data?.data ?? [],
-        totalRecords: data?.total ?? 0,
-        perPage: data?.per_page ?? limit,
-        page,
-        setPage,
-        limit,
-        setLimit,
+        tableProps,
         allTenants,
-        isLoading,
-        isFetching,
         isRefetching,
         refetch,
         status,
-        setStatus: handleStatusChange,
+        setStatus,
         demoFilter,
-        setDemoFilter: handleDemoFilterChange,
+        setDemoFilter,
         search,
-        setSearch: handleSearchChange,
+        setSearch,
         handleToggle,
         handleRestore,
         handleDelete,

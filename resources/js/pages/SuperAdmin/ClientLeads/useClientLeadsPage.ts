@@ -5,33 +5,25 @@ import { ClientLeadStatusEnum } from "@/enums/ClientLeadStatusEnum";
 import { IClientLead, IUpdateClientLeadPayload } from "@/models/IClientLead";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
-import { useClampPage } from "@/hooks/useClampPage";
+import { useServerTable } from "@/hooks/useServerTable";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+
+const DEFAULT_LIMIT = 20;
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export const useClientLeadsPage = () => {
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(20);
     const [status, setStatus] = useState<ClientLeadStatusEnum | "">("");
     const [search, setSearch] = useState("");
+    const debouncedSearch = useDebouncedValue(search);
     const [selected, setSelected] = useState<IClientLead | null>(null);
 
-    const { data, isLoading, isFetching, refetch } = useIndexClientLeads({ page, limit, status, search });
-
-    useClampPage({ page, total: data?.total, limit, isFetching, setPage });
+    const { tableProps, refetch } = useServerTable({
+        service: useIndexClientLeads,
+        params: { status, search: debouncedSearch },
+        defaultLimit: DEFAULT_LIMIT,
+        pageSizeOptions: PAGE_SIZE_OPTIONS,
+    });
     const { mutateAsync: updateClientLead, isPending: isSaving } = useUpdateClientLead();
-
-    const records = data?.data ?? [];
-    const totalRecords = data?.total ?? 0;
-    const perPage = data?.per_page ?? limit;
-
-    const handleStatusFilterChange = (value: ClientLeadStatusEnum | "") => {
-        setStatus(value);
-        setPage(1);
-    };
-
-    const handleSearchChange = (value: string) => {
-        setSearch(value);
-        setPage(1);
-    };
 
     const handleSave = async (payload: IUpdateClientLeadPayload) => {
         if (!selected) return;
@@ -46,19 +38,12 @@ export const useClientLeadsPage = () => {
     };
 
     return {
-        records,
-        totalRecords,
-        perPage,
-        page,
-        setPage,
-        limit,
-        setLimit,
+        tableProps,
+        totalRecords: tableProps.totalRecords,
         status,
-        handleStatusFilterChange,
+        handleStatusFilterChange: setStatus,
         search,
-        handleSearchChange,
-        isLoading,
-        isFetching,
+        handleSearchChange: setSearch,
         refetch,
         selected,
         isSaving,

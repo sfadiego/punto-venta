@@ -8,19 +8,13 @@ import { BranchFormModal } from "./partials/BranchFormModal";
 import { useBranchFormModal } from "./partials/useBranchFormModal";
 import { BranchUsersModal } from "./partials/BranchUsersModal";
 import { BranchTableActions } from "./partials/BranchTableActions";
-import { BranchSearch } from "./partials/BranchSearch";
+import { SearchInput } from "@/components/ui/form/SearchInput";
 
 export default function BranchesPage() {
     const {
-        branches,
+        tableProps,
         total,
-        page,
-        limit,
-        pageSize,
-        isFetching,
         refetch,
-        setPage,
-        setLimit,
         search,
         handleSearchChange,
         isFormModalOpen,
@@ -121,20 +115,13 @@ export default function BranchesPage() {
 
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
                 <div className="px-4 pt-4">
-                    <BranchSearch value={search} onChange={handleSearchChange} />
+                    <SearchInput value={search} onChange={handleSearchChange} placeholder="Buscar sucursal..." />
                 </div>
                 <div className="p-4">
                     <CustomDataTable<IBranch>
                         columns={columns}
-                        records={branches}
-                        isFetching={isFetching}
+                        {...tableProps}
                         fetchingText="Cargando sucursales..."
-                        page={page}
-                        recordsPerPage={limit}
-                        totalRecords={total}
-                        onPageChange={setPage}
-                        recordsPerPageOptions={pageSize}
-                        onRecordsPerPageChange={setLimit}
                         noRecordsText="No hay sucursales registradas"
                         rowClassName={(branch) => (!branch.active ? "!bg-red-50" : undefined)}
                     />

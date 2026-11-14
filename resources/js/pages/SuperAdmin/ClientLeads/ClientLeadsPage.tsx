@@ -17,18 +17,12 @@ const STATUS_FILTERS: { label: string; value: ClientLeadStatusEnum | "" }[] = [
 
 export default function ClientLeadsPage() {
     const {
-        records,
+        tableProps,
         totalRecords,
-        perPage,
-        page,
-        setPage,
-        limit,
-        setLimit,
         status,
         handleStatusFilterChange,
         search,
         handleSearchChange,
-        isFetching,
         refetch,
         selected,
         isSaving,
@@ -105,15 +99,8 @@ export default function ClientLeadsPage() {
                 </p>
 
                 <ClientLeadsTable
-                    records={records}
-                    totalRecords={totalRecords}
-                    page={page}
-                    perPage={perPage}
-                    limit={limit}
-                    onPageChange={setPage}
-                    onLimitChange={setLimit}
+                    tableProps={tableProps}
                     onSelect={openDetail}
-                    isFetching={isFetching}
                 />
             </div>
 

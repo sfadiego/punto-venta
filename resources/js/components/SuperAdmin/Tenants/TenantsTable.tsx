@@ -5,8 +5,7 @@ import { BusinessTypeEnum } from "@/enums/BusinessTypeEnum";
 import { ITenant } from "@/models/ITenant";
 import { ActiveUsersBadge } from "@/components/SuperAdmin/Tenants/Users/ActiveUsersBadge";
 import { InactivityBadge } from "@/components/SuperAdmin/Tenants/Activity/InactivityBadge";
-
-const PAGE_SIZE_OPTIONS = [10, 20, 50];
+import { IServerTableProps } from "@/hooks/useServerTable";
 
 const BUSINESS_TYPE_SHORT_LABELS: Record<BusinessTypeEnum, string> = {
     [BusinessTypeEnum.Restaurante]:  "Restaurante",
@@ -21,14 +20,7 @@ const BUSINESS_TYPE_ICONS: Record<BusinessTypeEnum, typeof Scale> = {
 };
 
 interface TenantsTableProps {
-    records: ITenant[];
-    totalRecords: number;
-    page: number;
-    perPage: number;
-    limit: number;
-    isFetching: boolean;
-    onPageChange: (page: number) => void;
-    onLimitChange: (limit: number) => void;
+    tableProps: IServerTableProps<ITenant>;
     onEdit: (tenant: ITenant) => void;
     onToggle: (tenant: ITenant) => void;
     onRestore: (tenant: ITenant) => void;
@@ -36,14 +28,7 @@ interface TenantsTableProps {
 }
 
 export const TenantsTable = ({
-    records,
-    totalRecords,
-    page,
-    perPage,
-    limit: _limit,
-    isFetching,
-    onPageChange,
-    onLimitChange,
+    tableProps,
     onEdit,
     onToggle,
     onRestore,
@@ -199,18 +184,11 @@ export const TenantsTable = ({
 
     return (
         <CustomDataTable<ITenant>
-            records={records}
+            {...tableProps}
             columns={columns}
-            isFetching={isFetching}
             fetchingText="Cargando clientes..."
             className=""
             classNames={{}}
-            page={page}
-            recordsPerPage={perPage}
-            totalRecords={totalRecords}
-            onPageChange={onPageChange}
-            recordsPerPageOptions={PAGE_SIZE_OPTIONS}
-            onRecordsPerPageChange={onLimitChange}
             noRecordsText="No hay clientes en esta categoría"
             withTableBorder
             borderRadius="md"
