@@ -14,6 +14,7 @@ import { filterToFlags } from "@/utils/tenantFilters";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { ITenant } from "@/models/ITenant";
+import { useClampPage } from "@/hooks/useClampPage";
 
 // Límite generoso para los widgets de resumen (usuarios activos / sin actividad reciente) —
 // necesitan ver TODOS los tenants elegibles para sumar bien, no solo la página actual de la
@@ -42,6 +43,8 @@ export const useTenantList = () => {
         page,
         limit,
     });
+
+    useClampPage({ page, total: data?.total, limit, isFetching, setPage });
 
     // Fuente independiente de la tabla — ver comentario de WIDGETS_LIMIT arriba.
     const { data: allTenants = [] } = useListTenants(TenantStatusEnum.All, 30_000, undefined, WIDGETS_LIMIT);

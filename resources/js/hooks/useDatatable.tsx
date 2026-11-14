@@ -1,6 +1,7 @@
 import { ColumnProperties } from "@/components/Tables/columnProperties";
 import { DataTableColumn } from "mantine-datatable";
 import { useEffect, useMemo, useState } from "react";
+import { useClampPage } from "@/hooks/useClampPage";
 
 export type DataTableRenderersMap = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -29,6 +30,8 @@ export const useDataTable = ({
     const pageSize = [10, 20, 30, 50, 100];
     const [limit, setLimit] = useState(pageSize[0]);
     const { data, isLoading, isFetching, refetch } = service({ page, limit, ...payload });
+
+    useClampPage({ page, total: data?.total, limit, isFetching, setPage });
 
     useEffect(() => {
         if (!refetchInterval) return;

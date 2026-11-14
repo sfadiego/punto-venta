@@ -5,6 +5,7 @@ import { ClientLeadStatusEnum } from "@/enums/ClientLeadStatusEnum";
 import { IClientLead, IUpdateClientLeadPayload } from "@/models/IClientLead";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
+import { useClampPage } from "@/hooks/useClampPage";
 
 export const useClientLeadsPage = () => {
     const [page, setPage] = useState(1);
@@ -14,6 +15,8 @@ export const useClientLeadsPage = () => {
     const [selected, setSelected] = useState<IClientLead | null>(null);
 
     const { data, isLoading, isFetching, refetch } = useIndexClientLeads({ page, limit, status, search });
+
+    useClampPage({ page, total: data?.total, limit, isFetching, setPage });
     const { mutateAsync: updateClientLead, isPending: isSaving } = useUpdateClientLead();
 
     const records = data?.data ?? [];
