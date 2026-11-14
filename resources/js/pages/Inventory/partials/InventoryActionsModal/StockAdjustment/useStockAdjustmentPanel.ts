@@ -11,6 +11,7 @@ import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { MAX_STOCK_ADJUSTMENT } from "@/utils/stockLimits";
 import { isWeightUnit } from "@/utils/weightUnits";
 import { integerForUnitTest } from "@/utils/stockAdjustmentValidation";
+import { trimOrUndefined } from "@/utils/textUtils";
 
 export type StockAdjustmentForm = {
     delta: string;
@@ -87,7 +88,7 @@ export const useStockAdjustmentPanel = () => {
                     productId: product.id,
                     data: {
                         delta: Number(values.delta),
-                        note: values.note.trim() || undefined,
+                        note: trimOrUndefined(values.note),
                         ...(selectedVariant ? { variant_id: selectedVariant.id } : {}),
                     },
                 });

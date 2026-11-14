@@ -5,7 +5,7 @@ import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { useShowEmployee, useUpdateEmployee } from "@/services/useEmployeesService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
-import { EmployeeForm, EMPLOYEE_FORM_INITIAL_VALUES, employeeSchema } from "./partials/EmployeeModals/employeeForm";
+import { EmployeeForm, employeeFormToPayload, employeeSchema, getEmployeeFormValues } from "./partials/EmployeeModals/employeeForm";
 
 export const useEmployeeDetailPage = (employeeId: number) => {
     const queryClient = useQueryClient();
@@ -14,25 +14,11 @@ export const useEmployeeDetailPage = (employeeId: number) => {
 
     const formik = useFormik<EmployeeForm>({
         enableReinitialize: true,
-        initialValues: employee
-            ? {
-                  name: employee.name,
-                  phone: employee.phone ?? "",
-                  salary: String(employee.salary),
-                  salary_period: employee.salary_period,
-                  work_days: employee.work_days,
-              }
-            : EMPLOYEE_FORM_INITIAL_VALUES,
+        initialValues: getEmployeeFormValues(employee),
         validationSchema: employeeSchema,
         onSubmit: async (values) => {
             try {
-                await updateEmployee({
-                    name: values.name.trim(),
-                    phone: values.phone.trim() || null,
-                    salary: Number(values.salary),
-                    salary_period: values.salary_period,
-                    work_days: values.work_days,
-                });
+                await updateEmployee(employeeFormToPayload(values));
                 queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Employee}/${employeeId}`] });
                 queryClient.invalidateQueries({ queryKey: [ApiRoutes.Employee] });
                 queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Employee}/list`] });

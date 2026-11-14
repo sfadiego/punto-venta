@@ -1,6 +1,7 @@
 import { X, CalendarOff, Loader } from "lucide-react";
 import { FormikProps } from "formik";
 import { Input } from "@/components/ui/form/Input";
+import { ToggleSwitch } from "@/components/ui/form/ToggleSwitch";
 import { AbsenceForm } from "./absenceForm";
 
 interface AbsenceModalProps {
@@ -40,7 +41,10 @@ export const AbsenceModal = ({ isOpen, formik, onClose }: AbsenceModalProps) => 
                         <div className="flex gap-2">
                             <button
                                 type="button"
-                                onClick={() => formik.setFieldValue("notified", true)}
+                                onClick={() => {
+                                    formik.setFieldValue("notified", true);
+                                    formik.setFieldValue("deduct", false);
+                                }}
                                 className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${
                                     formik.values.notified
                                         ? "bg-emerald-500 border-emerald-500 text-white"
@@ -51,7 +55,10 @@ export const AbsenceModal = ({ isOpen, formik, onClose }: AbsenceModalProps) => 
                             </button>
                             <button
                                 type="button"
-                                onClick={() => formik.setFieldValue("notified", false)}
+                                onClick={() => {
+                                    formik.setFieldValue("notified", false);
+                                    formik.setFieldValue("deduct", true);
+                                }}
                                 className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${
                                     !formik.values.notified
                                         ? "bg-red-500 border-red-500 text-white"
@@ -63,7 +70,19 @@ export const AbsenceModal = ({ isOpen, formik, onClose }: AbsenceModalProps) => 
                         </div>
                     </div>
 
-                    {!formik.values.notified && (
+                    <div className="flex items-center justify-between gap-3">
+                        <div>
+                            <p className="text-sm font-medium text-stone-700">Descontar el día</p>
+                            <p className="text-xs text-stone-400">Se resta del pago del periodo, aunque la falta sea justificada.</p>
+                        </div>
+                        <ToggleSwitch
+                            checked={formik.values.deduct}
+                            onChange={(checked) => formik.setFieldValue("deduct", checked)}
+                            activeColor="bg-red-500"
+                        />
+                    </div>
+
+                    {formik.values.deduct && (
                         <Input
                             name="deduction_amount"
                             label="Monto a descontar"

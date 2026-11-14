@@ -10,6 +10,7 @@ export const usePayrollSummaryCard = () => {
         period,
         setPeriod,
         total: data?.total ?? 0,
+        deductions: data?.deductions ?? 0,
         employeesCount: data?.employees_count ?? 0,
         isLoading,
     };

@@ -8,6 +8,7 @@ import { useStoreProvider, useUpdateProvider } from "@/services/useProvidersServ
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { isValidPhone, phoneValidationMessage } from "@/utils/phoneUtils";
+import { trimOrNull } from "@/utils/textUtils";
 
 export type ProviderForm = {
     name: string;
@@ -46,9 +47,9 @@ export const useProviderModal = (onSuccess: () => void) => {
             try {
                 const payload = {
                     name: values.name.trim(),
-                    phone: values.phone.trim() || null,
-                    contact_name: values.contact_name.trim() || null,
-                    notes: values.notes.trim() || null,
+                    phone: trimOrNull(values.phone),
+                    contact_name: trimOrNull(values.contact_name),
+                    notes: trimOrNull(values.notes),
                 };
 
                 if (isEditing) {

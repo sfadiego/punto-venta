@@ -8,6 +8,7 @@ import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useModal } from "@/hooks/useModal";
 import { useIndexExpenses, useStoreExpense } from "@/services/useExpenseService";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { trimOrNull } from "@/utils/textUtils";
 
 export type ExpensesModalTab = "list" | "form";
 
@@ -45,7 +46,7 @@ export const useExpensesModal = (sistemaId: number | null) => {
                 await storeExpense({
                     concepto: values.concepto.trim(),
                     monto: Number(values.monto),
-                    observaciones: values.observaciones.trim() || null,
+                    observaciones: trimOrNull(values.observaciones),
                 });
                 queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.System}/${sistemaId}/expense`] });
                 queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`] });

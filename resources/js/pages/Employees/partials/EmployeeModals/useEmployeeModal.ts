@@ -6,7 +6,7 @@ import { IEmployee } from "@/models/IEmployee";
 import { useStoreEmployee, useUpdateEmployee } from "@/services/useEmployeesService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
-import { EmployeeForm, EMPLOYEE_FORM_INITIAL_VALUES, employeeSchema } from "./employeeForm";
+import { EmployeeForm, employeeFormToPayload, employeeSchema, getEmployeeFormValues } from "./employeeForm";
 
 export const useEmployeeModal = (onSuccess: () => void) => {
     const { isOpen, openModal, closeModal } = useModal();
@@ -18,25 +18,11 @@ export const useEmployeeModal = (onSuccess: () => void) => {
 
     const formik = useFormik<EmployeeForm>({
         enableReinitialize: true,
-        initialValues: editingEmployee
-            ? {
-                  name: editingEmployee.name,
-                  phone: editingEmployee.phone ?? "",
-                  salary: String(editingEmployee.salary),
-                  salary_period: editingEmployee.salary_period,
-                  work_days: editingEmployee.work_days,
-              }
-            : EMPLOYEE_FORM_INITIAL_VALUES,
+        initialValues: getEmployeeFormValues(editingEmployee),
         validationSchema: employeeSchema,
         onSubmit: async (values, helpers) => {
             try {
-                const payload = {
-                    name: values.name.trim(),
-                    phone: values.phone.trim() || null,
-                    salary: Number(values.salary),
-                    salary_period: values.salary_period,
-                    work_days: values.work_days,
-                };
+                const payload = employeeFormToPayload(values);
 
                 if (isEditing) {
                     await updateEmployee(payload);

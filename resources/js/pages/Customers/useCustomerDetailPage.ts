@@ -14,6 +14,7 @@ import {
     useRegisterCustomerPayment,
     useRegisterCustomerCharge,
 } from "@/services/useCustomerService";
+import { trimOrUndefined } from "@/utils/textUtils";
 
 export type PaymentForm = {
     amount: string;
@@ -91,7 +92,7 @@ export const useCustomerDetailPage = (customerId: number) => {
             try {
                 await paymentMutation.mutateAsync({
                     amount: Number(values.amount),
-                    note: values.note.trim() || undefined,
+                    note: trimOrUndefined(values.note),
                 });
                 invalidate();
                 toast.success("Pago registrado correctamente");
@@ -123,7 +124,7 @@ export const useCustomerDetailPage = (customerId: number) => {
             try {
                 await chargeMutation.mutateAsync({
                     amount: Number(values.amount),
-                    note: values.note.trim() || undefined,
+                    note: trimOrUndefined(values.note),
                 });
                 invalidate();
                 toast.success("Cargo agregado correctamente");

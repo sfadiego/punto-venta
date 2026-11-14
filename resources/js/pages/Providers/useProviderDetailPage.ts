@@ -10,6 +10,7 @@ import { getFieldErrors, getUserFacingErrorMessage } from "@/utils/axiosError";
 import { useModal } from "@/hooks/useModal";
 import { useShowProvider } from "@/services/useProvidersService";
 import { useProviderPurchases, useStoreProviderPurchase } from "@/services/useProviderPurchasesService";
+import { trimOrUndefined } from "@/utils/textUtils";
 
 export type ProviderPurchaseForm = {
     amount: string;
@@ -66,7 +67,7 @@ export const useProviderDetailPage = (providerId: number) => {
                 await purchaseMutation.mutateAsync({
                     amount: Number(values.amount),
                     is_credit: values.is_credit,
-                    note: values.note.trim() || undefined,
+                    note: trimOrUndefined(values.note),
                 });
                 invalidatePurchases();
                 toast.success("Compra registrada correctamente");

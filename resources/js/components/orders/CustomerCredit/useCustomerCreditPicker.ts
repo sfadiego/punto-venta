@@ -7,6 +7,7 @@ import { invalidateCustomerQueries, useStoreCustomer } from "@/services/useCusto
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
+import { trimOrUndefined } from "@/utils/textUtils";
 
 interface UseCustomerCreditPickerParams {
     customers: ICustomer[];
@@ -70,7 +71,7 @@ export const useCustomerCreditPicker = ({ customers, onSelect }: UseCustomerCred
             return;
         }
         try {
-            const res = await storeCustomer({ name: newName.trim(), phone: newPhone.trim() || undefined });
+            const res = await storeCustomer({ name: newName.trim(), phone: trimOrUndefined(newPhone) });
             const created = (res as unknown as { data: { data: ICustomer } }).data.data;
 
             // El picker usa la lista cacheada de useCustomerList(); insertamos el nuevo

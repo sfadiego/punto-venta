@@ -4,6 +4,7 @@ import { IProductVariant } from "@/models/IProductVariant";
 import { isWeightUnit, weightStep, weightMin } from "@/utils/weightUnits";
 import { getAvailableStockFor } from "@/utils/stock";
 import { getCartItemUnitPrice, roundCartQuantity as round3, matchesCartLine as matchesLine } from "@/utils/menuCartCalc";
+import { trimOrNull } from "@/utils/textUtils";
 
 export type { ICartItem };
 
@@ -71,7 +72,7 @@ export const useCart = () => {
         setItems((prev) =>
             prev.map((i) =>
                 matchesLine(i, productId, variantId)
-                    ? { ...i, observacion: note.trim() || null }
+                    ? { ...i, observacion: trimOrNull(note) }
                     : i
             )
         );

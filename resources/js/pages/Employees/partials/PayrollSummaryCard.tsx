@@ -10,7 +10,7 @@ const PERIOD_LABELS: Record<PayrollFilterPeriod, string> = {
 };
 
 export const PayrollSummaryCard = () => {
-    const { period, setPeriod, total, employeesCount, isLoading } = usePayrollSummaryCard();
+    const { period, setPeriod, total, deductions, employeesCount, isLoading } = usePayrollSummaryCard();
 
     return (
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 mb-4">
@@ -25,6 +25,11 @@ export const PayrollSummaryCard = () => {
                             <Loader size={18} className="animate-spin text-stone-300 mt-1" />
                         ) : (
                             <p className="text-2xl font-bold text-stone-900 leading-tight">{formatCurrency(total)}</p>
+                        )}
+                        {deductions > 0 && (
+                            <p className="text-xs text-red-500 mt-0.5">
+                                Incluye -{formatCurrency(deductions)} por faltas de este periodo
+                            </p>
                         )}
                         <p className="text-xs text-stone-400 mt-0.5">
                             {employeesCount} {employeesCount === 1 ? "empleado activo" : "empleados activos"}

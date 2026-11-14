@@ -17,6 +17,7 @@ import { resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
 import { buildReturnLineValues, calcReturnableQuantity, selectAllReturnLines, sumReturnPieces, toggleReturnLine } from "@/utils/returnCalc";
 import { calcReturnRefund } from "@/utils/returnRefundCalc";
 import { buildOrderReturnSchema } from "@/utils/orderReturnSchema";
+import { trimOrUndefined } from "@/utils/textUtils";
 
 interface UseReturnFormParams {
     order: IOrder | null;
@@ -68,7 +69,7 @@ export const useReturnForm = ({ order, lines, onDone }: UseReturnFormParams) => 
                     orderId: order.id,
                     data: {
                         reason: values.reason as ReturnReasonEnum,
-                        note: values.note.trim() || undefined,
+                        note: trimOrUndefined(values.note),
                         refund: values.refund,
                         ...(sendsMethod ? { refund_payment_method_id: values.payment_method_id as number } : {}),
                         items: selected.map((item) => ({ order_product_id: item.order_product_id, quantity: Number(item.quantity) })),
