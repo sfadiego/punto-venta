@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useModal } from "@/hooks/useModal";
-import { useUpdateOrder } from "@/services/useOrderService";
+import { invalidateOrderPaymentQueries, useUpdateOrder } from "@/services/useOrderService";
 import { useCashDrawer } from "@/components/orders/PrintTicket/useCashDrawer";
 import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
@@ -10,9 +10,6 @@ import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { calcCostoDomicilio } from "@/utils/deliveryCalc";
 import { canPayOrder, resolveDefaultPaymentMethodId } from "@/utils/paymentMethods";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
-import { ApiRoutes } from "@/enums/ApiRoutesEnum";
-import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
-import { invalidateStatistics } from "@/services/useStatisticsService";
 import { usePaymentSelection } from "./usePaymentSelection";
 import { useCreditSelection } from "./useCreditSelection";
 
@@ -85,36 +82,11 @@ export const usePayModal = (
                     : 0,
                 ...paymentData,
             });
-            queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
-            queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/list`] });
-            // La venta descontó stock en el backend — sin esto, el catálogo en caché sigue
-            // mostrando la existencia previa y el ProductGrid no refleja el producto agotado
-            // hasta que algo más invalide la query (mismo fix ya aplicado en useQuickSalePayment).
-            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
-            // useShowOrder usa `${ApiRoutes.Orders}/${orderId}` como query key completa (string,
-            // no arreglo jerárquico) — invalidar solo el prefijo [ApiRoutes.Orders] no la
-            // alcanza. Sin esto, reabrir esta misma orden (ej. buscarla para devolución) dentro
-            // del staleTime de 2 min la sigue mostrando como InProcess aunque ya se cerró (mismo
-            // fix ya aplicado en useInvalidateResumeOrderQueries, QuickSale).
-            queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${orderId}`] });
-            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
-            // Cerrar la venta también generó movimientos de stock (reason=Sale) — que el
-            // kardex del módulo de Inventario no se quede con datos obsoletos.
-            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Kardex] });
-            if (sistemaId) {
-                queryClient.invalidateQueries({
-                    queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`],
-                });
-            }
-            invalidateSalesByCategory(queryClient);
-            invalidateStatistics(queryClient);
-            // Venta a crédito: el backend ya incrementó el balance del cliente, pero su
-            // página de detalle (useShowCustomer) no tiene staleTime propio — hereda el
-            // default global de 2 min y se queda con el balance viejo si no se invalida.
-            if (creditSelection.isCreditMode && creditSelection.selectedCustomerId) {
-                queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/${creditSelection.selectedCustomerId}`] });
-                queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
-            }
+            invalidateOrderPaymentQueries(queryClient, {
+                orderId,
+                sistemaId,
+                customerId: creditSelection.isCreditMode ? creditSelection.selectedCustomerId : null,
+            });
             toast.success(creditSelection.isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             if (paymentSelection.isCash && !creditSelection.isCreditMode) void openCashDrawer();
             closeModal();

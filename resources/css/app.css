@@ -42,6 +42,14 @@ body { color: var(--color-label); }
     border-bottom: 2px solid var(--color-primary);
 }
 
+/* Página actual del paginador de DataTable con el color de marca. Va fuera de @layer porque el
+   preflight de Tailwind (sin capa) anula el fondo que la librería pone dentro de su propia capa. */
+.mantine-datatable-pagination-pages-control[data-active] {
+    background: var(--color-primary);
+    border-color: transparent;
+    color: white;
+}
+
 /* Fade + collapse animado — oculta/muestra secciones con transición suave */
 .fade-collapse {
     overflow: hidden;

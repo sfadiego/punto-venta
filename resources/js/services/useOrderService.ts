@@ -287,6 +287,33 @@ export const useSyncOrderProducts = () => {
     });
 };
 
+// Cobrar una orden (pasa a Closed) toca stock (productos y kardex), la orden, la caja, el saldo del
+// cliente (venta a crédito) y los reportes — se refresca todo sin importar desde qué pantalla se cobró.
+// El kardex solo lo consume Inventario (retail con stock_enabled): en otros tipos de negocio invalidarlo
+// no dispara ninguna petición.
+// customerId solo en ventas a crédito: su detalle (useShowCustomer) hereda el staleTime global de
+// 2 min y se quedaría con el balance viejo.
+export const invalidateOrderPaymentQueries = (
+    queryClient: QueryClient,
+    { orderId, sistemaId, customerId }: { orderId: number; sistemaId?: number | null; customerId?: number | null },
+) => {
+    queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
+    queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
+    queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Orders}/${orderId}`] });
+    queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
+    queryClient.invalidateQueries({ queryKey: [ApiRoutes.Kardex] });
+    queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/list`] });
+    if (sistemaId) {
+        queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`] });
+    }
+    if (customerId) {
+        queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/${customerId}`] });
+        queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
+    }
+    invalidateSalesByCategory(queryClient);
+    invalidateStatistics(queryClient);
+};
+
 // Devolución de una o varias líneas de una orden cerrada (módulo de Inventario, exclusivo retail).
 // Cada item usa el id de la línea order_product (no el del producto de catálogo). El backend la
 // aplica completa o no la aplica: valida que la orden esté cerrada y que ninguna cantidad exceda

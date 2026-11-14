@@ -5,6 +5,7 @@ import { useIndexErrorLogs, usePruneErrorLogs } from "@/services/useErrorLogsSer
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { IErrorLog } from "@/models/IErrorLog";
+import { useClampPage } from "@/hooks/useClampPage";
 
 const DEFAULT_PRUNE_DAYS = 90;
 
@@ -15,6 +16,8 @@ export const useErrorLogsPage = () => {
     const [selectedLog, setSelectedLog] = useState<IErrorLog | null>(null);
 
     const { data, isLoading, isFetching, refetch } = useIndexErrorLogs({ page, limit, source });
+
+    useClampPage({ page, total: data?.total, limit, isFetching, setPage });
     const { mutateAsync: pruneLogs, isPending: isPruning } = usePruneErrorLogs();
 
     const handlePrune = async () => {

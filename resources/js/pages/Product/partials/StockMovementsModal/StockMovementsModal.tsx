@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useInfiniteScrollSentinel } from "@/hooks/useInfiniteScrollSentinel";
 import { X, History, Loader } from "lucide-react";
 import { IProduct } from "@/models/IProduct";
 import { IProductVariant } from "@/models/IProductVariant";
@@ -37,22 +37,7 @@ export const StockMovementsModal = ({
     fetchNextPage,
     onClose,
 }: StockMovementsModalProps) => {
-    const sentinelRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const el = sentinelRef.current;
-        if (!el) return;
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-                    fetchNextPage();
-                }
-            },
-            { threshold: 0.1 },
-        );
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+    const sentinelRef = useInfiniteScrollSentinel({ hasNextPage, isFetchingNextPage, fetchNextPage });
 
     if (!isOpen || !product) return null;
 

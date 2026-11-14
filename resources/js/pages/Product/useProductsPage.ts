@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { useIndexProducts } from "@/services/useProductService";
 import { useIndexCategories } from "@/services/useCategoriesService";
+import { useClampPage } from "@/hooks/useClampPage";
 import { useProductFilters } from "./useProductFilters";
 import { useProductModalState } from "./useProductModalState";
 
@@ -22,6 +23,14 @@ export const useProductsPage = () => {
         low_stock: filters.lowStockOnly,
     });
     const { data: categories } = useIndexCategories();
+
+    useClampPage({
+        page: filters.page,
+        total: data?.total,
+        limit: filters.limit,
+        isFetching,
+        setPage: filters.setPage,
+    });
 
     const invalidateProducts = () => {
         queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });

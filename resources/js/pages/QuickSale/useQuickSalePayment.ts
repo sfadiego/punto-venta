@@ -3,22 +3,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import { NavigateFunction } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useCashDrawer } from "@/components/orders/PrintTicket/useCashDrawer";
-import { useStoreOrderSale, useUpdateOrderData } from "@/services/useOrderService";
+import { invalidateOrderPaymentQueries, useStoreOrderSale, useUpdateOrderData } from "@/services/useOrderService";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { resolveSaleName } from "@/utils/resolveSaleName";
 import { canPayOrder } from "@/utils/paymentMethods";
 import { AdminRoutes } from "@/enums/RoutesEnum";
-import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
 import { IOrder } from "@/models/IOrder";
 import { IModalCartItem } from "@/models/IModalCartItem";
 import { buildOrderItems } from "@/utils/sellByWeightCartCalc";
-import { useInvalidateResumeOrderQueries } from "./useInvalidateResumeOrderQueries";
 import { usePaymentMethod } from "./usePaymentMethod";
 import { useCreditPayment } from "./useCreditPayment";
-import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
-import { invalidateStatistics } from "@/services/useStatisticsService";
 
 interface UseQuickSalePaymentParams {
     resumeOrderId: number | null;
@@ -50,7 +46,6 @@ export const useQuickSalePayment = ({
     resetAfterSuccess,
     navigate,
 }: UseQuickSalePaymentParams) => {
-    const invalidateResumeOrderQueries = useInvalidateResumeOrderQueries(resumeOrderId);
     const queryClient = useQueryClient();
     const { mutateAsync: updateOrderData } = useUpdateOrderData();
     const { mutateAsync: storeOrderSale } = useStoreOrderSale();
@@ -122,31 +117,11 @@ export const useQuickSalePayment = ({
                     ...paymentData,
                 },
             });
-            invalidateResumeOrderQueries();
-            // La venta descontó stock en el backend — sin esto, el catálogo en caché
-            // (staleTime de 2 min) sigue mostrando la existencia previa y tanto la UI como
-            // la validación de "no exceder el stock disponible" quedan trabajando con datos
-            // viejos hasta que algo más invalide la query o el usuario recargue la página.
-            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
-            // Listado de órdenes/ventas (ej. buscador de devolución en Inventario, Ventas,
-            // Pedidos) y kardex — la venta recién cerrada generó movimientos de stock nuevos.
-            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
-            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Kardex] });
-            invalidateSalesByCategory(queryClient);
-            invalidateStatistics(queryClient);
-            // A diferencia de los otros 3 flujos de cobro (useSaleQuickPay/usePayOrder/
-            // usePayModal), este no invalidaba el total de la caja abierta — se quedaba
-            // mostrando el corte con el total previo a esta venta.
-            if (sistemaId) {
-                queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`] });
-            }
-            // Venta a crédito: el backend ya incrementó el balance del cliente, pero su
-            // página de detalle (useShowCustomer) no tiene staleTime propio — hereda el
-            // default global de 2 min y se queda con el balance viejo si no se invalida.
-            if (creditPayment.isCreditMode && creditPayment.selectedCustomerId) {
-                queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/${creditPayment.selectedCustomerId}`] });
-                queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
-            }
+            invalidateOrderPaymentQueries(queryClient, {
+                orderId,
+                sistemaId,
+                customerId: creditPayment.isCreditMode ? creditPayment.selectedCustomerId : null,
+            });
 
             toast.success(creditPayment.isCreditMode ? "Venta a crédito registrada correctamente." : "Venta registrada correctamente.");
             if (paymentMethod.isCashMethod && !creditPayment.isCreditMode) void openCashDrawer();

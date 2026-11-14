@@ -4,6 +4,7 @@ import { StockMovementReasonEnum } from "@/enums/StockMovementReasonEnum";
 import { REASONS_BY_TYPE } from "@/utils/stockMovementFilters";
 import { useIndexKardex } from "@/services/useKardexService";
 import { useKardexProductFilter } from "./useKardexProductFilter";
+import { useClampPage } from "@/hooks/useClampPage";
 
 const PAGE_SIZE_OPTIONS = [15, 30, 50];
 
@@ -30,6 +31,8 @@ export const useInventoryPage = () => {
         fechaDesde: fechaDesde || undefined,
         fechaHasta: fechaHasta || undefined,
     });
+
+    useClampPage({ page, total: data?.total, limit, isFetching, setPage });
 
     // Tipo y razón no son independientes (ver utils/stockMovementFilters.ts) — cada setter
     // sincroniza al otro filtro para que nunca queden en una combinación imposible (ej.
