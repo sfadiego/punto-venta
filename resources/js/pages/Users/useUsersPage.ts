@@ -1,50 +1,39 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAxios } from "@/hooks/useAxios";
 import { getExcludedRoles } from "@/utils/businessRoles";
 import { useIndexUsers } from "@/services/useUserService";
 import { useGetBusinessConfig } from "@/services/useBusinessConfigService";
 import { IUser } from "@/models/IUser";
+import { useServerTable } from "@/hooks/useServerTable";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export const useUsersPage = () => {
     const { features } = useAxios();
     const { data: businessConfig } = useGetBusinessConfig();
 
-    const [page, setPage]     = useState(1);
-    const [limit, setLimit]   = useState(10);
     const [search, setSearch] = useState("");
+    const debouncedSearch = useDebouncedValue(search);
     const [editingUser, setEditingUser] = useState<IUser | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-    const { data, isLoading, isFetching, refetch } = useIndexUsers({ page, limit, search });
-
-    useEffect(() => {
-        if (!isLoading && (data?.data?.length ?? 0) === 0 && page > 1) {
-            setPage((p) => p - 1);
-        }
-    }, [data, isLoading, page]);
+    const { tableProps, refetch } = useServerTable({
+        service: useIndexUsers,
+        params: { search: debouncedSearch },
+    });
 
     const excludeRoles = getExcludedRoles(features);
 
-    const total = data?.total ?? 0;
+    const total = tableProps.totalRecords;
     const maxUsers = businessConfig?.effective_max_users ?? null;
     const atUserLimit = maxUsers !== null && total >= maxUsers;
 
-    const pageSize = [10, 20, 50];
-
     return {
-        users: data?.data ?? [],
+        tableProps,
         total,
         maxUsers,
         atUserLimit,
-        page,
-        limit,
-        pageSize,
         search,
-        isLoading,
-        isFetching,
         refetch,
-        setPage,
-        setLimit,
         setSearch,
         editingUser,
         setEditingUser,

@@ -5,19 +5,22 @@ import { useIndexErrorLogs, usePruneErrorLogs } from "@/services/useErrorLogsSer
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { IErrorLog } from "@/models/IErrorLog";
-import { useClampPage } from "@/hooks/useClampPage";
+import { useServerTable } from "@/hooks/useServerTable";
 
 const DEFAULT_PRUNE_DAYS = 90;
+const DEFAULT_LIMIT = 20;
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export const useErrorLogsPage = () => {
-    const [page, setPage]           = useState(1);
-    const [limit, setLimit]         = useState(20);
     const [source, setSource]       = useState<"" | "frontend" | "backend">("");
     const [selectedLog, setSelectedLog] = useState<IErrorLog | null>(null);
 
-    const { data, isLoading, isFetching, refetch } = useIndexErrorLogs({ page, limit, source });
-
-    useClampPage({ page, total: data?.total, limit, isFetching, setPage });
+    const { tableProps, refetch } = useServerTable({
+        service: useIndexErrorLogs,
+        params: { source },
+        defaultLimit: DEFAULT_LIMIT,
+        pageSizeOptions: PAGE_SIZE_OPTIONS,
+    });
     const { mutateAsync: pruneLogs, isPending: isPruning } = usePruneErrorLogs();
 
     const handlePrune = async () => {
@@ -37,7 +40,6 @@ export const useErrorLogsPage = () => {
         try {
             const res = await pruneLogs(DEFAULT_PRUNE_DAYS);
             toast.success(`Se eliminaron ${res.data.deleted} registro(s).`);
-            setPage(1);
             refetch();
         } catch (error) {
             logUnexpectedError(error, "useErrorLogsPage.handlePrune");
@@ -45,27 +47,11 @@ export const useErrorLogsPage = () => {
         }
     };
 
-    const records      = data?.data ?? [];
-    const totalRecords = data?.total ?? 0;
-    const perPage      = data?.per_page ?? limit;
-
-    const handleSourceChange = (value: "" | "frontend" | "backend") => {
-        setSource(value);
-        setPage(1);
-    };
-
     return {
-        records,
-        totalRecords,
-        perPage,
-        page,
-        setPage,
-        limit,
-        setLimit,
+        tableProps,
+        totalRecords: tableProps.totalRecords,
         source,
-        handleSourceChange,
-        isLoading,
-        isFetching,
+        handleSourceChange: setSource,
         refetch,
         selectedLog,
         openDetail:  (log: IErrorLog) => setSelectedLog(log),

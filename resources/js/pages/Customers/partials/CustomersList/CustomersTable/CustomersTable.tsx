@@ -1,24 +1,16 @@
 import { useMemo } from "react";
 import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { ICustomer } from "@/models/ICustomer";
+import { IServerTableProps } from "@/hooks/useServerTable";
 import { buildCustomerColumns } from "./customerColumns";
 
 interface CustomersTableProps {
-    customers: ICustomer[];
-    total: number;
-    page: number;
-    limit: number;
-    pageSizes: number[];
-    isFetching: boolean;
+    tableProps: IServerTableProps<ICustomer>;
     showLayaways: boolean;
-    onPageChange: (page: number) => void;
-    onLimitChange: (limit: number) => void;
     onEdit: (customer: ICustomer) => void;
 }
 
-export const CustomersTable = ({
-    customers, total, page, limit, pageSizes, isFetching, showLayaways, onPageChange, onLimitChange, onEdit,
-}: CustomersTableProps) => {
+export const CustomersTable = ({ tableProps, showLayaways, onEdit }: CustomersTableProps) => {
     const columns = useMemo(() => buildCustomerColumns({ onEdit, showLayaways }), [onEdit, showLayaways]);
 
     return (
@@ -26,15 +18,8 @@ export const CustomersTable = ({
             <div className="p-4">
                 <CustomDataTable<ICustomer>
                     columns={columns}
-                    records={customers}
-                    isFetching={isFetching}
+                    {...tableProps}
                     fetchingText="Cargando clientes..."
-                    page={page}
-                    recordsPerPage={limit}
-                    totalRecords={total}
-                    onPageChange={onPageChange}
-                    recordsPerPageOptions={pageSizes}
-                    onRecordsPerPageChange={onLimitChange}
                     noRecordsText="No hay clientes registrados"
                 />
             </div>

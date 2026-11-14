@@ -1,9 +1,10 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useInfiniteIndexProducts } from "@/services/useProductService";
 import { useCategoryList } from "@/services/useCategoriesService";
 import { useAxios } from "@/hooks/useAxios";
 import { IProduct } from "@/models/IProduct";
 import { IconSourceEnum } from "@/enums/IconSourceEnum";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export type CategoryOption = {
     id?: number;
@@ -17,14 +18,9 @@ const DEBOUNCE_MS = 350;
 
 export const useProductGrid = () => {
     const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const debouncedSearch = useDebouncedValue(search, DEBOUNCE_MS);
     const [activeCategory, setActiveCategoryName] = useState("TODOS");
     const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
-
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(search), DEBOUNCE_MS);
-        return () => clearTimeout(timer);
-    }, [search]);
 
     const { data: categoriesData } = useCategoryList();
 

@@ -29,18 +29,12 @@ import { useAxios } from "@/hooks/useAxios";
 
 export default function ProductsPage() {
     const {
-        products,
+        tableProps,
         total,
-        page,
-        limit,
-        pageSize,
-        isFetching,
         categories,
         categoryId,
         search,
         lowStockOnly,
-        setPage,
-        setLimit,
         refetch,
         handleCategoryChange,
         handleSearchChange,
@@ -329,7 +323,7 @@ export default function ProductsPage() {
                                 categories={categories}
                                 selected={categoryId}
                                 onChange={handleCategoryChange}
-                                loading={isFetching}
+                                loading={tableProps.isFetching}
                             />
                         </>
                     )}
@@ -343,15 +337,8 @@ export default function ProductsPage() {
                 <div className="p-4">
                     <CustomDataTable<IProduct>
                         columns={columns}
-                        records={products}
-                        isFetching={isFetching}
+                        {...tableProps}
                         fetchingText="Cargando productos..."
-                        page={page}
-                        recordsPerPage={limit}
-                        totalRecords={total}
-                        onPageChange={setPage}
-                        recordsPerPageOptions={pageSize}
-                        onRecordsPerPageChange={setLimit}
                         rowClassName={(p) => (isProductRowLowStock(p) ? "!bg-red-100" : undefined)}
                         rowExpansion={{
                             allowMultiple: true,

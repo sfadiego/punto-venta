@@ -1,21 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { IProduct } from "@/models/IProduct";
 import { useIndexProducts } from "@/services/useProductService";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 // Sub-hook del combobox de producto (ProductAutocomplete) usado para filtrar el Kardex —
 // separado de useInventoryPage porque es un dominio propio (búsqueda/selección de producto),
 // distinto de la paginación y los filtros de tipo/razón/fecha del listado. No se importa
 // directo desde InventoryPage: useInventoryPage lo orquesta y re-exporta.
-export const useKardexProductFilter = (onSelectionChange: () => void) => {
+export const useKardexProductFilter = () => {
     const [query, setQuery] = useState("");
-    const [debouncedQuery, setDebouncedQuery] = useState("");
+    const debouncedQuery = useDebouncedValue(query);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [productId, setProductId] = useState<number | null>(null);
-
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedQuery(query), 400);
-        return () => clearTimeout(timer);
-    }, [query]);
 
     const { data: productsPage } = useIndexProducts({
         nombre: debouncedQuery || undefined,
@@ -30,20 +26,17 @@ export const useKardexProductFilter = (onSelectionChange: () => void) => {
         setQuery(value);
         setProductId(null);
         setIsDropdownOpen(true);
-        onSelectionChange();
     };
 
     const selectProduct = (selected: IProduct) => {
         setQuery(selected.nombre);
         setProductId(selected.id);
         setIsDropdownOpen(false);
-        onSelectionChange();
     };
 
     const clear = () => {
         setQuery("");
         setProductId(null);
-        onSelectionChange();
     };
 
     return {

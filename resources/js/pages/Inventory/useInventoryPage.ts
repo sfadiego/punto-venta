@@ -4,7 +4,7 @@ import { StockMovementReasonEnum } from "@/enums/StockMovementReasonEnum";
 import { REASONS_BY_TYPE } from "@/utils/stockMovementFilters";
 import { useIndexKardex } from "@/services/useKardexService";
 import { useKardexProductFilter } from "./useKardexProductFilter";
-import { useClampPage } from "@/hooks/useClampPage";
+import { useServerTable } from "@/hooks/useServerTable";
 
 const PAGE_SIZE_OPTIONS = [15, 30, 50];
 
@@ -13,26 +13,25 @@ const PAGE_SIZE_OPTIONS = [15, 30, 50];
 // de orden aquí. El filtro por producto es un dominio propio, delegado a
 // useKardexProductFilter (combobox de búsqueda/selección) y compuesto aquí.
 export const useInventoryPage = () => {
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(15);
     const [type, setTypeState] = useState<StockMovementTypeEnum | "">("");
     const [reason, setReasonState] = useState<StockMovementReasonEnum | "">("");
-    const [fechaDesde, setFechaDesdeState] = useState("");
-    const [fechaHasta, setFechaHastaState] = useState("");
+    const [fechaDesde, setFechaDesde] = useState("");
+    const [fechaHasta, setFechaHasta] = useState("");
 
-    const productFilter = useKardexProductFilter(() => setPage(1));
+    const productFilter = useKardexProductFilter();
 
-    const { data, isLoading, isFetching, refetch } = useIndexKardex({
-        page,
-        limit,
-        productId: productFilter.productId,
-        type,
-        reason,
-        fechaDesde: fechaDesde || undefined,
-        fechaHasta: fechaHasta || undefined,
+    const { tableProps, refetch } = useServerTable({
+        service: useIndexKardex,
+        params: {
+            productId: productFilter.productId,
+            type,
+            reason,
+            fechaDesde: fechaDesde || undefined,
+            fechaHasta: fechaHasta || undefined,
+        },
+        defaultLimit: PAGE_SIZE_OPTIONS[0],
+        pageSizeOptions: PAGE_SIZE_OPTIONS,
     });
-
-    useClampPage({ page, total: data?.total, limit, isFetching, setPage });
 
     // Tipo y razón no son independientes (ver utils/stockMovementFilters.ts) — cada setter
     // sincroniza al otro filtro para que nunca queden en una combinación imposible (ej.
@@ -46,35 +45,14 @@ export const useInventoryPage = () => {
         if (!nextType || (reason && !REASONS_BY_TYPE[nextType].includes(reason))) {
             setReasonState("");
         }
-        setPage(1);
     };
 
-    const setReason = (value: string) => {
-        setReasonState(value as StockMovementReasonEnum | "");
-        setPage(1);
-    };
-
-    const setFechaDesde = (value: string) => {
-        setFechaDesdeState(value);
-        setPage(1);
-    };
-
-    const setFechaHasta = (value: string) => {
-        setFechaHastaState(value);
-        setPage(1);
-    };
+    const setReason = (value: string) => setReasonState(value as StockMovementReasonEnum | "");
 
     return {
-        movements: data?.data ?? [],
-        total: data?.total ?? 0,
-        page,
-        limit,
-        pageSize: PAGE_SIZE_OPTIONS,
-        isLoading,
-        isFetching,
+        tableProps,
+        total: tableProps.totalRecords,
         refetch,
-        setPage,
-        setLimit,
         type,
         setType,
         reason,

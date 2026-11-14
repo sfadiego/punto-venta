@@ -12,15 +12,9 @@ import { BranchSearch } from "./partials/BranchSearch";
 
 export default function BranchesPage() {
     const {
-        branches,
+        tableProps,
         total,
-        page,
-        limit,
-        pageSize,
-        isFetching,
         refetch,
-        setPage,
-        setLimit,
         search,
         handleSearchChange,
         isFormModalOpen,
@@ -126,15 +120,8 @@ export default function BranchesPage() {
                 <div className="p-4">
                     <CustomDataTable<IBranch>
                         columns={columns}
-                        records={branches}
-                        isFetching={isFetching}
+                        {...tableProps}
                         fetchingText="Cargando sucursales..."
-                        page={page}
-                        recordsPerPage={limit}
-                        totalRecords={total}
-                        onPageChange={setPage}
-                        recordsPerPageOptions={pageSize}
-                        onRecordsPerPageChange={setLimit}
                         noRecordsText="No hay sucursales registradas"
                         rowClassName={(branch) => (!branch.active ? "!bg-red-50" : undefined)}
                     />

@@ -12,15 +12,9 @@ import { ProviderTableActions } from "./partials/ProviderTableActions";
 
 export default function ProvidersPage() {
     const {
-        providers,
+        tableProps,
         total,
-        page,
-        limit,
-        pageSize,
-        isFetching,
         refetch,
-        setPage,
-        setLimit,
         search,
         setSearch,
         active,
@@ -132,15 +126,8 @@ export default function ProvidersPage() {
                 <div className="p-4">
                     <CustomDataTable<IProvider>
                         columns={columns}
-                        records={providers}
-                        isFetching={isFetching}
+                        {...tableProps}
                         fetchingText="Cargando proveedores..."
-                        page={page}
-                        recordsPerPage={limit}
-                        totalRecords={total}
-                        onPageChange={setPage}
-                        recordsPerPageOptions={pageSize}
-                        onRecordsPerPageChange={setLimit}
                         noRecordsText="No hay proveedores registrados"
                     />
                 </div>

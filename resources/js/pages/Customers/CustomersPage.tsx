@@ -20,15 +20,8 @@ export default function CustomersPage() {
             <CustomersFilters filters={filters} showLayaways={showLayaways} />
 
             <CustomersTable
-                customers={list.customers}
-                total={list.total}
-                page={list.page}
-                limit={list.limit}
-                pageSizes={list.pageSizes}
-                isFetching={list.isFetching}
+                tableProps={list.tableProps}
                 showLayaways={showLayaways}
-                onPageChange={list.setPage}
-                onLimitChange={list.setLimit}
                 onEdit={modals.edit.start}
             />
 

@@ -1,45 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateCategoryQueries, useIndexCategoriesPaginated } from "@/services/useCategoriesService";
 import { ICategory } from "@/models/ICategory";
+import { useServerTable } from "@/hooks/useServerTable";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export const useCategoriesPage = () => {
     const queryClient = useQueryClient();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<ICategory | null>(null);
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
     const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const debouncedSearch = useDebouncedValue(search);
 
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(search), 400);
-        return () => clearTimeout(timer);
-    }, [search]);
-
-    const { data, isLoading, isFetching, refetch } = useIndexCategoriesPaginated({
-        page,
-        limit,
-        search: debouncedSearch || undefined,
+    const { tableProps, refetch } = useServerTable({
+        service: useIndexCategoriesPaginated,
+        params: { search: debouncedSearch || undefined },
     });
-
-    const handleSearchChange = (value: string) => {
-        setSearch(value);
-        setPage(1);
-    };
-
-    // If the current page is empty after a deletion and we're not on page 1, go back
-    useEffect(() => {
-        if (!isLoading && data?.data?.length === 0 && page > 1) {
-            setPage((p) => p - 1);
-        }
-    }, [data, isLoading, page]);
 
     const invalidateCategories = () => {
         void invalidateCategoryQueries(queryClient);
     };
-
-    const pageSize = [10, 20, 50];
 
     const handleCloseModal = () => setIsModalOpen(false);
 
@@ -54,18 +34,11 @@ export const useCategoriesPage = () => {
     };
 
     return {
-        categories: data?.data ?? [],
-        total: data?.total ?? 0,
-        page,
-        limit,
-        pageSize,
-        isLoading,
-        isFetching,
+        tableProps,
+        total: tableProps.totalRecords,
         refetch,
-        setPage,
-        setLimit,
         search,
-        handleSearchChange,
+        handleSearchChange: setSearch,
         isModalOpen,
         editingCategory,
         openAddModal,

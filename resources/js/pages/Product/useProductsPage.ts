@@ -2,11 +2,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { useIndexProducts } from "@/services/useProductService";
 import { useIndexCategories } from "@/services/useCategoriesService";
-import { useClampPage } from "@/hooks/useClampPage";
+import { useServerTable } from "@/hooks/useServerTable";
 import { useProductFilters } from "./useProductFilters";
 import { useProductModalState } from "./useProductModalState";
-
-const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 // Compone los filtros (useProductFilters) y el estado del modal (useProductModalState), y
 // agrega la query de productos/categorías + la invalidación tras guardar un producto.
@@ -15,22 +13,15 @@ export const useProductsPage = () => {
     const filters = useProductFilters();
     const modalState = useProductModalState();
 
-    const { data, isFetching, refetch } = useIndexProducts({
-        page: filters.page,
-        limit: filters.limit,
-        categoria_id: filters.categoryId,
-        nombre: filters.debouncedSearch || undefined,
-        low_stock: filters.lowStockOnly,
+    const { tableProps, refetch } = useServerTable({
+        service: useIndexProducts,
+        params: {
+            categoria_id: filters.categoryId,
+            nombre: filters.debouncedSearch || undefined,
+            low_stock: filters.lowStockOnly,
+        },
     });
     const { data: categories } = useIndexCategories();
-
-    useClampPage({
-        page: filters.page,
-        total: data?.total,
-        limit: filters.limit,
-        isFetching,
-        setPage: filters.setPage,
-    });
 
     const invalidateProducts = () => {
         queryClient.invalidateQueries({ queryKey: [ApiRoutes.Product] });
@@ -41,18 +32,12 @@ export const useProductsPage = () => {
     };
 
     return {
-        products: data?.data ?? [],
-        total: data?.total ?? 0,
-        page: filters.page,
-        limit: filters.limit,
-        pageSize: PAGE_SIZE_OPTIONS,
-        isFetching,
+        tableProps,
+        total: tableProps.totalRecords,
         categories: categories ?? [],
         categoryId: filters.categoryId,
         search: filters.search,
         lowStockOnly: filters.lowStockOnly,
-        setPage: filters.setPage,
-        setLimit: filters.setLimit,
         refetch,
         handleCategoryChange: filters.handleCategoryChange,
         handleSearchChange: filters.handleSearchChange,

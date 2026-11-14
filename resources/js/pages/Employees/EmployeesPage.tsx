@@ -10,15 +10,9 @@ import { PayrollSummaryCard } from "./partials/PayrollSummaryCard";
 
 export default function EmployeesPage() {
     const {
-        employees,
+        tableProps,
         total,
-        page,
-        limit,
-        pageSize,
-        isFetching,
         refetch,
-        setPage,
-        setLimit,
         search,
         setSearch,
         active,
@@ -47,14 +41,7 @@ export default function EmployeesPage() {
             <EmployeesFilters search={search} onSearchChange={setSearch} active={active} onActiveChange={setActive} />
 
             <EmployeesTable
-                employees={employees}
-                isFetching={isFetching}
-                page={page}
-                limit={limit}
-                pageSize={pageSize}
-                total={total}
-                onPageChange={setPage}
-                onLimitChange={setLimit}
+                tableProps={tableProps}
                 onEdit={openEditModal}
                 onAddAbsence={absenceQuickAdd.openFor}
             />

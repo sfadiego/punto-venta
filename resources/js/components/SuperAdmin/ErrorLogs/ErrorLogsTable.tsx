@@ -2,8 +2,7 @@ import type { DataTableColumn } from "mantine-datatable";
 import { CustomDataTable } from "@/components/Tables/CustomDataTable";
 import { Eye } from "lucide-react";
 import { IErrorLog } from "@/models/IErrorLog";
-
-const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+import { IServerTableProps } from "@/hooks/useServerTable";
 
 const METHOD_COLORS: Record<string, string> = {
     GET:    "bg-sky-100 text-sky-700",
@@ -20,28 +19,11 @@ const SOURCE_COLORS: Record<string, string> = {
 };
 
 interface ErrorLogsTableProps {
-    records: IErrorLog[];
-    totalRecords: number;
-    page: number;
-    perPage: number;
-    limit: number;
-    onPageChange: (page: number) => void;
-    onLimitChange: (limit: number) => void;
+    tableProps: IServerTableProps<IErrorLog>;
     onViewDetail: (log: IErrorLog) => void;
-    isFetching: boolean;
 }
 
-export const ErrorLogsTable = ({
-    records,
-    totalRecords,
-    page,
-    perPage,
-    limit: _limit,
-    onPageChange,
-    onLimitChange,
-    onViewDetail,
-    isFetching,
-}: ErrorLogsTableProps) => {
+export const ErrorLogsTable = ({ tableProps, onViewDetail }: ErrorLogsTableProps) => {
     const columns: DataTableColumn<IErrorLog>[] = [
         {
             accessor: "id",
@@ -154,18 +136,11 @@ export const ErrorLogsTable = ({
 
     return (
         <CustomDataTable<IErrorLog>
-            records={records}
+            {...tableProps}
             columns={columns}
-            isFetching={isFetching}
             fetchingText="Cargando errores..."
             className=""
             classNames={{}}
-            page={page}
-            recordsPerPage={perPage}
-            totalRecords={totalRecords}
-            onPageChange={onPageChange}
-            recordsPerPageOptions={PAGE_SIZE_OPTIONS}
-            onRecordsPerPageChange={onLimitChange}
             noRecordsText="Sin errores registrados"
             withTableBorder
             borderRadius="md"

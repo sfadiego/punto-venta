@@ -3,11 +3,20 @@
 namespace Tests\Catalog;
 
 use App\Enums\IconSourceEnum;
+use App\Models\BusinessConfigModel;
 use App\Models\CategoryModel;
 use Tests\TestCase;
 
 class CategoryTest extends TestCase
 {
+    private function crearCategoria(string $nombre, ?int $tenantId = null): CategoryModel
+    {
+        return CategoryModel::factory()->create([
+            CategoryModel::NOMBRE => $nombre,
+            CategoryModel::TENANT_ID => $tenantId ?? BusinessConfigModel::first()->id,
+        ]);
+    }
+
     // ── Index ────────────────────────────────────────────────
 
     public function test_lista_categorias_paginada(): void
@@ -16,6 +25,97 @@ class CategoryTest extends TestCase
         $this->getJson('/api/category?page=1&limit=5', $this->authHeaders())
             ->assertStatus(206)
             ->assertJsonStructure(['current_page', 'data', 'total', 'per_page']);
+    }
+
+    // ── Index: búsqueda ──────────────────────────────────────
+
+    public function test_busca_categoria_por_nombre(): void
+    {
+        $this->crearCategoria('Alpha Xyzzy');
+        $this->crearCategoria('Beta Xyzzy');
+
+        $response = $this->getJson('/api/category?search=Alpha Xyzzy&limit=100', $this->authHeaders())
+            ->assertStatus(206);
+
+        $this->assertSame(['Alpha Xyzzy'], array_column($response->json('data'), 'nombre'));
+        $this->assertSame(1, $response->json('total'));
+    }
+
+    public function test_busqueda_de_categoria_es_parcial_y_no_distingue_mayusculas(): void
+    {
+        $this->crearCategoria('Alpha Xyzzy');
+
+        $response = $this->getJson('/api/category?search=lpha XYZ&limit=100', $this->authHeaders())
+            ->assertStatus(206);
+
+        $this->assertSame(['Alpha Xyzzy'], array_column($response->json('data'), 'nombre'));
+    }
+
+    public function test_busqueda_de_categoria_sin_coincidencias_retorna_vacio(): void
+    {
+        $this->crearCategoria('Alpha Xyzzy');
+
+        $response = $this->getJson('/api/category?search=NoExisteJamas&limit=100', $this->authHeaders())
+            ->assertStatus(206);
+
+        $this->assertSame([], $response->json('data'));
+        $this->assertSame(0, $response->json('total'));
+    }
+
+    public function test_lista_de_categorias_sin_search_no_filtra(): void
+    {
+        $this->crearCategoria('Alpha Xyzzy');
+        $this->crearCategoria('Beta Xyzzy');
+
+        $response = $this->getJson('/api/category?limit=100', $this->authHeaders())
+            ->assertStatus(206);
+
+        $nombres = array_column($response->json('data'), 'nombre');
+        $this->assertContains('Alpha Xyzzy', $nombres);
+        $this->assertContains('Beta Xyzzy', $nombres);
+    }
+
+    public function test_busqueda_de_categoria_respeta_la_paginacion(): void
+    {
+        foreach (['Gamma Xyzzy 1', 'Gamma Xyzzy 2', 'Gamma Xyzzy 3'] as $nombre) {
+            $this->crearCategoria($nombre);
+        }
+
+        $response = $this->getJson('/api/category?search=Gamma Xyzzy&limit=2&page=2', $this->authHeaders())
+            ->assertStatus(206);
+
+        $this->assertSame(3, $response->json('total'));
+        $this->assertSame(2, $response->json('current_page'));
+        $this->assertCount(1, $response->json('data'));
+    }
+
+    public function test_busqueda_de_categoria_no_incluye_categorias_de_otro_tenant(): void
+    {
+        $this->crearCategoria('Alpha Xyzzy');
+
+        $tenantB = BusinessConfigModel::create([
+            BusinessConfigModel::SLUG => 'tenant-b-'.uniqid(),
+            BusinessConfigModel::ACTIVO => true,
+            BusinessConfigModel::BUSINESS_NAME => 'Tenant B',
+            BusinessConfigModel::PRIMARY_COLOR => '#F59E0B',
+            BusinessConfigModel::SIDEBAR_COLOR => '#1C1917',
+            BusinessConfigModel::FONT_COLOR => '#FFFFFF',
+            BusinessConfigModel::LABEL_COLOR => '#1C1917',
+            BusinessConfigModel::SUBSCRIPTION_PLAN => 'lifetime',
+        ]);
+        $this->crearCategoria('Alpha Xyzzy Ajena', $tenantB->id);
+
+        $response = $this->getJson('/api/category?search=Xyzzy&limit=100', $this->authHeaders())
+            ->assertStatus(206);
+
+        $this->assertSame(['Alpha Xyzzy'], array_column($response->json('data'), 'nombre'));
+        $this->assertSame(1, $response->json('total'));
+    }
+
+    public function test_busqueda_de_categoria_requiere_autenticacion(): void
+    {
+        $this->getJson('/api/category?search=Alpha')
+            ->assertStatus(401);
     }
 
     // ── Store ────────────────────────────────────────────────

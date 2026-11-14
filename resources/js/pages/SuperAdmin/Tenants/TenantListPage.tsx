@@ -12,15 +12,8 @@ import { SelectTenantFilter } from "./partials/SelectTenantFilter";
 export default function TenantListPage() {
     const navigate = useNavigate();
     const {
-        records,
-        totalRecords,
-        perPage,
-        page,
-        setPage,
-        limit,
-        setLimit,
+        tableProps,
         allTenants,
-        isFetching,
         isRefetching,
         refetch,
         status,
@@ -80,14 +73,7 @@ export default function TenantListPage() {
                 </div>
 
                 <TenantsTable
-                    records={records}
-                    totalRecords={totalRecords}
-                    page={page}
-                    perPage={perPage}
-                    limit={limit}
-                    isFetching={isFetching}
-                    onPageChange={setPage}
-                    onLimitChange={setLimit}
+                    tableProps={tableProps}
                     onEdit={(tenant) => navigate(SuperAdminRoutes.EditTenant.replace(":id", String(tenant.id)))}
                     onToggle={handleToggle}
                     onRestore={handleRestore}

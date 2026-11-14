@@ -4,7 +4,7 @@ import { DataTableColumn } from "mantine-datatable";
 import { Plus, RefreshCw } from "lucide-react";
 import { ICategory } from "@/models/ICategory";
 import { CatalogIcon } from "@/components/ui/CatalogIcon";
-import { CategorySearch } from "./partials/CategorySearch";
+import { SearchInput } from "@/components/ui/form/SearchInput";
 import { RoleEnum } from "@/enums/RoleEnum";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useCategoriesPage } from "./useCategoriesPage";
@@ -16,15 +16,9 @@ export default function CategoriesPage() {
     const { hasRole } = usePermissions();
     const isAdmin = hasRole(RoleEnum.Admin);
     const {
-        categories,
+        tableProps,
         total,
-        page,
-        limit,
-        pageSize,
-        isFetching,
         refetch,
-        setPage,
-        setLimit,
         search,
         handleSearchChange,
         isModalOpen,
@@ -118,20 +112,13 @@ export default function CategoriesPage() {
 
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
                 <div className="px-4 pt-4">
-                    <CategorySearch value={search} onChange={handleSearchChange} />
+                    <SearchInput value={search} onChange={handleSearchChange} placeholder="Buscar categoría..." />
                 </div>
                 <div className="p-4">
                     <CustomDataTable<ICategory>
                         columns={columns}
-                        records={categories}
-                        isFetching={isFetching}
+                        {...tableProps}
                         fetchingText="Cargando categorías..."
-                        page={page}
-                        recordsPerPage={limit}
-                        totalRecords={total}
-                        onPageChange={setPage}
-                        recordsPerPageOptions={pageSize}
-                        onRecordsPerPageChange={setLimit}
                         noRecordsText="No hay categorías registradas"
                     />
                 </div>
