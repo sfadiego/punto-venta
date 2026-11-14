@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { useUpdateOrder } from "@/services/useOrderService";
+import { invalidateOrderPaymentQueries, useUpdateOrder } from "@/services/useOrderService";
 import { useIndexPaymentMethods } from "@/services/usePaymentMethodService";
 import { useCustomerList } from "@/services/useCustomerService";
 import { useCashDrawer } from "@/components/orders/PrintTicket/useCashDrawer";
@@ -9,11 +9,8 @@ import { useAxios } from "@/hooks/useAxios";
 import { logUnexpectedError } from "@/plugins/logger.plugin";
 import { getUserFacingErrorMessage } from "@/utils/axiosError";
 import { OrderStatusEnum } from "@/enums/OrderStatusEnum";
-import { ApiRoutes } from "@/enums/ApiRoutesEnum";
 import { IOrder } from "@/models/IOrder";
 import { resolveDefaultPaymentMethodId, canPayOrder } from "@/utils/paymentMethods";
-import { invalidateSalesByCategory } from "@/services/useSalesByCategoryService";
-import { invalidateStatistics } from "@/services/useStatisticsService";
 
 export const useSaleQuickPay = (order: IOrder) => {
     const queryClient = useQueryClient();
@@ -57,23 +54,11 @@ export const useSaleQuickPay = (order: IOrder) => {
                 estatus_pedido_id: OrderStatusEnum.Closed,
                 ...paymentData,
             });
-            queryClient.invalidateQueries({ queryKey: [ApiRoutes.Orders] });
-            queryClient.invalidateQueries({ queryKey: ["orders-infinite"] });
-            queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/list`] });
-            if (sistemaId) {
-                queryClient.invalidateQueries({
-                    queryKey: [`${ApiRoutes.System}/${sistemaId}/total-current-sales`],
-                });
-            }
-            invalidateSalesByCategory(queryClient);
-            invalidateStatistics(queryClient);
-            // Venta a crédito: el backend ya incrementó el balance del cliente, pero su
-            // página de detalle (useShowCustomer) no tiene staleTime propio — hereda el
-            // default global de 2 min y se queda con el balance viejo si no se invalida.
-            if (isCreditMode && selectedCustomerId) {
-                queryClient.invalidateQueries({ queryKey: [`${ApiRoutes.Customer}/${selectedCustomerId}`] });
-                queryClient.invalidateQueries({ queryKey: [ApiRoutes.Customer] });
-            }
+            invalidateOrderPaymentQueries(queryClient, {
+                orderId: order.id,
+                sistemaId,
+                customerId: isCreditMode ? selectedCustomerId : null,
+            });
             toast.success(isCreditMode ? "Venta a crédito registrada correctamente" : "Orden cerrada exitosamente");
             if (isCashMethod && !isCreditMode) void openCashDrawer();
             closePayModal();

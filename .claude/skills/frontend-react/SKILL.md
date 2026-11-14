@@ -176,6 +176,7 @@ Al dividir:
 - Los servicios van en `services/useXxxService.ts`; cada archivo agrupa un recurso.
 - No usar Zustand. Solo TanStack Query para estado del servidor.
 - Invalidar queries con `queryClient.invalidateQueries` tras mutaciones.
+- Mutaciones que tocan varios recursos (stock, caja, clientes, reportes) tienen un helper en el service y se invalidan solo con él, nunca con una lista propia en el hook: cobrar una orden → `invalidateOrderPaymentQueries`, devolución → `invalidateOrderReturnQueries`, apartado → `invalidateLayawayQueries`. Un flujo de cobro nuevo debe llamar al helper; si necesita invalidar algo más, se agrega al helper.
 - Cuando una mutación necesita un ID dinámico **en la URL** (no solo en el body), usar `useMutation` + `axiosPUT` / `axiosDELETE` directamente dentro del service, ya que `usePUT`/`useDELETE` fijan la URL en el momento de la llamada al hook.
 
 ### typescript
