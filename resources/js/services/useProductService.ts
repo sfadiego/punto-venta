@@ -32,6 +32,7 @@ export const useIndexProducts = ({
             ...(low_stock ? { low_stock: 1 } : {}),
         },
         enable: enabled,
+        keepPreviousData: true,
     });
 const PRODUCT_PAGE_SIZE = 24;
 
@@ -54,6 +55,7 @@ export const useInfiniteIndexProducts = ({
                     page: pageParam as number,
                     limit: PRODUCT_PAGE_SIZE,
                     order: "asc",
+                    catalog: 1,
                     ...(nombre ? { nombre } : {}),
                     ...(categoria_id ? { categoria_id } : {}),
                     ...(branch_id ? { branch_id } : {}),

@@ -9,6 +9,7 @@ import {
 } from "./../intefaces/IAxiosProps";
 import { ApisEnum } from "@/configs/apisEnum";
 import {
+    keepPreviousData,
     useMutation,
     UseMutationResult,
     useQuery,
@@ -97,6 +98,7 @@ export function useGET<Response>({
     responseType = "json",
     customHost,
     staleTime,
+    keepPreviousData: keepPrevious = false,
 }: IUseGETProps): UseQueryResult<Response> {
     const { axiosApi } = useAxios();
     return useQuery({
@@ -113,6 +115,7 @@ export function useGET<Response>({
         enabled: enable,
         refetchOnWindowFocus: false,
         ...(staleTime !== undefined ? { staleTime } : {}),
+        ...(keepPrevious ? { placeholderData: keepPreviousData } : {}),
     });
 }
 
