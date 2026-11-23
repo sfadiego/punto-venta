@@ -145,8 +145,7 @@ export const useTenantForm = (tenantId?: number) => {
                     });
                     toast.success("Cliente actualizado.");
                 } else {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    await createMutation.mutateAsync({ ...values, amount: values.is_trial || values.amount === null ? null : Number(values.amount) } as any);
+                    await createMutation.mutateAsync({ ...values, amount: values.is_trial || values.amount === null ? null : Number(values.amount) });
                     toast.success("Cliente creado correctamente.");
                 }
                 navigate(SuperAdminRoutes.Tenants);

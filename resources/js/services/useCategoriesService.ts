@@ -21,6 +21,8 @@ export const useIndexCategories = (search = "") => {
         url,
         nameQuery: `${url}/all`,
         filters: { limit: 1000, page: 1, ...(search ? { search } : {}) },
+        // Cambian poco y invalidateCategoryQueries las refresca al crear/editar/borrar.
+        staleTime: Infinity,
     });
     return { ...query, data: query.data?.data ?? [] };
 };

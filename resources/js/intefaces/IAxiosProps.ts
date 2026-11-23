@@ -29,6 +29,8 @@ export interface IUseGETProps {
     customHost?: typeof ApisEnum[keyof typeof ApisEnum];
     /** Milisegundos que el dato se considera fresco; 0 = siempre vuelve a pedirse al montar. Por defecto, el global (2 min). */
     staleTime?: number;
+    /** Mantiene visibles los datos anteriores mientras llega otra página/filtro (evita el parpadeo de las tablas). */
+    keepPreviousData?: boolean;
 }
 
 export interface IUseGETMutation {

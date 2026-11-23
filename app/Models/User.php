@@ -172,11 +172,6 @@ class User extends Authenticatable
         ];
     }
 
-    public static function generateAccessToken($user)
-    {
-        return $user->issueAccessToken()->plainTextToken;
-    }
-
     public function issueAccessToken(): NewAccessToken
     {
         $token = $this->createToken('access_token');

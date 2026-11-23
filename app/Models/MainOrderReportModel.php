@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class MainOrderReportModel extends Model
 {
@@ -67,7 +68,7 @@ class MainOrderReportModel extends Model
         self::CLOSED_AT => 'datetime',
     ];
 
-    public function orders()
+    public function orders(): HasMany
     {
         return $this->hasMany(OrderModel::class, 'sistema_id');
     }
@@ -82,21 +83,9 @@ class MainOrderReportModel extends Model
         return $this->hasMany(ExpenseModel::class, 'sistema_id');
     }
 
-    public function user()
+    public function user(): HasOne
     {
         return $this->hasOne(User::class, 'id', 'user_id');
-    }
-
-    public function updateCurrentSales()
-    {
-        $totalSales = $this->totalSalesByDay();
-        $currentTotal = $this->efectivo_caja_inicio;
-        $this->update([
-            'efectivo_caja_cierre' => $currentTotal,
-            'venta_dia' => $totalSales,
-        ]);
-
-        return $this->refresh();
     }
 
     /**

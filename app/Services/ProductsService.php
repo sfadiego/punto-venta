@@ -29,7 +29,12 @@ class ProductsService extends DataTable
 
     public function makeQuery(): Builder
     {
-        $query = $this->model->newQuery()->with(['category', 'variants', 'branches', 'addons']);
+        // catalog=1 (catálogo de venta: TakeOrder/QuickSale) solo necesita variantes y toppings
+        // para pintar la tarjeta; category y branches solo los usa la administración de productos.
+        $relations = request()->boolean('catalog')
+            ? ['variants', 'addons']
+            : ['category', 'variants', 'branches', 'addons'];
+        $query = $this->model->newQuery()->with($relations);
 
         $nombre = request()->query('nombre');
         $categoriaId = request()->query('categoria_id');

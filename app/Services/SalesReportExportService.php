@@ -6,6 +6,7 @@ use App\Enums\OrderStatusEnum;
 use App\Models\OrderModel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class SalesReportExportService
@@ -94,7 +95,7 @@ class SalesReportExportService
             ->get();
     }
 
-    private function closedOrdersQuery(?int $sistemaId, ?string $date, ?string $week, ?string $month)
+    private function closedOrdersQuery(?int $sistemaId, ?string $date, ?string $week, ?string $month): Builder
     {
         $query = OrderModel::query()
             ->where(OrderModel::ESTATUS_PEDIDO_ID, OrderStatusEnum::CLOSED->value);
