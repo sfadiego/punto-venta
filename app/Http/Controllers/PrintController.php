@@ -20,13 +20,14 @@ use App\Printer\Interface\TicketFormatterInterface;
 use App\Printer\Service\PrinterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Throwable;
 
 class PrintController extends Controller
 {
-    public function print(OrderModel $order, Request $request)
+    public function print(OrderModel $order, Request $request): JsonResponse
     {
         try {
             $tenant = $request->user()->tenant;
@@ -41,7 +42,7 @@ class PrintController extends Controller
     }
 
     /** Imprime en el servidor el comprobante de una devolución de la orden (ruta de impresión CUPS/red). */
-    public function printReturn(OrderModel $order, OrderReturnModel $orderReturn, Request $request)
+    public function printReturn(OrderModel $order, OrderReturnModel $orderReturn, Request $request): JsonResponse
     {
         try {
             $tenant = $request->user()->tenant;
@@ -55,7 +56,7 @@ class PrintController extends Controller
     }
 
     /** Bytes ESC/POS del comprobante de devolución, para el agente local o la impresora Bluetooth. */
-    public function returnRawBytes(OrderModel $order, OrderReturnModel $orderReturn, Request $request)
+    public function returnRawBytes(OrderModel $order, OrderReturnModel $orderReturn, Request $request): HttpResponse|JsonResponse
     {
         try {
             $connector = new BufferConnector($request->user()->tenant);
@@ -76,7 +77,7 @@ class PrintController extends Controller
     /**
      * Genera un ticket de prueba ESC/POS y retorna los bytes crudos.
      */
-    public function testBytes(Request $request)
+    public function testBytes(Request $request): HttpResponse|JsonResponse
     {
         try {
             $tenant = $request->user()->tenant;
@@ -99,7 +100,7 @@ class PrintController extends Controller
      * Genera el ticket ESC/POS y retorna los bytes crudos para que el
      * agente local WebSocket los envíe directamente a la impresora USB.
      */
-    public function rawBytes(OrderModel $order, Request $request)
+    public function rawBytes(OrderModel $order, Request $request): HttpResponse|JsonResponse
     {
         try {
             $tenant = $request->user()->tenant;
@@ -123,7 +124,7 @@ class PrintController extends Controller
      * Abre el cajón de dinero por la impresora del servidor (ruta CUPS/red). Se llama solo al cobrar
      * una orden en efectivo — nunca al imprimir un ticket — y solo si el negocio lo activó.
      */
-    public function openCashDrawer(Request $request)
+    public function openCashDrawer(Request $request): JsonResponse
     {
         $tenant = $request->user()->tenant;
 

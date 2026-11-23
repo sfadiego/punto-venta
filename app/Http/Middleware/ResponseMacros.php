@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Response;
 
 class ResponseMacros
 {
-    public static function register()
+    public static function register(): void
     {
         Response::macro(
             'success',

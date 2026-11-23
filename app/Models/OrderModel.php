@@ -189,7 +189,7 @@ class OrderModel extends Model
         return $this->hasOne(OrderStatusModel::class, 'id', 'estatus_pedido_id');
     }
 
-    public function totalAndSubTotalOrder()
+    public function totalAndSubTotalOrder(): array
     {
         $orderDiscount = $this->descuento ?? 0;
         $orderSubtotal = $this->totalOrderProducts();

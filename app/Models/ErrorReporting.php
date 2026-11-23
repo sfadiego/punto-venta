@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -31,12 +32,12 @@ class ErrorReporting extends Model
         'response_body' => 'array',
     ];
 
-    public function scopeFrontend($query)
+    public function scopeFrontend($query): Builder
     {
         return $query->where('source', 'frontend');
     }
 
-    public function scopeBackend($query)
+    public function scopeBackend($query): Builder
     {
         return $query->where('source', 'backend');
     }
