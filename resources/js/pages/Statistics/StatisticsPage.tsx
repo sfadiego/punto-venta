@@ -38,6 +38,7 @@ export default function StatisticsPage() {
             ) : (
                 <div className="space-y-5">
                     <StatisticsSummaryCards
+                        month={month}
                         cajaAbierta={cajaAbierta}
                         totalVentas={totalVentas}
                         topProduct={topProduct}

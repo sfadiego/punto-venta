@@ -1,12 +1,14 @@
 import { Widget } from "@/components/dashboard/widgets/Widget";
+import { SalesCountWidget } from "@/components/dashboard/widgets/SalesCountWidget";
 import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 import { LayawayDueAlert } from "./partials/LayawayDueAlert/LayawayDueAlert";
 import {
-    Award, ShoppingCart, Package, Landmark,
+    Award, ShoppingCart, Package,
     Lock, Unlock, LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDashboard } from "./useDashboard";
+import { CashStatusBadge } from "./partials/CashStatusBadge/CashStatusBadge";
 import { RecentOrders } from "./partials/RecentOrders/RecentOrders";
 import { RecentSales } from "./partials/RecentSales/RecentSales";
 import { NewOrderButton } from "@/components/orders/NewOrder/NewOrderButton";
@@ -16,6 +18,7 @@ import { OpenSalesModal } from "./partials/OpenSalesModal/OpenSalesModal";
 import { useOpenSalesModal } from "./partials/OpenSalesModal/useOpenSalesModal";
 import { AdminRoutes } from "@/enums/RoutesEnum";
 import { usePermissions } from "@/hooks/usePermissions";
+import { currentMonthString } from "@/utils/dateUtils";
 import { IOrder } from "@/models/IOrder";
 import { PendingOrdersSection } from "@/components/orders/PendingOrders/PendingOrdersSection";
 import { FeatureSpotlight } from "@/components/ui/interactions/FeatureSpotlight/FeatureSpotlight";
@@ -25,7 +28,6 @@ const ICON_MAP: Record<string, LucideIcon> = {
     Award,
     ShoppingCart,
     Package,
-    Landmark,
 };
 
 export default function DashboardPage() {
@@ -33,7 +35,7 @@ export default function DashboardPage() {
     const { can } = usePermissions();
     const {
         orders, ordersLoading, isFetchingNextPage, hasNextPage, fetchNextPage, sistemaId,
-        sellByWeight, isRetail, stats,
+        sellByWeight, isRetail, ownBranchId, horaApertura, stats,
     } = useDashboard();
 
     const {
@@ -58,6 +60,7 @@ export default function DashboardPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-stone-900">Dashboard</h1>
                     <p className="text-stone-500 text-sm mt-0.5 capitalize">{today}</p>
+                    {cajaAbierta && <CashStatusBadge openedAt={horaApertura} />}
                 </div>
 
                 <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:items-center">
@@ -117,6 +120,11 @@ export default function DashboardPage() {
                         wicon={ICON_MAP[stat.icon]}
                     />
                 ))}
+                {cajaAbierta ? (
+                    <SalesCountWidget sistemaId={sistemaId} branchId={ownBranchId} periodLabel="esta sesión" />
+                ) : (
+                    <SalesCountWidget date={currentMonthString()} branchId={ownBranchId} periodLabel="este mes" />
+                )}
             </div>
             <FeatureSpotlight
                 featureKey={FeatureSpotlightKey.OrderListSection}
