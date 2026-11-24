@@ -1,9 +1,11 @@
 import { TrendingUp, Receipt, Award, DollarSign } from "lucide-react";
+import { SalesCountWidget } from "@/components/dashboard/widgets/SalesCountWidget";
 import { IBestSellerItem } from "@/services/useStatisticsService";
 import { formatTotal } from "@/utils/formatUnits";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
 
 interface StatisticsSummaryCardsProps {
+    month: string;
     cajaAbierta: boolean;
     totalVentas: string;
     topProduct?: IBestSellerItem;
@@ -15,9 +17,9 @@ interface StatisticsSummaryCardsProps {
 }
 
 export const StatisticsSummaryCards = ({
-    cajaAbierta, totalVentas, topProduct, averageTicketLabel, ordersCount, totalReturns, rankingCount,
+    month, cajaAbierta, totalVentas, topProduct, averageTicketLabel, ordersCount, totalReturns, rankingCount,
 }: StatisticsSummaryCardsProps) => (
-    <div className={`grid grid-cols-1 gap-4 ${cajaAbierta ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
+    <div className={`grid grid-cols-1 gap-4 ${cajaAbierta ? "sm:grid-cols-2 lg:grid-cols-5" : "sm:grid-cols-2 lg:grid-cols-4"}`}>
         {cajaAbierta && (
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 flex items-start gap-4">
                 <div className="p-2.5 rounded-xl shrink-0 bg-green-100">
@@ -30,6 +32,8 @@ export const StatisticsSummaryCards = ({
                 </div>
             </div>
         )}
+
+        <SalesCountWidget date={month} periodLabel="este mes" />
 
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 flex items-start gap-4">
             <div className="p-2.5 rounded-xl bg-amber-100 shrink-0">
