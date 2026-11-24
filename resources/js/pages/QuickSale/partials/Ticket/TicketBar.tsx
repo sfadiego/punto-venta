@@ -1,4 +1,5 @@
 import { ChevronUp, Pencil, Banknote, Printer, Loader } from "lucide-react";
+import { SubscriptionBanner } from "@/components/dashboard/SubscriptionBanner";
 import { Input } from "@/components/ui/form/Input";
 import { usePrintTicket } from "@/components/orders/PrintTicket/usePrintTicket";
 import { formatCurrencyTrimmed } from "@/utils/formatCurrency";
@@ -51,6 +52,7 @@ export const TicketBar = () => {
                 </button>
 
                 <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                    <SubscriptionBanner compact />
                     <div className="hidden sm:block">
                         <ScaleReadout
                             isSupported={scaleSupported}
