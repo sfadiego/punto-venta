@@ -7,7 +7,7 @@ import { ActiveUsersBadge } from "@/components/SuperAdmin/Tenants/Users/ActiveUs
 import { InactivityBadge } from "@/components/SuperAdmin/Tenants/Activity/InactivityBadge";
 import { IServerTableProps } from "@/hooks/useServerTable";
 
-const BUSINESS_TYPE_SHORT_LABELS: Record<BusinessTypeEnum, string> = {
+const BUSINESS_TYPE_LABELS: Record<BusinessTypeEnum, string> = {
     [BusinessTypeEnum.Restaurante]:  "Restaurante",
     [BusinessTypeEnum.VentaPorPeso]: "Venta por peso",
     [BusinessTypeEnum.Retail]:       "Tienda",
@@ -35,6 +35,55 @@ export const TenantsTable = ({
     onDelete,
 }: TenantsTableProps) => {
     const columns: DataTableColumn<ITenant>[] = [
+        {
+            accessor: "_acciones",
+            title: "",
+            width: 110,
+            render: (row) => {
+                const isDeleted = !!row.deleted_at;
+                return (
+                    <div className="flex items-center justify-center gap-1">
+                        {isDeleted ? (
+                            <button
+                                onClick={() => onRestore(row)}
+                                title="Restaurar"
+                                className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 transition-colors"
+                            >
+                                <RotateCcw size={16} />
+                            </button>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={() => onToggle(row)}
+                                    title={row.activo ? "Desactivar" : "Activar"}
+                                    className={`p-1.5 rounded-lg transition-colors ${
+                                        row.activo
+                                            ? "hover:bg-amber-50 text-slate-500 hover:text-amber-600"
+                                            : "hover:bg-green-50 text-slate-500 hover:text-green-600"
+                                    }`}
+                                >
+                                    {row.activo ? <PowerOff size={15} /> : <Power size={15} />}
+                                </button>
+                                <button
+                                    onClick={() => onEdit(row)}
+                                    title="Editar"
+                                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-indigo-600 transition-colors"
+                                >
+                                    <Pencil size={16} />
+                                </button>
+                                <button
+                                    onClick={() => onDelete(row)}
+                                    title="Eliminar"
+                                    className="p-1.5 rounded-lg hover:bg-red-50 text-slate-500 hover:text-red-500 transition-colors"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </>
+                        )}
+                    </div>
+                );
+            },
+        },
         {
             accessor: "business_name",
             title: "Cliente",
@@ -108,9 +157,12 @@ export const TenantsTable = ({
                                 Pruebas
                             </span>
                         )}
-                        <span className="flex items-center gap-1 text-xs font-medium px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                            <BusinessTypeIcon size={11} />
-                            {BUSINESS_TYPE_SHORT_LABELS[row.tipo_negocio]}
+                        <span
+                            title={BUSINESS_TYPE_LABELS[row.tipo_negocio]}
+                            aria-label={BUSINESS_TYPE_LABELS[row.tipo_negocio]}
+                            className="flex items-center p-1 rounded-full bg-blue-100 text-blue-700"
+                        >
+                            <BusinessTypeIcon size={12} />
                         </span>
                     </div>
                 );
@@ -131,54 +183,6 @@ export const TenantsTable = ({
             title: "Usuarios",
             width: 90,
             render: (row) => <span className="text-sm text-slate-600">{row.users_count ?? 0}</span>,
-        },
-        {
-            accessor: "_acciones",
-            title: "",
-            render: (row) => {
-                const isDeleted = !!row.deleted_at;
-                return (
-                    <div className="flex items-center gap-1">
-                        {isDeleted ? (
-                            <button
-                                onClick={() => onRestore(row)}
-                                title="Restaurar"
-                                className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 transition-colors"
-                            >
-                                <RotateCcw size={16} />
-                            </button>
-                        ) : (
-                            <>
-                                <button
-                                    onClick={() => onToggle(row)}
-                                    title={row.activo ? "Desactivar" : "Activar"}
-                                    className={`p-1.5 rounded-lg transition-colors ${
-                                        row.activo
-                                            ? "hover:bg-amber-50 text-slate-500 hover:text-amber-600"
-                                            : "hover:bg-green-50 text-slate-500 hover:text-green-600"
-                                    }`}
-                                >
-                                    {row.activo ? <PowerOff size={15} /> : <Power size={15} />}
-                                </button>
-                                <button
-                                    onClick={() => onEdit(row)}
-                                    title="Editar"
-                                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-indigo-600 transition-colors"
-                                >
-                                    <Pencil size={16} />
-                                </button>
-                                <button
-                                    onClick={() => onDelete(row)}
-                                    title="Eliminar"
-                                    className="p-1.5 rounded-lg hover:bg-red-50 text-slate-500 hover:text-red-500 transition-colors"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </>
-                        )}
-                    </div>
-                );
-            },
         },
     ];
 
