@@ -24,11 +24,11 @@ export const InactivityBadge = ({ lastActivityAt }: InactivityBadgeProps) => {
 
     return (
         <span
-            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+            className={`inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded-full text-xs font-medium ${
                 isCritical ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
             }`}
         >
-            {days} día{days !== 1 ? "s" : ""} sin actividad
+            {days} d inactivo
         </span>
     );
 };
